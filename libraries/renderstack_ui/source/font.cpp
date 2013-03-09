@@ -11,7 +11,7 @@
 # include "renderstack_ui/glyph.hpp"
 #endif
 #include "renderstack_toolkit/logstream.hpp"
-#include "rectanglebinpack/SkylineBinPack.h"
+#include "RectangleBinPack/SkylineBinPack.h"
 #include "renderstack_ui/bitmap.hpp"
 #include "renderstack_toolkit/gl.hpp"
 #include "renderstack_toolkit/strong_gl_enums.hpp"

@@ -84,7 +84,6 @@ source_group(res\\shaders\\sm0 FILES ${res_sm0})
 
 target_link_libraries(
    geometrytest
-   ${RENDERSTACK_WINDOW_TOOLKIT_LIBRARIES}
    renderstack_ui 
    renderstack_renderer
    renderstack_mesh
@@ -93,6 +92,7 @@ target_link_libraries(
    renderstack_scene
    renderstack_toolkit
    RectangleBinPack
+   ${RENDERSTACK_WINDOW_TOOLKIT_LIBRARIES}
 )
 
 if (RENDERSTACK_USE_FREETYPE)
