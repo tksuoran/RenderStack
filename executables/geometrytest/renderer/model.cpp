@@ -18,8 +18,8 @@ model::model(
    shared_ptr<geometry_mesh>  mesh,
    mat4                       transform
 )
-:  m_name(name)
-,  m_mesh(mesh)
+:  m_mesh(mesh)
+,  m_name(name)
 {
    //m_frame.name = name + " frame";
    m_frame = make_shared<renderstack::scene::frame>();

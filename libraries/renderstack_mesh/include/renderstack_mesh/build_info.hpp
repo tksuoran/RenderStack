@@ -98,8 +98,6 @@ private:
    bool m_want_texcoord;
    bool m_want_id;
 
-   bool m_keep_geometry;
-
    gl::vertex_attrib_pointer_type::value  m_position_type;
    gl::vertex_attrib_pointer_type::value  m_normal_type;
    gl::vertex_attrib_pointer_type::value  m_normal_flat_type;
@@ -108,6 +106,8 @@ private:
    gl::vertex_attrib_pointer_type::value  m_texcoord_type;
    gl::vertex_attrib_pointer_type::value  m_id_vec3_type;
    gl::vertex_attrib_pointer_type::value  m_id_uint_type;
+
+   bool m_keep_geometry;
    normal_style::value                    m_normal_style;
 };
 
@@ -136,8 +136,8 @@ public:
    void set_vertex_format(std::shared_ptr<renderstack::graphics::vertex_format> value) { m_vertex_format = value; }
 
 private:
-   normal_style::value                                   m_normal_style;
    gl::buffer_usage_hint::value                          m_usage;
+   normal_style::value                                   m_normal_style;
    std::shared_ptr<renderstack::graphics::index_buffer>  m_index_buffer;
    std::shared_ptr<renderstack::graphics::vertex_buffer> m_vertex_buffer;
    std::shared_ptr<renderstack::graphics::vertex_format> m_vertex_format;

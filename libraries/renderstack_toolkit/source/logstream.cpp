@@ -37,8 +37,16 @@ void console_init()
 
    SendMessage(hwnd, WM_SETICON, ICON_BIG, (LPARAM)(icon));
    SendMessage(hwnd, WM_SETICON, ICON_SMALL, (LPARAM)(icon));
-
 }
+#else
+void set_text_color(int c)
+{
+   (void)c;
+}
+void console_init()
+{
+}
+#endif
 static int s_log_indent = 0;
 void log_indent(int indent_amount)
 {
@@ -127,15 +135,6 @@ void log_write(log_category *cat, int level, const char *format, ...)
    ::OutputDebugStringA(buf);
 # endif
 }
-#else
-void set_text_color(int c)
-{
-   (void)c;
-}
-void console_init()
-{
-}
-#endif
 
 
 log_category graphics_buffer           (C_YELLOW,  C_GRAY, LOG_WARN);

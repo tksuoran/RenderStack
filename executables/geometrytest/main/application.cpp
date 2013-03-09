@@ -30,7 +30,7 @@ using namespace renderstack::toolkit;
 
 
 application::application()
-:  window      (512, 512, "OpenGL", 3, 0)
+:  window      (512, 512, "OpenGL", 3, 2)
 ,  m_test_mode (false)
 {
 }
@@ -89,7 +89,6 @@ void application::on_scroll(double x, double y)
    m_screen->on_scroll(x, y);
 }
 
-static void lea_program();
 
 int main(int argc, char *argv[])
 {

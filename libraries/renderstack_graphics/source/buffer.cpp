@@ -288,7 +288,7 @@ void buffer::dump() const
    for (size_t i = 0; i < count; ++i)
    {
       if (i % 16 == 0)
-         printf("%08x: ", i);
+         printf("%08x: ", static_cast<unsigned int>(i));
 
       printf("%08x ", data[i]);
 

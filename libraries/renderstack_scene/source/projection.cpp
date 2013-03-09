@@ -91,6 +91,11 @@ void projection::update(transform &transform, viewport &viewport)
          m_far
       );
       break;
+   case projection_type::stereoscopic_horizontal:
+   case projection_type::stereoscopic_vertical:
+   case projection_type::other:
+      // TODO
+      break;
 #if 0
    case projection_type::stereoscopic_horizontal:
    {

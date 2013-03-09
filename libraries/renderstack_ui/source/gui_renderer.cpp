@@ -267,7 +267,7 @@ void gui_renderer::end_edit()
 }
 void gui_renderer::set_program(shared_ptr<program> value)
 {
-   slog_trace("gui_renderer::set_program(%s)", value->name());
+   slog_trace("gui_renderer::set_program(%s)", value->name().c_str());
 
    auto rc = renderstack::renderer::context::current();
    auto r = rc->renderer();

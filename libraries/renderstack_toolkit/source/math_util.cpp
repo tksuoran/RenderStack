@@ -70,20 +70,20 @@ vec2 project_to_screen_space(
 
 vec3 const& max_axis(vec3 const &v)
 {
-   if (abs(v.x) >= abs(v.y) && abs(v.x) >= abs(v.z))
+   if (std::abs(v.x) >= std::abs(v.y) && std::abs(v.x) >= std::abs(v.z))
       return vec3_unit_x;
 
-   if (abs(v.y) >= abs(v.x) && abs(v.y) >= abs(v.z))
+   if (std::abs(v.y) >= std::abs(v.x) && std::abs(v.y) >= std::abs(v.z))
       return vec3_unit_y;
 
    return vec3_unit_z;
 }
 vec3 const& min_axis(vec3 const &v)
 {
-   if (abs(v.x) <= abs(v.y) && abs(v.x) <= abs(v.z))
+   if (std::abs(v.x) <= std::abs(v.y) && std::abs(v.x) <= std::abs(v.z))
       return vec3_unit_x;
 
-   if (abs(v.y) <= abs(v.x) && abs(v.y) <= abs(v.z))
+   if (std::abs(v.y) <= std::abs(v.x) && std::abs(v.y) <= std::abs(v.z))
       return vec3_unit_y;
 
    return vec3_unit_z;
