@@ -1,0 +1,16 @@
+// textured_gui.fs.txt (sm4)
+
+in  vec2    v_texcoord;
+
+out vec4    out_color;
+
+void main(void)
+{
+    vec4 c = texture(background_texture, v_texcoord.xy);
+    //out_color = global.color * c.rbga;
+    out_color = global.color * c;
+
+    //float inside  = c.r;
+    //float outline = c.g;
+    //out_color = vec4(inside, 0, outline, 1.0);
+}

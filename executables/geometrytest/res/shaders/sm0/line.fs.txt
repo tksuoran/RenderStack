@@ -1,0 +1,6 @@
+// line.fs.txt (sm0)
+
+void main(void)
+{
+   gl_FragColor = vec4(global_color.rgb, 1.0);
+}

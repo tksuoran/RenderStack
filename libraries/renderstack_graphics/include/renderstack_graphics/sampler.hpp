@@ -1,0 +1,36 @@
+#ifndef renderstack_graphics__sampler_hpp
+#define renderstack_graphics__sampler_hpp
+
+#include "renderstack_toolkit/platform.hpp"
+#include "renderstack_toolkit/strong_gl_enums.hpp"
+
+namespace renderstack { namespace graphics {
+
+class sampler
+{
+public:
+   sampler();
+   ~sampler();
+
+public:
+   gl::texture_min_filter::value   min_filter() const;
+   gl::texture_mag_filter::value   mag_filter() const;
+   gl::texture_wrap_mode::value    wrap() const;
+   gl::texture_compare_mode::value compare_mode() const;
+   gl::depth_function::value       compare_func() const;
+
+public:
+   void apply(unsigned int texture_unit, gl::texture_target::value bind_target);
+
+private:
+   unsigned int                    m_sampler;
+   gl::texture_min_filter::value   m_min_filter;
+   gl::texture_mag_filter::value   m_mag_filter;
+   gl::texture_wrap_mode::value    m_wrap;
+   gl::texture_compare_mode::value m_compare_mode;
+   gl::depth_function::value       m_compare_func;
+};
+
+} }
+
+#endif

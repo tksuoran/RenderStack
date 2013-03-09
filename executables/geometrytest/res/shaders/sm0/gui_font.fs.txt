@@ -1,0 +1,15 @@
+// gui_font.fs.txt (sm0)
+
+varying vec2 v_texcoord;
+
+void main(void)
+{
+   vec4 c = texture2D(font_texture, v_texcoord.xy);
+
+   float inside  = c.r;
+   float outline = c.g;
+   float alpha   = max(inside, outline);
+   vec3  color   = gui_color_scale.rgb * pow(inside, 1.0);
+
+   gl_FragColor = vec4(color, alpha);
+}

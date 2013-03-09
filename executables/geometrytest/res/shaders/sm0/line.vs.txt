@@ -1,0 +1,8 @@
+// line.vs.txt (sm0)
+
+attribute vec3 a_position;
+
+void main()
+{
+   gl_Position = global_model_to_clip * vec4(a_position, 1.0);
+}
