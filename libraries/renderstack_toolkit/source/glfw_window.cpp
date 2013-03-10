@@ -189,7 +189,7 @@ window::window(int width, int height, std::string const &title, int major, int m
    )
    {
       //::glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-      //::glfwWindowHint(GLFW_OPENGL_PROFILE,        GLFW_OPENGL_CORE_PROFILE);
+      ::glfwWindowHint(GLFW_OPENGL_PROFILE,        GLFW_OPENGL_CORE_PROFILE);
       //::glfwWindowHint(GLFW_OPENGL_PROFILE,        GLFW_OPENGL_COMPAT_PROFILE);
    }
 
