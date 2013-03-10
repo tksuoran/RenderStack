@@ -1,0 +1,21 @@
+// hsv.vs.txt (sm0)
+
+attribute vec3 a_position;
+attribute vec3 a_normal;
+attribute vec4 a_color;
+attribute vec2 a_texcoord;
+
+varying vec3 v_normal;
+varying vec4 v_color;
+varying vec2 v_texcoord;
+
+uniform mat4 model_to_clip;
+
+void main()
+{
+   gl_Position = gui_model_to_clip * vec4(a_position.xyz, 1.0);
+   v_normal    = a_normal;
+   v_color     = a_color;
+   v_texcoord  = a_texcoord;
+}
+

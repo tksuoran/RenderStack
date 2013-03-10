@@ -1,0 +1,9 @@
+// textured_gui.fs.txt (sm0)
+
+varying vec2 v_texcoord;
+
+void main(void)
+{
+   vec4 c = texture2D(background_texture, v_texcoord.xy);
+   gl_FragColor = /*global_color **/ c;
+}
