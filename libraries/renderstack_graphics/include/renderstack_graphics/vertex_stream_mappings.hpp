@@ -28,13 +28,15 @@ public:
    ~vertex_stream_mappings();
 
 public:
-   unsigned int    instance_index() const;
-   void            clear();
-   void            add(std::string const &name, vertex_attribute_usage::value usage,     unsigned int index);
-   void            add(std::string const &name, vertex_attribute_usage::value usage,     unsigned int src_index, unsigned int dst_index);
-   void            add(std::string const &name, vertex_attribute_usage::value src_usage, unsigned int src_index, vertex_attribute_usage::value dst_usage, unsigned int dst_index);
-   void            bind_attributes(vertex_stream &vertex_stream, vertex_format const &vertex_format) const;
-   void            bind_attrib_locations(program &program);
+   unsigned int   instance_index() const;
+   void           clear();
+   void           add(std::string const &name, vertex_attribute_usage::value usage,     unsigned int index);
+   void           add(std::string const &name, vertex_attribute_usage::value usage,     unsigned int src_index, unsigned int dst_index);
+   void           add(std::string const &name, vertex_attribute_usage::value src_usage, unsigned int src_index, vertex_attribute_usage::value dst_usage, unsigned int dst_index);
+
+   std::shared_ptr<class vertex_stream> make_vertex_stream(std::shared_ptr<vertex_format> vertex_format) const;
+
+   void           bind_attrib_locations(program &program);
    std::vector<std::shared_ptr<vertex_stream_mapping> > const &mappings() const { return m_mappings; }
 
 private:

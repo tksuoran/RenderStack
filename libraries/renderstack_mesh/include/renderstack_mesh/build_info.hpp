@@ -8,6 +8,7 @@
 #include "renderstack_graphics/vertex_buffer.hpp"
 #include "renderstack_graphics/vertex_format.hpp"
 #include "renderstack_graphics/vertex_stream.hpp"
+#include "renderstack_graphics/vertex_stream_mappings.hpp"
 #include "renderstack_mesh/normal_style.hpp"
 #include <cstddef>
 #include <memory>
@@ -33,15 +34,16 @@ public:
    ,  m_want_texcoord         (false)
    ,  m_want_id               (false)
    ,  m_position_type         (gl::vertex_attrib_pointer_type::float_)
-   ,  m_normal_type           (gl::vertex_attrib_pointer_type::half_float)
-   ,  m_normal_flat_type      (gl::vertex_attrib_pointer_type::half_float)
-   ,  m_normal_smooth_type    (gl::vertex_attrib_pointer_type::half_float)
-   ,  m_color_type            (gl::vertex_attrib_pointer_type::half_float)
-   ,  m_texcoord_type         (gl::vertex_attrib_pointer_type::half_float)
-   ,  m_id_vec3_type          (gl::vertex_attrib_pointer_type::half_float) // TODO: Check
+   ,  m_normal_type           (gl::vertex_attrib_pointer_type::float_)
+   ,  m_normal_flat_type      (gl::vertex_attrib_pointer_type::float_)
+   ,  m_normal_smooth_type    (gl::vertex_attrib_pointer_type::float_)
+   ,  m_color_type            (gl::vertex_attrib_pointer_type::float_)
+   ,  m_texcoord_type         (gl::vertex_attrib_pointer_type::float_)
+   ,  m_id_vec3_type          (gl::vertex_attrib_pointer_type::float_) // TODO: Check
    ,  m_id_uint_type          (gl::vertex_attrib_pointer_type::float_)     // TODO: Check
    ,  m_keep_geometry         (false)
    ,  m_normal_style          (normal_style::corner_normals)
+   ,  m_mappings              (nullptr)
    {
    }
 
@@ -56,7 +58,6 @@ public:
    bool want_color            () const { return m_want_color;            }
    bool want_texcoord         () const { return m_want_texcoord;         }
    bool want_id               () const { return m_want_id;               }
-   bool keep_geometry         () const { return m_keep_geometry;         }
 
    void set_want_fill_triangles   (bool value) { m_want_fill_triangles  = value; }
    void set_want_edge_lines       (bool value) { m_want_edge_lines      = value; }
@@ -71,8 +72,8 @@ public:
    void set_want_id               (bool value) { m_want_id              = value; }
 
    void set_keep_geometry         (bool value) { m_keep_geometry        = value; }
-
    void set_normal_style(normal_style::value value) { m_normal_style = value; }
+   void set_mappings(std::shared_ptr<renderstack::graphics::vertex_stream_mappings> value) { m_mappings = value; }
 
    gl::vertex_attrib_pointer_type::value position_type      () const { return m_position_type;      }
    gl::vertex_attrib_pointer_type::value normal_type        () const { return m_normal_type;        }
@@ -83,7 +84,9 @@ public:
    gl::vertex_attrib_pointer_type::value id_vec3_type       () const { return m_id_vec3_type;       }
    gl::vertex_attrib_pointer_type::value id_uint_type       () const { return m_id_uint_type;       }
 
+   bool keep_geometry() const { return m_keep_geometry;         }
    normal_style::value normal_style() const { return m_normal_style; }
+   std::shared_ptr<renderstack::graphics::vertex_stream_mappings> mappings() const { return m_mappings; }
 
 private:
    bool m_want_fill_triangles;
@@ -107,8 +110,9 @@ private:
    gl::vertex_attrib_pointer_type::value  m_id_vec3_type;
    gl::vertex_attrib_pointer_type::value  m_id_uint_type;
 
-   bool m_keep_geometry;
-   normal_style::value                    m_normal_style;
+   bool                                                           m_keep_geometry;
+   normal_style::value                                            m_normal_style;
+   std::shared_ptr<renderstack::graphics::vertex_stream_mappings> m_mappings;
 };
 
 class geometry_mesh_buffer_info

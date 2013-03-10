@@ -83,6 +83,9 @@ buffer::~buffer()
 
 void buffer::bind()
 {
+   // GLint vao = 0;
+   // gl::get_integer_v(GL_VERTEX_ARRAY_BINDING, &vao);
+
    bind_buffer(m_target, m_buffer_object);
 }
 

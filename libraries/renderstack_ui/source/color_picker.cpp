@@ -74,8 +74,8 @@ void color_picker::draw_self(ui_context &context)
 
    //r->push();
 
-   r->set_program(style()->background_program());
-   r->set_texture(style()->background_texture_unit(), style()->ninepatch_style()->texture());
+   r->set_program(style()->ninepatch_style()->program());
+   r->set_texture(style()->ninepatch_style()->texture_unit(), style()->ninepatch_style()->texture());
    r->begin_edit();
    r->set_transform(m_background_frame);
    r->set_color_scale(vec4(1.0f, 1.0f, 1.0f, 1.0f));
@@ -118,7 +118,7 @@ void color_picker::draw_self(ui_context &context)
       h0[0][2] = 0.0f; h0[1][2] = 0.0f; h0[2][2] = 0.0f; h0[3][2] = 0.0; // v
       h0[0][3] = 0.0f; h0[1][3] = 0.0f; h0[2][3] = 0.0f; h0[3][3] = 0.0f;
 
-      r->set_program(style()->foreground_program());
+      r->set_program(style()->program());
 
       gl::disable(gl::enable_cap::blend);
       gl::disable(gl::enable_cap::depth_test);
@@ -138,18 +138,18 @@ void color_picker::draw_self(ui_context &context)
       r->begin_edit();
       r->set_hsv_matrix(d);
       r->end_edit();
-      m_hsv_disc_mesh->render(gl::begin_mode::triangles, m_hsv_disc_mesh->fill_indices());
+      //m_hsv_disc_mesh->render(gl::begin_mode::triangles, m_hsv_disc_mesh->fill_indices());
 
       r->begin_edit();
       r->set_hsv_matrix(d2);
       r->end_edit();
-      m_hsv_disc2_mesh->render(gl::begin_mode::triangles, m_hsv_disc2_mesh->fill_indices());
+      //m_hsv_disc2_mesh->render(gl::begin_mode::triangles, m_hsv_disc2_mesh->fill_indices());
 
       r->begin_edit();
       r->set_hsv_matrix(t);
       r->set_color_add(vec4(0.0f, 0.0f, 0.0f, 0.5f));
       r->end_edit();
-      m_hsv_quad_mesh->render(gl::begin_mode::triangles, m_hsv_quad_mesh->fill_indices());
+      //m_hsv_quad_mesh->render(gl::begin_mode::triangles, m_hsv_quad_mesh->fill_indices());
 
       if (rect().hit(context.mouse))
       {

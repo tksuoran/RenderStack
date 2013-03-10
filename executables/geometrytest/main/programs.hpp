@@ -15,6 +15,7 @@ namespace renderstack
       class program;
       class uniform_block;
       class uniform_buffer;
+      class vertex_stream_mappings;
    }
 }
 
@@ -38,13 +39,14 @@ private:
    void map(std::shared_ptr<renderstack::graphics::program> program);
 
 public:
-   std::shared_ptr<renderstack::graphics::uniform_block>   block;
-   std::shared_ptr<renderstack::graphics::samplers>        samplers;
-   struct uniform_offsets                                  uniform_offsets;
-   struct uniform_offsets                                  uniform_keys;
-   std::shared_ptr<renderstack::graphics::program>         font;
-   std::shared_ptr<renderstack::graphics::program>         basic;
-   std::shared_ptr<renderstack::graphics::program>         textured_gui;
+   std::shared_ptr<renderstack::graphics::uniform_block>          block;
+   std::shared_ptr<renderstack::graphics::samplers>               samplers;
+   std::shared_ptr<renderstack::graphics::vertex_stream_mappings> mappings;
+   struct uniform_offsets                                         uniform_offsets;
+   struct uniform_offsets                                         uniform_keys;
+   std::shared_ptr<renderstack::graphics::program>                font;
+   std::shared_ptr<renderstack::graphics::program>                basic;
+   std::shared_ptr<renderstack::graphics::program>                textured;
 
 public:
    void prepare_gl_resources();

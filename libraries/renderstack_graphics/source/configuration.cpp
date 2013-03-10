@@ -387,20 +387,24 @@ void configuration::initialize()
 
    //  Shader model detection could do a lot better job that this... 
    shader_model_version = 0;
-   if (can_use.gpu_shader4) {
+   if (can_use.gpu_shader4)
       shader_model_version = 4;
-   }
+
    if (can_use.gpu_shader5)
       shader_model_version = 5;
 
    // TODO this is for debugging..
-   shader_model_version = 4;
+#if 0
+   if (shader_model_version > 4)
+      shader_model_version = 4;
 
    //can_use.map_buffer_range      = true;
-   can_use.map_buffer_range      = false;
+   //can_use.map_buffer_range      = false;
 
    //can_use.texture_rg            = false;
    can_use.uniform_buffer_object = false;
+#endif
+
 #if 0
    shader_model_version = 0;
 

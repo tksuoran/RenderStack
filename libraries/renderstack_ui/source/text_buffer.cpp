@@ -3,6 +3,7 @@
 #include "renderstack_toolkit/gl.hpp"
 #include "renderstack_toolkit/strong_gl_enums.hpp"
 #include "renderstack_toolkit/logstream.hpp"
+#include "renderstack_graphics/configuration.hpp"
 #include "renderstack_graphics/context.hpp"
 #include "renderstack_graphics/vertex_buffer.hpp"
 #include "renderstack_graphics/index_buffer.hpp"
@@ -46,38 +47,22 @@ std::shared_ptr<vertex_format> context_text_buffer::vertex_format()
    return s_vertex_format;
 }
 
-text_buffer::text_buffer(shared_ptr<class font> font)
+text_buffer::text_buffer(shared_ptr<class font> font, std::shared_ptr<renderstack::graphics::vertex_stream_mappings> mappings)
 :  m_font(font)
 ,  m_max_chars(2000)
 {
-   prepare_gl_resources();
-}
-text_buffer::~text_buffer()
-{
-   //  \todo deallocate from mesh_pool
-}
-
-
-void text_buffer::prepare_gl_resources()
-{
-   slog_trace("text_buffer::prepare_gl_resources()");
-
-   auto gc = renderstack::graphics::context::current();
    auto uc = renderstack::ui::context::current();
-   m_vertex_stream = make_shared<renderstack::graphics::vertex_stream>();
-   gc->global_vertex_stream_mappings()->bind_attributes(
-      *m_vertex_stream.get(),
-      *(uc->text_buffer().vertex_format().get())
+   m_vertex_stream = mappings->make_vertex_stream(
+      uc->text_buffer().vertex_format()
    );
+
+   if (m_mesh.index_count() > std::numeric_limits<unsigned int>::max())
+      throw std::runtime_error("font::prepare_gl_resources: no code path for index types other than unsigned int");
+
    m_vertex_stream->use();
 
    m_mesh.allocate_vertex_buffer(uc->get_2d_vertex_buffer(), 4 * m_max_chars);
    m_mesh.allocate_index_buffer(uc->get_2d_index_buffer(), 6 * m_max_chars);
-
-   m_mesh.vertex_buffer()->bind();
-
-   if (m_mesh.index_count() > std::numeric_limits<unsigned int>::max())
-      throw std::runtime_error("font::prepare_gl_resources: no code path for index types other than unsigned int");
 
    log_trace("preparing index buffer");
    m_mesh.index_buffer()->bind();
@@ -105,7 +90,21 @@ void text_buffer::prepare_gl_resources()
       vertex_index += 4;
    }
    m_mesh.index_buffer()->unmap_indices();
+
+   if (m_vertex_stream->use())
+   {
+      m_mesh.vertex_buffer()->bind();
+      m_mesh.index_buffer()->bind();
+      m_vertex_stream->setup_attribute_pointers(0);
+      gl::bind_vertex_array(0);
+   }
 }
+text_buffer::~text_buffer()
+{
+   //  \todo deallocate from mesh_pool
+}
+
+
 void text_buffer::render()
 {
    slog_trace(
@@ -114,30 +113,38 @@ void text_buffer::render()
 
    if (m_chars_printed > 0)
    {
-      m_vertex_stream->use();
-      m_mesh.vertex_buffer()->bind();
-      m_mesh.index_buffer()->bind();
-      m_vertex_stream->draw_elements_base_vertex(
-         gl::begin_mode::triangles,
-         static_cast<GLsizei>(m_chars_printed * 6), // 2 triangles = 6 indices per char
-         gl::draw_elements_type::unsigned_short,
-         0,
-         static_cast<GLint>(m_mesh.first_vertex())
-      );
+      gl::begin_mode::value         begin_mode     = gl::begin_mode::triangles;
+      GLsizei                       count          = static_cast<GLsizei>(m_chars_printed * 6); // 2 triangles = 6 indices per char
+      gl::draw_elements_type::value index_type     = gl::draw_elements_type::unsigned_short;
+      GLvoid                        *index_pointer = reinterpret_cast<GLvoid*>(m_mesh.first_index() * m_mesh.index_buffer()->index_stride());
+      GLint                         base_vertex    = static_cast<GLint>(m_mesh.first_vertex());
+
+      if (m_vertex_stream->use())
+      {
+         if (!renderstack::graphics::configuration::can_use.draw_elements_base_vertex)
+            throw std::runtime_error("not yet implemented");
+
+         gl::draw_elements_base_vertex(begin_mode, count, index_type, index_pointer, base_vertex);
+      }
+      else
+      {
+         m_mesh.vertex_buffer()->bind();
+         m_mesh.index_buffer()->bind();
+         m_vertex_stream->setup_attribute_pointers(base_vertex);
+         gl::draw_elements(begin_mode, count, index_type, index_pointer);
+      }
    }
 }
 void text_buffer::begin_print()
 {
    slog_trace("text_buffer::begin_print()");
 
-   m_vertex_stream->use();
-   m_mesh.vertex_buffer()->bind();
-
    //    size_t vertex_count = 4 * m_max_chars;
 
    //  We want to write directly to the vertex buffer but
    //  we don't yet know how many char / vertices will be
    //  written - use explicit flushing.
+   m_mesh.vertex_buffer()->bind();
    m_vertex_ptr = static_cast<float*>(
       m_mesh.vertex_buffer()->map_vertices(
          m_mesh.first_vertex(),

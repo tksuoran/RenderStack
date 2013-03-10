@@ -55,6 +55,21 @@ gui_renderer::gui_renderer()
 {
    slog_trace("gui_renderer::gui_renderer()");
 
+   m_mappings = renderstack::graphics::context::current()->make_vertex_stream_mappings("renderer s_mappings");
+   m_mappings->add("a_position",       vertex_attribute_usage::position,   0, 0);
+   m_mappings->add("a_normal",         vertex_attribute_usage::normal,     0, 1);
+   m_mappings->add("a_normal_flat",    vertex_attribute_usage::normal,     1, 2);
+   m_mappings->add("a_normal_smooth",  vertex_attribute_usage::normal,     2, 3);
+   m_mappings->add("a_color",          vertex_attribute_usage::color,      0, 4);
+   m_mappings->add("a_texcoord",       vertex_attribute_usage::tex_coord,  1, 5);
+   m_mappings->add("a_position_texcoord",
+      static_cast<vertex_attribute_usage::value>(
+         vertex_attribute_usage::position | vertex_attribute_usage::tex_coord
+      ),
+      0,
+      0
+   );
+
    m_uniform_block = renderstack::graphics::context::current()->make_uniform_block("gui");
    m_uniform_offsets.model_to_clip = m_uniform_block->add_mat4 ("model_to_clip")->offset();
    m_uniform_offsets.color_add     = m_uniform_block->add_vec4 ("color_add"    )->offset();
@@ -107,44 +122,57 @@ gui_renderer::gui_renderer()
          log_trace("GUI renderer NOT using uniform buffers");
 
       shared_ptr<samplers> global_samplers = renderstack::graphics::context::current()->global_samplers();
-      m_ninepatch_program = make_shared<renderstack::graphics::program>("ninepatch", m_glsl_version, global_samplers);
+      m_ninepatch_program = make_shared<renderstack::graphics::program>("ninepatch", m_glsl_version, global_samplers, m_mappings);
       m_ninepatch_program->add(m_uniform_block);
       m_ninepatch_program->load_vs(shader_path + "gui.vs.txt");
       m_ninepatch_program->load_fs(shader_path + "gui.fs.txt");
       m_ninepatch_program->link(); 
       map(m_ninepatch_program);
 
-      m_slider_program = make_shared<renderstack::graphics::program>("slider", m_glsl_version, global_samplers);
+      m_slider_program = make_shared<renderstack::graphics::program>("slider", m_glsl_version, global_samplers, m_mappings);
       m_slider_program->add(m_uniform_block);
-      m_slider_program->load_vs(shader_path + "slider.vs.txt");
-      m_slider_program->load_fs(shader_path + "slider.fs.txt");
+      m_slider_program->load_vs(shader_path + "gui_slider.vs.txt");
+      m_slider_program->load_fs(shader_path + "gui_slider.fs.txt");
       m_slider_program->link();
       map(m_slider_program);
 
-      m_font_program = make_shared<renderstack::graphics::program>("font", m_glsl_version, global_samplers);
+      m_font_program = make_shared<renderstack::graphics::program>("font", m_glsl_version, global_samplers, m_mappings);
       m_font_program->add(m_uniform_block);
       m_font_program->load_vs(shader_path + "gui_font.vs.txt");
       m_font_program->load_fs(shader_path + "gui_font.fs.txt");
       m_font_program->link();
       map(m_font_program);
 
-      m_hsv_program = make_shared<renderstack::graphics::program>("hsv", m_glsl_version, global_samplers);
+      m_hsv_program = make_shared<renderstack::graphics::program>("hsv", m_glsl_version, global_samplers, m_mappings);
       m_hsv_program->add(m_uniform_block);
-      m_hsv_program->load_vs(shader_path + "hsv.vs.txt");
-      m_hsv_program->load_fs(shader_path + "hsv.fs.txt");
+      m_hsv_program->load_vs(shader_path + "gui_hsv.vs.txt");
+      m_hsv_program->load_fs(shader_path + "gui_hsv.fs.txt");
       m_hsv_program->link();
       map(m_hsv_program);
    }
    catch (...)
    {
-      log_error("shaders are broken\n");
-      exit(-1);
+      log_error("shaders are broken");
+      throw std::runtime_error("gui_renderer() shaders are broken");
    }
 
    m_font = make_shared<font>("res/fonts/Ubuntu-R.ttf", 11, 1.0f);
 
-   m_button_ninepatch_style = make_shared<ninepatch_style>("res/images/button_released.png");
-   m_menulist_ninepatch_style = make_shared<ninepatch_style>("res/images/shadow.png");
+   m_button_ninepatch_style = make_shared<ninepatch_style>(
+      "res/images/button_released.png",
+      m_ninepatch_program,
+      1  // texture unit
+   );
+   m_menulist_ninepatch_style = make_shared<ninepatch_style>(
+      "res/images/shadow.png",
+      m_ninepatch_program,
+      1  // texture unit
+   );
+   m_slider_ninepatch_style = make_shared<ninepatch_style>(
+      "res/images/button_released.png",
+      m_slider_program,
+      1  // texture unit
+   );
 
    glm::vec2 zero(0.0f, 0.0f);
    glm::vec2 button_padding(26.0f, 6.0f);
@@ -157,15 +185,13 @@ gui_renderer::gui_renderer()
       inner_padding, 
       m_font, 
       m_button_ninepatch_style,
-      m_ninepatch_program, 
       m_font_program
    );
    m_slider_style = std::make_shared<style>(
       button_padding, 
       inner_padding, 
       m_font, 
-      m_button_ninepatch_style,
-      m_slider_program, 
+      m_slider_ninepatch_style,
       m_font_program
    );
    m_choice_style = make_shared<style>(
@@ -173,7 +199,6 @@ gui_renderer::gui_renderer()
       zero, 
       m_font, 
       m_button_ninepatch_style,
-      m_ninepatch_program, 
       m_font_program
    );
    m_menulist_style = make_shared<style>(
@@ -181,7 +206,6 @@ gui_renderer::gui_renderer()
       inner_padding, 
       nullptr, 
       m_menulist_ninepatch_style,
-      m_ninepatch_program, 
       nullptr
    );
    m_colorpicker_style = make_shared<style>(
@@ -189,11 +213,8 @@ gui_renderer::gui_renderer()
       inner_padding, 
       nullptr, 
       m_menulist_ninepatch_style,
-      m_ninepatch_program, 
       m_hsv_program
    );
-   m_button_style->set_background_texture_unit(1);
-   m_menulist_style->set_background_texture_unit(1);
 }
 
 void gui_renderer::prepare()

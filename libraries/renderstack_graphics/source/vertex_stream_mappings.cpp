@@ -98,35 +98,37 @@ void vertex_stream_mappings::bind_attrib_locations(program &program)
    }
 }
 
-void vertex_stream_mappings::bind_attributes(
-   vertex_stream &vertex_stream, 
-   vertex_format const &vertex_format
+std::shared_ptr<vertex_stream> vertex_stream_mappings::make_vertex_stream(
+   std::shared_ptr<vertex_format> vertex_format
 ) const
 {
+   std::shared_ptr<vertex_stream> vertex_stream = std::make_shared<class vertex_stream>();
    slog_trace("vertex_stream_mappings::bind_attributes()", m_name.c_str());
 
-   if (vertex_stream.count() != 0)
+   if (vertex_stream->count() != 0)
       throw runtime_error("this vertex stream is already bound");
 
    for (auto mapping = m_mappings.cbegin(); mapping != m_mappings.cend(); ++mapping)
    {
-      if (vertex_format.has_attribute((*mapping)->src_usage(), (*mapping)->src_index()))
+      if (vertex_format->has_attribute((*mapping)->src_usage(), (*mapping)->src_index()))
       {
-         auto attribute = vertex_format.find_attribute((*mapping)->src_usage(), (*mapping)->src_index());
+         auto attribute = vertex_format->find_attribute((*mapping)->src_usage(), (*mapping)->src_index());
 
-         log_trace("adding vertex attribute: usage = %s, data_type = %s, dimension = %u, index = %u",
+         log_trace("adding vertex attribute: name = %s, usage = %s, data_type = %s, dimension = %u, index = %u",
+            (*mapping)->name().c_str(),
             vertex_attribute_usage::desc(attribute->usage()),
             gl::enum_string(attribute->data_type()),
             static_cast<unsigned int>(attribute->dimension()),
             static_cast<unsigned int>(attribute->index()));
 
-         vertex_stream.add(
+         vertex_stream->add(
             *mapping,
             attribute,
-            vertex_format.stride()
+            vertex_format->stride()
          );
       }
    }
+   return vertex_stream;
 }
 
 } }

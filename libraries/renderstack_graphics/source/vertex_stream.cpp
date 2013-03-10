@@ -3,7 +3,9 @@
 #include "renderstack_toolkit/logstream.hpp"
 #include "renderstack_toolkit/gl.hpp"
 #include "renderstack_graphics/configuration.hpp"
+#include "renderstack_graphics/index_buffer.hpp"
 #include "renderstack_graphics/vertex_attribute.hpp"
+#include "renderstack_graphics/vertex_buffer.hpp"
 #include "renderstack_graphics/vertex_stream_binding.hpp"
 #include "renderstack_graphics/vertex_stream_mapping.hpp"
 #include "renderstack_graphics/vertex_stream.hpp"
@@ -84,7 +86,7 @@ void vertex_stream::clear()
    m_vertex_stream_bindings.clear();
 }
    
-void vertex_stream::use()
+bool vertex_stream::use()
 {
 #if defined(RENDERSTACK_USE_GLES3) || !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
    if (
@@ -96,8 +98,10 @@ void vertex_stream::use()
    )
    {
       gl::bind_vertex_array(m_vertex_array_object);
+      return true;
    }
 #endif
+   return false;
 }
 
 void vertex_stream::setup_attribute_pointers(GLint basevertex)
@@ -292,6 +296,7 @@ void vertex_stream::disable_attributes_new()
    }
 }
 
+#if 0
 void vertex_stream::draw_elements_base_vertex(
    gl::begin_mode::value         mode, 
    GLsizei                       count, 
@@ -350,6 +355,7 @@ void vertex_stream::draw_elements_base_vertex(
    throw runtime_error("draw_elements_base_vertex not supported");
 #endif
 }
+#endif
 
 } }
 

@@ -32,7 +32,6 @@ public:
    int      get_mouse_button  (int button);
    void     get_mouse_pos     (int &xpos, int &ypos);
    void     set_mouse_pos     (int xpos, int ypos);
-   void     get_scroll_offset (double &xoffset, double &yoffset);
    void     capture_mouse     (bool capture);
    bool     get_mouse_capture () const;
    void     show_cursor       (bool show);

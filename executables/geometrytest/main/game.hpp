@@ -61,8 +61,6 @@ struct controls
    float             near_;
    float             far_;
    float             aspect;
-   double            scroll_x;
-   double            scroll_y;
 
 public:
    controls()
@@ -138,7 +136,7 @@ private:
 
    std::shared_ptr<renderstack::graphics::uniform_buffer>         m_uniform_buffer;
    std::shared_ptr<renderstack::graphics::uniform_buffer_range>   m_mesh_render_uniform_buffer_range;
-   std::shared_ptr<renderstack::graphics::uniform_buffer_range>   m_font_uniform_buffer_range;
+   std::shared_ptr<renderstack::graphics::uniform_buffer_range>   m_text_uniform_buffer_range;
 
    std::vector<std::string>                        m_debug_lines;
    double                                          m_update_time;

@@ -41,11 +41,6 @@ public:
 
 public:
    std::shared_ptr<mesh> get_mesh();
-   void render(
-      gl::begin_mode::value   begin_mode,
-      index_range const       &index_range, 
-      normal_style::value     normal_style = normal_style::corner_normals
-   );
 
 public:
    void build_mesh_from_geometry(
@@ -53,12 +48,9 @@ public:
       geometry_mesh_buffer_info const &buffer_info
    );
 
-   std::shared_ptr<renderstack::graphics::vertex_format> vertex_format()
-   {
-      return m_vertex_format;
-   }
-
-   void use_vertex_stream();
+   std::shared_ptr<renderstack::graphics::vertex_format> vertex_format() { return m_vertex_format; }
+   std::shared_ptr<renderstack::graphics::vertex_stream> vertex_stream() { return m_vertex_stream; }
+   
    void setup_vertex_stream(std::shared_ptr<renderstack::graphics::vertex_stream_mappings> mappings);
 
    index_range const &fill_indices             () const { return m_fill_indices; }
@@ -75,8 +67,8 @@ public:
 private:
    std::shared_ptr<renderstack::geometry::geometry>      m_geometry;
    std::shared_ptr<renderstack::graphics::vertex_format> m_vertex_format;
+   std::shared_ptr<renderstack::graphics::vertex_stream> m_vertex_stream;
    std::shared_ptr<mesh>                                 m_mesh;
-   renderstack::graphics::vertex_stream                  m_vertex_stream;
    index_range                                           m_fill_indices;
    index_range                                           m_edge_line_indices;
    index_range                                           m_corner_point_indices;

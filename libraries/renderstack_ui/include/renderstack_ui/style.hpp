@@ -15,41 +15,25 @@ class context_style;
 
 class style
 {
-private:
-   glm::vec2                                       m_padding;
-   glm::vec2                                       m_inner_padding;
-   std::shared_ptr<class font>                     m_font;
-   std::shared_ptr<class ninepatch_style>          m_ninepatch_style;
-   std::shared_ptr<renderstack::graphics::program> m_background_program;
-   std::shared_ptr<renderstack::graphics::program> m_foreground_program;
-   unsigned int                                    m_background_texture_unit;
-   unsigned int                                    m_foreground_texture_unit;
-
 public:
-   glm::vec2 const                                 &padding                () const { return m_padding; }
-   glm::vec2 const                                 &inner_padding          () const { return m_inner_padding; }
-   std::shared_ptr<class font>                     font                    () const { return m_font; }
-   std::shared_ptr<class ninepatch_style>          ninepatch_style         () const { return m_ninepatch_style; }
-   std::shared_ptr<renderstack::graphics::program> background_program      () const { return m_background_program; }
-   std::shared_ptr<renderstack::graphics::program> foreground_program      () const { return m_foreground_program; }
-   unsigned int                                    background_texture_unit () const { return m_background_texture_unit; }
-   unsigned int                                    foreground_texture_unit () const { return m_foreground_texture_unit; }
-
-   void                                            set_background_texture_unit	(unsigned int value){ m_background_texture_unit = value; }
-   void                                            set_foreground_texture_unit	(unsigned int value){ m_foreground_texture_unit = value; }
+   glm::vec2 const                                 &padding          () const { return m_padding; }
+   glm::vec2 const                                 &inner_padding    () const { return m_inner_padding; }
+   std::shared_ptr<class font>                     font              () const { return m_font; }
+   std::shared_ptr<class ninepatch_style>          ninepatch_style   () const { return m_ninepatch_style; }
+   std::shared_ptr<renderstack::graphics::program> program           () const { return m_program; }
+   unsigned int                                    texture_unit      () const { return m_texture_unit; }
+   void                                            set_texture_unit	(unsigned int value){ m_texture_unit = value; }
 
    style(
       glm::vec2 const &padding_in, 
       glm::vec2 const &inner_padding_in
    )
-   :  m_padding                   (padding_in)
-   ,  m_inner_padding             (inner_padding_in)
-   ,  m_font                      (nullptr)
-   ,  m_ninepatch_style           (nullptr)
-   ,  m_background_program        (nullptr)
-   ,  m_foreground_program        (nullptr)
-   ,  m_background_texture_unit   (0)
-   ,  m_foreground_texture_unit   (0)
+   :  m_padding         (padding_in)
+   ,  m_inner_padding   (inner_padding_in)
+   ,  m_font            (nullptr)
+   ,  m_ninepatch_style (nullptr)
+   ,  m_program         (nullptr)
+   ,  m_texture_unit    (0)
    {
    }
 
@@ -58,19 +42,23 @@ public:
       glm::vec2 const                                 &inner_padding_in,
       std::shared_ptr<class font>                     font_in,
       std::shared_ptr<class ninepatch_style>          ninepatch_style_in,
-      std::shared_ptr<renderstack::graphics::program> background_program,
-      std::shared_ptr<renderstack::graphics::program> foreground_program
+      std::shared_ptr<renderstack::graphics::program> program
    )
-   :  m_padding                   (padding_in)
-   ,  m_inner_padding             (inner_padding_in)
-   ,  m_font                      (font_in)
-   ,  m_ninepatch_style           (ninepatch_style_in)
-   ,  m_background_program        (background_program)
-   ,  m_foreground_program        (foreground_program)
-   ,  m_background_texture_unit   (0)
-   ,  m_foreground_texture_unit   (0)
+   :  m_padding         (padding_in)
+   ,  m_inner_padding   (inner_padding_in)
+   ,  m_font            (font_in)
+   ,  m_ninepatch_style (ninepatch_style_in)
+   ,  m_program         (program)
+   ,  m_texture_unit    (0)
    {
    }
+private:
+   glm::vec2                                       m_padding;
+   glm::vec2                                       m_inner_padding;
+   std::shared_ptr<class font>                     m_font;
+   std::shared_ptr<class ninepatch_style>          m_ninepatch_style;
+   std::shared_ptr<renderstack::graphics::program> m_program;
+   unsigned int                                    m_texture_unit;
 };
 
 class context_style

@@ -83,7 +83,7 @@ slider::slider(
    float                   max
 )
 :  area           (style)
-,  m_text_buffer  (style->font())
+,  m_text_buffer  (style->font(), style->program()->mappings())
 ,  m_ninepatch    (style->ninepatch_style())
 ,  m_label        (label)
 ,  m_min_value    (min)
@@ -107,14 +107,10 @@ void slider::update_size()
    {
       if (style()->font())
       {
-         m_text_buffer.begin_print();
          m_text_buffer.measure(m_label + ": 180.99");
-         m_text_buffer.end_print();
          m_bounds = m_text_buffer.bounding_box();
 
-         set_fill_base_pixels(
-            m_bounds.max() + 2.0f * style()->padding()
-         );
+         set_fill_base_pixels(m_bounds.max() + 2.0f * style()->padding());
       }
       else
       {
@@ -161,8 +157,8 @@ void slider::draw_self(ui_context &context)
 
    //r->push();
 
-   r->set_program(style()->background_program());
-   r->set_texture(style()->background_texture_unit(), style()->ninepatch_style()->texture());
+   r->set_program(style()->ninepatch_style()->program());
+   r->set_texture(style()->ninepatch_style()->texture_unit(), style()->ninepatch_style()->texture());
    r->begin_edit();
    r->set_transform(m_background_frame);
    r->set_color_scale(vec4(1.0f, 1.0f, 1.0f, 1.0f));
@@ -209,8 +205,8 @@ void slider::draw_self(ui_context &context)
    {
       gl::enable(gl::enable_cap::blend);
       r->begin_edit();
-      r->set_program(style()->foreground_program());
-      r->set_texture(style()->foreground_texture_unit(), style()->font()->texture());
+      r->set_program(style()->program());
+      r->set_texture(style()->texture_unit(), style()->font()->texture());
       r->set_color_add  (vec4(0.00f, 0.00f, 0.00f, 0.0f));
       r->set_color_scale(vec4(0.72f, 0.72f, 0.72f, 2.0f));
       r->set_transform(m_text_frame);

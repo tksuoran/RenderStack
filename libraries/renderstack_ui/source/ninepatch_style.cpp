@@ -16,16 +16,23 @@ using namespace gl;
 using namespace renderstack::graphics;
 
 //mesh *ninepatch::s_shared_indices = nullptr;
-ninepatch_style::ninepatch_style(std::string const &path)
-:  m_border_uv(0.25f, 0.25f)
+ninepatch_style::ninepatch_style(
+   std::string const &path,
+   std::shared_ptr<renderstack::graphics::program> program,
+   int texture_unit
+)
+:  m_border_uv    (0.25f, 0.25f)
+,  m_program      (program)
+,  m_texture_unit (texture_unit)
 {
    slog_trace("ninepatch_style::ninepatch_style(path = %s)", path.c_str());
 
-   gl::gen_textures(1, &m_texture);
-   gl::active_texture(gl::texture_unit::texture0);
-   gl::bind_texture(gl::texture_target::texture_2d, m_texture);
-
+   if (path.length() > 0)
    {
+      gl::gen_textures(1, &m_texture);
+      gl::active_texture(gl::texture_unit::texture0);
+      gl::bind_texture(gl::texture_target::texture_2d, m_texture);
+
       unsigned char* data = nullptr;
       unsigned int w;
       unsigned int h;
@@ -40,10 +47,10 @@ ninepatch_style::ninepatch_style(std::string const &path)
       gl::tex_parameter_i(gl::texture_target::texture_2d, gl::texture_parameter_name::texture_mag_filter, gl::texture_mag_filter::nearest);
       m_border_pixels.x = m_border_uv.x * (float)w;
       m_border_pixels.y = m_border_uv.y * (float)h;
-   }
 
-   gl::tex_parameter_i(gl::texture_target::texture_2d, gl::texture_parameter_name::texture_min_filter, gl::texture_min_filter::nearest);
-   gl::tex_parameter_i(gl::texture_target::texture_2d, gl::texture_parameter_name::texture_mag_filter, gl::texture_mag_filter::nearest);
+      gl::tex_parameter_i(gl::texture_target::texture_2d, gl::texture_parameter_name::texture_min_filter, gl::texture_min_filter::nearest);
+      gl::tex_parameter_i(gl::texture_target::texture_2d, gl::texture_parameter_name::texture_mag_filter, gl::texture_mag_filter::nearest);
+   }
 }
 
 unsigned int ninepatch_style::texture() const

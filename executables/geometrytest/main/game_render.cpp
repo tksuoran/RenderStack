@@ -67,14 +67,14 @@ void game::render_ui()
    glm::vec4 white(1.0f, 1.0f, 1.0f, 0.66f); // gamma in 4th component
    if (use_uniform_buffers)
    {
-      if (m_mesh_render_uniform_buffer_range)
+      if (m_text_uniform_buffer_range)
       {
          uniform_offsets &o = m_programs->uniform_offsets;
-         m_mesh_render_uniform_buffer_range->bind(m_programs->block->binding_point());
-         unsigned char *start = m_mesh_render_uniform_buffer_range->begin_edit();
+         m_text_uniform_buffer_range->bind(m_programs->block->binding_point());
+         unsigned char *start = m_text_uniform_buffer_range->begin_edit();
          ::memcpy(&start[o.model_to_clip],   value_ptr(ortho), 16 * sizeof(float));
          ::memcpy(&start[o.color],           value_ptr(white), 4 * sizeof(float));
-         m_mesh_render_uniform_buffer_range->end_edit();
+         m_text_uniform_buffer_range->end_edit();
       }
    }
    else
@@ -136,25 +136,24 @@ void game::render_meshes()
       (m_programs->glsl_version() >= 140) &&
       (renderstack::graphics::configuration::shader_model_version >= 4);
 
-   gl::enable(gl::enable_cap::cull_face);
-   size_t count = m_models.size();
-   float x = -float(count - 1);
+   //gl::enable(gl::enable_cap::cull_face);
+   gl::disable(gl::enable_cap::cull_face);
+
+   auto p = m_programs->basic;
+   p->use();
 
    for (auto i = m_models.cbegin(); i != m_models.cend(); ++i)
    {
-      auto model = *i;
+      auto model           = *i;
       mat4 model_transform = model->frame()->world_from_local().matrix();
-
-      mat4 mvp = m_controls.view_projection * model_transform;
-
-      auto mesh = model->mesh();
-      auto p = m_programs->basic;
-      p->use();
+      mat4 mvp             = m_controls.view_projection * model_transform;
+      auto geometry_mesh   = model->geometry_mesh();
+      auto vertex_stream   = geometry_mesh->vertex_stream();
+      auto mesh            = geometry_mesh->get_mesh();
 
       glm::vec4 fill_color(1.0f, 1.0f, 1.0f, 1.0f);
       if (use_uniform_buffers)
       {
-         // TODO Decide what uniform buffers to use
          if (m_mesh_render_uniform_buffer_range)
          {
             m_mesh_render_uniform_buffer_range->bind(m_programs->block->binding_point());
@@ -171,15 +170,33 @@ void game::render_meshes()
          gl::uniform_4fv(p->uniform_at(m_programs->uniform_keys.color), 1, value_ptr(fill_color));
       }
 
-      mesh->use_vertex_stream();
-      mesh->get_mesh()->vertex_buffer()->bind();
-      mesh->get_mesh()->index_buffer()->bind();
+      //gl::polygon_offset(1.0f, 1.0f);
+      //gl::enable(gl::enable_cap::polygon_offset_fill);
 
-      gl::polygon_offset(1.0f, 1.0f);
-      gl::enable(gl::enable_cap::polygon_offset_fill);
-      mesh->render(gl::begin_mode::triangles, mesh->fill_indices(), normal_style::corner_normals);
-      gl::disable(gl::enable_cap::polygon_offset_fill);
+      gl::begin_mode::value         begin_mode     = gl::begin_mode::triangles;
+      index_range const             &index_range   = geometry_mesh->fill_indices();
+      GLsizei                       count          = static_cast<GLsizei>(index_range.index_count);
+      gl::draw_elements_type::value index_type     = gl::draw_elements_type::unsigned_int;
+      GLvoid                        *index_pointer = reinterpret_cast<GLvoid*>(index_range.first_index + mesh->first_index() * sizeof(unsigned int));
+      GLint                         base_vertex    = static_cast<GLint>(mesh->first_vertex());
 
+      if (vertex_stream->use())
+      {
+         if (!configuration::can_use.draw_elements_base_vertex)
+            throw std::runtime_error("not yet implemented");
+         gl::draw_elements_base_vertex(begin_mode, count, index_type, index_pointer, base_vertex);
+      }
+      else
+      {
+         mesh->vertex_buffer()->bind();
+         mesh->index_buffer()->bind();
+         vertex_stream->setup_attribute_pointers(base_vertex);
+         gl::draw_elements(begin_mode, count, index_type, index_pointer);
+      }
+
+      //gl::disable(gl::enable_cap::polygon_offset_fill);
+
+#if 0
       glm::vec4 line_color(0.5f, 0.5f, 0.5f, 1.0f);
       if (use_uniform_buffers)
       {
@@ -195,9 +212,13 @@ void game::render_meshes()
       {
          gl::uniform_4fv(p->uniform_at(m_programs->uniform_keys.color), 1, value_ptr(line_color));
       }
-      mesh->render(gl::begin_mode::lines, mesh->edge_line_indices(), normal_style::corner_normals);
 
-      x += 2.0f;
+      mesh->vertex_stream().use();
+      mesh->get_mesh()->vertex_buffer()->bind();
+      mesh->get_mesh()->index_buffer()->bind();
+      mesh->vertex_stream().setup_attribute_pointers();
+      mesh->render(gl::begin_mode::lines, mesh->edge_line_indices(), normal_style::corner_normals);
+#endif
    }
 }
 void game::render()
@@ -224,8 +245,10 @@ void game::render()
 
    render_meshes();
 
+#if 0
    if (m_text_buffer)
       render_ui();
+#endif
 
 #if 1
    if ((m_controls.mouse_locked == false) && m_root_layer)

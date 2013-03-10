@@ -13,6 +13,7 @@ log_category gl_functions(C_DARK_GREEN, C_GRAY, LOG_TRACE);
 
 
 // #define LOG_GL             1
+// #define LOG_GL_VAO         1
 // #define LOG_GL_BUFFER      1
 // #define LOG_GL_MAP_BUFFER  1
 // #define LOG_GL_ATTRIB      1
@@ -56,6 +57,9 @@ const char *enum_string(GLenum e)
    //case GL_2_BYTES           : return "GL_2_BYTES";
    //case GL_3_BYTES           : return "GL_3_BYTES";
    //case GL_4_BYTES           : return "GL_4_BYTES";
+
+   case GL_HALF_FLOAT        : return "GL_HALF_FLOAT";
+
 #if !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
    case GL_DOUBLE            : return "GL_DOUBLE";
 #endif
@@ -2266,7 +2270,7 @@ void flush_mapped_buffer_range(GLenum target, GLintptr offset, GLsizeiptr length
 #if defined(RENDERSTACK_USE_GLES3) || !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
 void bind_vertex_array(GLuint array_)
 {
-#if defined(LOG_GL) || defined(LOG_GL_ATTRIB)
+#if defined(LOG_GL) || defined(LOG_GL_ATTRIB) || defined(LOG_GL_VAO)
    log_trace("bind_vertex_array(array = %u)", array_);
 #endif
    assert(gl::detail::glBindVertexArray != nullptr);
@@ -2275,7 +2279,7 @@ void bind_vertex_array(GLuint array_)
 }
 void delete_vertex_arrays(GLsizei n, const GLuint *arrays)
 {
-#if defined(LOG_GL) || defined(LOG_GL_ATTRIB)
+#if defined(LOG_GL) || defined(LOG_GL_ATTRIB) || defined(LOG_GL_VAO)
    log_trace("delete_vertex_arrays(n = %u, arrays = %p)",
       static_cast<unsigned int>(n), arrays);
 #endif
@@ -2285,13 +2289,13 @@ void delete_vertex_arrays(GLsizei n, const GLuint *arrays)
 }
 void gen_vertex_arrays(GLsizei n, GLuint *arrays)
 {
-#if defined(LOG_GL) || defined(LOG_GL_ATTRIB)
+#if defined(LOG_GL) || defined(LOG_GL_ATTRIB) || defined(LOG_GL_VAO)
    slog_trace("gen_vertex_arrays(n = %u, arrays = %p)", 
       static_cast<unsigned int>(n), arrays);
 #endif
    assert(gl::detail::glGenVertexArrays != nullptr);
    gl::detail::glGenVertexArrays(n, arrays);
-#if defined(LOG_GL) || defined(LOG_GL_ATTRIB)
+#if defined(LOG_GL) || defined(LOG_GL_ATTRIB) || defined(LOG_GL_VAO)
    if (n > 0 && arrays)
       log_trace(":%u", arrays[0]);
 #endif
@@ -2299,7 +2303,7 @@ void gen_vertex_arrays(GLsizei n, GLuint *arrays)
 }
 GLboolean is_vertex_array(GLuint a)
 {
-#if defined(LOG_GL) || defined(LOG_GL_ATTRIB)
+#if defined(LOG_GL) || defined(LOG_GL_ATTRIB) || defined(LOG_GL_VAO)
    log_trace("is_vertex_array(array = %u)", a);
 #endif
 

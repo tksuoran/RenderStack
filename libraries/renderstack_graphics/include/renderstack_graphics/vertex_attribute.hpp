@@ -14,16 +14,17 @@ class vertex_attribute_usage
 public:
    enum value
    {
-      none            =   0,
-      position        =   1,
-      tangent         =   2,
-      normal          =   4,
-      bitangent       =   8,
-      color           =  16,
-      weights         =  32,
-      matrix_indices  =  64,
-      tex_coord       = 128,
-      id              = 256,
+      none              =   0,
+      position          =   1,
+      tangent           =   2,
+      normal            =   4,
+      bitangent         =   8,
+      color             =  16,
+      weights           =  32,
+      matrix_indices    =  64,
+      tex_coord         = 128,
+      id                = 256,
+      //position_texcoord =   1 | 128,
    };
    static const char *desc(enum value);
 };

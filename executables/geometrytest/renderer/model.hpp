@@ -18,15 +18,15 @@ public:
       glm::mat4 transform
    );
 
-   std::shared_ptr<renderstack::scene::frame>         frame() const { return m_frame; }
-   std::string const                                  &name() { return m_name; }
-   std::shared_ptr<renderstack::mesh::geometry_mesh>  mesh() { return m_mesh; }
-   void                                               set_mesh(std::shared_ptr<renderstack::mesh::geometry_mesh> value) { m_mesh = value; }
+   std::shared_ptr<renderstack::scene::frame> frame() const { return m_frame; }
+   std::string const &name() { return m_name; }
+   std::shared_ptr<class renderstack::mesh::geometry_mesh> geometry_mesh() { return m_geometry_mesh; }
+   void set_geometry_mesh(std::shared_ptr<renderstack::mesh::geometry_mesh> value) { m_geometry_mesh = value; }
 
 private:
-   std::shared_ptr<renderstack::scene::frame>         m_frame;
-   std::shared_ptr<renderstack::mesh::geometry_mesh>  m_mesh;
-   std::string                                        m_name;
+   std::shared_ptr<renderstack::scene::frame>               m_frame;
+   std::shared_ptr<class renderstack::mesh::geometry_mesh>  m_geometry_mesh;
+   std::string                                              m_name;
 };
 
 #endif

@@ -45,6 +45,7 @@ geometry_mesh::geometry_mesh(
    geometry_mesh_buffer_info const              &buffer_info
 )
 :  m_geometry(geometry)
+,  m_vertex_stream(nullptr)
 {
    build_mesh_from_geometry(format_info, buffer_info);
 }
@@ -54,6 +55,7 @@ geometry_mesh::geometry_mesh(
    normal_style::value                         normal_style
 )
 :  m_geometry(geometry)
+,  m_vertex_stream(nullptr)
 {
    geometry_mesh_format_info format_info;
    geometry_mesh_buffer_info buffer_info;
@@ -294,6 +296,15 @@ void geometry_mesh::build_mesh_from_geometry(
    if (format_info.want_centroid_points())
       total_index_count += mi.index_count_centroid_points;
 
+   // Prepare VAO, part 1. 
+   setup_vertex_stream(format_info.mappings());
+   vertex_stream()->use();
+   // Can't do these yet as we don't have vbo / ibo yet as we are just about to create them.
+   // We do need to make sure that we have a right VAO bound when we create them though.
+   //    get_mesh()->vertex_buffer()->bind();
+   //    get_mesh()->index_buffer()->bind();
+   //    vertex_stream()->setup_attribute_pointers(0);
+
    if (buffer_info.vertex_buffer())
    {
       // Shared VBO given, allocate space from that
@@ -334,6 +345,12 @@ void geometry_mesh::build_mesh_from_geometry(
       m_mesh->allocate_index_buffer(4, total_index_count);
    }
    m_mesh->index_buffer()->bind();
+
+   // Prepare VAO, part 2. VAO, VBO and IBO are all bound so just setting pointers to do
+   if (vertex_stream()->use())
+   {
+      vertex_stream()->setup_attribute_pointers(0);
+   }
 
    // prepare index buffers
    if (format_info.want_fill_triangles())
@@ -583,32 +600,14 @@ void geometry_mesh::build_mesh_from_geometry(
    check_memory_system();
 }
 
-void geometry_mesh::use_vertex_stream()
+/*void geometry_mesh::use_vertex_stream()
 {
    m_vertex_stream.use();
-}
+}*/
 
 void geometry_mesh::setup_vertex_stream(shared_ptr<renderstack::graphics::vertex_stream_mappings> mappings)
 {
-   mappings->bind_attributes(m_vertex_stream, *(vertex_format().get()));
-}
-
-void geometry_mesh::render(
-   gl::begin_mode::value   begin_mode,
-   index_range const       &index_range, 
-   normal_style::value     normal_style
-)
-{
-   (void)normal_style; // TODO
-   m_vertex_stream.draw_elements_base_vertex(
-      begin_mode,
-      static_cast<GLsizei>(index_range.index_count),
-      gl::draw_elements_type::unsigned_int,
-      (
-         index_range.first_index + get_mesh()->first_index()
-      ) * sizeof(unsigned int),
-      static_cast<GLint>(get_mesh()->first_vertex())
-   );
+   m_vertex_stream = mappings->make_vertex_stream(vertex_format());
 }
 
 static inline void write(

@@ -182,13 +182,13 @@ program::program(string const &name, int glsl_version, shared_ptr<class samplers
 ,  m_glsl_version (glsl_version)
 ,  m_program      (0)
 ,  m_samplers     (samplers)
+,  m_mappings     (mappings)
 {
    m_program = gl::create_program();
 
-   if (mappings)
-      mappings->bind_attrib_locations(*this);
-   else
-      context::current()->global_vertex_stream_mappings()->bind_attrib_locations(*this);
+   assert(mappings);
+
+   mappings->bind_attrib_locations(*this);
 }
 
 void program::bind_attrib_location(int location, string const name)
@@ -608,10 +608,9 @@ void program::link()
 
       if (index >= 0)
       {
-         //Trace.WriteLine("\tUniform " + name + " index " + index);
          string name_str(&buffer[0], static_cast<size_t>(length));
 
-         cout << "name = " << &buffer[0] << " index = " << index << " name_str = " << name_str << "\n";
+         // cout << "name = " << &buffer[0] << " index = " << index << " name_str = " << name_str << "\n";
 
          m_uniforms[name_str] = make_shared<class uniform>(
             name_str,

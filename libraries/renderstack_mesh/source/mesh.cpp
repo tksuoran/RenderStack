@@ -22,12 +22,12 @@ mesh::mesh()
 {
 }
 
-shared_ptr<renderstack::graphics::vertex_buffer> mesh::vertex_buffer() const { return m_vertex_buffer; }
-shared_ptr<renderstack::graphics::index_buffer> mesh::index_buffer() const { return m_index_buffer; }
-size_t mesh::first_vertex() const { return m_first_vertex; }
-size_t mesh::first_index () const { return m_first_index; }
-size_t mesh::vertex_count() const { return m_vertex_count; }
-size_t mesh::index_count () const { return m_index_count; }
+shared_ptr<renderstack::graphics::vertex_buffer> mesh::vertex_buffer() const { assert(this); return m_vertex_buffer; }
+shared_ptr<renderstack::graphics::index_buffer> mesh::index_buffer() const { assert(this); return m_index_buffer; }
+size_t mesh::first_vertex() const { assert(this); return m_first_vertex; }
+size_t mesh::first_index () const { assert(this); return m_first_index; }
+size_t mesh::vertex_count() const { assert(this); return m_vertex_count; }
+size_t mesh::index_count () const { assert(this); return m_index_count; }
 
 
 void mesh::allocate_vertex_buffer(

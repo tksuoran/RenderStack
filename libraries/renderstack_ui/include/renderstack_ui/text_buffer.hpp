@@ -4,6 +4,7 @@
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_graphics/vertex_stream.hpp"
 #include "renderstack_graphics/vertex_format.hpp"
+#include "renderstack_graphics/vertex_stream_mappings.hpp"
 #include "renderstack_mesh/mesh.hpp"
 #include "renderstack_ui/rectangle.hpp"
 #include "renderstack_ui/font.hpp"
@@ -15,26 +16,18 @@ namespace renderstack { namespace ui {
 
 class context_text_buffer
 {
+public:
+   std::shared_ptr<renderstack::graphics::vertex_format>  vertex_format();
+
 private:
    std::shared_ptr<renderstack::graphics::vertex_format>  s_vertex_format;
 
-public:
-   std::shared_ptr<renderstack::graphics::vertex_format>  vertex_format();
 };
 
 class text_buffer
 {
-private:
-   std::shared_ptr<class font>                           m_font;
-   unsigned int                                          m_max_chars;
-   rectangle                                             m_bounding_box;
-   renderstack::mesh::mesh                               m_mesh;
-   std::shared_ptr<renderstack::graphics::vertex_stream> m_vertex_stream;
-   float                                                 *m_vertex_ptr;
-   std::size_t                                           m_chars_printed;
-
 public:
-   text_buffer(std::shared_ptr<class font> font);
+   text_buffer(std::shared_ptr<class font> font, std::shared_ptr<renderstack::graphics::vertex_stream_mappings> mappings);
    ~text_buffer();
 
    rectangle const &bounding_box() const { return m_bounding_box;}
@@ -47,7 +40,13 @@ public:
    void            render       ();
 
 private:
-   void prepare_gl_resources();
+   std::shared_ptr<class font>                           m_font;
+   unsigned int                                          m_max_chars;
+   rectangle                                             m_bounding_box;
+   renderstack::mesh::mesh                               m_mesh;
+   std::shared_ptr<renderstack::graphics::vertex_stream> m_vertex_stream;
+   float                                                 *m_vertex_ptr;
+   std::size_t                                           m_chars_printed;
 };
 
 } }

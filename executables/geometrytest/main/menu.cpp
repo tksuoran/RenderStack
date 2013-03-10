@@ -43,9 +43,9 @@ using namespace renderstack::ui;
 using namespace renderstack::toolkit;
 
 //#define DEBUG_FONT
-#define RENDER_TEXT
-#define RENDER_BACKGROUND
-#define RENDER_GUI
+#define RENDER_TEXT        1
+#define RENDER_BACKGROUND  1
+#define RENDER_GUI         1
 
 menu::menu()
 {
@@ -92,6 +92,11 @@ void menu::on_load()
 {
    slog_trace("menu::on_load()");
 
+#if defined(RENDER_TEXT) || defined(DEBUG_FONT) 
+   m_font = make_shared<font>("res/fonts/Ubuntu-R.ttf", 48, 4.0f);
+   m_text_buffer = make_shared<text_buffer>(m_font, m_programs->font->mappings());
+#endif
+
    if (renderstack::graphics::configuration::can_use.uniform_buffer_object)
    {
       m_uniform_buffer = make_shared<uniform_buffer>(m_programs->block->size());
@@ -100,6 +105,10 @@ void menu::on_load()
          m_uniform_buffer
       );
    }
+
+   auto p = m_programs->textured;
+   auto m = p->mappings();
+   auto uc = renderstack::ui::context::current();
 
    m_vertex_format = make_shared<renderstack::graphics::vertex_format>();
    m_vertex_format->make_attribute(
@@ -113,33 +122,17 @@ void menu::on_load()
       false
    );
 
-   m_vertex_stream = make_shared<vertex_stream>();
-
-#if defined(RENDER_TEXT) || defined(DEBUG_FONT)
-   m_font = make_shared<font>("res/fonts/Ubuntu-R.ttf", 48, 4.0f);
-   m_text_buffer = make_shared<text_buffer>(m_font);
-#endif
-
-   auto gc = renderstack::graphics::context::current();
-   auto uc = renderstack::ui::context::current();
-
-#if defined(RENDER_BACKGROUND)
-   gc->global_vertex_stream_mappings()->bind_attributes(
-      *m_vertex_stream.get(),
-      *m_vertex_format.get()
-   );
+   m_vertex_stream = m->make_vertex_stream(m_vertex_format);
    m_vertex_stream->use();
 
+#if defined(RENDER_BACKGROUND)
    m_mesh = make_shared<renderstack::mesh::mesh>();
-
    m_mesh->allocate_vertex_buffer(uc->get_2d_vertex_buffer(), 4);
    m_mesh->allocate_index_buffer(uc->get_2d_index_buffer(), 6);
 
-   m_mesh->vertex_buffer()->bind();
-   m_mesh->index_buffer()->bind();
-
    /*  Write indices for one quad  */
    {
+      m_mesh->index_buffer()->bind();
       unsigned short *start = static_cast<unsigned short *>(
          m_mesh->index_buffer()->map_indices(
          m_mesh->first_index(), 
@@ -159,6 +152,13 @@ void menu::on_load()
       *ptr++ = 1;
       *ptr++ = 2;
       m_mesh->index_buffer()->unmap_indices();
+   }
+
+   if (m_vertex_stream->use())
+   {
+      m_mesh->vertex_buffer()->bind();
+      m_mesh->index_buffer()->bind();
+      m_vertex_stream->setup_attribute_pointers(0);
    }
 #endif
 
@@ -230,14 +230,13 @@ void menu::on_resize(int width, int height)
       ::memcpy(&start[o.model_to_clip],   value_ptr(ortho), 16 * sizeof(float));
       ::memcpy(&start[o.color],           value_ptr(white),  4 * sizeof(float));
       m_uniform_buffer_range->end_edit();
-
    }
    else
    {
 
 #if defined(RENDER_BACKGROUND)
       {
-         auto p = m_programs->textured_gui;
+         auto p = m_programs->textured;
          p->use();
          gl::uniform_matrix_4fv(p->uniform_at(m_programs->uniform_keys.model_to_clip), 1, GL_FALSE, value_ptr(ortho));
          gl::uniform_4fv       (p->uniform_at(m_programs->uniform_keys.color        ), 1, value_ptr(white));
@@ -257,7 +256,6 @@ void menu::on_resize(int width, int height)
 #if defined(RENDER_BACKGROUND)
    {
       /*  Write corner vertices for one quad  */
-      m_vertex_stream->use();
       m_mesh->vertex_buffer()->bind();
       float *ptr = (float*)m_mesh->vertex_buffer()->map_vertices(
          m_mesh->first_vertex(),
@@ -287,16 +285,19 @@ void menu::on_resize(int width, int height)
 #endif
 
 #if defined(RENDER_TEXT)
-   std::string title = "Hello, World!";
-   //std::string title = "The quick brown fox jumps over the lazy dog. 1234567890";
-   //std::string title = "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG. 1234567890";
-   //std::string title = "Volumetric Elements";
-   float x  = std::floor(w / 2.0f);
-   float y  = std::ceil(3.0f * h / 4.0f);
+   if (m_text_buffer)
+   {
+      std::string title = "Hello, World!";
+      //std::string title = "The quick brown fox jumps over the lazy dog. 1234567890";
+      //std::string title = "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG. 1234567890";
+      //std::string title = "Volumetric Elements";
+      float x  = std::floor(w / 2.0f);
+      float y  = std::ceil(3.0f * h / 4.0f);
 
-   m_text_buffer->begin_print();
-   m_text_buffer->print_center(title, x, y);
-   m_text_buffer->end_print();
+      m_text_buffer->begin_print();
+      m_text_buffer->print_center(title, x, y);
+      m_text_buffer->end_print();
+   }
 #endif
 }
 void menu::update()
@@ -368,7 +369,7 @@ void menu::render()
 #if defined(RENDER_BACKGROUND) || defined(DEBUG_FONT)
    if (m_textures)
    {
-      auto p = m_programs->textured_gui;
+      auto p = m_programs->textured;
       p->use();
 
       active_texture(gl::texture_unit::texture0 + 1);
@@ -386,36 +387,40 @@ void menu::render()
       tex_parameter_i(texture_target::texture_2d, texture_parameter_name::texture_wrap_s,     gl::texture_wrap_mode::clamp_to_edge);
       tex_parameter_i(texture_target::texture_2d, texture_parameter_name::texture_wrap_t,     gl::texture_wrap_mode::clamp_to_edge);
 
-      //  1.) Bind vertex stream (vertex array object)
       assert(m_vertex_stream);
-
-      m_vertex_stream->use();
-
-      //  2.) Bind VBO. This makes sure VAO has the right VBO
       assert(m_mesh);
 
-      m_mesh->vertex_buffer()->bind();
-      m_mesh->index_buffer()->bind();
+      gl::begin_mode::value         begin_mode     = gl::begin_mode::triangles;
+      GLsizei                       count          = 6;
+      gl::draw_elements_type::value index_type     = gl::draw_elements_type::unsigned_short;
+      size_t                        first_index    = m_mesh->first_index();
+      GLvoid                        *index_pointer = reinterpret_cast<GLvoid*>(first_index * sizeof(unsigned short));
+      GLint                         base_vertex    = static_cast<GLint>(m_mesh->first_vertex());
 
-      //  3.) Issue draw call
-      m_vertex_stream->draw_elements_base_vertex(
-         gl::begin_mode::triangles,
-         6,
-         gl::draw_elements_type::unsigned_short,
-         0,
-         m_mesh->first_vertex()
-      );
+      if (m_vertex_stream->use())
+      {
+         if (!configuration::can_use.draw_elements_base_vertex)
+            throw std::runtime_error("not yet implemented");
+         gl::draw_elements_base_vertex(begin_mode, count, index_type, index_pointer, base_vertex);
+      }
+      else
+      {
+         m_mesh->vertex_buffer()->bind();
+         m_mesh->index_buffer()->bind();
+         m_vertex_stream->setup_attribute_pointers(base_vertex);
+         gl::draw_elements(begin_mode, count, index_type, index_pointer);
+      }
    }
 #endif
 
 #if defined(RENDER_TEXT)
+   if (m_text_buffer)
    {
       auto p = m_programs->font;
 
       p->use();
 
       assert(m_font);
-      assert(m_text_buffer);
 
       enable(gl::enable_cap::blend);
       active_texture(GL_TEXTURE0);
@@ -427,7 +432,7 @@ void menu::render()
    }
 #endif
 
-#if defined(RENDER_GUI)
+#if defined(RENDER_GUI) 
    {
       ui_context c;
       int iw = m_application->width();

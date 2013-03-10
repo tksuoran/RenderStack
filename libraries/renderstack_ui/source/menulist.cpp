@@ -31,8 +31,8 @@ void menulist::draw_self(ui_context &context)
 
    gl::enable(gl::enable_cap::blend);
 
-   r->set_program(style()->background_program());
-   r->set_texture(style()->background_texture_unit(), style()->ninepatch_style()->texture());
+   r->set_program(style()->ninepatch_style()->program());
+   r->set_texture(style()->ninepatch_style()->texture_unit(), style()->ninepatch_style()->texture());
    r->begin_edit();
    r->set_transform(m_background_frame);
    if (rect().hit(context.mouse))

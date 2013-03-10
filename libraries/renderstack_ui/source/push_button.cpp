@@ -19,8 +19,8 @@ void push_button::draw_self(ui_context &context)
    // Renderer.Push();
 
    //  First draw ninepatch
-   r->set_program(style()->background_program());
-   r->set_texture(style()->background_texture_unit(), style()->ninepatch_style()->texture());
+   r->set_program(style()->ninepatch_style()->program());
+   r->set_texture(style()->ninepatch_style()->texture_unit(), style()->ninepatch_style()->texture());
    r->begin_edit();
    r->set_transform(background_frame());
    r->set_color_scale(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
@@ -72,8 +72,8 @@ void push_button::draw_self(ui_context &context)
    {
       gl::enable(gl::enable_cap::blend);
       r->begin_edit();
-      r->set_program(style()->foreground_program());
-      r->set_texture(style()->foreground_texture_unit(), style()->font()->texture());
+      r->set_program(style()->program());
+      r->set_texture(style()->texture_unit(), style()->font()->texture());
       r->set_color_add(glm::vec4(0.00f, 0.00f, 0.00f, 0.0f));
 
       if (m_pressed)

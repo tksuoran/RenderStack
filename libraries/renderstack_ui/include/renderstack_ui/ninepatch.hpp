@@ -34,9 +34,6 @@ public:
 
    void place(float x0, float y0, float width, float height);
    void render();
-
-private:
-   void prepare_gl_resources();
 };
 
 class context_ninepatch

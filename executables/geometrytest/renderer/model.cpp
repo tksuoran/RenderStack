@@ -14,11 +14,11 @@ model::model(string const &name)
    m_frame = make_shared<renderstack::scene::frame>();
 }
 model::model(
-   string const               &name,
-   shared_ptr<geometry_mesh>  mesh,
-   mat4                       transform
+   string const &name,
+   shared_ptr<class geometry_mesh> geometry_mesh,
+   mat4 transform
 )
-:  m_mesh(mesh)
+:  m_geometry_mesh(geometry_mesh)
 ,  m_name(name)
 {
    //m_frame.name = name + " frame";

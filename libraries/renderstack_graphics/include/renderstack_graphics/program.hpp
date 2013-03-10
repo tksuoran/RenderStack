@@ -20,10 +20,12 @@ public:
       std::string const                               &name, 
       int                                             glsl_version, 
       std::shared_ptr<class samplers>                 samplers,
-      std::shared_ptr<class vertex_stream_mappings>   mappings = nullptr
+      std::shared_ptr<class vertex_stream_mappings>   mappings
    );
 
    std::string const &name() const { return m_name; }
+   std::shared_ptr<class samplers> samples() { return m_samplers; }
+   std::shared_ptr<class vertex_stream_mappings> mappings () { return m_mappings; }
 
    void dump_shaders() const;
 
@@ -81,6 +83,7 @@ private:
    std::map<std::string, std::weak_ptr<class uniform_block > > m_uniform_blocks;
    std::map<std::string, std::shared_ptr<class uniform > >     m_uniforms;
    std::shared_ptr<class samplers>                             m_samplers;
+   std::shared_ptr<class vertex_stream_mappings>               m_mappings;
    std::vector<loaded_shader>                                  m_loaded_shaders;
    std::vector<std::pair<std::string, std::string> >           m_defines;
    std::vector<GLint>                                          m_uniform_map;

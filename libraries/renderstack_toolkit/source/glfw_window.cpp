@@ -79,7 +79,6 @@ namespace renderstack { namespace toolkit {
 static void s_key(GLFWwindow *win, int k, int action)
 {
    class window *window = reinterpret_cast<class window *>(::glfwGetWindowUserPointer(win));
-   ::fprintf(stdout, "win %p k %d action %d\n", win, k, action);
    if (window)
    {
       switch (action)
@@ -91,6 +90,7 @@ static void s_key(GLFWwindow *win, int k, int action)
          window->on_key_up(k);
          break;
       case GLFW_REPEAT:
+         // TODO
          break;
       }
    }
@@ -125,21 +125,17 @@ static void s_resize(GLFWwindow *win, int width, int height)
       window->on_resize(width, height);
 }
 
-static int s_window_close(GLFWwindow *win)
+static void s_window_close(GLFWwindow *win)
 {
    class window *window = reinterpret_cast<class window *>(::glfwGetWindowUserPointer(win));
    if (window != nullptr)
       window->close();
-
-   return 1;
 }
 
 void window::on_resize(int width, int height)
 {
    (void)width;
    (void)height;
-   //m_width = width;
-   //m_height = height;
 }
 
 void window::set_time(double value)
@@ -174,7 +170,7 @@ window::window(int width, int height, std::string const &title, int major, int m
       (major > 3) ||
       (
          (major == 3) && 
-         (minor >= 2)
+         (minor >= 1)
       )
    )
    {
@@ -182,7 +178,19 @@ window::window(int width, int height, std::string const &title, int major, int m
       ::glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
       ::glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT,  GL_TRUE);
 #endif
-      ::glfwWindowHint(GLFW_OPENGL_PROFILE,        GLFW_OPENGL_CORE_PROFILE);
+   }
+
+   if (
+      (major > 3) ||
+      (
+         (major == 3) && 
+         (minor >= 2)
+      )
+   )
+   {
+      //::glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+      //::glfwWindowHint(GLFW_OPENGL_PROFILE,        GLFW_OPENGL_CORE_PROFILE);
+      //::glfwWindowHint(GLFW_OPENGL_PROFILE,        GLFW_OPENGL_COMPAT_PROFILE);
    }
 
    m_window = ::glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
@@ -197,6 +205,8 @@ window::window(int width, int height, std::string const &title, int major, int m
    m_capture = false;
    m_show = true;
 
+   //int forward =::glfwGetWindowParam((GLFWwindow*)m_window, GLFW_OPENGL_FORWARD_COMPAT);
+
    ::glfwSetWindowUserPointer  ((GLFWwindow*)m_window, this);
    ::glfwSetWindowSizeCallback ((GLFWwindow*)m_window, s_resize);
    ::glfwSetKeyCallback        ((GLFWwindow*)m_window, s_key);
@@ -208,8 +218,6 @@ window::window(int width, int height, std::string const &title, int major, int m
    ::glfwSetInputMode((GLFWwindow*)m_window, GLFW_CURSOR_MODE, GLFW_CURSOR_NORMAL);
    ::glfwSetInputMode((GLFWwindow*)m_window, GLFW_STICKY_KEYS, GL_FALSE);
    ::glfwSetInputMode((GLFWwindow*)m_window, GLFW_STICKY_MOUSE_BUTTONS, GL_FALSE);
-   //glfwSetInputMode((GLFWwindow*)m_window, GLFW_SYSTEM_KEYS, FALSE);
-   //::glfwSetInputMode((GLFWwindow*)m_window, GLFW_KEY_REPEAT, GL_FALSE);
    ::glfwSwapInterval(1);
 
    ::glfwShowWindow((GLFWwindow*)m_window);
@@ -263,13 +271,6 @@ void window::get_mouse_pos(int &xpos, int &ypos)
 void window::set_mouse_pos(int xpos, int ypos)
 {
    ::glfwSetCursorPos((GLFWwindow*)m_window, xpos, ypos);
-}
-
-void window::get_scroll_offset(double &xoffset, double &yoffset)
-{
-   xoffset = 0.0;
-   yoffset = 0.0;
-   //::glfwGetScrollOffset(m_window, &xoffset, &yoffset);
 }
 
 void window::show_cursor(bool show)

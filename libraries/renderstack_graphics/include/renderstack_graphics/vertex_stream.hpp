@@ -11,6 +11,8 @@
 
 namespace renderstack { namespace graphics {
 
+class index_buffer;
+class vertex_buffer;
 class vertex_stream_mapping;
 
 class vertex_stream : public std::enable_shared_from_this<vertex_stream>
@@ -27,6 +29,7 @@ public:
    void                    clear();
    std::size_t             count() const { return m_vertex_stream_bindings.size(); }
 
+#if 0
    void draw_elements_base_vertex(
       gl::begin_mode::value         mode, 
       GLsizei                       count, 
@@ -34,9 +37,10 @@ public:
       std::size_t                   indices, 
       GLint                         basevertex
    );
+#endif
 
 public:
-   void use();
+   bool use();
    void setup_attribute_pointers(GLint basevertex = 0);
    void disable_attributes();
 

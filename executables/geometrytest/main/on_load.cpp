@@ -50,6 +50,7 @@ bool application::on_load()
 
    renderstack::graphics::context::make_current(make_shared<renderstack::graphics::context>());
 
+#if 0
    // Setup standard vertex stream mappings
    auto g = renderstack::graphics::context::current()->global_vertex_stream_mappings();
    g->add("a_position", vertex_attribute_usage::position,  0, 0);
@@ -65,6 +66,7 @@ bool application::on_load()
       0,
       0
    );
+#endif
 
    renderstack::renderer::context::make_current(make_shared<renderstack::renderer::context>());
    renderstack::ui::context::make_current(make_shared<renderstack::ui::context>());
@@ -87,8 +89,11 @@ bool application::on_load()
       if (m_menu)
          m_menu->connect(shared_from_this(), m_game, m_programs, m_textures);
 
-      m_textures->on_load();
-      m_programs->prepare_gl_resources();
+      if (m_textures)
+         m_textures->on_load();
+
+      if (m_programs)
+         m_programs->prepare_gl_resources();
       
       if (m_game)
          m_game->on_load();

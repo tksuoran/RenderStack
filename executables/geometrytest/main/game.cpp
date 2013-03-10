@@ -37,9 +37,9 @@
 
 #define LOG_CATEGORY &log_game
 
-#define USE_MESHES          1
-#define USE_FONT            1
-#define USE_GUI             1
+#define USE_MESHES      1
+#define USE_FONT        1
+#define USE_GUI         1
 
 using namespace std;
 using namespace gl;
@@ -50,15 +50,15 @@ using namespace renderstack::mesh;
 using namespace renderstack::ui;
 
 game::game()
-:  m_application     ()
-,  m_menu            (nullptr)
-,  m_programs        (nullptr)
-,  m_textures        (nullptr)
-,  m_font            (nullptr)
-,  m_text_buffer     (nullptr)
-,  m_root_layer      (nullptr)
-,  m_menu_button     (nullptr)
-,  m_font_uniform_buffer_range   (nullptr)
+:  m_application              ()
+,  m_menu                     (nullptr)
+,  m_programs                 (nullptr)
+,  m_textures                 (nullptr)
+,  m_font                     (nullptr)
+,  m_text_buffer              (nullptr)
+,  m_root_layer               (nullptr)
+,  m_menu_button              (nullptr)
+,  m_text_uniform_buffer_range(nullptr)
 
 {
 }
@@ -103,13 +103,13 @@ void game::on_load()
    {
       vector<std::shared_ptr<renderstack::geometry::geometry>> g_collection;
 
-      g_collection.push_back(make_shared<renderstack::geometry::shapes::disc>(1.0, 0.8, 32, 2));
-      g_collection.push_back(make_shared<renderstack::geometry::shapes::triangle>(0.8f / 0.57735027f));
-      g_collection.push_back(make_shared<renderstack::geometry::shapes::sphere>(1.0f, 12, 4));
-      g_collection.push_back(make_shared<renderstack::geometry::shapes::cuboctahedron>(1.0));
-      g_collection.push_back(make_shared<renderstack::geometry::shapes::dodecahedron>(1.0));
-      g_collection.push_back(make_shared<renderstack::geometry::shapes::icosahedron>(1.0));
-      g_collection.push_back(make_shared<renderstack::geometry::shapes::octahedron>(1.0));
+      //g_collection.push_back(make_shared<renderstack::geometry::shapes::disc>(1.0, 0.8, 32, 2));
+      //g_collection.push_back(make_shared<renderstack::geometry::shapes::triangle>(0.8f / 0.57735027f));
+      //g_collection.push_back(make_shared<renderstack::geometry::shapes::sphere>(1.0f, 12, 4));
+      //g_collection.push_back(make_shared<renderstack::geometry::shapes::cuboctahedron>(1.0));
+      //g_collection.push_back(make_shared<renderstack::geometry::shapes::dodecahedron>(1.0));
+      //g_collection.push_back(make_shared<renderstack::geometry::shapes::icosahedron>(1.0));
+      //g_collection.push_back(make_shared<renderstack::geometry::shapes::octahedron>(1.0));
       g_collection.push_back(make_shared<renderstack::geometry::shapes::tetrahedron>(1.0));
 
 #if 0
@@ -136,6 +136,7 @@ void game::on_load()
       format_info.set_want_normal(true);
       format_info.set_want_color(true);
       format_info.set_normal_style(normal_style::corner_normals);
+      format_info.set_mappings(m_programs->mappings);
       for (auto i = g_collection.begin(); i != g_collection.end(); ++i)
       {
          (*i)->build_edges();
@@ -179,8 +180,6 @@ void game::on_load()
          )
       );
       
-      auto r = renderstack::renderer::context::current()->renderer();
-
       size_t count = g_collection.size();
       float x = -float(count - 1);
 
@@ -189,15 +188,13 @@ void game::on_load()
       {
          mat4 position;
          renderstack::create_translation(x, 0.0f, 0.0f, position);
-         log() << "pos = " << pos << " x: " << x << "\n";
          auto gm = make_shared<renderstack::mesh::geometry_mesh>(*i, format_info, buffer_info);
-         gm->setup_vertex_stream(r->mappings());
-
          auto m = make_shared<model>();
-         m->set_mesh(gm);
+         m->set_geometry_mesh(gm);
          m->frame()->parent_from_local().set(position);
          m->frame()->update_hierarchical_no_cache();
          m_models.push_back(m);
+
          ++pos;
          x += 2.0f;
       }
@@ -234,29 +231,26 @@ void game::on_load()
       );
 #endif
 
-#if defined(USE_FONT)
-      m_font_uniform_buffer_range = make_shared<uniform_buffer_range>(
+#if defined(USE_FONT) && 0
+      m_text_uniform_buffer_range = make_shared<uniform_buffer_range>(
          m_programs->block,
          m_uniform_buffer
       );
 #endif
    }
 
-   auto mappings = renderstack::graphics::context::current()->global_vertex_stream_mappings();
-
-
    // Font
 #if defined(RENDERSTACK_USE_FREETYPE) && defined(USE_FONT)
-   m_font = make_shared<font>("res/fonts/Ubuntu-R.ttf", 10);
-   m_text_buffer = make_shared<text_buffer>(m_font);
-#endif
+   auto p = m_programs->font;
+   auto m = p->mappings();
 
+   m_font = make_shared<font>("res/fonts/Ubuntu-R.ttf", 10);
+   m_text_buffer = make_shared<text_buffer>(m_font, m);
+#endif
 
    m_controls.home = vec3(0.0f, 1.7f, 10.0f);
 
    assert(m_application);
-
-   m_application->get_scroll_offset(m_controls.scroll_x, m_controls.scroll_y);
 
    reset();
 
@@ -297,9 +291,6 @@ void game::setup_gui()
    weak_ptr<action_sink> as = action_sink::shared_from_this();
    m_menu_button = smart_ptr_builder::create_shared_ptr<action_source, area>(new button("Back to Menu",  bs)); m_menu_button->set_sink(as);
    d->add(m_menu_button);
-
-   //push_button *pb = new push_button("Press Me", bs);
-   //d->add(pb);
 
    std::shared_ptr<renderstack::ui::choice> c = renderstack::toolkit::smart_ptr_builder::create_shared_ptr<
       renderstack::ui::action_source, 
@@ -373,23 +364,7 @@ void game::on_enter()
 
    assert(m_application);
 
-   active_texture(gl::texture_unit::texture0 + 1);
-   bind_texture(gl::texture_target::texture_2d, m_textures->terrain_texture_object);
-
-   active_texture(gl::texture_unit::texture0 + 2);
-   bind_texture(gl::texture_target::texture_2d, m_textures->terrain_biome_texture_object);
-
-   active_texture(gl::texture_unit::texture0 + 3);
-   bind_texture(gl::texture_target::texture_2d, m_textures->biome_texture_object);
-
-   active_texture(gl::texture_unit::texture0 + 4);
-   gl::bind_texture(gl::texture_target::texture_2d, m_textures->light_texture_object);
-
-   //tex_parameter_i(texture_target::texture_2d, texture_parameter_name::texture_min_filter, texture_min_filter::nearest);
-   //tex_parameter_i(texture_target::texture_2d, texture_parameter_name::texture_mag_filter, texture_mag_filter::nearest);
-
    gl::disable(gl::enable_cap::blend);
-   //gl::blend_equation(gl::blend_equation_mode::func_add);
    gl::blend_func(gl::blending_factor_src::one, gl::blending_factor_dest::one_minus_src_alpha);
 
    on_resize(m_application->width(), m_application->height());
@@ -412,7 +387,6 @@ void controls::reset()
    near_ =    0.01f;
    far_  = 1000.0f;
    mouse_locked = true;
-   //lock_mouse(true);
 }
 void game::lock_mouse(bool lock)
 {
@@ -445,7 +419,6 @@ void game::lock_mouse(bool lock)
 void game::toggle_mouse_lock()
 {
    assert(m_application);
-   //bool new_mouse_locked = !m_controls.mouse_locked;
 
    lock_mouse(!m_controls.mouse_locked);
 }

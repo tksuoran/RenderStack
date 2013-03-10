@@ -6,7 +6,6 @@
 #include <memory>
 
 namespace renderstack { namespace graphics {
-
    class program;
    class samplers;
    class uniform_block;
@@ -14,7 +13,7 @@ namespace renderstack { namespace graphics {
    class uniform_buffer_range;
    class index_buffer;
    class vertex_buffer;
-
+   class vertex_stream_mappings;
 } }
 
 namespace renderstack { namespace ui {
@@ -73,9 +72,12 @@ private:
    std::shared_ptr<renderstack::graphics::program>                m_program;
 
    std::shared_ptr<renderstack::graphics::samplers>               m_samplers;
+   std::shared_ptr<renderstack::graphics::vertex_stream_mappings> m_mappings;
+
    std::shared_ptr<font>                                          m_font;
    std::shared_ptr<ninepatch_style>                               m_button_ninepatch_style;
    std::shared_ptr<ninepatch_style>                               m_menulist_ninepatch_style;
+   std::shared_ptr<ninepatch_style>                               m_slider_ninepatch_style;
    std::shared_ptr<style>                                         m_button_style;
    std::shared_ptr<style>                                         m_menulist_style;
    std::shared_ptr<style>                                         m_choice_style;

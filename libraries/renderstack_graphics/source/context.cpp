@@ -175,10 +175,10 @@ std::shared_ptr<renderstack::graphics::samplers> context::global_samplers()
    return s_global_samplers;
 }
 
-std::shared_ptr<vertex_stream_mappings> context::global_vertex_stream_mappings()
+/*std::shared_ptr<vertex_stream_mappings> context::global_vertex_stream_mappings()
 {
    return s_global_vertex_stream_mappings;
-}
+}*/
 std::shared_ptr<vertex_stream_mappings> context::make_vertex_stream_mappings(std::string const &name)
 { 
    return std::shared_ptr<vertex_stream_mappings>(
