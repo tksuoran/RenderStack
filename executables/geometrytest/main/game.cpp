@@ -231,7 +231,7 @@ void game::on_load()
       );
 #endif
 
-#if defined(USE_FONT) && 0
+#if defined(USE_FONT)
       m_text_uniform_buffer_range = make_shared<uniform_buffer_range>(
          m_programs->block,
          m_uniform_buffer
@@ -292,6 +292,7 @@ void game::setup_gui()
    m_menu_button = smart_ptr_builder::create_shared_ptr<action_source, area>(new button("Back to Menu",  bs)); m_menu_button->set_sink(as);
    d->add(m_menu_button);
 
+#if 0
    std::shared_ptr<renderstack::ui::choice> c = renderstack::toolkit::smart_ptr_builder::create_shared_ptr<
       renderstack::ui::action_source, 
       renderstack::ui::choice,
@@ -308,6 +309,7 @@ void game::setup_gui()
 
    auto s = smart_ptr_builder::create_shared_ptr<action_source, area>(new slider(ss, "Slider", 0.0f, 1.0f));
    d->add(s);
+#endif
 
    m_root_layer->add(d);
 #endif

@@ -245,7 +245,7 @@ void game::render()
 
    render_meshes();
 
-#if 0
+#if 1
    if (m_text_buffer)
       render_ui();
 #endif

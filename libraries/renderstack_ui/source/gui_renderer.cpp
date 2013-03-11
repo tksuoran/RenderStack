@@ -55,7 +55,7 @@ gui_renderer::gui_renderer()
 {
    slog_trace("gui_renderer::gui_renderer()");
 
-   m_mappings = renderstack::graphics::context::current()->make_vertex_stream_mappings("renderer s_mappings");
+   m_mappings = renderstack::graphics::context::current()->make_vertex_stream_mappings("gui_renderer mappings");
    m_mappings->add("a_position",       vertex_attribute_usage::position,   0, 0);
    m_mappings->add("a_normal",         vertex_attribute_usage::normal,     0, 1);
    m_mappings->add("a_normal_flat",    vertex_attribute_usage::normal,     1, 2);
