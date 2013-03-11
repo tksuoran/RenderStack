@@ -1,3 +1,3 @@
 [submodule "libraries/glfw"]
 	path = libraries/glfw
-	url = https://github.com/elmindreda/glfw.git
+	url = https://github.com/tksuoran/glfw
