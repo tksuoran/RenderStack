@@ -1,3 +1,0 @@
-[submodule "ext/glxw"]
-	path = ext/glxw
-	url = git://github.com/rikusalminen/glxw.git

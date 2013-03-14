@@ -104,6 +104,7 @@ void renderer::trash()
 {
    slog_trace("renderer::trash()");
 
+   s_active_texture_unit = ~0u;
    s_effective.program.reset();
    s_effective.vertex_buffer.reset();
    s_effective.index_buffer.reset();

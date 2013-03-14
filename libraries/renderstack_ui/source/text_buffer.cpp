@@ -1,4 +1,5 @@
 #include "renderstack_ui/context.hpp"
+#include "renderstack_ui/gui_renderer.hpp"
 #include "renderstack_ui/text_buffer.hpp"
 #include "renderstack_toolkit/gl.hpp"
 #include "renderstack_toolkit/strong_gl_enums.hpp"
@@ -28,41 +29,20 @@ using namespace gl;
 using namespace renderstack::graphics;
 
 
-std::shared_ptr<vertex_format> context_text_buffer::vertex_format()
-{
-   if (!s_vertex_format)
-   {
-      s_vertex_format = make_shared<renderstack::graphics::vertex_format>();
-      s_vertex_format->make_attribute(
-         static_cast<vertex_attribute_usage::value>(
-            vertex_attribute_usage::position | vertex_attribute_usage::tex_coord
-         ),
-         gl::vertex_attrib_pointer_type::float_,
-         gl::vertex_attrib_pointer_type::float_,
-         0, 
-         4,
-         false
-      );
-   }
-   return s_vertex_format;
-}
-
 text_buffer::text_buffer(shared_ptr<class font> font, std::shared_ptr<renderstack::graphics::vertex_stream_mappings> mappings)
 :  m_font(font)
 ,  m_max_chars(2000)
 {
    auto uc = renderstack::ui::context::current();
-   m_vertex_stream = mappings->make_vertex_stream(
-      uc->text_buffer().vertex_format()
-   );
+   auto r = uc->gui_renderer();
 
    if (m_mesh.index_count() > std::numeric_limits<unsigned int>::max())
       throw std::runtime_error("font::prepare_gl_resources: no code path for index types other than unsigned int");
 
-   m_vertex_stream->use();
+   r->vertex_stream()->use();
 
-   m_mesh.allocate_vertex_buffer(uc->get_2d_vertex_buffer(), 4 * m_max_chars);
-   m_mesh.allocate_index_buffer(uc->get_2d_index_buffer(), 6 * m_max_chars);
+   m_mesh.allocate_vertex_buffer(r->vertex_buffer(), 4 * m_max_chars);
+   m_mesh.allocate_index_buffer(r->index_buffer(), 6 * m_max_chars);
 
    log_trace("preparing index buffer");
    m_mesh.index_buffer()->bind();
@@ -90,14 +70,6 @@ text_buffer::text_buffer(shared_ptr<class font> font, std::shared_ptr<renderstac
       vertex_index += 4;
    }
    m_mesh.index_buffer()->unmap_indices();
-
-   if (m_vertex_stream->use())
-   {
-      m_mesh.vertex_buffer()->bind();
-      m_mesh.index_buffer()->bind();
-      m_vertex_stream->setup_attribute_pointers(0);
-      gl::bind_vertex_array(0);
-   }
 }
 text_buffer::~text_buffer()
 {
@@ -105,6 +77,10 @@ text_buffer::~text_buffer()
 }
 
 
+std::shared_ptr<class font> text_buffer::font()
+{
+   return m_font;
+}
 void text_buffer::render()
 {
    slog_trace(
@@ -119,7 +95,10 @@ void text_buffer::render()
       GLvoid                        *index_pointer = reinterpret_cast<GLvoid*>(m_mesh.first_index() * m_mesh.index_buffer()->index_stride());
       GLint                         base_vertex    = static_cast<GLint>(m_mesh.first_vertex());
 
-      if (m_vertex_stream->use())
+      auto uc = renderstack::ui::context::current();
+      auto r = uc->gui_renderer();
+
+      if (r->vertex_stream()->use())
       {
          if (!renderstack::graphics::configuration::can_use.draw_elements_base_vertex)
             throw std::runtime_error("not yet implemented");
@@ -128,9 +107,9 @@ void text_buffer::render()
       }
       else
       {
-         m_mesh.vertex_buffer()->bind();
-         m_mesh.index_buffer()->bind();
-         m_vertex_stream->setup_attribute_pointers(base_vertex);
+         r->vertex_buffer()->bind();
+         r->index_buffer()->bind();
+         r->vertex_stream()->setup_attribute_pointers(base_vertex);
          gl::draw_elements(begin_mode, count, index_type, index_pointer);
       }
    }
@@ -159,8 +138,6 @@ void text_buffer::begin_print()
    );
 
    log_trace("m_vertex_ptr = %p", m_vertex_ptr);
-
-   m_font->begin_print();
 
    m_chars_printed = 0;
    m_bounding_box.reset_for_grow();

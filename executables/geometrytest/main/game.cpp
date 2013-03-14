@@ -164,6 +164,7 @@ void game::on_load()
          total_index_count += total_info.index_count_centroid_points;
 
       // Allocate a single VBO big enough to hold all vertices
+      gl::bind_vertex_array(0);
       buffer_info.set_vertex_buffer(
          make_shared<renderstack::graphics::vertex_buffer>(
             total_vertex_count,
@@ -292,7 +293,7 @@ void game::setup_gui()
    m_menu_button = smart_ptr_builder::create_shared_ptr<action_source, area>(new button("Back to Menu",  bs)); m_menu_button->set_sink(as);
    d->add(m_menu_button);
 
-#if 0
+#if 1
    std::shared_ptr<renderstack::ui::choice> c = renderstack::toolkit::smart_ptr_builder::create_shared_ptr<
       renderstack::ui::action_source, 
       renderstack::ui::choice,

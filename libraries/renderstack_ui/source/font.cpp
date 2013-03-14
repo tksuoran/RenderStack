@@ -565,17 +565,6 @@ void font::save() const {
    printf("   m_bitmap->load_data(&data[0]);\n");
    printf("   post_process();\n");
 }
-
-void font::begin_print() const
-{
-   slog_trace("font::begin_print()");
-
-   active_texture(gl::texture_unit::texture0);
-   bind_texture(texture_target::texture_2d, m_texture_object);
-
-   tex_parameter_i(texture_target::texture_2d, texture_parameter_name::texture_min_filter, texture_min_filter::nearest);
-   tex_parameter_i(texture_target::texture_2d, texture_parameter_name::texture_mag_filter, texture_mag_filter::nearest);
-}
 size_t font::print(std::string const &text, rectangle &bounds, float *&ptr, float x, float y) const
 {
    slog_trace("font::print(ptr = %p, text = %s, x = % 7.2, y = % 7.2)",

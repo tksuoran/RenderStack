@@ -66,7 +66,6 @@ void button::update_size()
 void button::update_place()
 {
    slog_trace("button::update_place()");
-
    if (size().x != m_bounds.max().x + 2.0f * style()->padding().x)
       m_ninepatch.place(0.0f, 0.0f, size().x, size().y);
 }

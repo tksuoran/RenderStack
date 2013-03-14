@@ -109,26 +109,13 @@ void menu::on_load()
    auto p = m_programs->textured;
    auto m = p->mappings();
    auto uc = renderstack::ui::context::current();
-
-   m_vertex_format = make_shared<renderstack::graphics::vertex_format>();
-   m_vertex_format->make_attribute(
-      static_cast<vertex_attribute_usage::value>(
-         vertex_attribute_usage::position | vertex_attribute_usage::tex_coord
-      ),
-      gl::vertex_attrib_pointer_type::float_,
-      gl::vertex_attrib_pointer_type::float_,
-      0, 
-      4,
-      false
-   );
-
-   m_vertex_stream = m->make_vertex_stream(m_vertex_format);
-   m_vertex_stream->use();
+   auto r = uc->gui_renderer();
 
 #if defined(RENDER_BACKGROUND)
+   r->vertex_stream()->use();
    m_mesh = make_shared<renderstack::mesh::mesh>();
-   m_mesh->allocate_vertex_buffer(uc->get_2d_vertex_buffer(), 4);
-   m_mesh->allocate_index_buffer(uc->get_2d_index_buffer(), 6);
+   m_mesh->allocate_vertex_buffer(r->vertex_buffer(), 4);
+   m_mesh->allocate_index_buffer(r->index_buffer(), 6);
 
    /*  Write indices for one quad  */
    {
@@ -153,17 +140,9 @@ void menu::on_load()
       *ptr++ = 2;
       m_mesh->index_buffer()->unmap_indices();
    }
-
-   if (m_vertex_stream->use())
-   {
-      m_mesh->vertex_buffer()->bind();
-      m_mesh->index_buffer()->bind();
-      m_vertex_stream->setup_attribute_pointers(0);
-   }
 #endif
 
 #if defined(RENDER_GUI)
-   auto r = uc->gui_renderer();
    auto bs = r->button_style();
    auto ms = r->menulist_style();
 
@@ -359,6 +338,9 @@ void menu::render()
 {
    slog_trace("menu::render()");
 
+   auto uc = renderstack::ui::context::current();
+   auto r = uc->gui_renderer();
+
    gl::clear_color(0.5f, 0.0f, 0.0f, 1.0f);
    gl::clear(clear_buffer_mask::color_buffer_bit | clear_buffer_mask::depth_buffer_bit);
 
@@ -387,7 +369,6 @@ void menu::render()
       tex_parameter_i(texture_target::texture_2d, texture_parameter_name::texture_wrap_s,     gl::texture_wrap_mode::clamp_to_edge);
       tex_parameter_i(texture_target::texture_2d, texture_parameter_name::texture_wrap_t,     gl::texture_wrap_mode::clamp_to_edge);
 
-      assert(m_vertex_stream);
       assert(m_mesh);
 
       gl::begin_mode::value         begin_mode     = gl::begin_mode::triangles;
@@ -397,7 +378,7 @@ void menu::render()
       GLvoid                        *index_pointer = reinterpret_cast<GLvoid*>(first_index * sizeof(unsigned short));
       GLint                         base_vertex    = static_cast<GLint>(m_mesh->first_vertex());
 
-      if (m_vertex_stream->use())
+      if (r->vertex_stream()->use())
       {
          if (!configuration::can_use.draw_elements_base_vertex)
             throw std::runtime_error("not yet implemented");
@@ -405,9 +386,9 @@ void menu::render()
       }
       else
       {
-         m_mesh->vertex_buffer()->bind();
-         m_mesh->index_buffer()->bind();
-         m_vertex_stream->setup_attribute_pointers(base_vertex);
+         r->vertex_buffer()->bind();
+         r->index_buffer()->bind();
+         r->vertex_stream()->setup_attribute_pointers(base_vertex);
          gl::draw_elements(begin_mode, count, index_type, index_pointer);
       }
    }

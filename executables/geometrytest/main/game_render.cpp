@@ -87,13 +87,11 @@ void game::render_ui()
    }
 
    m_text_buffer->begin_print();
-#if 1
    for (size_t i = 0; i < m_debug_lines.size(); ++i)
       m_text_buffer->print(m_debug_lines[i], 0.0f, h - (i + 1) * m_font->line_height());
 
    if (m_controls.mouse_locked)
       m_text_buffer->print("Mouse locked", 0.0f, 0.0f);
-#endif
 
    int chars_printed = m_text_buffer->end_print();
 
@@ -112,6 +110,12 @@ void game::render_ui()
 
       int texture_ui = p->uniform("font_texture")->index();
       gl::uniform_1i(texture_ui, 0);
+
+      active_texture(gl::texture_unit::texture0);
+      bind_texture(texture_target::texture_2d, m_text_buffer->font()->texture());
+
+      tex_parameter_i(texture_target::texture_2d, texture_parameter_name::texture_min_filter, texture_min_filter::nearest);
+      tex_parameter_i(texture_target::texture_2d, texture_parameter_name::texture_mag_filter, texture_mag_filter::nearest);
 
       m_text_buffer->render();
 
@@ -244,6 +248,8 @@ void game::render()
    gl::clear(clear_buffer_mask::color_buffer_bit | clear_buffer_mask::depth_buffer_bit);
 
    render_meshes();
+
+   //gl::bind_vertex_array(0);
 
 #if 1
    if (m_text_buffer)

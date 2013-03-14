@@ -14,15 +14,6 @@
 
 namespace renderstack { namespace ui {
 
-class context_text_buffer
-{
-public:
-   std::shared_ptr<renderstack::graphics::vertex_format>  vertex_format();
-
-private:
-   std::shared_ptr<renderstack::graphics::vertex_format>  s_vertex_format;
-
-};
 
 class text_buffer
 {
@@ -30,23 +21,23 @@ public:
    text_buffer(std::shared_ptr<class font> font, std::shared_ptr<renderstack::graphics::vertex_stream_mappings> mappings);
    ~text_buffer();
 
-   rectangle const &bounding_box() const { return m_bounding_box;}
-   float           line_height  () const { return m_font->line_height(); }
-   void            begin_print  ();
-   std::size_t     end_print    ();
-   void            print        (std::string const &text, float x, float y);
-   void            measure      (std::string const &text);
-   void            print_center (std::string const &text, float x, float y);
-   void            render       ();
+   rectangle const               &bounding_box  () const { return m_bounding_box;}
+   float                         line_height    () const { return m_font->line_height(); }
+   void                          begin_print    ();
+   std::size_t                   end_print      ();
+   void                          print          (std::string const &text, float x, float y);
+   void                          measure        (std::string const &text);
+   void                          print_center   (std::string const &text, float x, float y);
+   void                          render         ();
+   std::shared_ptr<class font>   font           ();
 
 private:
-   std::shared_ptr<class font>                           m_font;
-   unsigned int                                          m_max_chars;
-   rectangle                                             m_bounding_box;
-   renderstack::mesh::mesh                               m_mesh;
-   std::shared_ptr<renderstack::graphics::vertex_stream> m_vertex_stream;
-   float                                                 *m_vertex_ptr;
-   std::size_t                                           m_chars_printed;
+   std::shared_ptr<class font>   m_font;
+   unsigned int                  m_max_chars;
+   rectangle                     m_bounding_box;
+   renderstack::mesh::mesh       m_mesh;
+   float                         *m_vertex_ptr;
+   std::size_t                   m_chars_printed;
 };
 
 } }

@@ -13,6 +13,8 @@ namespace renderstack { namespace graphics {
    class uniform_buffer_range;
    class index_buffer;
    class vertex_buffer;
+   class vertex_format;
+   class vertex_stream;
    class vertex_stream_mappings;
 } }
 
@@ -58,6 +60,11 @@ public:
    std::shared_ptr<style> colorpicker_style() const { return m_colorpicker_style; }
    std::shared_ptr<style> slider_style     () const { return m_slider_style; }
 
+   std::shared_ptr<renderstack::graphics::vertex_format> vertex_format() const { return m_vertex_format; }
+   std::shared_ptr<renderstack::graphics::vertex_stream> vertex_stream() const { return m_vertex_stream; }
+   std::shared_ptr<renderstack::graphics::vertex_buffer> vertex_buffer() const { return m_vertex_buffer; }
+   std::shared_ptr<renderstack::graphics::index_buffer>  index_buffer()  const { return m_index_buffer; }
+
 private:
    void map(std::shared_ptr<renderstack::graphics::program> program);
 
@@ -73,6 +80,11 @@ private:
 
    std::shared_ptr<renderstack::graphics::samplers>               m_samplers;
    std::shared_ptr<renderstack::graphics::vertex_stream_mappings> m_mappings;
+
+   std::shared_ptr<renderstack::graphics::vertex_format>          m_vertex_format;
+   std::shared_ptr<renderstack::graphics::vertex_stream>          m_vertex_stream;
+   std::shared_ptr<renderstack::graphics::vertex_buffer>          m_vertex_buffer;
+   std::shared_ptr<renderstack::graphics::index_buffer>           m_index_buffer;
 
    std::shared_ptr<font>                                          m_font;
    std::shared_ptr<ninepatch_style>                               m_button_ninepatch_style;

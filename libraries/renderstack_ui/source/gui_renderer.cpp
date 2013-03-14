@@ -70,6 +70,38 @@ gui_renderer::gui_renderer()
       0
    );
 
+   m_vertex_format = make_shared<renderstack::graphics::vertex_format>();
+   m_vertex_format->make_attribute(
+      static_cast<vertex_attribute_usage::value>(
+         vertex_attribute_usage::position | vertex_attribute_usage::tex_coord
+      ),
+      gl::vertex_attrib_pointer_type::float_,
+      gl::vertex_attrib_pointer_type::float_,
+      0, 
+      4,
+      false
+   );
+
+   m_vertex_stream = m_mappings->make_vertex_stream(m_vertex_format);
+   m_vertex_stream->use();
+
+   m_vertex_buffer = make_shared<renderstack::graphics::vertex_buffer>(
+      128 * 1024,
+      4 * sizeof(float)
+   );
+   m_index_buffer = make_shared<renderstack::graphics::index_buffer>(
+      512 * 1024,
+      sizeof(unsigned short)
+   );
+
+   if (m_vertex_stream->use())
+   {
+      m_vertex_buffer->bind();
+      m_index_buffer->bind();
+      m_vertex_stream->setup_attribute_pointers(0);
+      gl::bind_vertex_array(0);
+   }
+
    m_uniform_block = renderstack::graphics::context::current()->make_uniform_block("gui");
    m_uniform_offsets.model_to_clip = m_uniform_block->add_mat4 ("model_to_clip")->offset();
    m_uniform_offsets.color_add     = m_uniform_block->add_vec4 ("color_add"    )->offset();
@@ -239,9 +271,11 @@ void gui_renderer::prepare()
    gl::depth_mask(0);
    gl::disable(gl::enable_cap::cull_face);
    gl::disable(gl::enable_cap::depth_test);
+   gl::active_texture(gl::texture_unit::texture0);
+   //gl::bind_texture(texture_target::texture_2d, m_text_buffer->font()->texture());
+   gl::tex_parameter_i(gl::texture_target::texture_2d, gl::texture_parameter_name::texture_min_filter, gl::texture_min_filter::nearest);
 
-   r->set_vertex_buffer(uc->get_2d_vertex_buffer());
-   r->set_index_buffer(uc->get_2d_index_buffer());
+   m_vertex_stream->use();
 
    if (use_uniform_buffers)
    {

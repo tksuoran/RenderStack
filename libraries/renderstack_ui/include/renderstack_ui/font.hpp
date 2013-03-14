@@ -1,5 +1,5 @@
 #ifndef renderstack_ui__font_hpp
-#define renderstack_ui__font_hpp
+   #define renderstack_ui__font_hpp
 
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_ui/rectangle.hpp"
@@ -22,7 +22,6 @@ public:
 
    void              save                  () const;
    float             line_height           () const { return m_line_height; }
-   void              begin_print           () const;
    std::size_t       print                 (std::string const &text, rectangle &bounds, float *&ptr, float x, float y) const;
    void              measure               (std::string const &text, rectangle &bounds) const;
    unsigned int      texture               () const { return m_texture_object; }

@@ -50,24 +50,6 @@ bool application::on_load()
 
    renderstack::graphics::context::make_current(make_shared<renderstack::graphics::context>());
 
-#if 0
-   // Setup standard vertex stream mappings
-   auto g = renderstack::graphics::context::current()->global_vertex_stream_mappings();
-   g->add("a_position", vertex_attribute_usage::position,  0, 0);
-   g->add("a_normal",   vertex_attribute_usage::normal,    0, 1);
-   g->add("a_color",    vertex_attribute_usage::color,     0, 2);
-   g->add("a_texcoord", vertex_attribute_usage::tex_coord, 0, 3);
-   g->add("a_data",     vertex_attribute_usage::none,      0, 4);
-   g->add(
-      "a_position_texcoord",
-      static_cast<vertex_attribute_usage::value>(
-         vertex_attribute_usage::position | vertex_attribute_usage::tex_coord
-      ),
-      0,
-      0
-   );
-#endif
-
    renderstack::renderer::context::make_current(make_shared<renderstack::renderer::context>());
    renderstack::ui::context::make_current(make_shared<renderstack::ui::context>());
 

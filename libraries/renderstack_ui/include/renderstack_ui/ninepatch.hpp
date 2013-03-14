@@ -19,10 +19,9 @@ class context_ninepatch;
 class ninepatch
 {
 private:
-   std::shared_ptr<ninepatch_style>                      m_style;
-   std::shared_ptr<renderstack::graphics::vertex_stream> m_vertex_stream;
-   renderstack::mesh::mesh                               m_mesh;
-   glm::vec2                                             m_size;
+   std::shared_ptr<ninepatch_style> m_style;
+   renderstack::mesh::mesh          m_mesh;
+   glm::vec2                        m_size;
 
 public:
    std::shared_ptr<ninepatch_style> style() const { return m_style; }
@@ -34,15 +33,6 @@ public:
 
    void place(float x0, float y0, float width, float height);
    void render();
-};
-
-class context_ninepatch
-{
-private:
-   std::shared_ptr<renderstack::graphics::vertex_format>   s_vertex_format;
-
-public:
-   std::shared_ptr<renderstack::graphics::vertex_format>   vertex_format();
 };
 
 } }

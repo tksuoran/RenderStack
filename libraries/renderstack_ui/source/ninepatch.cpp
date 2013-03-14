@@ -1,6 +1,7 @@
 #include "renderstack_ui/context.hpp"
 #include "renderstack_ui/ninepatch.hpp"
 #include "renderstack_ui/ninepatch_style.hpp"
+#include "renderstack_ui/gui_renderer.hpp"
 #include "renderstack_ui/style.hpp"
 #include "renderstack_graphics/configuration.hpp"
 #include "renderstack_graphics/context.hpp"
@@ -21,24 +22,6 @@ using namespace std;
 using namespace gl;
 using namespace renderstack::graphics;
 
-std::shared_ptr<vertex_format> context_ninepatch::vertex_format()
-{
-   if (!s_vertex_format)
-   {
-      s_vertex_format = make_shared<renderstack::graphics::vertex_format>();
-      s_vertex_format->make_attribute(
-         static_cast<vertex_attribute_usage::value>(
-            vertex_attribute_usage::position | vertex_attribute_usage::tex_coord
-         ),
-         gl::vertex_attrib_pointer_type::float_,
-         gl::vertex_attrib_pointer_type::float_,
-         0, 
-         4,
-         false
-      );
-   }
-   return s_vertex_format;
-}
 
 ninepatch::ninepatch(shared_ptr<ninepatch_style> style)
 :  m_style(style)
@@ -52,16 +35,13 @@ ninepatch::ninepatch(shared_ptr<ninepatch_style> style)
    //   4  5  6  7     
    //                  
    //   0  1  2  3     
-   auto mappings = style->program()->mappings();
    auto uc = renderstack::ui::context::current();
-   m_vertex_stream = mappings->make_vertex_stream(
-      uc->ninepatch().vertex_format()
-   );
+   auto r = uc->gui_renderer();
 
-   m_vertex_stream->use();
+   r->vertex_stream()->use();
 
-   m_mesh.allocate_vertex_buffer(uc->get_2d_vertex_buffer(), 16);
-   m_mesh.allocate_index_buffer(uc->get_2d_index_buffer(), 9 * 6);
+   m_mesh.allocate_vertex_buffer(r->vertex_buffer(), 16);
+   m_mesh.allocate_index_buffer(r->index_buffer(), 9 * 6);
 
    m_mesh.index_buffer()->bind();
    unsigned short *start = static_cast<unsigned short *>(
@@ -92,14 +72,6 @@ ninepatch::ninepatch(shared_ptr<ninepatch_style> style)
 #undef make_quad
 
    m_mesh.index_buffer()->unmap_indices();
-
-   if (m_vertex_stream->use())
-   {
-      m_mesh.vertex_buffer()->bind();
-      m_mesh.index_buffer()->bind();
-      m_vertex_stream->setup_attribute_pointers(0);
-      gl::bind_vertex_array(0);
-   }
 }
 
 void ninepatch::place(
@@ -114,6 +86,7 @@ void ninepatch::place(
    m_size.x = width;
    m_size.y = height;
 
+   gl::bind_vertex_array(0);
    m_mesh.vertex_buffer()->bind();
 
    float *ptr = (float*)m_mesh.vertex_buffer()->map_vertices(
@@ -174,7 +147,10 @@ void ninepatch::render()
    GLvoid                        *index_pointer = reinterpret_cast<GLvoid*>(mesh().first_index() * mesh().index_buffer()->index_stride());
    GLint                         base_vertex    = static_cast<GLint>(mesh().first_vertex());
 
-   if (m_vertex_stream->use())
+   auto uc = renderstack::ui::context::current();
+   auto r = uc->gui_renderer();
+
+   if (r->vertex_stream()->use())
    {
       if (!renderstack::graphics::configuration::can_use.draw_elements_base_vertex)
          throw std::runtime_error("not yet implemented");
@@ -183,9 +159,9 @@ void ninepatch::render()
    }
    else
    {
-      mesh().vertex_buffer()->bind();
-      mesh().index_buffer()->bind();
-      m_vertex_stream->setup_attribute_pointers(static_cast<GLint>(mesh().first_vertex()));
+      r->vertex_buffer()->bind();
+      r->index_buffer()->bind();
+      r->vertex_stream()->setup_attribute_pointers(static_cast<GLint>(mesh().first_vertex()));
       gl::draw_elements(begin_mode, count, index_type, index_pointer);
    }
 }

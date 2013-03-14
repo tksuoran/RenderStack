@@ -71,8 +71,6 @@ private:
    std::shared_ptr<textures>                                      m_textures;
    std::shared_ptr<renderstack::graphics::uniform_buffer>         m_uniform_buffer;
    std::shared_ptr<renderstack::graphics::uniform_buffer_range>   m_uniform_buffer_range;
-   std::shared_ptr<renderstack::graphics::vertex_format>          m_vertex_format;
-   std::shared_ptr<renderstack::graphics::vertex_stream>          m_vertex_stream;
    std::shared_ptr<renderstack::ui::font>                         m_font;
    std::shared_ptr<renderstack::ui::text_buffer>                  m_text_buffer;
    std::shared_ptr<renderstack::mesh::mesh>                       m_mesh;
