@@ -19,14 +19,6 @@
 #include <memory>
 #include <stack>
 
-namespace renderstack { namespace mesh { 
-
-   class   mesh;
-   class   geometrymesh;
-   struct  index_range;
-
-} }
-
 namespace renderstack { namespace renderer {
 
 using namespace renderstack::graphics;
@@ -71,17 +63,6 @@ struct state
 
 class renderer
 {
-private:
-   std::stack<state>                                              s_request_stack;
-   state                                                          s_requested;
-   state                                                          s_effective;
-   bool                                                           s_lock_material;
-   unsigned int                                                   s_active_texture_unit;
-   std::shared_ptr<renderstack::graphics::vertex_stream_mappings> s_mappings;
-
-public:
-   std::shared_ptr<renderstack::graphics::vertex_stream_mappings> mappings();
-
 public:
    renderer();
 
@@ -91,18 +72,21 @@ public:
    void update_render_states     ();
    void trash                    ();
    void set_program              (std::shared_ptr<class program> program);
-   void set_vertex_buffer        (std::shared_ptr<class vertex_buffer> vertex_buffer);
-   void set_index_buffer         (std::shared_ptr<class index_buffer> index_buffer);
    void set_texture              (unsigned int unit, gl::texture_target::value target, unsigned int texture);
    void set_uniform_buffer_range (unsigned int binding_point, std::shared_ptr<uniform_buffer_range> buffer_range);
-   void set_vertex_stream        (std::shared_ptr<vertex_stream> vertex_stream);
-   void draw_elements_base_vertex(
-      gl::begin_mode::value           mode, 
-      size_t                          count, 
-      gl::draw_elements_type::value   type, 
-      size_t                          indices, 
-      int                             basevertex
+
+   void set_vertex_stream(
+      std::shared_ptr<vertex_stream>         vertex_stream,
+      std::shared_ptr<class vertex_buffer>   vertex_buffer,
+      std::shared_ptr<class index_buffer>    index_buffer
    );
+
+private:
+   std::stack<state> m_request_stack;
+   state             m_requested;
+   state             m_effective;
+   bool              m_lock_material;
+   unsigned int      m_active_texture_unit;
 };
 
 } }

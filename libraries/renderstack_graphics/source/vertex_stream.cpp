@@ -19,7 +19,8 @@ namespace renderstack { namespace graphics {
 using namespace std;
 
 vertex_stream::vertex_stream()
-:  m_vertex_array_object((unsigned int)(~0))
+:  m_vertex_array_object(~0u)
+,  m_last_base_vertex(~0u)
 {
 #if defined(RENDERSTACK_USE_GLES3) || !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
    if (
@@ -39,7 +40,7 @@ vertex_stream::~vertex_stream()
 {
 #if defined(RENDERSTACK_USE_GLES3) || !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
    if (
-      (m_vertex_array_object != ~0UL) &&
+      (m_vertex_array_object != ~0u) &&
       (
          configuration::must_use_vertex_array_object || 
          (
@@ -52,21 +53,6 @@ vertex_stream::~vertex_stream()
       gl::delete_vertex_arrays(1, &m_vertex_array_object);
    }
 #endif
-}
-
-vector<vertex_stream_binding> const &vertex_stream::vertex_stream_bindings() const
-{
-   return m_vertex_stream_bindings;
-}
-
-bool vertex_stream::dirty() const
-{
-   return m_dirty;
-}
-
-void vertex_stream::set_dirty(bool value)
-{
-   m_dirty = value;
 }
 
 vertex_stream_binding &vertex_stream::add(
@@ -104,8 +90,10 @@ bool vertex_stream::use()
    return false;
 }
 
-void vertex_stream::setup_attribute_pointers(GLint basevertex)
+void vertex_stream::setup_attribute_pointers(GLint base_vertex)
 {
+   m_last_base_vertex = base_vertex;
+
    if (configuration::use_gl1)
    {
 #     if defined(SUPPORT_LEGACY_OPENGL)
@@ -120,14 +108,14 @@ void vertex_stream::setup_attribute_pointers(GLint basevertex)
    }
    else
    {
-      setup_attribute_pointers_new(basevertex);
+      setup_attribute_pointers_new(base_vertex);
    }
 }
 
 #if defined(SUPPORT_LEGACY_OPENGL)
 void vertex_stream::setup_attribute_pointers_old(GLint basevertex)
 {
-   for (auto i = vertex_stream_bindings().begin(); i != vertex_stream_bindings().end(); ++i)
+   for (auto i = m_vertex_stream_bindings.begin(); i != m_vertex_stream_bindings.end(); ++i)
    {
       vertex_stream_binding  *binding   = *i;
       class vertex_attribute *attribute = binding->vertex_attribute();
@@ -194,7 +182,7 @@ void vertex_stream::setup_attribute_pointers_new(GLint basevertex)
 {
    slog_trace("vertex_stream::setup_attribute_pointers_new(basevertex = %d", basevertex);
 
-   for (auto i = vertex_stream_bindings().begin(); i != vertex_stream_bindings().end(); ++i)
+   for (auto i = m_vertex_stream_bindings.begin(); i != m_vertex_stream_bindings.end(); ++i)
    {
       auto binding    = *i;
       auto attribute  = binding.vertex_attribute().lock();
@@ -285,7 +273,7 @@ void vertex_stream::disable_attributes_old()
 
 void vertex_stream::disable_attributes_new()
 {
-   for (auto i = vertex_stream_bindings().begin(); i != vertex_stream_bindings().end(); ++i)
+   for (auto i = m_vertex_stream_bindings.begin(); i != m_vertex_stream_bindings.end(); ++i)
    {
       auto binding = *i;
       auto mapping = binding.vertex_stream_mapping().lock();
@@ -296,66 +284,10 @@ void vertex_stream::disable_attributes_new()
    }
 }
 
-#if 0
-void vertex_stream::draw_elements_base_vertex(
-   gl::begin_mode::value         mode, 
-   GLsizei                       count, 
-   gl::draw_elements_type::value type, 
-   size_t                        indices, 
-   GLint                         basevertex
-)
+uint32_t vertex_stream::last_base_vertex()
 {
-   slog_trace(
-      "vertex_stream::draw_elements_base_vertex(mode = %s, count = %u, type = %s, indices = %u, basevertex = %u",
-      gl::enum_string(mode),
-      static_cast<unsigned int>(count),
-      gl::enum_string(type),
-      static_cast<unsigned int>(indices),
-      basevertex);
-
-#if !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
-   if (configuration::can_use.draw_elements_base_vertex)
-   {
-      if (
-         configuration::must_use_vertex_array_object || 
-         (configuration::use_vertex_array_object && configuration::can_use.vertex_array_object)
-      )
-      {
-         use();
-      }
-
-      //else
-      {
-         setup_attribute_pointers(0); // TODO
-      }
-      gl::draw_elements_base_vertex(mode, count, type, reinterpret_cast<GLvoid*>(indices), basevertex);
-   }
-   else
-   {
-      if (
-         configuration::must_use_vertex_array_object || 
-         (configuration::use_vertex_array_object && configuration::can_use.vertex_array_object)
-      )
-      {
-         use();
-      }
-
-      //else
-      {
-         setup_attribute_pointers(basevertex); // TODO
-      }
-      gl::draw_elements(mode, count, type, reinterpret_cast<GLvoid*>(indices));
-   }
-#else   
-   (void)mode;
-   (void)count;
-   (void)type;
-   (void)indices;
-   (void)basevertex;
-   throw runtime_error("draw_elements_base_vertex not supported");
-#endif
+   return m_last_base_vertex;
 }
-#endif
 
 } }
 

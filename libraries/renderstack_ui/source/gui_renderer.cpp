@@ -272,8 +272,8 @@ void gui_renderer::prepare()
    gl::disable(gl::enable_cap::cull_face);
    gl::disable(gl::enable_cap::depth_test);
    gl::active_texture(gl::texture_unit::texture0);
-   //gl::bind_texture(texture_target::texture_2d, m_text_buffer->font()->texture());
    gl::tex_parameter_i(gl::texture_target::texture_2d, gl::texture_parameter_name::texture_min_filter, gl::texture_min_filter::nearest);
+   gl::tex_parameter_i(gl::texture_target::texture_2d, gl::texture_parameter_name::texture_mag_filter, gl::texture_min_filter::nearest);
 
    m_vertex_stream->use();
 

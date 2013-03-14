@@ -57,128 +57,80 @@ state::state(state const &other)
 }
 
 
-
 renderer::renderer()
-:  s_active_texture_unit(0)
+:  m_active_texture_unit(~0u)
 {
 }
-
-shared_ptr<renderstack::graphics::vertex_stream_mappings> renderer::mappings()
-{ 
-   if (!s_mappings)
-   {
-      s_mappings = renderstack::graphics::context::current()->make_vertex_stream_mappings("renderer s_mappings");
-      // if (vertex_format.has_attribute((*mapping)->src_usage(), (*mapping)->src_index())) {
-      s_mappings->add("a_position",       vertex_attribute_usage::position,   0, 0);
-      s_mappings->add("a_normal",         vertex_attribute_usage::normal,     0, 1);
-      s_mappings->add("a_normal_flat",    vertex_attribute_usage::normal,     1, 2);
-      s_mappings->add("a_normal_smooth",  vertex_attribute_usage::normal,     2, 3);
-      s_mappings->add("a_color",          vertex_attribute_usage::color,      0, 4);
-      s_mappings->add("a_texcoord",       vertex_attribute_usage::tex_coord,  1, 5);
-   }
-   return s_mappings; 
-}
-
 void renderer::push()
 {
-   s_request_stack.push(s_requested);
+   m_request_stack.push(m_requested);
 }
 void renderer::pop()
 {
-   s_requested = s_request_stack.top();
-   s_request_stack.pop();
+   m_requested = m_request_stack.top();
+   m_request_stack.pop();
 }
 void renderer::lock_material(bool value)
 {
-   s_lock_material = value; 
+   m_lock_material = value; 
 }
 void renderer::update_render_states()
 {
-   if (s_effective.render_states != s_requested.render_states)
+   if (m_effective.render_states != m_requested.render_states)
    {
-      s_requested.render_states->use();
-      s_effective.render_states = s_requested.render_states;
+      m_requested.render_states->use();
+      m_effective.render_states = m_requested.render_states;
    }
 }
 void renderer::trash()
 {
    slog_trace("renderer::trash()");
 
-   s_active_texture_unit = ~0u;
-   s_effective.program.reset();
-   s_effective.vertex_buffer.reset();
-   s_effective.index_buffer.reset();
+   m_active_texture_unit = ~0u;
+   m_effective.program.reset();
+   m_effective.vertex_buffer.reset();
+   m_effective.index_buffer.reset();
    for (int i = 0; i < TEXTURE_UNIT_COUNT; ++i)
    {
-      s_effective.textures[i] = 0;
-      s_effective.texture_target[i] = static_cast<gl::texture_target::value>(0);
+      m_effective.textures[i] = 0;
+      m_effective.texture_target[i] = static_cast<gl::texture_target::value>(0);
    }
    for (int i = 0; i < UNIFORM_BINDING_POINT_COUNT; ++i)
    {
-      s_effective.uniform_buffer_ranges[i].reset();
+      m_effective.uniform_buffer_ranges[i].reset();
    }
 }
 void renderer::set_program(shared_ptr<class program> program)
 {
    assert(program);
 
-   s_requested.program = program;
-   if (s_effective.program != s_requested.program)
+   m_requested.program = program;
+   if (m_effective.program != m_requested.program)
    {
-      if (s_requested.program)
-         s_requested.program->use();
+      if (m_requested.program)
+         m_requested.program->use();
 
-      s_effective.program = s_requested.program;
-   }
-}
-void renderer::set_vertex_buffer(shared_ptr<class vertex_buffer> vertex_buffer)
-{
-   assert(vertex_buffer);
-
-   s_requested.vertex_buffer = vertex_buffer;
-   if (s_effective.vertex_buffer != s_requested.vertex_buffer)
-   {
-      if (s_requested.vertex_buffer)
-         s_requested.vertex_buffer->bind();
-
-      s_effective.vertex_buffer = s_requested.vertex_buffer;
-      //  This makes sure we always set vbo pool before setting vertex stream.
-      //  We need to first bind VBO before calling vertex attribute pointers,
-      //  because they memorize the current VBO.
-      s_effective.vertex_stream = nullptr;
-   }
-}
-void renderer::set_index_buffer(std::shared_ptr<class index_buffer> index_buffer)
-{
-   assert(index_buffer);
-
-   s_requested.index_buffer = index_buffer;
-   if (s_effective.index_buffer != s_requested.index_buffer)
-   {
-      if (s_requested.index_buffer)
-         s_requested.index_buffer->bind();
-
-      s_effective.index_buffer = s_requested.index_buffer;
+      m_effective.program = m_requested.program;
    }
 }
 void renderer::set_texture(unsigned int unit, gl::texture_target::value target, unsigned int texture)
 {
-   s_requested.textures      [unit] = texture;
-   s_requested.texture_target[unit] = target;
+   m_requested.textures      [unit] = texture;
+   m_requested.texture_target[unit] = target;
 
    if (
-      (s_effective.textures      [unit] != s_requested.textures      [unit]) ||
-      (s_effective.texture_target[unit] != s_requested.texture_target[unit])
+      (m_effective.textures      [unit] != m_requested.textures      [unit]) ||
+      (m_effective.texture_target[unit] != m_requested.texture_target[unit])
    )
    {
-      if (s_active_texture_unit != unit)
+      if (m_active_texture_unit != unit)
       {
          gl::active_texture(gl::texture_unit::texture0 + unit);
-         s_active_texture_unit = unit;
+         m_active_texture_unit = unit;
       }
-      gl::bind_texture(s_requested.texture_target[unit], s_requested.textures[unit]);
-      s_effective.textures      [unit] = s_requested.textures[unit];
-      s_effective.texture_target[unit] = s_requested.texture_target[unit];
+      gl::bind_texture(m_requested.texture_target[unit], m_requested.textures[unit]);
+      m_effective.textures      [unit] = m_requested.textures[unit];
+      m_effective.texture_target[unit] = m_requested.texture_target[unit];
    }
 }
 void renderer::set_uniform_buffer_range(unsigned int binding_point, shared_ptr<uniform_buffer_range> buffer_range)
@@ -187,33 +139,72 @@ void renderer::set_uniform_buffer_range(unsigned int binding_point, shared_ptr<u
 
    if (renderstack::graphics::configuration::can_use.uniform_buffer_object)
    {
-      s_requested.uniform_buffer_ranges[binding_point] = buffer_range;
+      m_requested.uniform_buffer_ranges[binding_point] = buffer_range;
 
-      if (s_effective.uniform_buffer_ranges[binding_point] != s_requested.uniform_buffer_ranges[binding_point])
+      if (m_effective.uniform_buffer_ranges[binding_point] != m_requested.uniform_buffer_ranges[binding_point])
       {
-         if (s_requested.uniform_buffer_ranges[binding_point])
-            s_requested.uniform_buffer_ranges[binding_point]->bind(binding_point);
+         if (m_requested.uniform_buffer_ranges[binding_point])
+            m_requested.uniform_buffer_ranges[binding_point]->bind(binding_point);
 
-         s_effective.uniform_buffer_ranges[binding_point] = s_requested.uniform_buffer_ranges[binding_point];
+         m_effective.uniform_buffer_ranges[binding_point] = m_requested.uniform_buffer_ranges[binding_point];
       }
    }
    else
       throw runtime_error("uniform buffers are not supported");
 }
-void renderer::set_vertex_stream(shared_ptr<vertex_stream> vertex_stream)
+void renderer::set_vertex_stream(
+   shared_ptr<vertex_stream>        vertex_stream,
+   shared_ptr<class vertex_buffer>  vertex_buffer,
+   shared_ptr<class index_buffer>   index_buffer
+)
 {
    assert(vertex_stream);
+   assert(vertex_buffer);
+   assert(index_buffer);   // TODO draw arrays won't need index buffer
 
-   s_requested.vertex_stream = vertex_stream;
+   m_requested.vertex_stream  = vertex_stream;
+   m_requested.vertex_buffer  = vertex_buffer;
+   m_requested.index_buffer   = index_buffer;
 
-   if (s_effective.vertex_stream != s_requested.vertex_stream)
+   bool vertex_stream_change  = (m_effective.vertex_stream != m_requested.vertex_stream);
+   bool vbo_change            = (m_effective.vertex_buffer != m_requested.vertex_buffer);
+   bool ibo_change            = (m_effective.index_buffer != m_requested.index_buffer);
+
+   if (vbo_change)
    {
-      if (s_requested.vertex_stream)
-         s_requested.vertex_stream->setup_attribute_pointers();
+      assert(vertex_stream_change); // TODO
+      vertex_stream_change = true;
+   }
 
-      s_effective.vertex_stream = s_requested.vertex_stream;
+   // Index buffer is context state and does not interact with VAO
+   if (ibo_change)
+   {
+      if (m_requested.index_buffer)
+         m_requested.index_buffer->bind();
+
+      m_effective.index_buffer = m_requested.index_buffer;
+   }
+
+   if (vertex_stream_change)
+   {
+      if (m_requested.vertex_stream)
+      {
+         bool vao_path = m_requested.vertex_stream->use();
+
+         if (!vao_path)
+         {
+            if (vbo_change)
+            {
+               if (m_requested.vertex_buffer)
+                  m_requested.vertex_buffer->bind();
+
+               m_effective.vertex_buffer = m_requested.vertex_buffer;
+            }
+         }
+      }
+
+      m_effective.vertex_stream = m_requested.vertex_stream;
    }
 }
-
 
 } }
