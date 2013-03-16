@@ -145,6 +145,9 @@ private:
    double                                          m_max_frame_dt;
    double                                          m_simulation_time;
 
+   renderstack::renderer::render_states            m_font_render_states;
+   renderstack::renderer::render_states            m_mesh_render_states;
+
    controls                                        m_controls;
    std::vector<
       std::shared_ptr<

@@ -5,7 +5,7 @@ namespace renderstack { namespace renderer {
 
 using namespace glm;
 
-blend_state *blend_state::s_last = nullptr;
+blend_state const *blend_state::s_last = nullptr;
 blend_state blend_state::s_default;
 blend_state blend_state::s_state_cache;
 
@@ -127,7 +127,7 @@ void blend_state::reset()
    m_alpha.reset();
    m_color = vec4(0.0f, 0.0f, 0.0f, 0.0f);
 }
-void blend_state::execute()
+void blend_state::execute() const
 {
 #if !DISABLE_CACHE
    if (s_last == this)

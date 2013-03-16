@@ -3,6 +3,7 @@
 #include "renderstack_toolkit/window.hpp"
 #include <GL/glfw3.h>
 #include <stdexcept>
+#include <cstdlib>
 
 using namespace std;
 #if 0

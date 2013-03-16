@@ -59,35 +59,6 @@ void game::render_ui()
    float w = (float)m_application->width();
    float h = (float)m_application->height();
 
-   gl::viewport(0, 0, (GLsizei)w, (GLsizei)h);
-   mat4 ortho = glm::ortho(0.0f, (float)w, 0.0f, (float)h);
-   gl::scissor(0, 0, (GLsizei)w, (GLsizei)h);
-
-   auto p = m_programs->font;
-   p->use();
-
-   glm::vec4 white(1.0f, 1.0f, 1.0f, 0.66f); // gamma in 4th component
-   if (use_uniform_buffers)
-   {
-      if (m_text_uniform_buffer_range)
-      {
-         uniform_offsets &o = m_programs->uniform_offsets;
-         m_text_uniform_buffer_range->bind(m_programs->block->binding_point());
-         unsigned char *start = m_text_uniform_buffer_range->begin_edit();
-         ::memcpy(&start[o.model_to_clip],   value_ptr(ortho), 16 * sizeof(float));
-         ::memcpy(&start[o.color],           value_ptr(white), 4 * sizeof(float));
-         m_text_uniform_buffer_range->end_edit();
-      }
-   }
-   else
-   {
-      int model_to_clip_ui = p->uniform_at(m_programs->uniform_keys.model_to_clip);
-      int color_ui         = p->uniform_at(m_programs->uniform_keys.color);
-
-      gl::uniform_matrix_4fv(model_to_clip_ui, 1, GL_FALSE, value_ptr(ortho));
-      gl::uniform_4fv(color_ui, 1, value_ptr(white));
-   }
-
    m_text_buffer->begin_print();
    for (size_t i = 0; i < m_debug_lines.size(); ++i)
       m_text_buffer->print(m_debug_lines[i], 0.0f, h - (i + 1) * m_font->line_height());
@@ -99,16 +70,49 @@ void game::render_ui()
 
    if (chars_printed > 0)
    {
-      p->use();
+      auto rc = renderstack::renderer::context::current();
+      auto r = rc->renderer();
+      r->trash();
 
-      gl::depth_mask    (0);
-      gl::disable       (gl::enable_cap::cull_face);
-      gl::disable       (gl::enable_cap::depth_test);
-      gl::disable       (gl::enable_cap::stencil_test);
-      gl::disable       (gl::enable_cap::scissor_test);
-      gl::enable        (gl::enable_cap::blend);
-      gl::blend_equation(gl::blend_equation_mode::func_add);
-      gl::blend_func    (gl::blending_factor_src::one, gl::blending_factor_dest::one_minus_src_alpha);
+      auto p = m_programs->font;
+      r->set_program(p);
+
+      gl::viewport(0, 0, (GLsizei)w, (GLsizei)h);
+      mat4 ortho = glm::ortho(0.0f, (float)w, 0.0f, (float)h);
+      gl::scissor(0, 0, (GLsizei)w, (GLsizei)h);
+
+      glm::vec4 white(1.0f, 1.0f, 1.0f, 0.66f); // gamma in 4th component
+      if (use_uniform_buffers)
+      {
+         if (m_text_uniform_buffer_range)
+         {
+            uniform_offsets &o = m_programs->uniform_offsets;
+            m_text_uniform_buffer_range->bind(m_programs->block->binding_point());
+            unsigned char *start = m_text_uniform_buffer_range->begin_edit();
+            ::memcpy(&start[o.model_to_clip],   value_ptr(ortho), 16 * sizeof(float));
+            ::memcpy(&start[o.color],           value_ptr(white), 4 * sizeof(float));
+            m_text_uniform_buffer_range->end_edit();
+         }
+      }
+      else
+      {
+         int model_to_clip_ui = p->uniform_at(m_programs->uniform_keys.model_to_clip);
+         int color_ui         = p->uniform_at(m_programs->uniform_keys.color);
+
+         gl::uniform_matrix_4fv(model_to_clip_ui, 1, GL_FALSE, value_ptr(ortho));
+         gl::uniform_4fv(color_ui, 1, value_ptr(white));
+      }
+
+      renderstack::renderer::blend_state     ::reset_state();
+      renderstack::renderer::face_cull_state ::reset_state();
+      renderstack::renderer::depth_state     ::reset_state();
+      renderstack::renderer::color_mask_state::reset_state();
+      renderstack::renderer::stencil_state   ::reset_state();
+
+      renderstack::renderer::depth_state     ::disabled().execute();
+      renderstack::renderer::face_cull_state ::disabled().execute();
+      renderstack::renderer::stencil_state   ::default_().execute();
+      m_font_render_states.blend.execute();
 
       int texture_ui = p->uniform("font_texture")->index();
       gl::uniform_1i(texture_ui, 0);
@@ -148,9 +152,14 @@ void game::render_meshes()
    auto r = rc->renderer();
 
    auto p = m_programs->basic;
+
+#if 1
    r->trash();
 
    r->set_program(p);
+#else
+   p->use();
+#endif
 
    for (auto i = m_models.cbegin(); i != m_models.cend(); ++i)
    {

@@ -11,11 +11,6 @@ namespace renderstack { namespace renderer {
 
 class face_cull_state : public render_state
 {
-private:
-    bool                            m_enabled;
-    gl::cull_face_mode::value       m_cull_face_mode;
-    gl::front_face_direction::value m_front_face_direction;
-
 public:
     bool                            enabled() const;
     gl::cull_face_mode::value       cull_face_mode() const;
@@ -23,12 +18,6 @@ public:
     void                            set_enabled(bool value);
     void                            set_cull_face_mode(gl::cull_face_mode::value value);
     void                            set_front_face_direction(gl::front_face_direction::value value);
-
-private:
-    static face_cull_state s_default;
-    static face_cull_state s_disabled;
-    static face_cull_state *s_last;
-    static face_cull_state s_state_cache;
 
 public:
     static face_cull_state const &default_();
@@ -40,7 +29,18 @@ public:
     static void reset_state();
 
     void reset();
-    void execute();
+    void execute() const;
+
+private:
+    bool                            m_enabled;
+    gl::cull_face_mode::value       m_cull_face_mode;
+    gl::front_face_direction::value m_front_face_direction;
+
+private:
+    static face_cull_state       s_default;
+    static face_cull_state       s_disabled;
+    static face_cull_state const *s_last;
+    static face_cull_state       s_state_cache;
 };
 
 } }

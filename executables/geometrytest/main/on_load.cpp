@@ -85,7 +85,7 @@ bool application::on_load()
 
       setup_gl_state();
 
-#if 1
+#if 0
       if (m_game)
          set_screen(m_game);
 #else

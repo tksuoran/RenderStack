@@ -16,6 +16,7 @@ using namespace std;
 using namespace renderstack::graphics;
 using namespace renderstack::mesh;
 
+#if 0
 bool render_states::lock_blend_state;
 bool render_states::lock_face_cull_state;
 bool render_states::lock_depth_state;
@@ -30,20 +31,26 @@ void render_states::use()
    if (!lock_color_mask_state ) m_color_mask_state->execute();
    if (!lock_stencil_state    ) m_stencil_state->execute();
 }
+#endif
 
 state::state()
+:  program        (nullptr)
+,  vertex_stream  (nullptr)
+
 {
    for (int i = 0; i < TEXTURE_UNIT_COUNT; ++i)
    {
-      textures[i] = 0;
-      texture_target[i] = gl::texture_target::texture_2d;
+      textures       [i] = 0;
+      texture_target [i] = gl::texture_target::texture_2d;
+   }
+   for (int i = 0; i < UNIFORM_BINDING_POINT_COUNT; ++i)
+   {
+      uniform_buffer_ranges[i].reset();
    }
 }
 state::state(state const &other)
-:  render_states  (other.render_states)
-,  program        (other.program)
-,  vertex_buffer  (other.vertex_buffer)
-,  index_buffer   (other.index_buffer)
+//:  render_states  (other.render_states)
+:  program(other.program)
 {
    for (int i = 0; i < TEXTURE_UNIT_COUNT; ++i)
    {
@@ -61,6 +68,20 @@ renderer::renderer()
 :  m_active_texture_unit(~0u)
 {
 }
+#if 0
+std::shared_ptr<class render_states> renderer::request()
+{
+   return m_requested.render_states;
+}
+void renderer::update_render_states()
+{
+   if (m_effective.render_states != m_requested.render_states)
+   {
+      m_requested.render_states->use();
+      m_effective.render_states = m_requested.render_states;
+   }
+}
+#endif
 void renderer::push()
 {
    m_request_stack.push(m_requested);
@@ -73,14 +94,6 @@ void renderer::pop()
 void renderer::lock_material(bool value)
 {
    m_lock_material = value; 
-}
-void renderer::update_render_states()
-{
-   if (m_effective.render_states != m_requested.render_states)
-   {
-      m_requested.render_states->use();
-      m_effective.render_states = m_requested.render_states;
-   }
 }
 void renderer::trash()
 {
@@ -171,19 +184,10 @@ void renderer::set_vertex_stream(
    bool vbo_change            = (m_effective.vertex_buffer != m_requested.vertex_buffer);
    bool ibo_change            = (m_effective.index_buffer != m_requested.index_buffer);
 
-   if (vbo_change)
+   if (vbo_change || ibo_change)
    {
       assert(vertex_stream_change); // TODO
       vertex_stream_change = true;
-   }
-
-   // Index buffer is context state and does not interact with VAO
-   if (ibo_change)
-   {
-      if (m_requested.index_buffer)
-         m_requested.index_buffer->bind();
-
-      m_effective.index_buffer = m_requested.index_buffer;
    }
 
    if (vertex_stream_change)
@@ -191,6 +195,14 @@ void renderer::set_vertex_stream(
       if (m_requested.vertex_stream)
       {
          bool vao_path = m_requested.vertex_stream->use();
+
+         if (ibo_change)
+         {
+            if (m_requested.index_buffer)
+               m_requested.index_buffer->bind();
+
+            m_effective.index_buffer = m_requested.index_buffer;
+         }
 
          if (!vao_path)
          {

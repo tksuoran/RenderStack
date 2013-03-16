@@ -9,7 +9,7 @@ public:
     virtual ~render_state(){}
     
     virtual void reset() = 0;
-    virtual void execute() = 0;
+    virtual void execute() const = 0;
 
     virtual bool expand()
     {

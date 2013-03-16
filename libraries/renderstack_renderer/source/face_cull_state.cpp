@@ -5,7 +5,7 @@ namespace renderstack { namespace renderer {
 
 face_cull_state face_cull_state::s_default;
 face_cull_state face_cull_state::s_disabled;
-face_cull_state *face_cull_state::s_last = nullptr;
+face_cull_state const *face_cull_state::s_last = nullptr;
 face_cull_state face_cull_state::s_state_cache;
 
 bool face_cull_state::enabled() const
@@ -73,7 +73,7 @@ void face_cull_state::reset()
    set_cull_face_mode(gl::cull_face_mode::back);
    set_front_face_direction(gl::front_face_direction::ccw);
 }
-void face_cull_state::execute()
+void face_cull_state::execute() const
 {
 #if !DISABLE_CACHE
    if (s_last == this)

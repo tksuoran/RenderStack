@@ -5,7 +5,7 @@ namespace renderstack { namespace renderer {
 
 depth_state depth_state::s_default;
 depth_state depth_state::s_disabled;
-depth_state *depth_state::s_last = nullptr;
+depth_state const *depth_state::s_last = nullptr;
 depth_state depth_state::s_state_cache;
 
 
@@ -25,6 +25,15 @@ float depth_state::far_() const
 {
    return m_far;
 }
+bool depth_state::depth_mask() const
+{
+   return m_depth_mask;
+}
+void depth_state::set_depth_mask(bool value)
+{
+   m_depth_mask = value;
+}
+
 void depth_state::set_enabled(bool value)
 {
    m_enabled = value;
@@ -51,17 +60,19 @@ void depth_state::set_far(float value)
    return s_disabled;
 }
 depth_state::depth_state()
-:  m_enabled(false)
-,  m_function(gl::depth_function::less)
-,  m_near(0.0f)
-,  m_far(1.0f)
+:  m_enabled   (false)
+,  m_function  (gl::depth_function::less)
+,  m_near      (0.0f)
+,  m_far       (1.0f)
+,  m_depth_mask(false)
 {
 }
 depth_state::depth_state(bool enabled)
-:  m_enabled(enabled)
-,  m_function(gl::depth_function::less)
-,  m_near(0.0f)
-,  m_far(1.0f)
+:  m_enabled   (enabled)
+,  m_function  (gl::depth_function::less)
+,  m_near      (0.0f)
+,  m_far       (1.0f)
+,  m_depth_mask(enabled)  // TODO Is this correct?
 {
 }
 /*virtual*/ depth_state::~depth_state()
@@ -85,7 +96,7 @@ void depth_state::reset()
    set_near(0.0f);
    set_far(1.0);
 }
-void depth_state::execute()
+void depth_state::execute() const
 {
 #if !DISABLE_CACHE
    if (s_last == this)
@@ -132,6 +143,15 @@ void depth_state::execute()
          s_state_cache.set_enabled(false);
       }
    }
+
+#if !DISABLE_CACHE
+   if (s_state_cache.depth_mask() != m_depth_mask)
+#endif
+   {
+      gl::depth_mask(m_depth_mask);
+      s_state_cache.m_depth_mask = m_depth_mask;
+   }
+
    s_last = this;
 }
 

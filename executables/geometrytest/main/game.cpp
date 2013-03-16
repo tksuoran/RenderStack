@@ -103,13 +103,13 @@ void game::on_load()
    {
       vector<std::shared_ptr<renderstack::geometry::geometry>> g_collection;
 
-      //g_collection.push_back(make_shared<renderstack::geometry::shapes::disc>(1.0, 0.8, 32, 2));
-      //g_collection.push_back(make_shared<renderstack::geometry::shapes::triangle>(0.8f / 0.57735027f));
-      //g_collection.push_back(make_shared<renderstack::geometry::shapes::sphere>(1.0f, 12, 4));
-      //g_collection.push_back(make_shared<renderstack::geometry::shapes::cuboctahedron>(1.0));
-      //g_collection.push_back(make_shared<renderstack::geometry::shapes::dodecahedron>(1.0));
-      //g_collection.push_back(make_shared<renderstack::geometry::shapes::icosahedron>(1.0));
-      //g_collection.push_back(make_shared<renderstack::geometry::shapes::octahedron>(1.0));
+      g_collection.push_back(make_shared<renderstack::geometry::shapes::disc>(1.0, 0.8, 32, 2));
+      g_collection.push_back(make_shared<renderstack::geometry::shapes::triangle>(0.8f / 0.57735027f));
+      g_collection.push_back(make_shared<renderstack::geometry::shapes::sphere>(1.0f, 12, 4));
+      g_collection.push_back(make_shared<renderstack::geometry::shapes::cuboctahedron>(1.0));
+      g_collection.push_back(make_shared<renderstack::geometry::shapes::dodecahedron>(1.0));
+      g_collection.push_back(make_shared<renderstack::geometry::shapes::icosahedron>(1.0));
+      g_collection.push_back(make_shared<renderstack::geometry::shapes::octahedron>(1.0));
       g_collection.push_back(make_shared<renderstack::geometry::shapes::tetrahedron>(1.0));
 
 #if 0
@@ -256,6 +256,18 @@ void game::on_load()
    assert(m_application);
 
    reset();
+
+#if defined(USE_FONT)
+   m_font_render_states.blend.set_enabled(true);
+   m_font_render_states.blend.rgb().set_equation_mode(gl::blend_equation_mode::func_add);
+   m_font_render_states.blend.rgb().set_source_factor(gl::blending_factor_src::one);
+   m_font_render_states.blend.rgb().set_destination_factor(gl::blending_factor_dest::one_minus_src_alpha);
+# if 0
+   gl::enable        (gl::enable_cap::blend);
+   gl::blend_equation(gl::blend_equation_mode::func_add);
+   gl::blend_func    (gl::blending_factor_src::one, gl::blending_factor_dest::one_minus_src_alpha);
+# endif
+#endif
 
 #if defined(USE_GUI)
    setup_gui();
