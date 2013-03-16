@@ -58,7 +58,10 @@ text_buffer::text_buffer(shared_ptr<class font> font, std::shared_ptr<renderstac
       )
    );
    unsigned short *ptr = start;
-   unsigned short vertex_index = 0;
+   unsigned short vertex_index = 
+      configuration::can_use.draw_elements_base_vertex 
+      ? 0 
+      : static_cast<unsigned short>(m_mesh.first_vertex());
    for (unsigned short i = 0; i < m_max_chars; ++i)
    {
       *ptr++ = vertex_index;
@@ -93,23 +96,25 @@ void text_buffer::render()
       GLsizei                       count          = static_cast<GLsizei>(m_chars_printed * 6); // 2 triangles = 6 indices per char
       gl::draw_elements_type::value index_type     = gl::draw_elements_type::unsigned_short;
       GLvoid                        *index_pointer = reinterpret_cast<GLvoid*>(m_mesh.first_index() * m_mesh.index_buffer()->index_stride());
-      GLint                         base_vertex    = static_cast<GLint>(m_mesh.first_vertex());
 
       auto uc = renderstack::ui::context::current();
       auto r = uc->gui_renderer();
 
       if (r->vertex_stream()->use())
       {
-         if (!renderstack::graphics::configuration::can_use.draw_elements_base_vertex)
-            throw std::runtime_error("not yet implemented");
-
-         gl::draw_elements_base_vertex(begin_mode, count, index_type, index_pointer, base_vertex);
+         if (renderstack::graphics::configuration::can_use.draw_elements_base_vertex)
+         {
+            GLint base_vertex = static_cast<GLint>(m_mesh.first_vertex());
+            gl::draw_elements_base_vertex(begin_mode, count, index_type, index_pointer, base_vertex);
+         }
+         else
+            gl::draw_elements(begin_mode, count, index_type, index_pointer);
       }
       else
       {
          r->vertex_buffer()->bind();
          r->index_buffer()->bind();
-         r->vertex_stream()->setup_attribute_pointers(base_vertex);
+         r->vertex_stream()->setup_attribute_pointers(0);
          gl::draw_elements(begin_mode, count, index_type, index_pointer);
       }
    }

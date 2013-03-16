@@ -164,7 +164,9 @@ void game::on_load()
          total_index_count += total_info.index_count_centroid_points;
 
       // Allocate a single VBO big enough to hold all vertices
-      gl::bind_vertex_array(0);
+      if (configuration::can_use.vertex_array_object)
+         gl::bind_vertex_array(0);
+
       buffer_info.set_vertex_buffer(
          make_shared<renderstack::graphics::vertex_buffer>(
             total_vertex_count,

@@ -348,9 +348,9 @@ void geometry_mesh::build_mesh_from_geometry(
 
    // Prepare VAO, part 2. VAO, VBO and IBO are all bound so just setting pointers to do
    if (vertex_stream()->use())
-   {
       vertex_stream()->setup_attribute_pointers(0);
-   }
+
+   unsigned int base_vertex = configuration::can_use.draw_elements_base_vertex ? 0 : m_mesh->first_vertex();
 
    // prepare index buffers
    if (format_info.want_fill_triangles())
@@ -412,9 +412,7 @@ void geometry_mesh::build_mesh_from_geometry(
          polygon_normals &&
          polygon_normals->has(polygon)
       )
-      {
          polygon_normal = polygon_normals->value(polygon);
-      }
 
       unsigned int first_index    = vertex_index;
       unsigned int previous_index = first_index;
@@ -506,21 +504,23 @@ void geometry_mesh::build_mesh_from_geometry(
 
          ++vertices_written;
 
+         // Indices
          if (format_info.want_corner_points())
          {
-            *corner_point_index_data++ = vertex_index;
+            *corner_point_index_data++ = vertex_index + base_vertex;
             ++corner_point_indices_written;
          }
 
-         corner_indices->set_value(corner, vertex_index);
+         // TODO Where is this used? With or without + base_vertex?
+         corner_indices->set_value(corner, vertex_index/* + base_vertex*/);
 
          if (format_info.want_fill_triangles())
          {
             if (previous_index != first_index)
             {
-               *fill_index_data++ = first_index;
-               *fill_index_data++ = vertex_index;
-               *fill_index_data++ = previous_index;
+               *fill_index_data++ = first_index + base_vertex;
+               *fill_index_data++ = vertex_index + base_vertex;
+               *fill_index_data++ = previous_index + base_vertex;
                triangle_indices_written += 3;
             }
          }
@@ -550,8 +550,8 @@ void geometry_mesh::build_mesh_from_geometry(
          {
             unsigned int i0 = corner_indices->value(ca);
             unsigned int i1 = corner_indices->value(cb);
-            *edge_line_index_data++ = i0;
-            *edge_line_index_data++ = i1;
+            *edge_line_index_data++ = i0 + base_vertex;
+            *edge_line_index_data++ = i1 + base_vertex;
             edge_line_indices_written += 2;
          }
       }
@@ -576,7 +576,7 @@ void geometry_mesh::build_mesh_from_geometry(
          if (format_info.want_normal_flat() && attribute_normal_flat)
             write(&vertex_data[o_normal_flat], t_normal_flat, normal);
 
-         *polygon_centroid_index_data++ = vertex_index;
+         *polygon_centroid_index_data++ = vertex_index + base_vertex;
          ++polygon_centroid_indices_written;
 
          vertex_data = &vertex_data[vertex_stride];

@@ -56,8 +56,16 @@ ninepatch::ninepatch(shared_ptr<ninepatch_style> style)
       )
    );
    unsigned short *ptr = start;
+   unsigned short base_vertex = configuration::can_use.draw_elements_base_vertex 
+      ? 0 
+      : static_cast<unsigned short>(m_mesh.first_vertex()); // TODO Check valid ranges
 
-#define make_quad(a, b, c, d) *ptr++ = a; *ptr++ = b; *ptr++ = c; *ptr++ = a; *ptr++ = c; *ptr++ = d
+#define make_quad(a, b, c, d) *ptr++ = a + base_vertex; \
+                              *ptr++ = b + base_vertex; \
+                              *ptr++ = c + base_vertex; \
+                              *ptr++ = a + base_vertex; \
+                              *ptr++ = c + base_vertex; \
+                              *ptr++ = d + base_vertex
    make_quad( 4,  5,  1,  0);
    make_quad( 5,  6,  2,  1);
    make_quad( 6,  7,  3,  2);
@@ -86,7 +94,6 @@ void ninepatch::place(
    m_size.x = width;
    m_size.y = height;
 
-   gl::bind_vertex_array(0);
    m_mesh.vertex_buffer()->bind();
 
    float *ptr = (float*)m_mesh.vertex_buffer()->map_vertices(
@@ -145,23 +152,26 @@ void ninepatch::render()
    GLsizei                       count          = static_cast<GLsizei>(mesh().index_count());
    gl::draw_elements_type::value index_type     = gl::draw_elements_type::unsigned_short;
    GLvoid                        *index_pointer = reinterpret_cast<GLvoid*>(mesh().first_index() * mesh().index_buffer()->index_stride());
-   GLint                         base_vertex    = static_cast<GLint>(mesh().first_vertex());
+
 
    auto uc = renderstack::ui::context::current();
    auto r = uc->gui_renderer();
 
    if (r->vertex_stream()->use())
    {
-      if (!renderstack::graphics::configuration::can_use.draw_elements_base_vertex)
-         throw std::runtime_error("not yet implemented");
-
-      gl::draw_elements_base_vertex(begin_mode, count, index_type, index_pointer, base_vertex);
+      if (configuration::can_use.draw_elements_base_vertex)
+      {
+         GLint base_vertex = static_cast<GLint>(mesh().first_vertex());
+         gl::draw_elements_base_vertex(begin_mode, count, index_type, index_pointer, base_vertex);
+      }
+      else
+         gl::draw_elements(begin_mode, count, index_type, index_pointer);
    }
    else
    {
       r->vertex_buffer()->bind();
       r->index_buffer()->bind();
-      r->vertex_stream()->setup_attribute_pointers(static_cast<GLint>(mesh().first_vertex()));
+      r->vertex_stream()->setup_attribute_pointers(0);
       gl::draw_elements(begin_mode, count, index_type, index_pointer);
    }
 }

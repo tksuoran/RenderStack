@@ -21,6 +21,8 @@
 #include "renderstack_ui/gui_renderer.hpp"
 #include "renderstack_ui/layer.hpp"
 #include "renderstack_ui/text_buffer.hpp"
+#include "renderstack_renderer/context.hpp"
+#include "renderstack_renderer/renderer.hpp"
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -140,11 +142,15 @@ void game::render_meshes()
       (m_programs->glsl_version() >= 140) &&
       (renderstack::graphics::configuration::shader_model_version >= 4);
 
-   //gl::enable(gl::enable_cap::cull_face);
-   gl::disable(gl::enable_cap::cull_face);
+   gl::enable(gl::enable_cap::cull_face);
+
+   auto rc = renderstack::renderer::context::current();
+   auto r = rc->renderer();
 
    auto p = m_programs->basic;
-   p->use();
+   r->trash();
+
+   r->set_program(p);
 
    for (auto i = m_models.cbegin(); i != m_models.cend(); ++i)
    {
@@ -182,22 +188,41 @@ void game::render_meshes()
       GLsizei                       count          = static_cast<GLsizei>(index_range.index_count);
       gl::draw_elements_type::value index_type     = gl::draw_elements_type::unsigned_int;
       GLvoid                        *index_pointer = reinterpret_cast<GLvoid*>(index_range.first_index + mesh->first_index() * sizeof(unsigned int));
-      GLint                         base_vertex    = static_cast<GLint>(mesh->first_vertex());
 
+#if 1
+      r->set_vertex_stream(
+         vertex_stream, 
+         mesh->vertex_buffer(),
+         mesh->index_buffer()
+      );
+
+      if (configuration::can_use.draw_elements_base_vertex)
+      {
+         GLint base_vertex = static_cast<GLint>(mesh->first_vertex());
+         gl::draw_elements_base_vertex(begin_mode, count, index_type, index_pointer, base_vertex);
+      }
+      else
+         gl::draw_elements(begin_mode, count, index_type, index_pointer);
+
+#else
       if (vertex_stream->use())
       {
-         if (!configuration::can_use.draw_elements_base_vertex)
-            throw std::runtime_error("not yet implemented");
-         gl::draw_elements_base_vertex(begin_mode, count, index_type, index_pointer, base_vertex);
+         if (configuration::can_use.draw_elements_base_vertex)
+         {
+            GLint base_vertex = static_cast<GLint>(mesh->first_vertex());
+            gl::draw_elements_base_vertex(begin_mode, count, index_type, index_pointer, base_vertex);
+         }
+         else
+            gl::draw_elements(begin_mode, count, index_type, index_pointer);
       }
       else
       {
          mesh->vertex_buffer()->bind();
          mesh->index_buffer()->bind();
-         vertex_stream->setup_attribute_pointers(base_vertex);
+         vertex_stream->setup_attribute_pointers(0);
          gl::draw_elements(begin_mode, count, index_type, index_pointer);
       }
-
+#endif
       //gl::disable(gl::enable_cap::polygon_offset_fill);
 
 #if 0

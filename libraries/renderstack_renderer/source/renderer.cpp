@@ -88,6 +88,7 @@ void renderer::trash()
 
    m_active_texture_unit = ~0u;
    m_effective.program.reset();
+   m_effective.vertex_stream.reset();
    m_effective.vertex_buffer.reset();
    m_effective.index_buffer.reset();
    for (int i = 0; i < TEXTURE_UNIT_COUNT; ++i)
@@ -197,6 +198,8 @@ void renderer::set_vertex_stream(
             {
                if (m_requested.vertex_buffer)
                   m_requested.vertex_buffer->bind();
+
+               vertex_stream->setup_attribute_pointers(0);
 
                m_effective.vertex_buffer = m_requested.vertex_buffer;
             }

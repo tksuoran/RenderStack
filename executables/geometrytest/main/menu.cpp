@@ -131,13 +131,17 @@ void menu::on_load()
             )
          )
       );
+      unsigned short base_vertex = 
+         configuration::can_use.draw_elements_base_vertex 
+         ? 0 
+         : static_cast<unsigned short>(m_mesh->first_vertex());
       unsigned short *ptr = start;
-      *ptr++ = 0;
-      *ptr++ = 2;
-      *ptr++ = 3;
-      *ptr++ = 0;
-      *ptr++ = 1;
-      *ptr++ = 2;
+      *ptr++ = 0 + base_vertex;
+      *ptr++ = 2 + base_vertex;
+      *ptr++ = 3 + base_vertex;
+      *ptr++ = 0 + base_vertex;
+      *ptr++ = 1 + base_vertex;
+      *ptr++ = 2 + base_vertex;
       m_mesh->index_buffer()->unmap_indices();
    }
 #endif
@@ -376,19 +380,25 @@ void menu::render()
       gl::draw_elements_type::value index_type     = gl::draw_elements_type::unsigned_short;
       size_t                        first_index    = m_mesh->first_index();
       GLvoid                        *index_pointer = reinterpret_cast<GLvoid*>(first_index * sizeof(unsigned short));
-      GLint                         base_vertex    = static_cast<GLint>(m_mesh->first_vertex());
-
-      if (r->vertex_stream()->use())
+      
+      bool vao_path = r->vertex_stream()->use();
+      if (vao_path)
       {
-         if (!configuration::can_use.draw_elements_base_vertex)
-            throw std::runtime_error("not yet implemented");
-         gl::draw_elements_base_vertex(begin_mode, count, index_type, index_pointer, base_vertex);
+         if (configuration::can_use.draw_elements_base_vertex)
+         {
+            GLint base_vertex = static_cast<GLint>(m_mesh->first_vertex());
+            gl::draw_elements_base_vertex(begin_mode, count, index_type, index_pointer, base_vertex);
+         }
+         else
+         {
+            gl::draw_elements(begin_mode, count, index_type, index_pointer);
+         }
       }
       else
       {
          r->vertex_buffer()->bind();
          r->index_buffer()->bind();
-         r->vertex_stream()->setup_attribute_pointers(base_vertex);
+         r->vertex_stream()->setup_attribute_pointers(0);
          gl::draw_elements(begin_mode, count, index_type, index_pointer);
       }
    }
