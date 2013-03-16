@@ -11,11 +11,6 @@ namespace renderstack { namespace renderer {
 
 class blend_state_component
 {
-private:
-   gl::blend_equation_mode::value   m_equation_mode;
-   gl::blending_factor_src::value   m_source_factor;
-   gl::blending_factor_dest::value  m_destination_factor;
-
 public:
    blend_state_component();
 
@@ -28,21 +23,15 @@ public:
    void set_destination_factor(gl::blending_factor_dest::value value);
 
    void reset();
+
+private:
+   gl::blend_equation_mode::value   m_equation_mode;
+   gl::blending_factor_src::value   m_source_factor;
+   gl::blending_factor_dest::value  m_destination_factor;
 };
 
 class blend_state : public render_state
 {
-private:
-   bool                    m_enabled;
-   blend_state_component   m_rgb;
-   blend_state_component   m_alpha;
-   glm::vec4               m_color;
-
-private:
-   static blend_state      *s_last;
-   static blend_state      s_default;
-   static blend_state      s_state_cache;
-
 public:
    static blend_state const &default_();
 
@@ -64,7 +53,18 @@ public:
    void set_color(glm::vec4 const &value);
 
    void reset();
-   void execute();
+   void execute() const;
+
+private:
+   bool                    m_enabled;
+   blend_state_component   m_rgb;
+   blend_state_component   m_alpha;
+   glm::vec4               m_color;
+
+private:
+   static blend_state const   *s_last;
+   static blend_state         s_default;
+   static blend_state         s_state_cache;
 };
 
 } }

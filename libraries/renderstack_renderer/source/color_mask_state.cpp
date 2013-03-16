@@ -4,7 +4,7 @@
 namespace renderstack { namespace renderer {
 
 color_mask_state color_mask_state::s_default;
-color_mask_state *color_mask_state::s_last = nullptr;
+color_mask_state const *color_mask_state::s_last = nullptr;
 color_mask_state color_mask_state::s_state_cache;
 
 bool color_mask_state::red() const
@@ -23,10 +23,6 @@ bool color_mask_state::alpha() const
 {
    return m_alpha;
 }
-bool color_mask_state::depth() const
-{
-   return m_depth;
-}
 void color_mask_state::set_red(bool value)
 {
    m_red = value;
@@ -42,10 +38,6 @@ void color_mask_state::set_blue(bool value)
 void color_mask_state::set_alpha(bool value)
 {
    m_alpha = value;
-}
-void color_mask_state::set_depth(bool value)
-{
-   m_depth = value;
 }
 /*static*/ color_mask_state const &color_mask_state::default_()
 {
@@ -67,7 +59,7 @@ void color_mask_state::reset()
    set_blue (true);
    set_alpha(true);
 }
-void color_mask_state::execute()
+void color_mask_state::execute() const
 {
 #if !DISABLE_CACHE
    if (s_last == this)
@@ -87,13 +79,6 @@ void color_mask_state::execute()
       s_state_cache.set_green(m_green);
       s_state_cache.set_blue (m_blue );
       s_state_cache.set_alpha(m_alpha);
-   }
-#if !DISABLE_CACHE
-   if (s_state_cache.depth() != m_depth)
-#endif
-   {
-      gl::depth_mask(m_depth);
-      s_state_cache.m_depth = m_depth;
    }
    s_last = this;
 }

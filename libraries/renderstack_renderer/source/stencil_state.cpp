@@ -3,7 +3,7 @@
 
 namespace renderstack { namespace renderer {
 
-stencil_state *stencil_state::s_last = nullptr;
+stencil_state const *stencil_state::s_last = nullptr;
 stencil_state stencil_state::s_default;
 stencil_state stencil_state::s_state_cache;
 
@@ -75,7 +75,7 @@ stencil_state_component::stencil_state_component()
 {
 }
 
-void stencil_state_component::apply(gl::stencil_face::value face, stencil_state_component &cache)
+void stencil_state_component::apply(gl::stencil_face::value face, stencil_state_component &cache) const
 {
 #if !DISABLE_CACHE
    if (
@@ -113,7 +113,7 @@ void stencil_state_component::apply(gl::stencil_face::value face, stencil_state_
    }
 }
 
-void stencil_state_component::apply_shared(stencil_state &cache)
+void stencil_state_component::apply_shared(stencil_state &cache) const
 {
 #if !DISABLE_CACHE
    if (
@@ -268,7 +268,7 @@ void stencil_state::reset()
    m_front.set_test_mask(0xffff);
    m_back .set_test_mask(0xffff);
 }
-void stencil_state::execute()
+void stencil_state::execute() const
 {
 #if !DISABLE_CACHE
    if (s_last == this)

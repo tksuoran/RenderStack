@@ -393,23 +393,32 @@ void configuration::initialize()
    if (can_use.gpu_shader5)
       shader_model_version = 5;
 
-   // TODO this is for debugging..
+#if 0
    if (shader_model_version > 4)
       shader_model_version = 4;
+#endif
 
-   can_use.map_buffer_range      = false;
-   gl::detail::glBindBufferRange = nullptr;
-   gl::detail::glBindBufferBase  = nullptr;
-
-   //can_use.texture_rg            = false;
-   can_use.uniform_buffer_object = false;
-
+#if 0
    can_use.vertex_array_object = false;
    gl::detail::glGenVertexArrays = nullptr;
    gl::detail::glBindVertexArray = nullptr;
+   can_use.draw_elements_base_vertex = false;
+#endif
+
+#if 0
+   can_use.map_buffer_range      = false;
+   gl::detail::glBindBufferRange = nullptr;
+   gl::detail::glBindBufferBase  = nullptr;
+   can_use.uniform_buffer_object = false;
+
+   //can_use.texture_rg            = false;
+
+   can_use.uniform_buffer_object = false;
+
 
    can_use.draw_elements_base_vertex = false;
    gl::detail::glDrawElementsBaseVertex = nullptr;
+#endif
 
 #if 0
    shader_model_version = 0;

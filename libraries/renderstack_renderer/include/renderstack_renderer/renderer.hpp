@@ -26,15 +26,9 @@ using namespace renderstack::graphics;
 #define TEXTURE_UNIT_COUNT          32 // TODO Get rid of this kind of defines?
 #define UNIFORM_BINDING_POINT_COUNT 16 // TODO Get rid of this kind of defines?
 
+#if 0
 class render_states
 {
-private:
-   blend_state       *m_blend_state;
-   face_cull_state   *m_face_cull_state;
-   depth_state       *m_depth_state;
-   color_mask_state  *m_color_mask_state;
-   stencil_state     *m_stencil_state;
-
 public:
    static bool lock_blend_state;
    static bool lock_face_cull_state;
@@ -44,11 +38,33 @@ public:
 
 public:
    void use();
+
+private:
+   blend_state       *m_blend_state;
+   face_cull_state   *m_face_cull_state;
+   depth_state       *m_depth_state;
+   color_mask_state  *m_color_mask_state;
+   stencil_state     *m_stencil_state;
+};
+#endif
+
+class render_states
+{
+public:
+   blend_state       blend;
+   face_cull_state   face_cull;
+   depth_state       depth;
+   color_mask_state  color_mask;
+   stencil_state     stencil;
+   // TODO: Scissor
 };
 
-struct state
+class state
 {
-   std::shared_ptr<class render_states>                           render_states;
+public:
+   state();
+   state(state const &other);
+
    std::shared_ptr<renderstack::graphics::program>                program;
    std::shared_ptr<renderstack::graphics::vertex_buffer>          vertex_buffer;
    std::shared_ptr<renderstack::graphics::index_buffer>           index_buffer;
@@ -56,9 +72,6 @@ struct state
    std::shared_ptr<renderstack::graphics::vertex_stream>          vertex_stream;
    unsigned int                                                   textures       [TEXTURE_UNIT_COUNT];
    gl::texture_target::value                                      texture_target [TEXTURE_UNIT_COUNT];
-
-   state();
-   state(state const &other);
 };
 
 class renderer
@@ -66,6 +79,7 @@ class renderer
 public:
    renderer();
 
+   std::shared_ptr<class render_states> request();
    void push                     ();
    void pop                      ();
    void lock_material            (bool value);

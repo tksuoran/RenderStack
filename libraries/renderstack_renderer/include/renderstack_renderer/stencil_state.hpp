@@ -13,15 +13,6 @@ class stencil_state;
 
 class stencil_state_component
 {
-private:
-   gl::stencil_op_enum::value       m_stencil_fail_op;
-   gl::stencil_op_enum::value       m_z_fail_op;
-   gl::stencil_op_enum::value       m_z_pass_op;
-   gl::stencil_function_enum::value m_function;
-   int                              m_reference;
-   GLuint                           m_test_mask;
-   GLuint                           m_write_mask;
-
 public:
    gl::stencil_op_enum::value       stencil_fail_op      () const;
    gl::stencil_op_enum::value       z_fail_op            () const;
@@ -40,18 +31,21 @@ public:
 
    stencil_state_component();
    
-   void apply(gl::stencil_face::value face, stencil_state_component &cache);
-   void apply_shared(stencil_state &cache);
+   void apply(gl::stencil_face::value face, stencil_state_component &cache) const;
+   void apply_shared(stencil_state &cache) const;
+
+private:
+   gl::stencil_op_enum::value       m_stencil_fail_op;
+   gl::stencil_op_enum::value       m_z_fail_op;
+   gl::stencil_op_enum::value       m_z_pass_op;
+   gl::stencil_function_enum::value m_function;
+   int                              m_reference;
+   GLuint                           m_test_mask;
+   GLuint                           m_write_mask;
 };
 
 class stencil_state : public render_state
 {
-private:
-   bool                    m_enabled;
-   bool                    m_separate;
-   stencil_state_component m_front;
-   stencil_state_component m_back;
-
 public:
    stencil_state();
    
@@ -66,17 +60,23 @@ public:
    void                          set_front   (stencil_state_component const &value);
    void                          set_back    (stencil_state_component const &value);
 
-private:
-   static stencil_state *s_last;
-   static stencil_state s_default;
-   static stencil_state s_state_cache;
-
 public:
    static stencil_state const &default_();   
    static void reset_state();
    
    void reset();
-   void execute();
+   void execute() const;
+
+private:
+   bool                    m_enabled;
+   bool                    m_separate;
+   stencil_state_component m_front;
+   stencil_state_component m_back;
+
+private:
+   static stencil_state const *s_last;
+   static stencil_state       s_default;
+   static stencil_state       s_state_cache;
 };
 
 } } 
