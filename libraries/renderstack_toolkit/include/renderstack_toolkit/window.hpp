@@ -65,9 +65,9 @@ private:
 # if defined(_WIN32)
    void                    *m_libgl;
    void                    *m_wgl_get_proc_address;
-   ::GLWTAppCallbacks      m_app_callbacks;
+   //::GLWTAppCallbacks      m_app_callbacks;
    ::GLWTConfig            m_glwt_config;
-   ::GLWTWindowCallbacks   m_window_callbacks;
+   //::GLWTWindowCallbacks   m_window_callbacks;
 # endif
 
    mutable

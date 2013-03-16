@@ -2,7 +2,7 @@
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_toolkit/window.hpp"
 #include <GLWT/glwt.h>
-#include <GLXW/glxw.h>
+//#include <GLXW/glxw.h>
 #include <stdexcept>
 
 using namespace std;
@@ -81,6 +81,13 @@ static void s_error_callback(const char *msg, void *userdata)
 {
    (void)userdata;
    printf(msg);
+}
+
+static void s_win_callback(GLWTWindow *window, const GLWTWindowEvent *event, void *userdata)
+{
+   (void)window;
+   (void)event;
+   (void)userdata;
 }
 
 void window::glwt_key_callback(int down, int keysym, int scancode, int mod)
@@ -191,9 +198,11 @@ window::window(int width, int height, std::string const &title, int major, int m
    //typedef WINGDIAPI PROC (WINAPI * PFNWGLGETPROCADDRESS) (LPCSTR);
    //typedef void *(WINAPI *PFNwglGetProcAddress) (const char *);
 
+#if 0
    ::memset(&m_app_callbacks, sizeof(::GLWTAppCallbacks), 0);
    m_app_callbacks.error_callback = s_error_callback;
    m_app_callbacks.userdata = nullptr;
+#endif
 
    ::memset(&m_glwt_config, sizeof(::GLWTConfig), 0);
    m_glwt_config.red_bits            = 8;
@@ -223,30 +232,19 @@ window::window(int width, int height, std::string const &title, int major, int m
    if (major >= 3)
       m_glwt_config.api |= GLWT_PROFILE_CORE;
 
-   if (::glwtInit(&m_glwt_config, &m_app_callbacks) != 0) {
+   if (::glwtInit(&m_glwt_config, &s_error_callback, NULL) != 0)
       throw runtime_error("Failed to initialize GLWT");
-   }
 
-   ::memset(&m_window_callbacks, sizeof(::GLWTWindowCallbacks), 0);
-   m_window_callbacks.close_callback     = s_close_callback;
-   m_window_callbacks.expose_callback    = nullptr;
-   m_window_callbacks.resize_callback    = s_resize_callback;
-   m_window_callbacks.show_callback      = nullptr;
-   m_window_callbacks.focus_callback     = nullptr;
-   m_window_callbacks.key_callback       = s_key_callback;
-   m_window_callbacks.motion_callback    = s_motion_callback;
-   m_window_callbacks.button_callback    = s_button_callback;
-   m_window_callbacks.mouseover_callback = nullptr;
-   m_window_callbacks.userdata           = nullptr;
-
-   m_window = m_window_callbacks.userdata = ::glwtWindowCreate(
+   GLWTWindow *win = ::glwtWindowCreate(
       title.c_str(),
-      width, height,
-      &m_window_callbacks,
-      nullptr
+      width,
+      height,
+      NULL, 
+      s_win_callback, 
+      reinterpret_cast<void*>(this)
    );
-
-   if (!m_window) {
+   if (!m_window)
+   {
       ::glwtQuit();
       throw runtime_error("Failed to open GLWt window");
    }
@@ -255,8 +253,8 @@ window::window(int width, int height, std::string const &title, int major, int m
    m_capture = false;
    m_show = true;
 
-   ::glwtWindowShow(reinterpret_cast<GLWTWindow*>(m_window), 1);
-   ::glwtMakeCurrent(reinterpret_cast<GLWTWindow*>(m_window));
+   ::glwtWindowShow(win, 1);
+   ::glwtMakeCurrent(win);
 
    get_extensions();
 }
@@ -318,11 +316,6 @@ void window::set_mouse_pos(int xpos, int ypos)
    (void)ypos;
 }
 
-void window::get_scroll_offset(double &xoffset, double &yoffset)
-{
-   (void)xoffset;
-   (void)yoffset;
-}
 
 void window::show_cursor(bool show)
 {
