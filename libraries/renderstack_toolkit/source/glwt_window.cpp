@@ -5,6 +5,14 @@
 //#include <GLXW/glxw.h>
 #include <stdexcept>
 
+#if defined(__APPLE__)
+# include <mach-o/dyld.h>
+# include <cstdlib>
+# include <cstring>
+#endif
+
+#include <cassert>
+
 using namespace std;
 #if 0
 # if defined(_WIN32)
@@ -80,7 +88,7 @@ namespace renderstack { namespace toolkit {
 static void s_error_callback(const char *msg, void *userdata)
 {
    (void)userdata;
-   printf(msg);
+   printf("%s\n", msg);
 }
 
 static void s_win_callback(GLWTWindow *window, const GLWTWindowEvent *event, void *userdata)
@@ -182,7 +190,9 @@ double window::time() const
    return res; // TODO
 }
 
+# if defined(_WIN32)
 typedef WINGDIAPI PROC (WINAPI * PFNWGLGETPROCADDRESS) (LPCSTR);
+#endif
 
 window::window(int width, int height, std::string const &title, int major, int minor)
 {
@@ -243,12 +253,13 @@ window::window(int width, int height, std::string const &title, int major, int m
       s_win_callback, 
       reinterpret_cast<void*>(this)
    );
-   if (!m_window)
+   if (!win)
    {
       ::glwtQuit();
       throw runtime_error("Failed to open GLWt window");
    }
 
+   m_window = win;
    m_running = true;
    m_capture = false;
    m_show = true;
@@ -257,6 +268,12 @@ window::window(int width, int height, std::string const &title, int major, int m
    ::glwtMakeCurrent(win);
 
    get_extensions();
+}
+
+void window::make_current()
+{
+   assert(m_window);
+   ::glwtMakeCurrent(reinterpret_cast<GLWTWindow *>(m_window));
 }
 
 window::~window()
@@ -279,6 +296,18 @@ glproc window::get_proc_address(const char* procname)
 
    // TODO try to get with ARB postfix if glproc == NULL
 #endif
+#if defined(__APPLE__)
+   NSSymbol symbol;
+   char *symbolName = (char*)malloc (strlen (procname) + 2); // 1
+   strcpy(symbolName + 1, procname); // 2
+   symbolName[0] = '_'; // 3
+   symbol = NULL;
+   if (NSIsSymbolNameDefined (symbolName)) // 4
+      symbol = NSLookupAndBindSymbol (symbolName);
+   free (symbolName); // 5
+   return (glproc)(symbol ? NSAddressOfSymbol (symbol) : NULL); // 6
+#endif
+   return nullptr;
 }
 
 void window::close()
@@ -294,6 +323,7 @@ void window::run()
       ::glwtEventHandle(0);
       if (!m_running)
          break;
+      make_current();
       update();
    }
 

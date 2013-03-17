@@ -2,6 +2,9 @@
 #include "renderstack_toolkit/logstream.hpp"
 #if defined(WIN32)
 # include "renderstack_toolkit/debugstream.hpp"
+#else
+# include <stdio.h>
+# include <unistd.h>
 #endif
 #include <iostream>
 
@@ -41,7 +44,30 @@ void console_init()
 #else
 void set_text_color(int c)
 {
+#if defined(__APPLE__)
    (void)c;
+#else
+   if (!::isatty(fileno(stdout)))
+      return;
+   switch(c)
+   {
+   case C_DARK_BLUE   : printf("\033[22;34m"); break;
+   case C_DARK_GREEN  : printf("\033[22;32m"); break;
+   case C_DARK_RED    : printf("\033[22;31m"); break;
+   case C_DARK_CYAN   : printf("\033[22;36m"); break;
+   case C_DARK_MAGENTA: printf("\033[22;35m"); break;
+   case C_DARK_YELLOW : printf("\033[22;33m"); break;
+   case C_BLUE        : printf("\033[1;34m"); break;
+   case C_GREEN       : printf("\033[1;32m"); break;
+   case C_RED         : printf("\033[1;31m"); break;
+   case C_CYAN        : printf("\033[1;36m"); break;
+   case C_MAGENTA     : printf("\033[1;35m"); break;
+   case C_YELLOW      : printf("\033[1;33m"); break;
+   case C_DARK_GREY   : printf("\033[1;30m"); break;
+   case C_GREY        : printf("\033[22;37m"); break;
+   case C_WHITE       : printf("\033[1;37m"); break;
+   }
+#endif
 }
 void console_init()
 {

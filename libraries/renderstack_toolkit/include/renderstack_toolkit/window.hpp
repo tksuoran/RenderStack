@@ -28,6 +28,7 @@ public:
    void     set_time    (double value);
    double   time        () const;
    void     close       ();
+   void     make_current();
 
    int      get_mouse_button  (int button);
    void     get_mouse_pos     (int &xpos, int &ypos);
@@ -62,12 +63,11 @@ private:
    int   m_width;
    int   m_height;
 
+   ::GLWTConfig            m_glwt_config;
+
 # if defined(_WIN32)
    void                    *m_libgl;
    void                    *m_wgl_get_proc_address;
-   //::GLWTAppCallbacks      m_app_callbacks;
-   ::GLWTConfig            m_glwt_config;
-   //::GLWTWindowCallbacks   m_window_callbacks;
 # endif
 
    mutable

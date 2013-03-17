@@ -15,10 +15,10 @@
 #include <sys/stat.h>
 #include <iomanip>
 
-log_category log_game            (C_WHITE,     C_GRAY, LOG_WARN);
-log_category log_menu            (C_WHITE,     C_GRAY, LOG_WARN);
-log_category log_programs        (C_DARK_BLUE, C_GRAY, LOG_WARN);
-log_category log_textures        (C_DARK_BLUE, C_GRAY, LOG_WARN);
+log_category log_game      (C_WHITE,     C_GRAY, LOG_WARN);
+log_category log_menu      (C_WHITE,     C_GRAY, LOG_WARN);
+log_category log_programs  (C_DARK_BLUE, C_GRAY, LOG_WARN);
+log_category log_textures  (C_DARK_BLUE, C_GRAY, LOG_WARN);
 
 
 using namespace gl;

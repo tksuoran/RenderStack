@@ -104,14 +104,16 @@ void programs::prepare_gl_resources()
    {
       std::string shader_path;
 
-      if (renderstack::graphics::configuration::shader_model_version >= 5)
+      if ((renderstack::graphics::configuration::shader_model_version >= 5)
+          && (renderstack::graphics::configuration::glsl_version >= 400))
       {
          log_trace("Using shader model 5, GLSL 4.00");
 
          shader_path    = "res/shaders/sm5/";
          m_glsl_version = 400;
       }
-      else if (renderstack::graphics::configuration::shader_model_version >= 4)
+      if ((renderstack::graphics::configuration::shader_model_version >= 4)
+          && (renderstack::graphics::configuration::glsl_version >= 150))
       {
          log_trace("Using shader model 4, GLSL 1.50");
 
