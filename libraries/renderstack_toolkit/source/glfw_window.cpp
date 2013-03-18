@@ -194,6 +194,8 @@ window::window(int width, int height, std::string const &title, int major, int m
       //::glfwWindowHint(GLFW_OPENGL_PROFILE,        GLFW_OPENGL_COMPAT_PROFILE);
    }
 
+   m_width = width;
+   m_height = height;
    m_window = ::glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
    if (!m_window)
    {

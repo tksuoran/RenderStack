@@ -245,6 +245,9 @@ window::window(int width, int height, std::string const &title, int major, int m
    if (::glwtInit(&m_glwt_config, &s_error_callback, NULL) != 0)
       throw runtime_error("Failed to initialize GLWT");
 
+   m_width = width;
+   m_height = height;
+
    GLWTWindow *win = ::glwtWindowCreate(
       title.c_str(),
       width,
