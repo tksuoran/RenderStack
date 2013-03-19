@@ -436,6 +436,11 @@ void menu::render()
       c.mouse_buttons[1] = (m_application->get_mouse_button(1) == GLFW_PRESS);
       c.mouse_buttons[2] = (m_application->get_mouse_button(2) == GLFW_PRESS);
 # endif
+# if defined(RENDERSTACK_USE_GLWT)
+      c.mouse_buttons[0] = (m_application->get_mouse_button(0) == 1);
+      c.mouse_buttons[1] = (m_application->get_mouse_button(1) == 1);
+      c.mouse_buttons[2] = (m_application->get_mouse_button(2) == 1);
+# endif
       auto uc = renderstack::ui::context::current();
       auto r = uc->gui_renderer();
       r->prepare();

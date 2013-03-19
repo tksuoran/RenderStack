@@ -34,6 +34,9 @@
 #if defined(RENDERSTACK_USE_GLFW)
 # include <GL/glfw3.h>
 #endif
+#if defined(RENDERSTACK_USE_GLFW)
+# include <GLWT/glwt.h>
+#endif
 
 #define LOG_CATEGORY &log_game
 
@@ -467,8 +470,23 @@ void game::on_key_down(int key)
    case 'N': m_controls.fov /= 1.1f; break;
    case 'M': reset(); break;
    }
-#else
-   (void)key;
+#endif
+#if defined(RENDERSTACK_USE_GLWT)
+   switch (key)
+   {
+   case GLWT_KEY_ESCAPE: toggle_mouse_lock(); break;
+   case GLWT_KEY_SPACE:  m_controls.camera_controller.translate_y().set_more(true); break;
+   case GLWT_KEY_LSHIFT: shift(true, true); break;
+   case GLWT_KEY_RSHIFT: shift(false, true); break;
+   case GLWT_KEY_F1: m_min_frame_dt = 1.0; m_max_frame_dt = 0.0; break;
+   case GLWT_KEY_W: m_controls.camera_controller.translate_z().set_less(true); break;
+   case GLWT_KEY_S: m_controls.camera_controller.translate_z().set_more(true); break;
+   case GLWT_KEY_D: m_controls.camera_controller.translate_x().set_more(true); break;
+   case GLWT_KEY_A: m_controls.camera_controller.translate_x().set_less(true); break;
+   case GLWT_KEY_B: m_controls.fov *= 1.1f; break;
+   case GLWT_KEY_N: m_controls.fov /= 1.1f; break;
+   case GLWT_KEY_M: reset(); break;
+   }
 #endif
 }
 void game::on_key_up(int key)
@@ -484,8 +502,18 @@ void game::on_key_up(int key)
    case 'D': m_controls.camera_controller.translate_x().set_more(false); break;
    case 'A': m_controls.camera_controller.translate_x().set_less(false); break;
    }
-#else
-   (void)key;
+#endif
+#if defined(RENDERSTACK_USE_GLWT)
+   switch (key)
+   {
+   case GLWT_KEY_SPACE:  m_controls.camera_controller.translate_y().set_more(false); break;
+   case GLWT_KEY_LSHIFT: shift(true, false); break;
+   case GLWT_KEY_RSHIFT: shift(false, false); break;
+   case GLWT_KEY_W: m_controls.camera_controller.translate_z().set_less(false); break;
+   case GLWT_KEY_S: m_controls.camera_controller.translate_z().set_more(false); break;
+   case GLWT_KEY_D: m_controls.camera_controller.translate_x().set_more(false); break;
+   case GLWT_KEY_A: m_controls.camera_controller.translate_x().set_less(false); break;
+   }
 #endif
 }
 void game::on_mouse_moved(int x, int y)

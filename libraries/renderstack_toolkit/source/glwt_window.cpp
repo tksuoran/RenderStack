@@ -94,82 +94,87 @@ static void s_error_callback(const char *msg, void *userdata)
 static void s_win_callback(GLWTWindow *window, const GLWTWindowEvent *event, void *userdata)
 {
    (void)window;
-   (void)event;
-   (void)userdata;
-}
-
-void window::glwt_key_callback(int down, int keysym, int scancode, int mod)
-{
-   (void)scancode;
-   (void)mod;
-   if (down == 1)
-      on_key_down(keysym);
-   else
-      on_key_up(keysym);
-}
-static void s_key_callback(GLWTWindow *window, int down, int keysym, int scancode, int mod, void *userdata)
-{
-   (void)window;
    class window *rs_window = reinterpret_cast<class window *>(userdata);
    if (rs_window)
-      rs_window->glwt_key_callback(down, keysym, scancode, mod);
+      rs_window->glwt_callback(event);
 }
 
-void window::glwt_motion_callback(int x, int y, int buttons)
+void window::glwt_callback(const GLWTWindowEvent *event)
 {
-   m_cursor_x = x;
-   m_cursor_y = y;
-   for (int i = 0; i < sizeof(m_buttons); ++i)
-      m_buttons[i] = !!(buttons & (1 << i));
-   on_mouse_moved(x, y);
-}
+   switch (event->type)
+   {
+   //case GLWT_WINDOW_NO_EVENT:
+      break;
+   case GLWT_WINDOW_CLOSE:
+      close();
+      break;
 
-static void s_motion_callback(GLWTWindow *window, int x, int y, int buttons, void *userdata)
-{
-   (void)window;
-   class window *rs_window = reinterpret_cast<class window *>(userdata);
-   if (rs_window)
-      rs_window->glwt_motion_callback(x, y, buttons);
-}
-
-void window::glwt_button_callback(int down, int x, int y, int button, int mod)
-{
-   (void)mod;
-   m_cursor_x = x;
-   m_cursor_y = y;
-   on_mouse_button(button, down);
-}
-
-static void s_button_callback(GLWTWindow *window, int down, int x, int y, int button, int mod, void *userdata)
-{
-   (void)window;
-   class window *rs_window = reinterpret_cast<class window *>(userdata);
-   if (rs_window)
-      rs_window->glwt_button_callback(down, x, y, button, mod);
-}
-
-void window::glwt_resize_callback(int width, int height)
-{
-   m_width = width;
-   m_height = height;
-   on_resize(width, height);
-}
-
-static void s_resize_callback(GLWTWindow *window, int width, int height, void *userdata)
-{
-   (void)window;
-   class window *rs_window = reinterpret_cast<class window *>(userdata);
-
-   if (rs_window)
-      rs_window->glwt_resize_callback(width, height);
-}
-
-static void s_close_callback(GLWTWindow *window, void *userdata)
-{
-   (void)window;
-   class window *rs_window = reinterpret_cast<class window *>(userdata);
-   if (rs_window)
-      rs_window->close();
+   case GLWT_WINDOW_EXPOSE:
+      break;
+   case GLWT_WINDOW_RESIZE:
+      m_width = event->resize.width;
+      m_height = event->resize.height;
+      on_resize(m_width, m_height);
+      break;
+   case GLWT_WINDOW_SHOW:
+      break;
+   case GLWT_WINDOW_HIDE:
+      break;
+   case GLWT_WINDOW_FOCUS_IN:
+   case GLWT_WINDOW_FOCUS_OUT:
+      break;
+   case GLWT_WINDOW_KEY_UP:
+      on_key_up(event->key.keysym);
+      break;
+   case GLWT_WINDOW_KEY_DOWN:
+      on_key_down(event->key.keysym);
+      break;
+   case GLWT_WINDOW_BUTTON_UP:
+      if (event->button.button < 10)
+         m_buttons[event->button.button] = 0;
+      if (
+         (m_cursor_x != event->button.x) ||
+         (m_cursor_y != event->button.y)
+      )
+      {
+         m_cursor_x = event->button.x;
+         m_cursor_y = event->button.y;
+         on_mouse_moved(m_cursor_x, m_cursor_y);
+      }
+      on_mouse_button(event->button.button, 0);
+      break;
+   case GLWT_WINDOW_BUTTON_DOWN:
+      if (event->button.button < 10)
+         m_buttons[event->button.button] = 1;
+      if (
+         (m_cursor_x != event->button.x) ||
+         (m_cursor_y != event->button.y)
+      )
+      {
+         m_cursor_x = event->button.x;
+         m_cursor_y = event->button.y;
+         on_mouse_moved(m_cursor_x, m_cursor_y);
+      }
+      on_mouse_button(event->button.button, 1);
+      break;
+   case GLWT_WINDOW_MOUSE_MOTION:
+      m_cursor_x = event->motion.x;
+      m_cursor_y = event->motion.y;
+      on_mouse_moved(m_cursor_x, m_cursor_y);
+      for (int i = 0; i < 10; ++i)
+      {
+         bool new_button_state = !!(event->motion.buttons & (1 << i));
+         if (m_buttons[i] != new_button_state)
+         {
+            m_buttons[i] = new_button_state;
+            on_mouse_button(i, new_button_state);
+         }
+      }
+      break;
+   case GLWT_WINDOW_MOUSE_ENTER:
+   case GLWT_WINDOW_MOUSE_LEAVE:
+      break;
+   }
 }
 
 void window::on_resize(int width, int height)
@@ -186,7 +191,7 @@ void window::set_time(double value)
 double window::time() const
 {
    double res = m_fake_time;
-   m_fake_time += (1.0 / 50.0);
+   m_fake_time += (1.0 / 250.0);
    return res; // TODO
 }
 
@@ -267,6 +272,10 @@ window::window(int width, int height, std::string const &title, int major, int m
    m_capture = false;
    m_show = true;
 
+   m_cursor_x = -1;
+   m_cursor_y = -1;
+   m_fake_time = 0.0f;
+
    ::glwtWindowShow(win, 1);
    ::glwtMakeCurrent(win);
 
@@ -310,7 +319,6 @@ glproc window::get_proc_address(const char* procname)
    free (symbolName); // 5
    return (glproc)(symbol ? NSAddressOfSymbol (symbol) : NULL); // 6
 #endif
-   return nullptr;
 }
 
 void window::close()

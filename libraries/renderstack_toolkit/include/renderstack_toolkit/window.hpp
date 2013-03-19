@@ -57,7 +57,7 @@ private:
    bool m_show;
 
 #if defined(RENDERSTACK_USE_GLWT)
-   int   m_buttons[10];
+   bool  m_buttons[10];
    int   m_cursor_x;
    int   m_cursor_y;
    int   m_width;
@@ -74,10 +74,7 @@ private:
    double m_fake_time;
 
 public:
-   void glwt_key_callback(int down, int keysym, int scancode, int mod);
-   void glwt_motion_callback(int x, int y, int buttons);
-   void glwt_button_callback(int down, int x, int y, int button, int mod);
-   void glwt_resize_callback(int width, int height);
+   void glwt_callback(const GLWTWindowEvent *event);
 #endif
 
 public:
