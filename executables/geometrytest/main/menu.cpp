@@ -384,12 +384,14 @@ void menu::render()
       bool vao_path = r->vertex_stream()->use();
       if (vao_path)
       {
+#if defined(RENDERSTACK_GL_API_OPENGL)
          if (configuration::can_use.draw_elements_base_vertex)
          {
             GLint base_vertex = static_cast<GLint>(m_mesh->first_vertex());
             gl::draw_elements_base_vertex(begin_mode, count, index_type, index_pointer, base_vertex);
          }
          else
+#endif
          {
             gl::draw_elements(begin_mode, count, index_type, index_pointer);
          }
@@ -431,16 +433,9 @@ void menu::render()
 
       m_application->get_mouse_pos(c.mouse.x, c.mouse.y);
       c.mouse.y = ih - 1 - c.mouse.y;
-# if defined(RENDERSTACK_USE_GLFW)
-      c.mouse_buttons[0] = (m_application->get_mouse_button(0) == GLFW_PRESS);
-      c.mouse_buttons[1] = (m_application->get_mouse_button(1) == GLFW_PRESS);
-      c.mouse_buttons[2] = (m_application->get_mouse_button(2) == GLFW_PRESS);
-# endif
-# if defined(RENDERSTACK_USE_GLWT)
-      c.mouse_buttons[0] = (m_application->get_mouse_button(0) == 1);
-      c.mouse_buttons[1] = (m_application->get_mouse_button(1) == 1);
-      c.mouse_buttons[2] = (m_application->get_mouse_button(2) == 1);
-# endif
+      c.mouse_buttons[0] = (m_application->get_mouse_button(0) != 0);
+      c.mouse_buttons[1] = (m_application->get_mouse_button(1) != 0);
+      c.mouse_buttons[2] = (m_application->get_mouse_button(2) != 0);
       auto uc = renderstack::ui::context::current();
       auto r = uc->gui_renderer();
       r->prepare();

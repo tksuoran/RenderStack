@@ -157,12 +157,14 @@ window::window(int width, int height, std::string const &title, int major, int m
       ::exit(EXIT_FAILURE);
    }
 
-   ::glfwWindowHint(GLFW_RED_BITS,             8);
-   ::glfwWindowHint(GLFW_GREEN_BITS,           8);
-   ::glfwWindowHint(GLFW_BLUE_BITS,            8);
-   ::glfwWindowHint(GLFW_DEPTH_BITS,           24);
+#if defined(RENDERSTACK_GL_API_OPENGL)
+   ::glfwWindowHint(GLFW_CLIENT_API,   GLFW_OPENGL_API);
+   ::glfwWindowHint(GLFW_RED_BITS,     8);
+   ::glfwWindowHint(GLFW_GREEN_BITS,   8);
+   ::glfwWindowHint(GLFW_BLUE_BITS,    8);
+   ::glfwWindowHint(GLFW_DEPTH_BITS,   24);
    if (major >= 3)
-      ::glfwWindowHint(GLFW_SAMPLES,       4);
+      ::glfwWindowHint(GLFW_SAMPLES,   4);
 
    ::glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, major);
    ::glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, minor);
@@ -193,9 +195,19 @@ window::window(int width, int height, std::string const &title, int major, int m
       ::glfwWindowHint(GLFW_OPENGL_PROFILE,        GLFW_OPENGL_CORE_PROFILE);
       //::glfwWindowHint(GLFW_OPENGL_PROFILE,        GLFW_OPENGL_COMPAT_PROFILE);
    }
+#endif
 
-   m_width = width;
-   m_height = height;
+#if defined(RENDERSTACK_GL_API_OPENGL_ES_2) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
+   ::glfwWindowHint(GLFW_CLIENT_API,   GLFW_OPENGL_ES_API);
+   ::glfwWindowHint(GLFW_RED_BITS,     0);
+   ::glfwWindowHint(GLFW_GREEN_BITS,   0);
+   ::glfwWindowHint(GLFW_BLUE_BITS,    0);
+   ::glfwWindowHint(GLFW_DEPTH_BITS,   0);
+   ::glfwWindowHint(GLFW_STENCIL_BITS, 0);
+   ::glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, major);
+   ::glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, minor);
+#endif
+
    m_window = ::glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
    if (!m_window)
    {
@@ -233,6 +245,10 @@ window::~window()
    on_exit();
    ::glfwDestroyWindow((GLFWwindow*)m_window);
    ::glfwTerminate();
+}
+
+void window::get_extensions()
+{
 }
 
 glproc window::get_proc_address(const char* procname)

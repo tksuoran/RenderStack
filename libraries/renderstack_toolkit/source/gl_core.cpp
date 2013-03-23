@@ -33,7 +33,7 @@ log_category gl_functions(C_DARK_GREEN, C_GRAY, LOG_TRACE);
 
 namespace gl {
 
-#if defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
    using namespace gl::detail;
 #endif
 
@@ -59,9 +59,11 @@ const char *enum_string(GLenum e)
    //case GL_3_BYTES           : return "GL_3_BYTES";
    //case GL_4_BYTES           : return "GL_4_BYTES";
 
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
    case GL_HALF_FLOAT        : return "GL_HALF_FLOAT";
+#endif
 
-#if !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL)
    case GL_DOUBLE            : return "GL_DOUBLE";
 #endif
    case GL_FLOAT_VEC2        : return "GL_FLOAT_VEC2";
@@ -77,15 +79,17 @@ const char *enum_string(GLenum e)
    case GL_FLOAT_MAT2        : return "GL_FLOAT_MAT2";
    case GL_FLOAT_MAT3        : return "GL_FLOAT_MAT3";
    case GL_FLOAT_MAT4        : return "GL_FLOAT_MAT4";
-#if !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+
+#if defined(RENDERSTACK_GL_API_OPENGL)
    case GL_SAMPLER_1D        : return "GL_SAMPLER_1D";
 #endif
    case GL_SAMPLER_2D        : return "GL_SAMPLER_2D";
-#if !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
    case GL_SAMPLER_3D        : return "GL_SAMPLER_3D";
 #endif
    case GL_SAMPLER_CUBE      : return "GL_SAMPLER_CUBE";
-#if !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+
+#if defined(RENDERSTACK_GL_API_OPENGL)
    case GL_SAMPLER_1D_SHADOW : return "GL_SAMPLER_1D_SHADOW";
    case GL_SAMPLER_2D_SHADOW : return "GL_SAMPLER_2D_SHADOW";
 #endif
@@ -93,35 +97,35 @@ const char *enum_string(GLenum e)
    case GL_FRAMEBUFFER_COMPLETE                     : return "GL_FRAMEBUFFER_COMPLETE";
    case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT        : return "GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT";
    case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT: return "GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT";
-#if !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL)
    case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER       : return "GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER";
    case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER       : return "GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER";
 #endif
    case GL_FRAMEBUFFER_UNSUPPORTED                  : return "GL_FRAMEBUFFER_UNSUPPORTED";
 
    case GL_NONE:                   return "GL_POINTS / GL_NONE";
-#if !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
    case GL_FRAMEBUFFER_DEFAULT:    return "GL_FRAMEBUFFER_DEFAULT";
 #endif
    case GL_TEXTURE:                return "GL_TEXTURE";
    case GL_RENDERBUFFER:           return "GL_RENDERBUFFER";
 
-#if !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
    case GL_SIGNED_NORMALIZED       : return "GL_SIGNED_NORMALIZED";
    case GL_UNSIGNED_NORMALIZED     : return "GL_UNSIGNED_NORMALIZED";
 #endif
 
    case GL_LINEAR                  : return "GL_LINEAR";
-#if !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
    case GL_SRGB                    : return "GL_SRGB";
 #endif
 
    //  Texture targets
-#if !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL)
    case GL_TEXTURE_1D              : return "GL_TEXTURE_1D";
 #endif
    case GL_TEXTURE_2D              : return "GL_TEXTURE_2D";
-#if !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
    case GL_TEXTURE_3D              : return "GL_TEXTURE_3D";
 #endif
    case GL_TEXTURE_CUBE_MAP        : return "GL_TEXTURE_CUBE_MAP";
@@ -129,18 +133,24 @@ const char *enum_string(GLenum e)
    //  Buffer targets
    case GL_ARRAY_BUFFER                : return "GL_ARRAY_BUFFER";
    case GL_ELEMENT_ARRAY_BUFFER        : return "GL_ELEMENT_ARRAY_BUFFER";
-#if !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
    case GL_PIXEL_PACK_BUFFER           : return "GL_PIXEL_PACK_BUFFER";
    case GL_PIXEL_UNPACK_BUFFER         : return "GL_PIXEL_UNPACK_BUFFER";
+#endif
+#if defined(RENDERSTACK_GL_API_OPENGL)
    case GL_TRANSFORM_FEEDBACK_BUFFER   : return "GL_TRANSFORM_FEEDBACK_BUFFER";
    case GL_SAMPLER_BUFFER              : return "GL_SAMPLER_BUFFER";
    case GL_INT_SAMPLER_BUFFER          : return "GL_INT_SAMPLER_BUFFER";
    case GL_UNSIGNED_INT_SAMPLER_BUFFER : return "GL_UNSIGNED_INT_SAMPLER_BUFFER";
    case GL_TEXTURE_BUFFER              : return "GL_TEXTURE_BUFFER";
    case GL_TEXTURE_BINDING_BUFFER      : return "GL_TEXTURE_BINDING_BUFFER";
+#endif
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
    case GL_UNIFORM_BUFFER              : return "GL_UNIFORM_BUFFER";
    case GL_COPY_READ_BUFFER            : return "GL_COPY_READ_BUFFER";
    case GL_COPY_WRITE_BUFFER           : return "GL_COPY_WRITE_BUFFER";
+#endif
+#if defined(RENDERSTACK_GL_API_OPENGL)
    case GL_DRAW_INDIRECT_BUFFER        : return "GL_DRAW_INDIRECT_BUFFER";
    case GL_ATOMIC_COUNTER_BUFFER       : return "GL_ATOMIC_COUNTER_BUFFER";
    case GL_IMAGE_BUFFER                : return "GL_IMAGE_BUFFER";
@@ -156,19 +166,23 @@ const char *enum_string(GLenum e)
    case GL_BLEND                       : return "GL_BLEND";
    case GL_SCISSOR_TEST                : return "GL_SCISSOR_TEST";
    case GL_POLYGON_OFFSET_FILL         : return "GL_POLYGON_OFFSET_FILL";
-#if !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL)
    case GL_MULTISAMPLE                 : return "GL_MULTISAMPLE";
 #endif
    case GL_SAMPLE_ALPHA_TO_COVERAGE    : return "GL_SAMPLE_ALPHA_TO_COVERAGE";
-#if !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL)
    case GL_SAMPLE_ALPHA_TO_ONE         : return "GL_SAMPLE_ALPHA_TO_ONE";
 #endif
    case GL_SAMPLE_COVERAGE             : return "GL_SAMPLE_COVERAGE";
-#if !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL)
    case GL_DEPTH_CLAMP                 : return "GL_DEPTH_CLAMP";
    case GL_TEXTURE_CUBE_MAP_SEAMLESS   : return "GL_TEXTURE_CUBE_MAP_SEAMLESS";
    case GL_SAMPLE_SHADING              : return "GL_SAMPLE_SHADING";
+#endif
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
    case GL_RASTERIZER_DISCARD          : return "GL_RASTERIZER_DISCARD";
+#endif
+#if defined(RENDERSTACK_GL_API_OPENGL)
    case GL_FRAMEBUFFER_SRGB            : return "GL_FRAMEBUFFER_SRGB";
    case GL_SAMPLE_MASK                 : return "GL_SAMPLE_MASK";
    case GL_PRIMITIVE_RESTART           : return "GL_PRIMITIVE_RESTART";
@@ -182,7 +196,7 @@ const char *enum_string(GLenum e)
    case GL_TRIANGLES                   : return "GL_TRIANGLES";
    case GL_TRIANGLE_STRIP              : return "GL_TRIANGLE_STRIP";
    case GL_TRIANGLE_FAN                : return "GL_TRIANGLE_FAN";
-#if !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL)
    case GL_PATCHES                     : return "GL_PATCHES";
    case GL_LINES_ADJACENCY             : return "GL_LINES_ADJACENCY";
    case GL_LINE_STRIP_ADJACENCY        : return "GL_LINE_STRIP_ADJACENCY";
@@ -192,17 +206,21 @@ const char *enum_string(GLenum e)
 
    case GL_BUFFER_SIZE                       : return "GL_BUFFER_SIZE";
    case GL_BUFFER_USAGE                      : return "GL_BUFFER_USAGE";
+#if defined(RENDERSTACK_GL_API_OPENGL)
    case GL_QUERY_COUNTER_BITS                : return "GL_QUERY_COUNTER_BITS";
+#endif
    case GL_CURRENT_QUERY                     : return "GL_CURRENT_QUERY";
    case GL_QUERY_RESULT                      : return "GL_QUERY_RESULT";
    case GL_QUERY_RESULT_AVAILABLE            : return "GL_QUERY_RESULT_AVAILABLE";
    case GL_ARRAY_BUFFER_BINDING              : return "GL_ARRAY_BUFFER_BINDING";
    case GL_ELEMENT_ARRAY_BUFFER_BINDING      : return "GL_ELEMENT_ARRAY_BUFFER_BINDING";
    case GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING: return "GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING";
+#if defined(RENDERSTACK_GL_API_OPENGL)
    case GL_READ_ONLY                         : return "GL_READ_ONLY";
    case GL_WRITE_ONLY                        : return "GL_WRITE_ONLY";
    case GL_READ_WRITE                        : return "GL_READ_WRITE";
    case GL_BUFFER_ACCESS                     : return "GL_BUFFER_ACCESS";
+#endif
    case GL_BUFFER_MAPPED                     : return "GL_BUFFER_MAPPED";
    case GL_BUFFER_MAP_POINTER                : return "GL_BUFFER_MAP_POINTER";
    case GL_STREAM_DRAW                       : return "GL_STREAM_DRAW";
@@ -214,13 +232,35 @@ const char *enum_string(GLenum e)
    case GL_DYNAMIC_DRAW                      : return "GL_DYNAMIC_DRAW";
    case GL_DYNAMIC_READ                      : return "GL_DYNAMIC_READ";
    case GL_DYNAMIC_COPY                      : return "GL_DYNAMIC_COPY";
+#if defined(RENDERSTACK_GL_API_OPENGL)
    case GL_SAMPLES_PASSED                    : return "GL_SAMPLES_PASSED";
    case GL_SRC1_ALPHA                        : return "GL_SRC1_ALPHA";
+#endif
    case GL_FRAGMENT_SHADER                   : return "GL_FRAGMENT_SHADER";
    case GL_VERTEX_SHADER                     : return "GL_VERTEX_SHADER";
+#if defined(RENDERSTACK_GL_API_OPENGL)
    case GL_GEOMETRY_SHADER                   : return "GL_GEOMETRY_SHADER";
    case GL_TESS_EVALUATION_SHADER            : return "GL_TESS_EVALUATION_SHADER";
    case GL_TESS_CONTROL_SHADER               : return "GL_TESS_CONTROL_SHADER";
+#endif
+
+   case GL_SHADER_TYPE        : return "GL_SHADER_TYPE";
+   case GL_COMPILE_STATUS     : return "GL_COMPILE_STATUS";
+   case GL_DELETE_STATUS      : return "GL_DELETE_STATUS";
+
+   case GL_LINK_STATUS                             : return "GL_LINK_STATUS";
+   case GL_VALIDATE_STATUS                         : return "GL_VALIDATE_STATUS";
+   case GL_INFO_LOG_LENGTH                         : return "GL_INFO_LOG_LENGTH";
+   case GL_ATTACHED_SHADERS                        : return "GL_ATTACHED_SHADERS";
+   case GL_ACTIVE_ATTRIBUTES                       : return "GL_ACTIVE_ATTRIBUTES";
+   case GL_ACTIVE_ATTRIBUTE_MAX_LENGTH             : return "GL_ACTIVE_ATTRIBUTE_MAX_LENGTH";
+   case GL_ACTIVE_UNIFORMS                         : return "GL_ACTIVE_UNIFORMS";
+   case GL_ACTIVE_UNIFORM_MAX_LENGTH               : return "GL_ACTIVE_UNIFORM_MAX_LENGTH";
+   case GL_ACTIVE_UNIFORM_BLOCKS                   : return "GL_ACTIVE_UNIFORM_BLOCKS";
+   case GL_ACTIVE_UNIFORM_BLOCK_MAX_NAME_LENGTH    : return "GL_ACTIVE_UNIFORM_BLOCK_MAX_NAME_LENGTH";
+   case GL_TRANSFORM_FEEDBACK_BUFFER_MODE          : return "GL_TRANSFORM_FEEDBACK_BUFFER_MODE";
+   case GL_TRANSFORM_FEEDBACK_VARYINGS             : return "GL_TRANSFORM_FEEDBACK_VARYINGS";
+   case GL_TRANSFORM_FEEDBACK_VARYING_MAX_LENGTH   : return "GL_TRANSFORM_FEEDBACK_VARYING_MAX_LENGTH";
 
    default: return "???"; 
 }
@@ -238,7 +278,7 @@ void check_error()
    if (enable_error_checking == false)
       return;
 
-#if defined(SUPPORT_LEGACY_OPENGL) || defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
+#if defined(RENDERSTACK_GL_API_OPENGL_WITH_LEGACY) || defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
    GLenum status = gl::detail::glGetError();
 #else
    GLenum status = glGetError();
@@ -251,7 +291,7 @@ void check_error()
    }
 }
 
-#if defined(SUPPORT_LEGACY_OPENGL)
+#if defined(RENDERSTACK_GL_API_OPENGL_WITH_LEGACY)
 void get_tex_env_fv(GLenum target, GLenum pname, GLfloat *params)
 {  LOG_GL_FUNCTION(__FUNCTION__);
    assert(glGetTexEnvfv != nullptr);
@@ -305,7 +345,7 @@ void bind_texture(GLenum target, GLuint texture)
 #if defined(LOG_GL) || defined(LOG_GL_TEXTURE)
    log_trace("bind_texture(%s, %u)", enum_string(target), texture);
 #endif
-#if defined(RENDERSTACK_USE_GLES2_OR_GLES3) || defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
    assert(gl::detail::glBindTexture != nullptr);
    gl::detail::glBindTexture(target, texture);
 #else
@@ -315,7 +355,7 @@ void bind_texture(GLenum target, GLuint texture)
 }
 void blend_func(GLenum sfactor, GLenum dfactor)
 {  LOG_GL_FUNCTION(__FUNCTION__);
-#if defined(RENDERSTACK_USE_GLES2_OR_GLES3) || defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
    assert(gl::detail::glBlendFunc != nullptr);
    gl::detail::glBlendFunc(sfactor, dfactor);
 #else
@@ -325,7 +365,7 @@ void blend_func(GLenum sfactor, GLenum dfactor)
 }
 void clear(GLbitfield mask)
 {  LOG_GL_FUNCTION(__FUNCTION__);
-#if defined(RENDERSTACK_USE_GLES2_OR_GLES3) || defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
    assert(gl::detail::glClear != nullptr);
    gl::detail::glClear(mask);
 #else
@@ -335,7 +375,7 @@ void clear(GLbitfield mask)
 }
 void clear_color(GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha)
 {  LOG_GL_FUNCTION(__FUNCTION__);
-#if defined(RENDERSTACK_USE_GLES2_OR_GLES3) || defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
    assert(gl::detail::glClearColor != nullptr);
    gl::detail::glClearColor(red, green, blue, alpha);
 #else
@@ -345,7 +385,7 @@ void clear_color(GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha)
 }
 void clear_stencil(GLint s)
    {  LOG_GL_FUNCTION(__FUNCTION__);
-#if defined(RENDERSTACK_USE_GLES2_OR_GLES3) || defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
    assert(gl::detail::glClearStencil != nullptr);
    gl::detail::glClearStencil(s);
 #else
@@ -355,7 +395,7 @@ void clear_stencil(GLint s)
 }
 void color_mask(GLboolean red, GLboolean green, GLboolean blue, GLboolean alpha)
 {  LOG_GL_FUNCTION(__FUNCTION__);
-#if defined(RENDERSTACK_USE_GLES2_OR_GLES3) || defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
    assert(gl::detail::glColorMask != nullptr);
    gl::detail::glColorMask(red, green, blue, alpha);
 #else
@@ -365,7 +405,7 @@ void color_mask(GLboolean red, GLboolean green, GLboolean blue, GLboolean alpha)
 }
 void copy_tex_image_2d(GLenum target, GLint level, GLenum internalFormat, GLint x, GLint y, GLsizei width, GLsizei height, GLint border)
 {  LOG_GL_FUNCTION(__FUNCTION__);
-#if defined(RENDERSTACK_USE_GLES2_OR_GLES3) || defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
    assert(gl::detail::glCopyTexImage2D != nullptr);
    gl::detail::glCopyTexImage2D(target, level, internalFormat, x, y, width, height, border);
 #else
@@ -375,7 +415,7 @@ void copy_tex_image_2d(GLenum target, GLint level, GLenum internalFormat, GLint 
 }
 void copy_tex_sub_image_2d(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height)
 {  LOG_GL_FUNCTION(__FUNCTION__);
-#if defined(RENDERSTACK_USE_GLES2_OR_GLES3) || defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
    assert(gl::detail::glCopyTexSubImage2D != nullptr);
    gl::detail::glCopyTexSubImage2D(target, level, xoffset, yoffset, x, y, width, height);
 #else
@@ -385,7 +425,7 @@ void copy_tex_sub_image_2d(GLenum target, GLint level, GLint xoffset, GLint yoff
 }
 void cull_face(GLenum mode)
 {  LOG_GL_FUNCTION(__FUNCTION__);
-#if defined(RENDERSTACK_USE_GLES2_OR_GLES3) || defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
    assert(gl::detail::glCullFace != nullptr);
    gl::detail::glCullFace(mode);
 #else
@@ -395,7 +435,7 @@ void cull_face(GLenum mode)
 }
 void delete_textures(GLsizei n, const GLuint *textures)
 {  LOG_GL_FUNCTION(__FUNCTION__);
-#if defined(RENDERSTACK_USE_GLES2_OR_GLES3) || defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
    assert(gl::detail::glDeleteTextures != nullptr);
    gl::detail::glDeleteTextures(n, textures);
 #else
@@ -405,7 +445,7 @@ void delete_textures(GLsizei n, const GLuint *textures)
 }
 void depth_func(GLenum func)
 {  LOG_GL_FUNCTION(__FUNCTION__);
-#if defined(RENDERSTACK_USE_GLES2_OR_GLES3) || defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
    assert(gl::detail::glDepthFunc != nullptr);
    gl::detail::glDepthFunc(func);
 #else
@@ -415,7 +455,7 @@ void depth_func(GLenum func)
 }
 void depth_mask(GLboolean flag)
 {  LOG_GL_FUNCTION(__FUNCTION__);
-#if defined(RENDERSTACK_USE_GLES2_OR_GLES3) || defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
    assert(gl::detail::glDepthMask != nullptr);
    gl::detail::glDepthMask(flag);
 #else
@@ -428,7 +468,7 @@ void disable(GLenum cap)
 #if defined(LOG_GL)
    log_trace("disable(%s)", enum_string(cap));
 #endif
-#if defined(RENDERSTACK_USE_GLES2_OR_GLES3) || defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
    assert(gl::detail::glDisable != nullptr);
    gl::detail::glDisable(cap);
 #else
@@ -444,7 +484,7 @@ void draw_arrays(GLenum mode, GLint first, GLsizei count)
       first,
       static_cast<unsigned int>(count));
 #endif
-#if defined(RENDERSTACK_USE_GLES2_OR_GLES3) || defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
    assert(gl::detail::glDrawArrays != nullptr);
    gl::detail::glDrawArrays(mode, first, count);
 #else
@@ -461,7 +501,7 @@ void draw_elements(GLenum mode, GLsizei count, GLenum type, const GLvoid *indice
       enum_string(type),
       indices);
 #endif
-#if defined(RENDERSTACK_USE_GLES2_OR_GLES3) || defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
    assert(gl::detail::glDrawElements != nullptr);
    gl::detail::glDrawElements(mode, count, type, indices);
 #else
@@ -474,7 +514,7 @@ void enable(GLenum cap)
 #if defined(LOG_GL)
    log_trace("enable(%s)", enum_string(cap));
 #endif
-#if defined(RENDERSTACK_USE_GLES2_OR_GLES3) || defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
    assert(gl::detail::glEnable != nullptr);
    gl::detail::glEnable(cap);
 #else
@@ -484,7 +524,7 @@ void enable(GLenum cap)
 }
 void finish(void)
 {  LOG_GL_FUNCTION(__FUNCTION__);
-#if defined(RENDERSTACK_USE_GLES2_OR_GLES3) || defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
    assert(gl::detail::glFinish != nullptr);
    gl::detail::glFinish();
 #else
@@ -494,7 +534,7 @@ void finish(void)
 }
 void flush(void)
 {  LOG_GL_FUNCTION(__FUNCTION__);
-#if defined(RENDERSTACK_USE_GLES2_OR_GLES3) || defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
    assert(gl::detail::glFlush != nullptr);
    gl::detail::glFlush();
 #else
@@ -504,7 +544,7 @@ void flush(void)
 }
 void front_face(GLenum mode)
 {  LOG_GL_FUNCTION(__FUNCTION__);
-#if defined(RENDERSTACK_USE_GLES2_OR_GLES3) || defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
    assert(gl::detail::glFrontFace != nullptr);
    gl::detail::glFrontFace(mode);
 #else
@@ -519,7 +559,7 @@ void gen_textures(GLsizei n, GLuint *textures)
       static_cast<unsigned int>(n),
       textures);
 #endif
-#if defined(RENDERSTACK_USE_GLES2_OR_GLES3) || defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
    assert(gl::detail::glGenTextures != nullptr);
    gl::detail::glGenTextures(n, textures);
 #else
@@ -533,7 +573,7 @@ void gen_textures(GLsizei n, GLuint *textures)
 }
 void get_boolean_v(GLenum pname, GLboolean *params)
 {  LOG_GL_FUNCTION(__FUNCTION__);
-#if defined(RENDERSTACK_USE_GLES2_OR_GLES3) || defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
    assert(gl::detail::glGetBooleanv != nullptr);
    gl::detail::glGetBooleanv(pname, params);
 #else
@@ -543,7 +583,7 @@ void get_boolean_v(GLenum pname, GLboolean *params)
 }
 GLenum get_error(void)
 {  LOG_GL_FUNCTION(__FUNCTION__);
-#if defined(RENDERSTACK_USE_GLES2_OR_GLES3) || defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
    assert(gl::detail::glGetError != nullptr);
    return gl::detail::glGetError();
 #else
@@ -552,7 +592,7 @@ GLenum get_error(void)
 }
 void get_float_v(GLenum pname, GLfloat *params)
 {  LOG_GL_FUNCTION(__FUNCTION__);
-#if defined(RENDERSTACK_USE_GLES2_OR_GLES3) || defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
    assert(gl::detail::glGetFloatv != nullptr);
    gl::detail::glGetFloatv(pname, params);
 #else
@@ -562,7 +602,7 @@ void get_float_v(GLenum pname, GLfloat *params)
 }
 void get_integer_v(GLenum pname, GLint *params)
 {  LOG_GL_FUNCTION(__FUNCTION__);
-#if defined(RENDERSTACK_USE_GLES2_OR_GLES3) || defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
    assert(gl::detail::glGetIntegerv != nullptr);
    gl::detail::glGetIntegerv(pname, params);
 #else
@@ -570,9 +610,9 @@ void get_integer_v(GLenum pname, GLint *params)
 #endif
    check_error();
 }
-const GLubyte * get_string(GLenum name)
+const GLubyte *get_string(GLenum name)
 {  LOG_GL_FUNCTION(__FUNCTION__);
-#if defined(RENDERSTACK_USE_GLES2_OR_GLES3) || defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
    assert(gl::detail::glGetString != nullptr);
    const GLubyte *res = gl::detail::glGetString(name);
 #else
@@ -583,7 +623,7 @@ const GLubyte * get_string(GLenum name)
 }
 void get_tex_parameter_fv(GLenum target, GLenum pname, GLfloat *params)
 {  LOG_GL_FUNCTION(__FUNCTION__);
-#if defined(RENDERSTACK_USE_GLES2_OR_GLES3) || defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
    assert(gl::detail::glGetTexParameterfv != nullptr);
    gl::detail::glGetTexParameterfv(target, pname, params);
 #else
@@ -593,7 +633,7 @@ void get_tex_parameter_fv(GLenum target, GLenum pname, GLfloat *params)
 }
 void get_tex_parameter_iv(GLenum target, GLenum pname, GLint *params)
 {  LOG_GL_FUNCTION(__FUNCTION__);
-#if defined(RENDERSTACK_USE_GLES2_OR_GLES3) || defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
    assert(gl::detail::glGetTexParameteriv != nullptr);
    gl::detail::glGetTexParameteriv(target, pname, params);
 #else
@@ -603,7 +643,7 @@ void get_tex_parameter_iv(GLenum target, GLenum pname, GLint *params)
 }
 void hint(GLenum target, GLenum mode)
 {  LOG_GL_FUNCTION(__FUNCTION__);
-#if defined(RENDERSTACK_USE_GLES2_OR_GLES3) || defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
    assert(gl::detail::glHint != nullptr);
    gl::detail::glHint(target, mode);
 #else
@@ -613,7 +653,7 @@ void hint(GLenum target, GLenum mode)
 }
 GLboolean is_enabled(GLenum cap)
 {  LOG_GL_FUNCTION(__FUNCTION__);
-#if defined(RENDERSTACK_USE_GLES2_OR_GLES3) || defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
    assert(gl::detail::glIsEnabled != nullptr);
    GLboolean res = gl::detail::glIsEnabled(cap);
 #else
@@ -624,7 +664,7 @@ GLboolean is_enabled(GLenum cap)
 }
 GLboolean is_texture(GLuint texture)
 {  LOG_GL_FUNCTION(__FUNCTION__);
-#if defined(RENDERSTACK_USE_GLES2_OR_GLES3) || defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
    assert(gl::detail::glIsTexture != nullptr);
    GLboolean res = gl::detail::glIsTexture(texture);
 #else
@@ -635,7 +675,7 @@ GLboolean is_texture(GLuint texture)
 }
 void line_width(GLfloat width)
 {  LOG_GL_FUNCTION(__FUNCTION__);
-#if defined(RENDERSTACK_USE_GLES2_OR_GLES3) || defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
    assert(gl::detail::glLineWidth != nullptr);
    gl::detail::glLineWidth(width);
 #else
@@ -645,7 +685,7 @@ void line_width(GLfloat width)
 }
 void pixel_store_i(GLenum pname, GLint param)
 {  LOG_GL_FUNCTION(__FUNCTION__);
-#if defined(RENDERSTACK_USE_GLES2_OR_GLES3) || defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
    assert(gl::detail::glPixelStorei != nullptr);
    gl::detail::glPixelStorei(pname, param);
 #else
@@ -655,7 +695,7 @@ void pixel_store_i(GLenum pname, GLint param)
 }
 void polygon_offset(GLfloat factor, GLfloat units)
 {  LOG_GL_FUNCTION(__FUNCTION__);
-#if defined(RENDERSTACK_USE_GLES2_OR_GLES3) || defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
    assert(gl::detail::glPolygonOffset != nullptr);
    gl::detail::glPolygonOffset(factor, units);
 #else
@@ -665,7 +705,7 @@ void polygon_offset(GLfloat factor, GLfloat units)
 }
 void read_pixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLvoid *pixels)
 {  LOG_GL_FUNCTION(__FUNCTION__);
-#if defined(RENDERSTACK_USE_GLES2_OR_GLES3) || defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
    assert(gl::detail::glReadPixels != nullptr);
    gl::detail::glReadPixels(x, y, width, height, format, type, pixels);
 #else
@@ -675,7 +715,7 @@ void read_pixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format,
 }
 void scissor(GLint x, GLint y, GLsizei width, GLsizei height)
 {  LOG_GL_FUNCTION(__FUNCTION__);
-#if defined(RENDERSTACK_USE_GLES2_OR_GLES3) || defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
    assert(gl::detail::glScissor != nullptr);
    gl::detail::glScissor(x, y, width, height);
 #else
@@ -685,7 +725,7 @@ void scissor(GLint x, GLint y, GLsizei width, GLsizei height)
 }
 void stencil_func(GLenum func, GLint ref, GLuint mask)
 {  LOG_GL_FUNCTION(__FUNCTION__);
-#if defined(RENDERSTACK_USE_GLES2_OR_GLES3) || defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
    assert(gl::detail::glStencilFunc != nullptr);
    gl::detail::glStencilFunc(func, ref, mask);
 #else
@@ -695,7 +735,7 @@ void stencil_func(GLenum func, GLint ref, GLuint mask)
 }
 void stencil_mask(GLuint mask)
 {  LOG_GL_FUNCTION(__FUNCTION__);
-#if defined(RENDERSTACK_USE_GLES2_OR_GLES3) || defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
    assert(gl::detail::glStencilMask != nullptr);
    gl::detail::glStencilMask(mask);
 #else
@@ -705,7 +745,7 @@ void stencil_mask(GLuint mask)
 }
 void stencil_op(GLenum fail, GLenum zfail, GLenum zpass)
 {  LOG_GL_FUNCTION(__FUNCTION__);
-#if defined(RENDERSTACK_USE_GLES2_OR_GLES3) || defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
    assert(gl::detail::glStencilOp != nullptr);
    gl::detail::glStencilOp(fail, zfail, zpass);
 #else
@@ -715,7 +755,7 @@ void stencil_op(GLenum fail, GLenum zfail, GLenum zpass)
 }
 void tex_image_2d(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const GLvoid *pixels)
 {  LOG_GL_FUNCTION(__FUNCTION__);
-#if defined(RENDERSTACK_USE_GLES2_OR_GLES3) || defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
    assert(gl::detail::glTexImage2D != nullptr);
    gl::detail::glTexImage2D(target, level, internalformat, width, height, border, format, type, pixels);
 #else
@@ -725,7 +765,7 @@ void tex_image_2d(GLenum target, GLint level, GLint internalformat, GLsizei widt
 }
 void tex_parameter_f(GLenum target, GLenum pname, GLfloat param)
 {  LOG_GL_FUNCTION(__FUNCTION__);
-#if defined(RENDERSTACK_USE_GLES2_OR_GLES3) || defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
    assert(gl::detail::glTexParameterf != nullptr);
    gl::detail::glTexParameterf(target, pname, param);
 #else
@@ -735,7 +775,7 @@ void tex_parameter_f(GLenum target, GLenum pname, GLfloat param)
 }
 void tex_parameter_fv(GLenum target, GLenum pname, const GLfloat *params)
 {  LOG_GL_FUNCTION(__FUNCTION__);
-#if defined(RENDERSTACK_USE_GLES2_OR_GLES3) || defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
    assert(gl::detail::glTexParameterfv != nullptr);
    gl::detail::glTexParameterfv(target, pname, params);
 #else
@@ -745,7 +785,7 @@ void tex_parameter_fv(GLenum target, GLenum pname, const GLfloat *params)
 }
 void tex_parameter_i(GLenum target, GLenum pname, GLint param)
 {  LOG_GL_FUNCTION(__FUNCTION__);
-#if defined(RENDERSTACK_USE_GLES2_OR_GLES3) || defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
    assert(gl::detail::glTexParameteri != nullptr);
    gl::detail::glTexParameteri(target, pname, param);
 #else
@@ -755,7 +795,7 @@ void tex_parameter_i(GLenum target, GLenum pname, GLint param)
 }
 void tex_parameter_iv(GLenum target, GLenum pname, const GLint *params)
 {  LOG_GL_FUNCTION(__FUNCTION__);
-#if defined(RENDERSTACK_USE_GLES2_OR_GLES3) || defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
    assert(gl::detail::glTexParameteriv != nullptr);
    gl::detail::glTexParameteriv(target, pname, params);
 #else
@@ -765,7 +805,7 @@ void tex_parameter_iv(GLenum target, GLenum pname, const GLint *params)
 }
 void tex_sub_image_2d(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const GLvoid *pixels)
 {  LOG_GL_FUNCTION(__FUNCTION__);
-#if defined(RENDERSTACK_USE_GLES2_OR_GLES3) || defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
    assert(gl::detail::glTexSubImage2D != nullptr);
    gl::detail::glTexSubImage2D(target, level, xoffset, yoffset, width, height, format, type, pixels);
 #else
@@ -775,7 +815,7 @@ void tex_sub_image_2d(GLenum target, GLint level, GLint xoffset, GLint yoffset, 
 }
 void viewport(GLint x, GLint y, GLsizei width, GLsizei height)
 {  LOG_GL_FUNCTION(__FUNCTION__);
-#if defined(RENDERSTACK_USE_GLES2_OR_GLES3) || defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
    assert(gl::detail::glViewport != nullptr);
    gl::detail::glViewport(x, y, width, height);
 #else
@@ -784,20 +824,29 @@ void viewport(GLint x, GLint y, GLsizei width, GLsizei height)
    check_error();
 }
 
-#if defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL_ES_2) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
 void clear_depth(GLclampf depth)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
    assert(gl::detail::glClearDepthf != nullptr);
    gl::detail::glClearDepthf(depth);
+#else
+   ::glClearDepthf(depth);
+#endif
    check_error();
 }
 void depth_range(GLclampf zNear, GLclampf zFar)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
    assert(gl::detail::glDepthRangef != nullptr);
    gl::detail::glDepthRangef(zNear, zFar);
+#else
+   ::glDepthRangef(zNear, zFar);
+#endif
    check_error();
 }
-#else
+#endif
+#if defined(RENDERSTACK_GL_API_OPENGL)
 void clear_depth(GLclampd depth)
 {  LOG_GL_FUNCTION(__FUNCTION__);
 #if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
@@ -821,10 +870,10 @@ void depth_range(GLclampd zNear, GLclampd zFar)
 #endif
 
 // OpenGL ES 3.0
-#if defined(RENDERSTACK_USE_GLES3) || !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
 void read_buffer(GLenum mode)
 {  LOG_GL_FUNCTION(__FUNCTION__);
-#if defined(RENDERSTACK_USE_GLES2_OR_GLES3) || defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
    assert(gl::detail::glReadBuffer != nullptr);
    gl::detail::glReadBuffer(mode);
 #else
@@ -834,7 +883,7 @@ void read_buffer(GLenum mode)
 }
 #endif
 
-#if !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL)
 void copy_tex_image_1d(GLenum target, GLint level, GLenum internalFormat, GLint x, GLint y, GLsizei width, GLint border)
 {  LOG_GL_FUNCTION(__FUNCTION__);
 #if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
@@ -980,20 +1029,28 @@ void tex_sub_image_1d(GLenum target, GLint level, GLint xoffset, GLsizei width, 
 /*  GL_VERSION_1_2  */ 
 void blend_color(GLclampf a, GLclampf b, GLclampf c, GLclampf d)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glBlendColor != nullptr);
    gl::detail::glBlendColor(a, b, c, d);
+#else
+   ::glBlendColor(a, b, c, d);
+#endif
    check_error();
 }
 
 void blend_equation(GLenum a)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glBlendEquation != nullptr);
    gl::detail::glBlendEquation(a);
+#else
+   ::glBlendEquation(a);
+#endif
    check_error();
 }
 
 // OpenGL ES 3.0
-#if defined(RENDERSTACK_USE_GLES3) || !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
 void draw_range_elements(GLenum mode, GLuint start, GLuint end, GLsizei count, GLenum type, const GLvoid *indices)
 {
 #if defined(LOG_GL)
@@ -1005,26 +1062,42 @@ void draw_range_elements(GLenum mode, GLuint start, GLuint end, GLsizei count, G
       enum_string(type),
       indices);
 #endif
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glDrawRangeElements != nullptr);
    gl::detail::glDrawRangeElements(mode, start, end, count, type, indices);
+#else
+   ::glDrawRangeElements(mode, start, end, count, type, indices);
+#endif
    check_error();
 }
 void tex_image_3d(GLenum a, GLint b, GLint c, GLsizei d, GLsizei e, GLsizei f, GLint g, GLenum h, GLenum i, const GLvoid *j)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glTexImage3D != nullptr);
    gl::detail::glTexImage3D(a, b, c, d, e, f, g, h, i, j);
+#else
+   ::glTexImage3D(a, b, c, d, e, f, g, h, i, j);
+#endif
    check_error();
 }
 void tex_sub_image_3d(GLenum a, GLint b, GLint c, GLint d, GLint e, GLsizei f, GLsizei g, GLsizei h, GLenum i, GLenum j, const GLvoid *k)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glTexSubImage3D != nullptr);
    gl::detail::glTexSubImage3D(a, b, c, d, e, f, g, h, i, j, k);
+#else
+   ::glTexSubImage3D(a, b, c, d, e, f, g, h, i, j, k);
+#endif
    check_error();
 }
 void copy_tex_sub_image_3d(GLenum a, GLint b, GLint c, GLint d, GLint e, GLint f, GLint g, GLsizei h, GLsizei i)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glCopyTexSubImage3D != nullptr);
    gl::detail::glCopyTexSubImage3D(a, b, c, d, e, f, g, h, i);
+#else
+   ::glCopyTexSubImage3D(a, b, c, d, e, f, g, h, i);
+#endif
    check_error();
 }
 #endif
@@ -1036,46 +1109,70 @@ void active_texture(GLenum a)
    log_trace("active_texture(GL_TEXTURE%d)", a - GL_TEXTURE0);
 #endif
    assert(a >= GL_TEXTURE0);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glActiveTexture != nullptr);
    gl::detail::glActiveTexture(a);
+#else
+   ::glActiveTexture(a);
+#endif
    check_error();
 }
 void sample_coverage(GLclampf a, GLboolean b)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glSampleCoverage != nullptr);
    gl::detail::glSampleCoverage(a, b);
+#else
+   ::glSampleCoverage(a, b);
+#endif
    check_error();
 }
 void compressed_tex_image_2d(GLenum a, GLint b, GLenum c, GLsizei d, GLsizei e, GLint f, GLsizei g, const GLvoid *h)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glCompressedTexImage2D != nullptr);
    gl::detail::glCompressedTexImage2D(a, b, c, d, e, f, g, h);
+#else
+   ::glCompressedTexImage2D(a, b, c, d, e, f, g, h);
+#endif
    check_error();
 }
 void compressed_tex_sub_image_2d(GLenum a, GLint b, GLint c, GLint d, GLsizei e, GLsizei f, GLenum g, GLsizei h, const GLvoid *i)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glCompressedTexSubImage2D != nullptr);
    gl::detail::glCompressedTexSubImage2D(a, b, c, d, e, f, g, h, i);
+#else
+   ::glCompressedTexSubImage2D(a, b, c, d, e, f, g, h, i);
+#endif
    check_error();
 }
 
-   // OpenGL ES 3.0
-#if defined(RENDERSTACK_USE_GLES3) || !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+// OpenGL ES 3.0
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
 void compressed_tex_image_3d(GLenum a, GLint b, GLenum c, GLsizei d, GLsizei e, GLsizei f, GLint g, GLsizei h, const GLvoid *i)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glCompressedTexImage3D != nullptr);
    gl::detail::glCompressedTexImage3D(a, b, c, d, e, f, g, h, i);
+#else
+   ::glCompressedTexImage3D(a, b, c, d, e, f, g, h, i);
+#endif
    check_error();
 }
 void compressed_tex_sub_image_3d(GLenum a, GLint b, GLint c, GLint d, GLint e, GLsizei f, GLsizei g, GLsizei h, GLenum i, GLsizei j, const GLvoid *k)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glCompressedTexSubImage3D != nullptr);
    gl::detail::glCompressedTexSubImage3D(a, b, c, d, e, f, g, h, i, j, k);
+#else
+   ::glCompressedTexSubImage3D(a, b, c, d, e, f, g, h, i, j, k);
+#endif
    check_error();
 }
 #endif
 
-#if !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL)
 void compressed_tex_image_1d(GLenum a, GLint b, GLenum c, GLsizei d, GLint e, GLsizei f, const GLvoid *g)
 {  LOG_GL_FUNCTION(__FUNCTION__);
    assert(gl::detail::glCompressedTexImage1D != nullptr);
@@ -1096,7 +1193,7 @@ void get_compressed_tex_image(GLenum a, GLint b, GLvoid *c)
 }
 #endif
 
-#if defined(SUPPORT_LEGACY_OPENGL)
+#if defined(RENDERSTACK_GL_API_OPENGL_WITH_LEGACYUPPORT_LEGACY_OPENGL)
 void client_active_texture(GLenum texture)
 {  LOG_GL_FUNCTION(__FUNCTION__);
    assert(gl::detail::glClientActiveTexture != nullptr);
@@ -1108,12 +1205,16 @@ void client_active_texture(GLenum texture)
 /*  GL_VERSION_1_4  */ 
 void blend_func_separate(GLenum a, GLenum b, GLenum c, GLenum d)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glBlendFuncSeparate != nullptr);
    gl::detail::glBlendFuncSeparate(a, b, c, d);
+#else
+   ::glBlendFuncSeparate(a, b, c, d);
+#endif
    check_error();
 }
 
-#if !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL)
 void multi_draw_arrays(GLenum a, GLint *b, GLsizei *c, GLsizei d)
 {  LOG_GL_FUNCTION(__FUNCTION__);
    assert(gl::detail::glMultiDrawArrays != nullptr);
@@ -1159,8 +1260,12 @@ void bind_buffer(GLenum target, GLuint buffer)
 #if defined(LOG_GL) || defined(LOG_GL_BUFFER)
    log_trace("bind_buffer(%s, %u)", enum_string(target), buffer);
 #endif
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glBindBuffer != nullptr);
    gl::detail::glBindBuffer(target, buffer);
+#else
+   ::glBindBuffer(target, buffer);
+#endif
    check_error();
 }
 void delete_buffers(GLsizei n, const GLuint *buffers)
@@ -1170,8 +1275,12 @@ void delete_buffers(GLsizei n, const GLuint *buffers)
       static_cast<unsigned int>(n),
       buffers);
 #endif
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glDeleteBuffers != nullptr);
    gl::detail::glDeleteBuffers(n, buffers);
+#else
+   ::glDeleteBuffers(n, buffers);
+#endif
    check_error();
 }
 void gen_buffers(GLsizei n, GLuint *buffers)
@@ -1181,8 +1290,12 @@ void gen_buffers(GLsizei n, GLuint *buffers)
       static_cast<unsigned int>(n),
       buffers);
 #endif
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glGenBuffers != nullptr);
    gl::detail::glGenBuffers(n, buffers);
+#else
+   ::glGenBuffers(n, buffers);
+#endif
 #if defined(LOG_GL) || defined(LOG_GL_BUFFER)
    if (n > 0 && buffers)
       log_trace(":%u", buffers[0]);
@@ -1194,8 +1307,12 @@ GLboolean is_buffer(GLuint buffer)
 #if defined(LOG_GL) || defined(LOG_GL_BUFFER)
    log_trace("is_buffer(%u)", buffer);
 #endif
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glIsBuffer != nullptr);
    GLboolean res = gl::detail::glIsBuffer(buffer);
+#else
+   GLboolean res = ::glIsBuffer(buffer);
+#endif
    check_error();
    return res;
 }
@@ -1208,8 +1325,12 @@ void buffer_data(GLenum target, GLsizeiptr size, const GLvoid *data, GLenum usag
       data,
       usage);
 #endif
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glBufferData != nullptr);
    gl::detail::glBufferData(target, size, data, usage);
+#else
+   ::glBufferData(target, size, data, usage);
+#endif
    check_error();
 }
 void buffer_sub_data(GLenum target, GLintptr offset, GLsizeiptr size, const GLvoid *data)
@@ -1224,19 +1345,27 @@ void buffer_sub_data(GLenum target, GLintptr offset, GLsizeiptr size, const GLvo
    if ((size == 0) || (data == nullptr))
       log_error("oops?");
 #endif
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glBufferSubData != nullptr);
    gl::detail::glBufferSubData(target, offset, size, data);
+#else
+   ::glBufferSubData(target, offset, size, data);
+#endif
    check_error();
 }
 void get_buffer_parameter_iv(GLenum target, GLenum pname, GLint *params)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glGetBufferParameteriv != nullptr);
    gl::detail::glGetBufferParameteriv(target, pname, params);
+#else
+   ::glGetBufferParameteriv(target, pname, params);
+#endif
    check_error();
 }
 
-   // GL_OES_mapbuffer
-#if defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+// GL_OES_mapbuffer
+#if defined(RENDERSTACK_GL_API_OPENGL_ES_2)
 GLvoid* map_buffer_oes(GLenum target, GLenum access)
 {
 #if defined(LOG_GL) || defined(LOG_GL_MAP_BUFFER) || defined(LOG_GL_BUFFER)
@@ -1281,56 +1410,90 @@ GLboolean unmap_buffer_oes(GLenum target)
 #endif
 
 // OpenGL ES 3.0
-#if defined(RENDERSTACK_USE_GLES3) || !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
 void gen_queries(GLsizei a, GLuint *b)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glGenQueries != nullptr);
    gl::detail::glGenQueries(a, b);
+#else
+   ::glGenQueries(a, b);
+#endif
    check_error();
 }
 void delete_queries(GLsizei a, const GLuint *b)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glDeleteQueries != nullptr);
    gl::detail::glDeleteQueries(a, b);
+#else
+   ::glDeleteQueries(a, b);
+#endif
    check_error();
 }
 GLboolean is_query(GLuint a)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glIsQuery != nullptr);
    GLboolean res = gl::detail::glIsQuery(a);
+#else
+   GLboolean res = ::glIsQuery(a);
+#endif
    check_error();
    return res;
 }
 void begin_query(GLenum a, GLuint b)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glBeginQuery != nullptr);
    gl::detail::glBeginQuery(a, b);
+#else
+   ::glBeginQuery(a, b);
+#endif
    check_error();
 }
 void end_query(GLenum a)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glEndQuery != nullptr);
    gl::detail::glEndQuery(a);
+#else
+   ::glEndQuery(a);
+#endif
    check_error();
 }
 void get_query_iv(GLenum a, GLenum b, GLint *c)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glGetQueryiv != nullptr);
    gl::detail::glGetQueryiv(a, b, c);
+#else
+   ::glGetQueryiv(a, b, c);
+#endif
    check_error();
 }
 void get_query_object_uiv(GLuint a, GLenum b, GLuint *c)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glGetQueryObjectuiv != nullptr);
    gl::detail::glGetQueryObjectuiv(a, b, c);
+#else
+   ::glGetQueryObjectuiv(a, b, c);
+#endif
    check_error();
 }
 void get_buffer_pointer_v(GLenum target, GLenum pname, GLvoid **params)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glGetBufferPointerv != nullptr);
    gl::detail::glGetBufferPointerv(target, pname, params);
+#else
+   ::glGetBufferPointerv(target, pname, params);
+#endif
    check_error();
 }
+#endif
+#if defined(RENDERSTACK_GL_API_OPENGL)
 GLvoid* map_buffer(GLenum target, GLenum access)
 {
 #if defined(LOG_GL) || defined(LOG_GL_MAP_BUFFER) || defined(LOG_GL_BUFFER)
@@ -1346,14 +1509,20 @@ GLvoid* map_buffer(GLenum target, GLenum access)
    check_error();
    return res;
 }
+#endif
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
 GLboolean unmap_buffer(GLenum target)
 {
 #if defined(LOG_GL) || defined(LOG_GL_MAP_BUFFER) || defined(LOG_GL_BUFFER)
    slog_trace("unmap_buffer(target = %s)", enum_string(target));
 #endif
 
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glUnmapBuffer != nullptr);
    GLboolean res = gl::detail::glUnmapBuffer(target);
+#else
+   GLboolean res = ::glUnmapBuffer(target);
+#endif
 
 #if defined(LOG_GL) || defined(LOG_GL_MAP_BUFFER) || defined(LOG_GL_BUFFER)
    log_trace(":%d", res);
@@ -1362,7 +1531,7 @@ GLboolean unmap_buffer(GLenum target)
    return res;
 }
 #endif
-#if !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL)
 void get_buffer_sub_data(GLenum target, GLintptr offset, GLsizeiptr size, GLvoid *data)
 {
 #if defined(LOG_GL) || defined(LOG_GL_BUFFER)
@@ -1388,26 +1557,42 @@ void get_query_object_iv(GLuint a, GLenum b, GLint *c)
 /*  GL_VERSION_2_0  */ 
 void blend_equation_separate(GLenum a, GLenum b)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glBlendEquationSeparate != nullptr);
    gl::detail::glBlendEquationSeparate(a, b);
+#else
+   ::glBlendEquationSeparate(a, b);
+#endif
    check_error();
 }
 void stencil_op_separate(GLenum a, GLenum b, GLenum c, GLenum d)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glStencilOpSeparate != nullptr);
    gl::detail::glStencilOpSeparate(a, b, c, d);
+#else
+   ::glStencilOpSeparate(a, b, c, d);
+#endif
    check_error();
 }
 void stencil_func_Separate(GLenum a, GLenum b, GLint c, GLuint d)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glStencilFuncSeparate != nullptr);
    gl::detail::glStencilFuncSeparate(a, b, c, d);
+#else
+   ::glStencilFuncSeparate(a, b, c, d);
+#endif
    check_error();
 }
 void stencil_mask_separate(GLenum a, GLuint b)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glStencilMaskSeparate != nullptr);
    gl::detail::glStencilMaskSeparate(a, b);
+#else
+   ::glStencilMaskSeparate(a, b);
+#endif
    check_error();
 }
 void attach_shader(GLuint program, GLuint shader)
@@ -1415,8 +1600,12 @@ void attach_shader(GLuint program, GLuint shader)
 #if defined(LOG_GL) || defined(LOG_GL_PROGRAM)
    log_trace("attach_shader(%u, %u)", program, shader);
 #endif
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glAttachShader != nullptr);
    gl::detail::glAttachShader(program, shader);
+#else
+   ::glAttachShader(program, shader);
+#endif
    check_error();
 }
 void bind_attrib_location(GLuint program, GLuint index, const GLchar *name)
@@ -1426,8 +1615,12 @@ void bind_attrib_location(GLuint program, GLuint index, const GLchar *name)
    log_trace("bind_attrib_location(program = %u, index = %u, name = %s)",
       program, index, name != nullptr ? name : "(null)");
 #endif
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glBindAttribLocation != nullptr);
    gl::detail::glBindAttribLocation(program, index, name);
+#else
+   ::glBindAttribLocation(program, index, name);
+#endif
    check_error();
 }
 void compile_shader(GLuint shader)
@@ -1435,8 +1628,12 @@ void compile_shader(GLuint shader)
 #if defined(LOG_GL) || defined(LOG_GL_PROGRAM)
    log_trace("compile_shader(shader = %u)", shader);
 #endif
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glCompileShader != nullptr);
    gl::detail::glCompileShader(shader);
+#else
+   ::glCompileShader(shader);
+#endif
    check_error();
 }
 GLuint create_program(void)
@@ -1444,8 +1641,12 @@ GLuint create_program(void)
 #if defined(LOG_GL) || defined(LOG_GL_PROGRAM)
    slog_trace("create_program()");
 #endif
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glCreateProgram != nullptr);
    GLuint res = gl::detail::glCreateProgram();
+#else
+   GLuint res = ::glCreateProgram();
+#endif
 #if defined(LOG_GL) || defined(LOG_GL_PROGRAM)
    log_trace(":%u", res);
 #endif
@@ -1457,8 +1658,12 @@ GLuint create_shader(GLenum type)
 #if defined(LOG_GL) || defined(LOG_GL_PROGRAM)
    log_trace("create_shader(type = %s)", gl::enum_string(type));
 #endif
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glCreateShader != nullptr);
    GLuint res = gl::detail::glCreateShader(type);
+#else
+   GLuint res = ::glCreateShader(type);
+#endif
 #if defined(LOG_GL) || defined(LOG_GL_PROGRAM)
    log_trace(":%u", res);
 #endif
@@ -1470,8 +1675,12 @@ void delete_program(GLuint program)
 #if defined(LOG_GL) || defined(LOG_GL_PROGRAM)
    log_trace("delete_program(program = %u)", program);
 #endif
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glDeleteProgram != nullptr);
    gl::detail::glDeleteProgram(program);
+#else
+   ::glDeleteProgram(program);
+#endif
    check_error();
 }
 void delete_shader(GLuint a)
@@ -1479,8 +1688,12 @@ void delete_shader(GLuint a)
 #if defined(LOG_GL) || defined(LOG_GL_PROGRAM)
    log_trace(__FUNCTION__);
 #endif
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glDeleteShader != nullptr);
    gl::detail::glDeleteShader(a);
+#else
+   ::glDeleteShader(a);
+#endif
    check_error();
 }
 void detach_shader(GLuint program, GLuint shader)
@@ -1488,8 +1701,12 @@ void detach_shader(GLuint program, GLuint shader)
 #if defined(LOG_GL) || defined(LOG_GL_PROGRAM)
    log_trace("detach_shader(program = %u, shader = %u)", program, shader);
 #endif
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glDetachShader != nullptr);
    gl::detail::glDetachShader(program, shader);
+#else
+   ::glDetachShader(program, shader);
+#endif
    check_error();
 }
 void disable_vertex_attrib_array(GLuint a)
@@ -1497,8 +1714,12 @@ void disable_vertex_attrib_array(GLuint a)
 #if defined(LOG_GL) || defined(LOG_GL_ATTRIB)
    log_trace("disable_vertex_attrib_array(%u)", a);
 #endif
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glDisableVertexAttribArray != nullptr);
    gl::detail::glDisableVertexAttribArray(a);
+#else
+   ::glDisableVertexAttribArray(a);
+#endif
    check_error();
 }
 void enable_vertex_attrib_array(GLuint a)
@@ -1506,63 +1727,109 @@ void enable_vertex_attrib_array(GLuint a)
 #if defined(LOG_GL) || defined(LOG_GL_ATTRIB)
    log_trace("enable_vertex_attrib_array(%u)", a);
 #endif
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glEnableVertexAttribArray != nullptr);
    gl::detail::glEnableVertexAttribArray(a);
+#else
+   ::glEnableVertexAttribArray(a);
+#endif
    check_error();
 }
 void get_active_attrib(GLuint a, GLuint b, GLsizei c, GLsizei *d, GLint *e, GLenum *f, GLchar *g)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glGetActiveAttrib != nullptr);
    gl::detail::glGetActiveAttrib(a, b, c, d, e, f, g);
+#else
+   ::glGetActiveAttrib(a, b, c, d, e, f, g);
+#endif
    check_error();
 }
 void get_active_uniform(GLuint a, GLuint b, GLsizei c, GLsizei *d, GLint *e, GLenum *f, GLchar *g)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glGetActiveUniform != nullptr);
    gl::detail::glGetActiveUniform(a, b, c, d, e, f, g);
+#else
+   ::glGetActiveUniform(a, b, c, d, e, f, g);
+#endif
    check_error();
 }
 void get_attached_shaders(GLuint a, GLsizei b, GLsizei *c, GLuint *d)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glGetAttachedShaders != nullptr);
    gl::detail::glGetAttachedShaders(a, b, c, d);
+#else
+   ::glGetAttachedShaders(a, b, c, d);
+#endif
    check_error();
 }
 GLint get_attrib_location(GLuint a, const GLchar *b)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glGetAttribLocation != nullptr);
    GLint res = gl::detail::glGetAttribLocation(a, b);
+#else
+   GLint res = ::glGetAttribLocation(a, b);
+#endif
    check_error();
    return res;
 }
-void get_program_iv(GLuint a, GLenum b, GLint *c)
-{  LOG_GL_FUNCTION(__FUNCTION__);
+void get_program_iv(GLuint program, GLenum pname, GLint *params)
+{
+#if defined(LOG_GL)
+   log_trace("get_program_iv(shader = %u, pname = %s, params = %p)", program, gl::enum_string(pname), params);
+#endif
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glGetProgramiv != nullptr);
-   gl::detail::glGetProgramiv(a, b, c);
+   gl::detail::glGetProgramiv(program, pname, params);
+#else
+   ::glGetProgramiv(program, pname, params);
+#endif
    check_error();
 }
 void get_program_info_log(GLuint a, GLsizei b, GLsizei *c, GLchar *d)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glGetProgramInfoLog != nullptr);
    gl::detail::glGetProgramInfoLog(a, b, c, d);
+#else
+   ::glGetProgramInfoLog(a, b, c, d);
+#endif
    check_error();
 }
-void get_shader_iv(GLuint a, GLenum b, GLint *c)
-{  LOG_GL_FUNCTION(__FUNCTION__);
+void get_shader_iv(GLuint shader, GLenum pname, GLint *params)
+{
+#if defined(LOG_GL)
+   log_trace("get_shader_iv(shader = %u, pname = %s, params = %p)", shader, gl::enum_string(pname), params);
+#endif
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glGetShaderiv != nullptr);
-   gl::detail::glGetShaderiv(a, b, c);
+   gl::detail::glGetShaderiv(shader, pname, params);
+#else
+   ::glGetShaderiv(shader, pname, params);
+#endif
    check_error();
 }
 void get_shader_info_log(GLuint a, GLsizei b, GLsizei *c, GLchar *d)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glGetShaderInfoLog != nullptr);
    gl::detail::glGetShaderInfoLog(a, b, c, d);
+#else
+   ::glGetShaderInfoLog(a, b, c, d);
+#endif
    check_error();
 }
 void get_shader_source(GLuint a, GLsizei b, GLsizei *c, GLchar *d)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glGetShaderSource != nullptr);
    gl::detail::glGetShaderSource(a, b, c, d);
+#else
+   ::glGetShaderSource(a, b, c, d);
+#endif
    check_error();
 }
 GLint get_uniform_location(GLuint program, const GLchar *name)
@@ -1572,8 +1839,12 @@ GLint get_uniform_location(GLuint program, const GLchar *name)
    slog_trace("get_uniform_location(program = %u, name = %s)",
       program, name != nullptr ? name : "(null)");
 #endif
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glGetUniformLocation != nullptr);
    GLint res = gl::detail::glGetUniformLocation(program, name);
+#else
+   GLint res = ::glGetUniformLocation(program, name);
+#endif
 #if defined(LOG_GL)
    log_trace(":%d", res);
 #endif
@@ -1582,18 +1853,26 @@ GLint get_uniform_location(GLuint program, const GLchar *name)
 }
 void get_uniform_fv(GLuint a, GLint b, GLfloat *c)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glGetUniformfv != nullptr);
    gl::detail::glGetUniformfv(a, b, c);
+#else
+   ::glGetUniformfv(a, b, c);
+#endif
    check_error();
 }
 void get_uniform_iv(GLuint a, GLint b, GLint *c)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glGetUniformiv != nullptr);
    gl::detail::glGetUniformiv(a, b, c);
+#else
+   ::glGetUniformiv(a, b, c);
+#endif
    check_error();
 }
 
-#if !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL)
 void get_vertex_attrib_dv(GLuint a, GLenum b, GLdouble *c)
 {  LOG_GL_FUNCTION(__FUNCTION__);
    assert(gl::detail::glGetVertexAttribdv != nullptr);
@@ -1604,20 +1883,32 @@ void get_vertex_attrib_dv(GLuint a, GLenum b, GLdouble *c)
 
 void get_vertex_attrib_fv(GLuint a, GLenum b, GLfloat *c)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glGetVertexAttribfv != nullptr);
    gl::detail::glGetVertexAttribfv(a, b, c);
+#else
+   ::glGetVertexAttribfv(a, b, c);
+#endif
    check_error();
 }
 void get_vertex_attrib_iv(GLuint a, GLenum b, GLint *c)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glGetVertexAttribiv != nullptr);
    gl::detail::glGetVertexAttribiv(a, b, c);
+#else
+   ::glGetVertexAttribiv(a, b, c);
+#endif
    check_error();
 }
 void get_vertex_attrib_pointer_v(GLuint a, GLenum b, GLvoid* *c)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glGetVertexAttribPointerv != nullptr);
    gl::detail::glGetVertexAttribPointerv(a, b, c);
+#else
+   ::glGetVertexAttribPointerv(a, b, c);
+#endif
    check_error();
 }
 GLboolean is_program(GLuint a)
@@ -1625,8 +1916,12 @@ GLboolean is_program(GLuint a)
 #if defined(LOG_GL) || defined(LOG_GL_PROGRAM)
    log_trace("is_program(%u)", a);
 #endif
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glIsProgram != nullptr);
    GLboolean res = gl::detail::glIsProgram(a);
+#else
+   GLboolean res = ::glIsProgram(a);
+#endif
    check_error();
    return res;
 }
@@ -1635,8 +1930,12 @@ GLboolean is_shader(GLuint a)
 #if defined(LOG_GL) || defined(LOG_GL_PROGRAM)
    log_trace("is_shader(%u)", a);
 #endif
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glIsShader != nullptr);
    GLboolean res = gl::detail::glIsShader(a);
+#else
+   GLboolean res = ::glIsShader(a);
+#endif
    check_error();
    return res;
 }
@@ -1645,8 +1944,12 @@ void link_program(GLuint a)
 #if defined(LOG_GL) || defined(LOG_GL_PROGRAM)
    log_trace("link_program(%u)", a);
 #endif
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glLinkProgram != nullptr);
    gl::detail::glLinkProgram(a);
+#else
+   ::glLinkProgram(a);
+#endif
    check_error();
 }
 void shader_source(GLuint shader, GLsizei count, const GLchar **string, const GLint *length)
@@ -1658,8 +1961,12 @@ void shader_source(GLuint shader, GLsizei count, const GLchar **string, const GL
       string,
       length);
 #endif
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glShaderSource != nullptr);
    gl::detail::glShaderSource(shader, count, string, length);
+#else
+   ::glShaderSource(shader, count, string, length);
+#endif
    check_error();
 }
 void use_program(GLuint a)
@@ -1667,32 +1974,52 @@ void use_program(GLuint a)
 #if defined(LOG_GL) || defined(LOG_GL_PROGRAM)
    log_trace("use_program(program = %u)", a);
 #endif
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glUseProgram != nullptr);
    gl::detail::glUseProgram(a);
+#else
+   ::glUseProgram(a);
+#endif
    check_error();
 }
 void uniform_1f(GLint a, GLfloat b)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glUniform1f != nullptr);
    gl::detail::glUniform1f(a, b);
+#else
+   ::glUniform1f(a, b);
+#endif
    check_error();
 }
 void uniform_2f(GLint a, GLfloat b, GLfloat c)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glUniform2f != nullptr);
    gl::detail::glUniform2f(a, b, c);
+#else
+   ::glUniform2f(a, b, c);
+#endif
    check_error();
 }
 void uniform_3f(GLint a, GLfloat b, GLfloat c, GLfloat d)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glUniform3f != nullptr);
    gl::detail::glUniform3f(a, b, c, d);
+#else
+   ::glUniform3f(a, b, c, d);
+#endif
    check_error();
 }
 void uniform_4f(GLint a, GLfloat b, GLfloat c, GLfloat d, GLfloat e)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glUniform4f != nullptr);
    gl::detail::glUniform4f(a, b, c, d, e);
+#else
+   ::glUniform4f(a, b, c, d, e);
+#endif
    check_error();
 }
 void uniform_1i(GLint location, GLint v0)
@@ -1700,146 +2027,242 @@ void uniform_1i(GLint location, GLint v0)
 #if defined(LOG_GL) || defined(LOG_GL_UNIFORM)
    log_trace("uniform_1i(location = %d, v0 = %d)", location, v0);
 #endif
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glUniform1i != nullptr);
    gl::detail::glUniform1i(location, v0);
+#else
+   ::glUniform1i(location, v0);
+#endif
    check_error();
 }
 void uniform_2i(GLint a, GLint b, GLint c)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glUniform2i != nullptr);
    gl::detail::glUniform2i(a, b, c);
+#else
+   ::glUniform2i(a, b, c);
+#endif
    check_error();
 }
 void uniform_3i(GLint a, GLint b, GLint c, GLint d)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glUniform3i != nullptr);
    gl::detail::glUniform3i(a, b, c, d);
+#else
+   ::glUniform3i(a, b, c, d);
+#endif
    check_error();
 }
 void uniform_4i(GLint a, GLint b, GLint c, GLint d, GLint e)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glUniform4i != nullptr);
    gl::detail::glUniform4i(a, b, c, d, e);
+#else
+   ::glUniform4i(a, b, c, d, e);
+#endif
    check_error();
 }
 void uniform_1fv(GLint a, GLsizei b, const GLfloat *c)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glUniform1fv != nullptr);
    gl::detail::glUniform1fv(a, b, c);
+#else
+   ::glUniform1fv(a, b, c);
+#endif
    check_error();
 }
 void uniform_2fv(GLint a, GLsizei b, const GLfloat *c)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glUniform2fv != nullptr);
    gl::detail::glUniform2fv(a, b, c);
+#else
+   ::glUniform2fv(a, b, c);
+#endif
    check_error();
 }
 void uniform_3fv(GLint location, GLsizei count, const GLfloat *value)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glUniform3fv != nullptr);
    gl::detail::glUniform3fv(location, count, value);
+#else
+   ::glUniform3fv(location, count, value);
+#endif
    check_error();
 }
 void uniform_4fv(GLint location, GLsizei count, const GLfloat *value)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glUniform4fv != nullptr);
    gl::detail::glUniform4fv(location, count, value);
+#else
+   ::glUniform4fv(location, count, value);
+#endif
    check_error();
 }
 void uniform_1iv(GLint location, GLsizei count, const GLint *value)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glUniform1iv != nullptr);
    gl::detail::glUniform1iv(location, count, value);
+#else
+   ::glUniform1iv(location, count, value);
+#endif
    check_error();
 }
 void uniform_2iv(GLint a, GLsizei b, const GLint *c)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glUniform2iv != nullptr);
    gl::detail::glUniform2iv(a, b, c);
+#else
+   ::glUniform2iv(a, b, c);
+#endif
    check_error();
 }
 void uniform_3iv(GLint a, GLsizei b, const GLint *c)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glUniform3iv != nullptr);
    gl::detail::glUniform3iv(a, b, c);
+#else
+   ::glUniform3iv(a, b, c);
+#endif
    check_error();
 }
 void uniform_4iv(GLint a, GLsizei b, const GLint *c)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glUniform4iv != nullptr);
    gl::detail::glUniform4iv(a, b, c);
+#else
+   ::glUniform4iv(a, b, c);
+#endif
    check_error();
 }
 void uniform_matrix_2fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glUniformMatrix2fv != nullptr);
    gl::detail::glUniformMatrix2fv(location, count, transpose, value);
+#else
+   ::glUniformMatrix2fv(location, count, transpose, value);
+#endif
    check_error();
 }
 void uniform_matrix_3fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glUniformMatrix3fv != nullptr);
    gl::detail::glUniformMatrix3fv(location, count, transpose, value);
+#else
+   ::glUniformMatrix3fv(location, count, transpose, value);
+#endif
    check_error();
 }
 void uniform_matrix_4fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glUniformMatrix4fv != nullptr);
    gl::detail::glUniformMatrix4fv(location, count, transpose, value);
+#else
+   ::glUniformMatrix4fv(location, count, transpose, value);
+#endif
    check_error();
 }
 void validate_program(GLuint program)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glValidateProgram != nullptr);
    gl::detail::glValidateProgram(program);
+#else
+   ::glValidateProgram(program);
+#endif
    check_error();
 }
 void vertex_attrib_1f(GLuint a, GLfloat b)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glVertexAttrib1f != nullptr);
    gl::detail::glVertexAttrib1f(a, b);
+#else
+   ::glVertexAttrib1f(a, b);
+#endif
    check_error();
 }
 void vertex_attrib_1fv(GLuint a, const GLfloat *b)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glVertexAttrib1fv != nullptr);
    gl::detail::glVertexAttrib1fv(a, b);
+#else
+   ::glVertexAttrib1fv(a, b);
+#endif
    check_error();
 }
 void vertex_attrib_2f(GLuint a, GLfloat b, GLfloat c)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glVertexAttrib2f != nullptr);
    gl::detail::glVertexAttrib2f(a, b, c);
+#else
+   ::glVertexAttrib2f(a, b, c);
+#endif
    check_error();
 }
 void vertex_attrib_2fv(GLuint a, const GLfloat *b)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glVertexAttrib2fv != nullptr);
    gl::detail::glVertexAttrib2fv(a, b);
+#else
+   ::glVertexAttrib2fv(a, b);
+#endif
    check_error();
 }
 void vertex_attrib_3f(GLuint a, GLfloat b, GLfloat c, GLfloat d)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glVertexAttrib3f != nullptr);
    gl::detail::glVertexAttrib3f(a, b, c, d);
+#else
+   ::glVertexAttrib3f(a, b, c, d);
+#endif
    check_error();
 }
 void vertex_attrib_3fv(GLuint a, const GLfloat *b)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glVertexAttrib3fv != nullptr);
    gl::detail::glVertexAttrib3fv(a, b);
+#else
+   ::glVertexAttrib3fv(a, b);
+#endif
    check_error();
 }
 void vertex_attrib_4f(GLuint a, GLfloat b, GLfloat c, GLfloat d, GLfloat e)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glVertexAttrib4f != nullptr);
    gl::detail::glVertexAttrib4f(a, b, c, d, e);
+#else
+   ::glVertexAttrib4f(a, b, c, d, e);
+#endif
    check_error();
 }
 void vertex_attrib_4fv(GLuint a, const GLfloat *b)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glVertexAttrib4fv != nullptr);
    gl::detail::glVertexAttrib4fv(a, b);
+#else
+   ::glVertexAttrib4fv(a, b);
+#endif
    check_error();
 }
 void vertex_attrib_pointer(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer)
@@ -1848,21 +2271,29 @@ void vertex_attrib_pointer(GLuint index, GLint size, GLenum type, GLboolean norm
    log_trace("vertex_attrib_pointer(index = %u, size = %d, type = %s, normalized = %d, stride = %d, pointer = %p)",
       index, size, enum_string(type), normalized, static_cast<unsigned int>(stride), pointer);
 #endif
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glVertexAttribPointer != nullptr);
    gl::detail::glVertexAttribPointer(index, size, type, normalized, stride, pointer);
+#else
+   ::glVertexAttribPointer(index, size, type, normalized, stride, pointer);
+#endif
    check_error();
 }
 
 //  OpenGL ES 3.0
-#if defined(RENDERSTACK_USE_GLES3) || !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
 void draw_buffers(GLsizei a, const GLenum * b)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glDrawBuffers != nullptr);
    gl::detail::glDrawBuffers(a, b);
+#else
+   ::glDrawBuffers(a, b);
+#endif
    check_error();
 }
 #endif
-#if !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL)
 void vertex_attrib_1d(GLuint a, GLdouble b)
 {  LOG_GL_FUNCTION(__FUNCTION__);
    assert(gl::detail::glVertexAttrib1d != nullptr);
@@ -2036,41 +2467,65 @@ void vertex_attrib_4usv(GLuint a, const GLushort *b)
 /*  GL_VERSION_2_1  */ 
 
 //  OpenGL ES 3.0
-#if defined(RENDERSTACK_USE_GLES3) || !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
 void uniform_matrix_2x3fv(GLint a, GLsizei b, GLboolean c, const GLfloat *d)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glUniformMatrix2x3fv != nullptr);
    gl::detail::glUniformMatrix2x3fv(a, b, c, d);
+#else
+   ::glUniformMatrix2x3fv(a, b, c, d);
+#endif
    check_error();
 }
 void uniform_matrix_3x2fv(GLint a, GLsizei b, GLboolean c, const GLfloat *d)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glUniformMatrix2x3fv != nullptr);
    gl::detail::glUniformMatrix3x2fv(a, b, c, d);
+#else
+   ::glUniformMatrix3x2fv(a, b, c, d);
+#endif
    check_error();
 }
 void niform_matrix_2x4fv(GLint a, GLsizei b, GLboolean c, const GLfloat *d)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glUniformMatrix2x4fv != nullptr);
    gl::detail::glUniformMatrix2x4fv(a, b, c, d);
+#else
+   ::glUniformMatrix2x4fv(a, b, c, d);
+#endif
    check_error();
 }
 void uniform_matrix_4x2fv(GLint a, GLsizei b, GLboolean c, const GLfloat *d)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glUniformMatrix4x2fv != nullptr);
    gl::detail::glUniformMatrix4x2fv(a, b, c, d);
+#else
+   ::glUniformMatrix4x2fv(a, b, c, d);
+#endif
    check_error();
 }
 void uniform_matrix_3x4fv(GLint a, GLsizei b, GLboolean c, const GLfloat *d)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glUniformMatrix3x4fv != nullptr);
    gl::detail::glUniformMatrix3x4fv(a, b, c, d);
+#else
+   ::glUniformMatrix3x4fv(a, b, c, d);
+#endif
    check_error();
 }
 void uniform_matrix_4x3fv(GLint a, GLsizei b, GLboolean c, const GLfloat *d)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glUniformMatrix4x3fv != nullptr);
    gl::detail::glUniformMatrix4x3fv(a, b, c, d);
+#else
+   ::glUniformMatrix4x3fv(a, b, c, d);
+#endif
    check_error();
 }
 #endif
@@ -2080,8 +2535,12 @@ void uniform_matrix_4x3fv(GLint a, GLsizei b, GLboolean c, const GLfloat *d)
 /* ARB_framebuffer_object */ 
 GLboolean is_renderbuffer(GLuint a)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glIsRenderbuffer != nullptr);
    GLboolean res = gl::detail::glIsRenderbuffer(a);
+#else
+   GLboolean res = ::glIsRenderbuffer(a);
+#endif
    check_error();
    return res;
 }
@@ -2091,38 +2550,62 @@ void bind_renderbuffer(GLenum target, GLuint renderbuffer)
    log_trace("bind_renderbuffer(target = %s, renderbuffer = %u)",
       enum_string(target), renderbuffer);
 #endif
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glBindRenderbuffer);
    gl::detail::glBindRenderbuffer(target, renderbuffer);
+#else
+   ::glBindRenderbuffer(target, renderbuffer);
+#endif
    check_error();
 }
 void delete_renderbuffers(GLsizei a, const GLuint *b)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glDeleteRenderbuffers != nullptr);
    gl::detail::glDeleteRenderbuffers(a, b);
+#else
+   ::glDeleteRenderbuffers(a, b);
+#endif
    check_error();
 }
 void gen_renderbuffers(GLsizei a, GLuint *b)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glGenRenderbuffers != nullptr);
    gl::detail::glGenRenderbuffers(a, b);
+#else
+   ::glGenRenderbuffers(a, b);
+#endif
    check_error();
 }
 void renderbuffer_storage(GLenum a, GLenum b, GLsizei c, GLsizei d)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glRenderbufferStorage != nullptr);
    gl::detail::glRenderbufferStorage(a, b, c, d);
+#else
+   ::glRenderbufferStorage(a, b, c, d);
+#endif
    check_error();
 }
 void get_renderbuffer_parameter_iv(GLenum a, GLenum b, GLint *c)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glGetRenderbufferParameteriv != nullptr);
    gl::detail::glGetRenderbufferParameteriv(a, b, c);
+#else
+   ::glGetRenderbufferParameteriv(a, b, c);
+#endif
    check_error();
 }
 GLboolean is_framebuffer(GLuint a)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glIsFramebuffer != nullptr);
    GLboolean res = gl::detail::glIsFramebuffer(a);
+#else
+   GLboolean res = ::glIsFramebuffer(a);
+#endif
    check_error();
    return res;
 }
@@ -2132,76 +2615,120 @@ void bind_framebuffer(GLenum target, GLuint framebuffer)
    log_trace("bind_framebuffer(target = %s, framebuffer = %d)",
       enum_string(target), framebuffer);
 #endif
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glBindFramebuffer != nullptr);
    gl::detail::glBindFramebuffer(target, framebuffer);
+#else
+   ::glBindFramebuffer(target, framebuffer);
+#endif
    check_error();
 }
 void delete_framebuffers(GLsizei a, const GLuint *b)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glDeleteFramebuffers != nullptr);
    gl::detail::glDeleteFramebuffers(a, b);
+#else
+   ::glDeleteFramebuffers(a, b);
+#endif
    check_error();
 }
 void gen_framebuffers(GLsizei a, GLuint *b)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glGenFramebuffers != nullptr);
    gl::detail::glGenFramebuffers(a, b);
+#else
+   ::glGenFramebuffers(a, b);
+#endif
    check_error();
 }
-   GLenum check_framebuffer_status(GLenum a)
+GLenum check_framebuffer_status(GLenum a)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glCheckFramebufferStatus != nullptr);
    GLenum res = gl::detail::glCheckFramebufferStatus(a);
+#else
+   GLenum res = ::glCheckFramebufferStatus(a);
+#endif
    check_error();
    return res;
 }
 void framebuffer_texture_2d(GLenum a, GLenum b, GLenum c, GLuint d, GLint e)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glFramebufferTexture2D != nullptr);
    gl::detail::glFramebufferTexture2D(a, b, c, d, e);
+#else
+   ::glFramebufferTexture2D(a, b, c, d, e);
+#endif
    check_error();
 }
 void framebuffer_renderbuffer(GLenum a, GLenum b, GLenum c, GLuint d)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glFramebufferRenderbuffer != nullptr);
    gl::detail::glFramebufferRenderbuffer(a, b, c, d);
+#else
+   ::glFramebufferRenderbuffer(a, b, c, d);
+#endif
    check_error();
 }
 void get_framebuffer_attachment_parameter_iv(GLenum a, GLenum b, GLenum c, GLint *d)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glGetFramebufferAttachmentParameteriv != nullptr);
    gl::detail::glGetFramebufferAttachmentParameteriv(a, b, c, d);
+#else
+   ::glGetFramebufferAttachmentParameteriv(a, b, c, d);
+#endif
    check_error();
 }
 void generate_mipmap(GLenum a)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glGenerateMipmap != nullptr);
    gl::detail::glGenerateMipmap(a);
+#else
+   ::glGenerateMipmap(a);
+#endif
    check_error();
 }
 
 //  OpenGL ES 3.0
-#if defined(RENDERSTACK_USE_GLES3) || !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
 void blit_framebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glBlitFramebuffer != nullptr);
    gl::detail::glBlitFramebuffer(srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, mask, filter);
+#else
+   ::glBlitFramebuffer(srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, mask, filter);
+#endif
    check_error();
 }
 void renderbuffer_storage_multisample(GLenum a, GLsizei b, GLenum c, GLsizei d, GLsizei e)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glRenderbufferStorageMultisample != nullptr);
    gl::detail::glRenderbufferStorageMultisample(a, b, c, d, e);
+#else
+   ::glRenderbufferStorageMultisample(a, b, c, d, e);
+#endif
    check_error();
 }
 void framebuffer_texture_layer(GLenum target, GLenum attachment, GLuint texture, GLint level, GLint layer)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glFramebufferTextureLayer != nullptr);
    gl::detail::glFramebufferTextureLayer(target, attachment, texture, level, layer);
+#else
+   ::glFramebufferTextureLayer(target, attachment, texture, level, layer);
+#endif
    check_error();
 }
 #endif
-#if !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL)
 void framebuffer_texture_1d(GLenum a, GLenum b, GLenum c, GLuint d, GLint e)
 {  LOG_GL_FUNCTION(__FUNCTION__);
    assert(gl::detail::glFramebufferTexture1D != nullptr);
@@ -2219,7 +2746,7 @@ void framebuffer_texture_3d(GLenum a, GLenum b, GLenum c, GLuint d, GLint e, GLi
 /* ARB_map_buffer_range */
 
 // OpenGL ES 3.0
-#if defined(RENDERSTACK_USE_GLES3) || !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
 GLvoid* map_buffer_range(GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access)
 {
    static unsigned long s_map_buffer_range_counter = 0;
@@ -2243,8 +2770,12 @@ GLvoid* map_buffer_range(GLenum target, GLintptr offset, GLsizeiptr length, GLbi
    //   log_trace("counter breakpoint");
    ++s_map_buffer_range_counter;
 
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glMapBufferRange != nullptr);
    GLvoid* res = gl::detail::glMapBufferRange(target, offset, length, access);
+#else
+   GLvoid* res = ::glMapBufferRange(target, offset, length, access);
+#endif
 #if defined(LOG_GL) || defined(LOG_GL_MAP_BUFFER)
    log_trace(":%p", res);
 #endif
@@ -2259,8 +2790,12 @@ void flush_mapped_buffer_range(GLenum target, GLintptr offset, GLsizeiptr length
       static_cast<unsigned int>(offset),
       static_cast<unsigned int>(length));
 #endif
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glFlushMappedBufferRange != nullptr);
    gl::detail::glFlushMappedBufferRange(target, offset, length);
+#else
+   ::glFlushMappedBufferRange(target, offset, length);
+#endif
    check_error();
 }
 #endif
@@ -2268,14 +2803,18 @@ void flush_mapped_buffer_range(GLenum target, GLintptr offset, GLsizeiptr length
 /* ARB_vertex_array_object */ 
 
 // OpenGL ES 3.0
-#if defined(RENDERSTACK_USE_GLES3) || !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
 void bind_vertex_array(GLuint array_)
 {
 #if defined(LOG_GL) || defined(LOG_GL_ATTRIB) || defined(LOG_GL_VAO)
    log_trace("bind_vertex_array(array = %u)", array_);
 #endif
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glBindVertexArray != nullptr);
    gl::detail::glBindVertexArray(array_);
+#else
+   ::glBindVertexArray(array_);
+#endif
    check_error();
 }
 void delete_vertex_arrays(GLsizei n, const GLuint *arrays)
@@ -2284,8 +2823,12 @@ void delete_vertex_arrays(GLsizei n, const GLuint *arrays)
    log_trace("delete_vertex_arrays(n = %u, arrays = %p)",
       static_cast<unsigned int>(n), arrays);
 #endif
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glDeleteVertexArrays != nullptr);
    gl::detail::glDeleteVertexArrays(n, arrays);
+#else
+   ::glDeleteVertexArrays(n, arrays);
+#endif
    check_error();
 }
 void gen_vertex_arrays(GLsizei n, GLuint *arrays)
@@ -2294,8 +2837,12 @@ void gen_vertex_arrays(GLsizei n, GLuint *arrays)
    slog_trace("gen_vertex_arrays(n = %u, arrays = %p)", 
       static_cast<unsigned int>(n), arrays);
 #endif
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glGenVertexArrays != nullptr);
    gl::detail::glGenVertexArrays(n, arrays);
+#else
+   ::glGenVertexArrays(n, arrays);
+#endif
 #if defined(LOG_GL) || defined(LOG_GL_ATTRIB) || defined(LOG_GL_VAO)
    if (n > 0 && arrays)
       log_trace(":%u", arrays[0]);
@@ -2307,28 +2854,43 @@ GLboolean is_vertex_array(GLuint a)
 #if defined(LOG_GL) || defined(LOG_GL_ATTRIB) || defined(LOG_GL_VAO)
    log_trace("is_vertex_array(array = %u)", a);
 #endif
-
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glIsVertexArray != nullptr);
    GLboolean res = gl::detail::glIsVertexArray(a);
+#else
+   GLboolean res = ::glIsVertexArray(a);
+#endif
    check_error();
    return res;
 }
 void get_integer_i_v(GLenum a, GLuint b, GLint *c)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glGetIntegeri_v != nullptr);
    gl::detail::glGetIntegeri_v(a, b, c);
+#else
+   ::glGetIntegeri_v(a, b, c);
+#endif
    check_error();
 }
 void begin_transform_feedback(GLenum a)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glBeginTransformFeedback != nullptr);
    gl::detail::glBeginTransformFeedback(a);
+#else
+   ::glBeginTransformFeedback(a);
+#endif
    check_error();
 }
 void end_transform_feedback(void)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glEndTransformFeedback != nullptr);
    gl::detail::glEndTransformFeedback();
+#else
+   ::glEndTransformFeedback();
+#endif
    check_error();
 }
 void bind_buffer_range(GLenum target, GLuint index, GLuint buffer, GLintptr offset, GLsizeiptr size)
@@ -2341,8 +2903,12 @@ void bind_buffer_range(GLenum target, GLuint index, GLuint buffer, GLintptr offs
       static_cast<unsigned int>(offset),
       static_cast<unsigned int>(size));
 #endif
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glBindBufferRange != nullptr);
    gl::detail::glBindBufferRange(target, index, buffer, offset, size);
+#else
+   ::glBindBufferRange(target, index, buffer, offset, size);
+#endif
    check_error();
 }
 void bind_buffer_base(GLenum target, GLuint index, GLuint buffer)
@@ -2350,20 +2916,32 @@ void bind_buffer_base(GLenum target, GLuint index, GLuint buffer)
 #if defined(LOG_GL) || defined(LOG_GL_BUFFER)
    log_trace("bind_buffer_base(target = %s, index = %u, buffer = %u)", enum_string(target), index, buffer);
 #endif
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glBindBufferBase != nullptr);
    gl::detail::glBindBufferBase(target, index, buffer);
+#else
+   ::glBindBufferBase(target, index, buffer);
+#endif
    check_error();
 }
 void transform_feedback_varyings(GLuint a, GLsizei b, const GLchar* *c, GLenum d)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glTransformFeedbackVaryings != nullptr);
    gl::detail::glTransformFeedbackVaryings(a, b, c, d);
+#else
+   ::glTransformFeedbackVaryings(a, b, c, d);
+#endif
    check_error();
 }
 void get_transform_feedback_varying(GLuint a, GLuint b, GLsizei c, GLsizei *d, GLsizei *e, GLenum *f, GLchar *g)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glGetTransformFeedbackVarying != nullptr);
    gl::detail::glGetTransformFeedbackVarying(a, b, c, d, e, f, g);
+#else
+   ::glGetTransformFeedbackVarying(a, b, c, d, e, f, g);
+#endif
    check_error();
 }
 void vertex_attrib_i_pointer(GLuint index, GLint size, GLenum type, GLsizei stride, const GLvoid *pointer)
@@ -2376,140 +2954,228 @@ void vertex_attrib_i_pointer(GLuint index, GLint size, GLenum type, GLsizei stri
       static_cast<unsigned int>(stride),
       pointer);
 #endif
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glVertexAttribIPointer != nullptr);
    gl::detail::glVertexAttribIPointer(index, size, type, stride, pointer);
+#else
+   ::glVertexAttribIPointer(index, size, type, stride, pointer);
+#endif
    check_error();
 }
 void get_vertex_attrib_iiv(GLuint a, GLenum b, GLint *c)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glGetVertexAttribIiv != nullptr);
    gl::detail::glGetVertexAttribIiv(a, b, c);
+#else
+   ::glGetVertexAttribIiv(a, b, c);
+#endif
    check_error();
 }
 void get_vertex_attrib_iuiv(GLuint a, GLenum b, GLuint *c)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glGetVertexAttribIuiv != nullptr);
    gl::detail::glGetVertexAttribIuiv(a, b, c);
+#else
+   ::glGetVertexAttribIuiv(a, b, c);
+#endif
    check_error();
 }
 void vertex_attrib_i4i(GLuint a, GLint b, GLint c, GLint d, GLint e)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glVertexAttribI4i != nullptr);
    gl::detail::glVertexAttribI4i(a, b, c, d, e);
+#else
+   ::glVertexAttribI4i(a, b, c, d, e);
+#endif
    check_error();
 }
 void vertex_attrib_i4ui(GLuint a, GLuint b, GLuint c, GLuint d, GLuint e)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glVertexAttribI4ui != nullptr);
    gl::detail::glVertexAttribI4ui(a, b, c, d, e);
+#else
+   ::glVertexAttribI4ui(a, b, c, d, e);
+#endif
    check_error();
 }
 void vertex_attrib_i4iv(GLuint a, const GLint *b)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glVertexAttribI4iv != nullptr);
    gl::detail::glVertexAttribI4iv(a, b);
+#else
+   ::glVertexAttribI4iv(a, b);
+#endif
    check_error();
 }
 void vertex_attrib_i4uiv(GLuint a, const GLuint *b)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glVertexAttribI4uiv != nullptr);
    gl::detail::glVertexAttribI4uiv(a, b);
+#else
+   ::glVertexAttribI4uiv(a, b);
+#endif
    check_error();
 }
 void get_uniform_uiv(GLuint a, GLint b, GLuint *c)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glGetUniformuiv != nullptr);
    gl::detail::glGetUniformuiv(a, b, c);
+#else
+   ::glGetUniformuiv(a, b, c);
+#endif
    check_error();
 }
 GLint get_frag_data_location(GLuint a, const GLchar *b)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glGetFragDataLocation != nullptr);
    GLint res = gl::detail::glGetFragDataLocation(a, b);
+#else
+   GLint res = ::glGetFragDataLocation(a, b);
+#endif
    check_error();
    return res;
 }
 void uniform_1ui(GLint a, GLuint b)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glUniform1ui != nullptr);
    gl::detail::glUniform1ui(a, b);
+#else
+   ::glUniform1ui(a, b);
+#endif
    check_error();
 }
 void uniform_2ui(GLint a, GLuint b, GLuint c)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glUniform2ui != nullptr);
    gl::detail::glUniform2ui(a, b, c);
+#else
+   ::glUniform2ui(a, b, c);
+#endif
    check_error();
 }
 void uniform_3ui(GLint a, GLuint b, GLuint c, GLuint d)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glUniform3ui != nullptr);
    gl::detail::glUniform3ui(a, b, c, d);
+#else
+   ::glUniform3ui(a, b, c, d);
+#endif
    check_error();
 }
 void uniform_4ui(GLint a, GLuint b, GLuint c, GLuint d, GLuint e)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glUniform4ui != nullptr);
    gl::detail::glUniform4ui(a, b, c, d, e);
+#else
+   ::glUniform4ui(a, b, c, d, e);
+#endif
    check_error();
 }
 void uniform_1uiv(GLint a, GLsizei b, const GLuint *c)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glUniform1uiv != nullptr);
    gl::detail::glUniform1uiv(a, b, c);
+#else
+   ::glUniform1uiv(a, b, c);
+#endif
    check_error();
 }
 void uniform_2uiv(GLint a, GLsizei b, const GLuint *c)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glUniform2uiv != nullptr);
    gl::detail::glUniform2uiv(a, b, c);
+#else
+   ::glUniform2uiv(a, b, c);
+#endif
    check_error();
 }
 void uniform_3uiv(GLint a, GLsizei b, const GLuint *c)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glUniform3uiv != nullptr);
    gl::detail::glUniform3uiv(a, b, c);
+#else
+   ::glUniform3uiv(a, b, c);
+#endif
    check_error();
 }
 void uniform_4uiv(GLint a, GLsizei b, const GLuint *c)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glUniform4uiv != nullptr);
    gl::detail::glUniform4uiv(a, b, c);
+#else
+   ::glUniform4uiv(a, b, c);
+#endif
    check_error();
 }
 void clear_buffer_iv(GLenum a, GLint b, const GLint *c)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glClearBufferiv != nullptr);
    gl::detail::glClearBufferiv(a, b, c);
+#else
+   ::glClearBufferiv(a, b, c);
+#endif
    check_error();
 }
 void clear_buffer_uiv(GLenum a, GLint b, const GLuint *c)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glClearBufferuiv != nullptr);
    gl::detail::glClearBufferuiv(a, b, c);
+#else
+   ::glClearBufferuiv(a, b, c);
+#endif
    check_error();
 }
 void clear_buffer_fv(GLenum a, GLint b, const GLfloat *c)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glClearBufferfv != nullptr);
    gl::detail::glClearBufferfv(a, b, c);
+#else
+   ::glClearBufferfv(a, b, c);
+#endif
    check_error();
 }
 void clear_buffer_fi(GLenum a, GLint b, GLfloat c, GLint d)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glClearBufferfi != nullptr);
    gl::detail::glClearBufferfi(a, b, c, d);
+#else
+   ::glClearBufferfi(a, b, c, d);
+#endif
    check_error();
 }
    const GLubyte * get_string_i(GLenum a, GLuint b)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glGetStringi != nullptr);
-   const GLubyte * res = gl::detail::glGetStringi(a, b);
+   const GLubyte *res = gl::detail::glGetStringi(a, b);
+#else
+   const GLubyte *res = ::glGetStringi(a, b);
+#endif
    check_error();
    return res;
 }
 #endif
-#if !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL)
 void color_mask_i(GLuint a, GLboolean b, GLboolean c, GLboolean d, GLboolean e)
 {  LOG_GL_FUNCTION(__FUNCTION__);
    assert(gl::detail::glColorMaski != nullptr);
@@ -2698,57 +3364,85 @@ void get_tex_parameter_iuiv(GLenum a, GLenum b, GLuint *c)
 /*  ARB_copy_buffer */ 
 
 //  OpenGL ES 3.0
-#if defined(RENDERSTACK_USE_GLES3) || !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
 void copy_buffer_sub_data(GLenum a, GLenum b, GLintptr c, GLintptr d, GLsizeiptr e) 
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glCopyBufferSubData != nullptr);
    gl::detail::glCopyBufferSubData(a, b, c, d, e);
+#else
+   ::glCopyBufferSubData(a, b, c, d, e);
+#endif
    check_error();
 }
 #endif
 /* ARB_uniform_buffer_object */ 
 
 //  OpenGL ES 3.0
-#if defined(RENDERSTACK_USE_GLES3) || !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
 void get_uniform_indices(GLuint program, GLsizei uniformCount, const GLchar* *uniformNames, GLuint *uniformIndices)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glGetUniformIndices != nullptr);
    gl::detail::glGetUniformIndices(program, uniformCount, uniformNames, uniformIndices);
+#else
+   ::glGetUniformIndices(program, uniformCount, uniformNames, uniformIndices);
+#endif
    check_error();
 }
 void get_active_uniforms_iv(GLuint program, GLsizei uniformCount, const GLuint *uniformIndices, GLenum pname, GLint *params)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glGetActiveUniformsiv != nullptr);
    gl::detail::glGetActiveUniformsiv(program, uniformCount, uniformIndices, pname, params);
+#else
+   ::glGetActiveUniformsiv(program, uniformCount, uniformIndices, pname, params);
+#endif
    check_error();
 }
 GLuint get_uniform_block_index(GLuint program, const GLchar *uniformBlockName)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glGetUniformBlockIndex != nullptr);
    GLuint res = gl::detail::glGetUniformBlockIndex (program, uniformBlockName);
+#else
+   GLuint res = ::glGetUniformBlockIndex (program, uniformBlockName);
+#endif
    check_error();
    return res;
 }
 void get_active_uniform_block_iv(GLuint program, GLuint uniformBlockIndex, GLenum pname, GLint *params)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glGetActiveUniformBlockiv != nullptr);
    gl::detail::glGetActiveUniformBlockiv (program, uniformBlockIndex, pname, params);
+#else
+   ::glGetActiveUniformBlockiv (program, uniformBlockIndex, pname, params);
+#endif
    check_error();
 }
 void get_active_uniform_block_name(GLuint program, GLuint uniformBlockIndex, GLsizei bufSize, GLsizei *length, GLchar *uniformBlockName)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glGetActiveUniformBlockName != nullptr);
    gl::detail::glGetActiveUniformBlockName (program, uniformBlockIndex, bufSize, length, uniformBlockName);
+#else
+   ::glGetActiveUniformBlockName (program, uniformBlockIndex, bufSize, length, uniformBlockName);
+#endif
    check_error();
 }
 void uniform_block_binding(GLuint program, GLuint uniformBlockIndex, GLuint uniformBlockBinding)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glUniformBlockBinding != nullptr);
    gl::detail::glUniformBlockBinding (program, uniformBlockIndex, uniformBlockBinding);
+#else
+   ::glUniformBlockBinding (program, uniformBlockIndex, uniformBlockBinding);
+#endif
    check_error();
 }
 #endif
-#if !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL)
 void get_active_uniform_name(GLuint program, GLuint uniformIndex, GLsizei bufSize, GLsizei *length, GLchar *uniformName)
 {  LOG_GL_FUNCTION(__FUNCTION__);
    assert(gl::detail::glGetActiveUniformName != nullptr);
@@ -2760,7 +3454,7 @@ void get_active_uniform_name(GLuint program, GLuint uniformIndex, GLsizei bufSiz
 //  GL_ARB_draw_instanced
 
 //  OpenGL ES 3.0
-#if defined(RENDERSTACK_USE_GLES3) || !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
 void draw_arrays_instanced(GLenum mode, GLint first, GLsizei count, GLsizei primcount)
 {
 #if defined(LOG_GL) || defined(LOG_GL_DRAW)
@@ -2770,8 +3464,12 @@ void draw_arrays_instanced(GLenum mode, GLint first, GLsizei count, GLsizei prim
       static_cast<unsigned int>(count),
       static_cast<unsigned int>(primcount));
 #endif
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glDrawArraysInstanced != nullptr);
    gl::detail::glDrawArraysInstanced(mode, first, count, primcount);
+#else
+   ::glDrawArraysInstanced(mode, first, count, primcount);
+#endif
    check_error();
 }
 void draw_elements_instanced(GLenum mode, GLsizei count, GLenum type, const GLvoid *indices, GLsizei primcount)
@@ -2784,12 +3482,16 @@ void draw_elements_instanced(GLenum mode, GLsizei count, GLenum type, const GLvo
       indices,
       primcount);
 #endif
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glDrawElementsInstanced != nullptr);
    gl::detail::glDrawElementsInstanced(mode, count, type, indices, primcount);
+#else
+   ::glDrawElementsInstanced(mode, count, type, indices, primcount);
+#endif
    check_error();
 }
 #endif
-#if !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL)
 void tex_buffer(GLenum a, GLenum b, GLuint c)
 {
    LOG_GL_FUNCTION(__FUNCTION__);
@@ -2812,62 +3514,98 @@ void primitive_restart_index(GLuint a)
 /* ARB_sync */ 
 
 //  OpenGL ES 3.0
-#if defined(RENDERSTACK_USE_GLES3) || !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
 GLsync fence_sync(GLenum a, GLbitfield b)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glFenceSync != nullptr);
    GLsync res = gl::detail::glFenceSync(a, b);
+#else
+   GLsync res = ::glFenceSync(a, b);
+#endif
    check_error();
    return res;
 }
 GLboolean is_sync(GLsync a)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glIsSync != nullptr);
    GLboolean res = gl::detail::glIsSync(a);
+#else
+   GLboolean res = ::glIsSync(a);
+#endif
    check_error();
    return res;
 }
 void delete_sync(GLsync a)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glDeleteSync != nullptr);
    gl::detail::glDeleteSync(a);
+#else
+   ::glDeleteSync(a);
+#endif
    check_error();
 }
 GLenum client_wait_sync(GLsync a, GLbitfield b, GLuint64 c)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glClientWaitSync != nullptr);
    GLenum res = gl::detail::glClientWaitSync(a, b, c);
+#else
+   GLenum res = ::glClientWaitSync(a, b, c);
+#endif
    check_error();
    return res;
 }
 void wait_sync(GLsync a, GLbitfield b, GLuint64 c)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glWaitSync != nullptr);
    gl::detail::glWaitSync(a, b, c);
+#else
+   ::glWaitSync(a, b, c);
+#endif
    check_error();
 }
 void get_integer_64v(GLenum a, GLint64 *b)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glGetInteger64v != nullptr);
    gl::detail::glGetInteger64v(a, b);
+#else
+   ::glGetInteger64v(a, b);
+#endif
    check_error();
 }
 void get_sync_iv(GLsync a, GLenum b, GLsizei c, GLsizei *d, GLint *e)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glGetSynciv != nullptr);
    gl::detail::glGetSynciv(a, b, c, d, e);
+#else
+   ::glGetSynciv(a, b, c, d, e);
+#endif
    check_error();
 }
 void get_integer_64i_v(GLenum a, GLuint b, GLint64 *c)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glGetInteger64i_v != nullptr);
    gl::detail::glGetInteger64i_v(a, b, c);
+#else
+   ::glGetInteger64i_v(a, b, c);
+#endif
    check_error();
 }
 void get_buffer_parameter_i64v(GLenum a, GLenum b, GLint64 *c)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glGetBufferParameteri64v != nullptr);
    gl::detail::glGetBufferParameteri64v(a, b, c);
+#else
+   ::glGetBufferParameteri64v(a, b, c);
+#endif
    check_error();
 }
 #endif
@@ -2875,73 +3613,110 @@ void get_buffer_parameter_i64v(GLenum a, GLenum b, GLint64 *c)
 /*  GL_ARB_sampler_objects  */ 
 
 //  OpenGL ES 3.0
-#if defined(RENDERSTACK_USE_GLES3) || !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
 void gen_samplers(GLsizei count, GLuint *samplers)
-{
-   LOG_GL_FUNCTION(__FUNCTION__);
+{  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glGenSamplers != nullptr);
    gl::detail::glGenSamplers(count, samplers);
+#else
+   ::glGenSamplers(count, samplers);
+#endif
    check_error();
 }
 void delete_samplers(GLsizei count, const GLuint *samplers)
-{
-   LOG_GL_FUNCTION(__FUNCTION__);
+{  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glDeleteSamplers != nullptr);
    gl::detail::glDeleteSamplers(count, samplers);
+#else
+   ::glDeleteSamplers(count, samplers);
+#endif
    check_error();
 }
 GLboolean is_sampler(GLuint sampler)
-{
-   LOG_GL_FUNCTION(__FUNCTION__);
+{  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glIsSampler != nullptr);
    GLboolean res = gl::detail::glIsSampler(sampler);
+#else
+   GLboolean res = ::glIsSampler(sampler);
+#endif
    check_error();
    return res;
 }
 void bind_sampler(GLuint unit, GLuint sampler)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glBindSampler != nullptr);
    gl::detail::glBindSampler(unit, sampler);
+#else
+   ::glBindSampler(unit, sampler);
+#endif
    check_error();
 }
 void sampler_parameter_i(GLuint sampler, GLenum pname, GLint param)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glSamplerParameteri != nullptr);
    gl::detail::glSamplerParameteri(sampler, pname, param);
+#else
+   ::glSamplerParameteri(sampler, pname, param);
+#endif
    check_error();
 }
 void sampler_parameter_iv(GLuint sampler, GLenum pname, const GLint *param)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glSamplerParameteriv != nullptr);
    gl::detail::glSamplerParameteriv(sampler, pname, param);
+#else
+   ::glSamplerParameteriv(sampler, pname, param);
+#endif
    check_error();
 }
 void sampler_parameter_f(GLuint sampler, GLenum pname, GLfloat param)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glSamplerParameterf != nullptr);
    gl::detail::glSamplerParameterf(sampler, pname, param);
+#else
+   ::glSamplerParameterf(sampler, pname, param);
+#endif
    check_error();
 }
 void sampler_parameter_fv(GLuint sampler, GLenum pname, const GLfloat *param)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glSamplerParameterfv != nullptr);
    gl::detail::glSamplerParameterfv(sampler, pname, param);
+#else
+   ::glSamplerParameterfv(sampler, pname, param);
+#endif
    check_error();
 }
 void get_sampler_parameter_iv(GLuint sampler, GLenum pname, GLint *params)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glGetSamplerParameteriv != nullptr);
    gl::detail::glGetSamplerParameteriv(sampler, pname, params);
+#else
+   ::glGetSamplerParameteriv(sampler, pname, params);
+#endif
    check_error();
 }
 void get_sampler_parameter_fv(GLuint sampler, GLenum pname, GLfloat *params)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glGetSamplerParameterfv != nullptr);
    gl::detail::glGetSamplerParameterfv(sampler, pname, params);
+#else
+   ::glGetSamplerParameterfv(sampler, pname, params);
+#endif
    check_error();
 }
 #endif
-#if !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL)
 void sampler_parameter_i_iv(GLuint sampler, GLenum pname, const GLint *param)
 {  LOG_GL_FUNCTION(__FUNCTION__);
    assert(gl::detail::glSamplerParameterIiv != nullptr);
@@ -2968,7 +3743,7 @@ void get_sampler_parameter_i_uiv(GLuint sampler, GLenum pname, GLuint *params)
 }
 #endif
 
-#if !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL)
 void framebuffer_texture(GLenum a, GLenum b, GLuint c, GLint d)
 {  LOG_GL_FUNCTION(__FUNCTION__);
    assert(gl::detail::glFramebufferTexture != nullptr);
@@ -2979,7 +3754,7 @@ void framebuffer_texture(GLenum a, GLenum b, GLuint c, GLint d)
 
 /*  3.2  */ 
 /* ARB_draw_elements_base_vertex */ 
-#if !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL)
 void draw_elements_base_vertex(GLenum mode, GLsizei count, GLenum type, const GLvoid *indices, GLint basevertex)
 {
 #if defined(LOG_GL)
@@ -3016,7 +3791,7 @@ void multi_draw_elements_base_vertex(GLenum a, const GLsizei *b, GLenum c, const
 #endif
 
 /* ARB_provoking_vertex */ 
-#if !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL)
 void provoking_vertex(GLenum a)
 {  LOG_GL_FUNCTION(__FUNCTION__);
    assert(gl::detail::glProvokingVertex != nullptr);
@@ -3026,7 +3801,7 @@ void provoking_vertex(GLenum a)
 #endif
 
 /* ARB_texture_multisample */
-#if !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL)
 void tex_image_2d_multisample(GLenum a, GLsizei b, GLint c, GLsizei d, GLsizei e, GLboolean f)
 {  LOG_GL_FUNCTION(__FUNCTION__);
    assert(gl::detail::glTexImage2DMultisample != nullptr);
@@ -3054,7 +3829,7 @@ void sample_mask_i(GLuint a, GLbitfield b)
 #endif
 
 /*  GL_ARB_sample_shading  */ 
-#if !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL)
 void min_sample_shading(GLclampf value)
 {  LOG_GL_FUNCTION(__FUNCTION__);
    assert(gl::detail::glMinSampleShading != nullptr);
@@ -3064,7 +3839,7 @@ void min_sample_shading(GLclampf value)
 #endif
 
 /*  GL_ARB_timer_query  */ 
-#if !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL)
 void query_counter(GLuint id, GLenum target)
 {  LOG_GL_FUNCTION(__FUNCTION__);
    assert(gl::detail::glQueryCounter != nullptr);
@@ -3086,7 +3861,7 @@ void get_query_object_ui64v(GLuint id, GLenum pname, GLuint64 *params)
 #endif
 
 /*  GL_ARB_tessellation_shader  */
-#if !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL)
 void patch_parameter_i(GLenum pname, GLint value)
 {  LOG_GL_FUNCTION(__FUNCTION__);
    assert(gl::detail::glPatchParameteri != nullptr);
@@ -3102,21 +3877,29 @@ void patch_parameter_fv(GLenum pname, const GLfloat *values)
 #endif
 
 /*  GL_ARB_get_program_binary  */
-#if defined(RENDERSTACK_USE_GLES3) || !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
 void get_program_binary(GLuint program, GLsizei bufSize, GLsizei *length, GLenum *binaryFormat, GLvoid *binary)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glGetProgramBinary != nullptr);
    gl::detail::glGetProgramBinary(program, bufSize, length, binaryFormat, binary);
+#else
+   ::glGetProgramBinary(program, bufSize, length, binaryFormat, binary);
+#endif
    check_error();
 }
 void program_binary(GLuint program, GLenum binaryFormat, const GLvoid *binary, GLsizei length)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glProgramBinary != nullptr);
    gl::detail::glProgramBinary(program, binaryFormat, binary, length);
+#else
+   ::glProgramBinary(program, binaryFormat, binary, length);
+#endif
    check_error();
 }
 #endif
-#if !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL)
 void program_parameter_i(GLuint program, GLenum pname, GLint value)
 {  LOG_GL_FUNCTION(__FUNCTION__);
    assert(gl::detail::glProgramParameteri != nullptr);
@@ -3126,7 +3909,7 @@ void program_parameter_i(GLuint program, GLenum pname, GLint value)
 #endif
 
 /*  GL_ARB_base_instance  */
-#if !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL)
 void draw_arrays_instanced_base_instance(GLenum mode, GLint first, GLsizei count, GLsizei primcount, GLuint baseinstance)
 {  LOG_GL_FUNCTION(__FUNCTION__);
    assert(gl::detail::glDrawArraysInstancedBaseInstance != nullptr);
@@ -3148,46 +3931,70 @@ void draw_elements_instanced_base_vertex_base_instance(GLenum mode, GLsizei coun
 #endif
 
 /*  GL_ARB_transform_feedback2  */
-#if defined(RENDERSTACK_USE_GLES3) || !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
 void bind_transform_feedback(GLenum target, GLuint id)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glBindTransformFeedback != nullptr);
    gl::detail::glBindTransformFeedback(target, id);
+#else
+   ::glBindTransformFeedback(target, id);
+#endif
    check_error();
 }
 void delete_transform_feedbacks(GLsizei n, const GLuint *ids)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glDeleteTransformFeedbacks != nullptr);
    gl::detail::glDeleteTransformFeedbacks(n, ids);
+#else
+   ::glDeleteTransformFeedbacks(n, ids);
+#endif
    check_error();
 }
 void gen_transform_feedbacks(GLsizei n, GLuint *ids)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glGenTransformFeedbacks != nullptr);
    gl::detail::glGenTransformFeedbacks(n, ids);
+#else
+   ::glGenTransformFeedbacks(n, ids);
+#endif
    check_error();
 }
 GLboolean is_transform_feedback(GLuint id)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glIsTransformFeedback != nullptr);
    GLboolean res = gl::detail::glIsTransformFeedback(id);
+#else
+   GLboolean res = ::glIsTransformFeedback(id);
+#endif
    check_error();
    return res;
 }
 void pause_transform_feedback()
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glPauseTransformFeedback != nullptr);
    gl::detail::glPauseTransformFeedback();
+#else
+   ::glPauseTransformFeedback();
+#endif
    check_error();
 }
 void resume_transform_feedback ()
 {  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glResumeTransformFeedback != nullptr);
    gl::detail::glResumeTransformFeedback();
+#else
+   ::glResumeTransformFeedback();
+#endif
    check_error();
 }
 #endif
-#if !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL)
 void draw_transform_feedback(GLenum mode, GLuint id)
 {  LOG_GL_FUNCTION(__FUNCTION__);
    assert(gl::detail::glDrawTransformFeedback != nullptr);
@@ -3198,7 +4005,7 @@ void draw_transform_feedback(GLenum mode, GLuint id)
 
 
 /*  GL_ARB_transform_feedback3  */
-#if !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL)
 void draw_transform_feedback_stream(GLenum mode, GLuint id, GLuint stream)
 {  LOG_GL_FUNCTION(__FUNCTION__);
    assert(gl::detail::glDrawTransformFeedbackStream != nullptr);
@@ -3227,7 +4034,7 @@ void get_query_indexed_iv (GLenum target, GLuint index, GLenum pname, GLint *par
 
 
 /*  GL_ARB_transform_feedback_instanced  */
-#if !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL)
 void draw_transform_feedback_instanced(GLenum mode, GLuint id, GLsizei primcount)
 {  LOG_GL_FUNCTION(__FUNCTION__);
    assert(gl::detail::glDrawTransformFeedbackInstanced != nullptr);

@@ -4,12 +4,34 @@
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_toolkit/strong_gl_enums.hpp"
 #include "renderstack_toolkit/gl.hpp"
+#include "renderstack_graphics/sampler.hpp"
 #include <string>
 #include <memory>
 
 namespace renderstack { namespace graphics {
 
-class sampler;
+class precision
+{
+public:
+   enum value
+   {
+      lowp     = 0,
+      mediump  = 1,
+      highp    = 2,
+      superp   = 3   // only reserved - not used
+   };
+   static const char * const desc(value v)
+   {
+      switch (v)
+      {
+      case lowp:     return "lowp";
+      case mediump:  return "mediump";
+      case highp:    return "highp";
+      case superp:   return "superp";
+      default:       return "???";
+      }
+   }
+};
 
 class uniform
 {
@@ -24,6 +46,8 @@ public:
    void                             set_texture_unit_index(GLint value);
    std::size_t                      count() const;
    gl::active_uniform_type::value   type() const;
+   precision::value                 precision_qualifier() const;
+   void                             set_precision_qualifier(precision::value value);
    std::string const                &name() const;
    GLint                            block() const;
    std::size_t                      offset() const;
@@ -36,6 +60,7 @@ private:
    std::string                      m_name;
    std::size_t                      m_count;
    gl::active_uniform_type::value   m_type;
+   precision::value                 m_precision;
    int                              m_index;
    int                              m_block; // -1 = default block
    std::size_t                      m_offset;

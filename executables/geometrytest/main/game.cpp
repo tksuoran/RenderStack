@@ -34,7 +34,7 @@
 #if defined(RENDERSTACK_USE_GLFW)
 # include <GL/glfw3.h>
 #endif
-#if defined(RENDERSTACK_USE_GLFW)
+#if defined(RENDERSTACK_USE_GLWT)
 # include <GLWT/glwt.h>
 #endif
 
@@ -62,7 +62,7 @@ game::game()
 ,  m_root_layer               (nullptr)
 ,  m_menu_button              (nullptr)
 ,  m_text_uniform_buffer_range(nullptr)
-
+,  m_frame_dt                 (0.0)
 {
 }
 
@@ -93,10 +93,9 @@ void game::reset()
 
    m_controls.reset();
 
-   m_update_time     = 0.0;
-   m_simulation_time = 0.0;
-
-   m_application->set_time(0.0);
+   m_frame_dt        = 0.0;
+   m_update_time     = m_application->time();
+   m_simulation_time = m_update_time;
 }
 void game::on_load()
 {
@@ -106,6 +105,8 @@ void game::on_load()
    {
       vector<std::shared_ptr<renderstack::geometry::geometry>> g_collection;
 
+      g_collection.push_back(make_shared<renderstack::geometry::shapes::cuboctahedron>(1.0));
+#if 0
       g_collection.push_back(make_shared<renderstack::geometry::shapes::disc>(1.0, 0.8, 32, 2));
       g_collection.push_back(make_shared<renderstack::geometry::shapes::triangle>(0.8f / 0.57735027f));
       g_collection.push_back(make_shared<renderstack::geometry::shapes::sphere>(1.0f, 12, 4));
@@ -114,6 +115,7 @@ void game::on_load()
       g_collection.push_back(make_shared<renderstack::geometry::shapes::icosahedron>(1.0));
       g_collection.push_back(make_shared<renderstack::geometry::shapes::octahedron>(1.0));
       g_collection.push_back(make_shared<renderstack::geometry::shapes::tetrahedron>(1.0));
+#endif
 
 #if 0
       {

@@ -153,7 +153,7 @@ void game::render_meshes()
 
    auto p = m_programs->basic;
 
-#if 1
+#if 0
    r->trash();
 
    r->set_program(p);
@@ -198,31 +198,43 @@ void game::render_meshes()
       gl::draw_elements_type::value index_type     = gl::draw_elements_type::unsigned_int;
       GLvoid                        *index_pointer = reinterpret_cast<GLvoid*>(index_range.first_index + mesh->first_index() * sizeof(unsigned int));
 
-#if 1
+#if 0
       r->set_vertex_stream(
          vertex_stream, 
          mesh->vertex_buffer(),
          mesh->index_buffer()
       );
 
+#if defined(RENDERSTACK_GL_API_OPENGL)
       if (configuration::can_use.draw_elements_base_vertex)
       {
          GLint base_vertex = static_cast<GLint>(mesh->first_vertex());
          gl::draw_elements_base_vertex(begin_mode, count, index_type, index_pointer, base_vertex);
       }
       else
+#endif
+      {
          gl::draw_elements(begin_mode, count, index_type, index_pointer);
+      }
 
 #else
       if (vertex_stream->use())
       {
+#if defined(RENDERSTACK_GL_API_OPENGL)
          if (configuration::can_use.draw_elements_base_vertex)
          {
             GLint base_vertex = static_cast<GLint>(mesh->first_vertex());
             gl::draw_elements_base_vertex(begin_mode, count, index_type, index_pointer, base_vertex);
          }
          else
+#endif
+         {
+         mesh->vertex_buffer()->bind();
+         mesh->index_buffer()->bind();
+         vertex_stream->setup_attribute_pointers(0);
+
             gl::draw_elements(begin_mode, count, index_type, index_pointer);
+         }
       }
       else
       {

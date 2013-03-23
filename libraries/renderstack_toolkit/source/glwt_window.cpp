@@ -5,6 +5,10 @@
 //#include <GLXW/glxw.h>
 #include <stdexcept>
 
+#if defined(_WIN32)
+typedef DWORD (WINAPI *PFNTIMEGETTIME)(void);
+#endif
+
 #if defined(__APPLE__)
 # include <mach-o/dyld.h>
 # include <cstdlib>
@@ -190,9 +194,17 @@ void window::set_time(double value)
 
 double window::time() const
 {
+#if defined(_WIN32)
+   if (m_time_get_time)
+   {
+      PFNTIMEGETTIME time_get_time = reinterpret_cast<PFNTIMEGETTIME>(m_time_get_time);
+      return time_get_time() * 0.001;
+   }
+#else
    double res = m_fake_time;
    m_fake_time += (1.0 / 250.0);
    return res; // TODO
+#endif
 }
 
 # if defined(_WIN32)
@@ -201,17 +213,31 @@ typedef WINGDIAPI PROC (WINAPI * PFNWGLGETPROCADDRESS) (LPCSTR);
 
 window::window(int width, int height, std::string const &title, int major, int minor)
 {
-# if defined(_WIN32)
-   HMODULE libgl = LoadLibraryA("opengl32.dll");
-   PFNWGLGETPROCADDRESS wgl_get_proc_address = reinterpret_cast<PFNWGLGETPROCADDRESS>(GetProcAddress(libgl, "wglGetProcAddress"));
-   m_libgl = reinterpret_cast<void*>(libgl);
-   m_wgl_get_proc_address = reinterpret_cast<void*>(wgl_get_proc_address);
+#if defined(_WIN32)
+   HMODULE opengl32_dll = LoadLibraryA("opengl32.dll");
+   if (opengl32_dll)
+   {
+      PFNWGLGETPROCADDRESS wgl_get_proc_address = reinterpret_cast<PFNWGLGETPROCADDRESS>(GetProcAddress(opengl32_dll, "wglGetProcAddress"));
+      m_opengl32_dll = reinterpret_cast<void*>(opengl32_dll);
+      m_wgl_get_proc_address = reinterpret_cast<void*>(wgl_get_proc_address);
+   }
+   else
+   {
+      m_wgl_get_proc_address = nullptr;
+   }
+
+   HMODULE winmm_dll = LoadLibraryA("winmm.dll");
+   if (winmm_dll)
+   {
+      PFNTIMEGETTIME time_get_time = reinterpret_cast<PFNTIMEGETTIME>(GetProcAddress(winmm_dll, "timeGetTime"));
+      m_winmm_dll = reinterpret_cast<void*>(winmm_dll);
+      m_time_get_time = reinterpret_cast<void*>(time_get_time);
+   }
+   else
+   {
+      m_time_get_time = nullptr;
+   }
 #endif
-
-   // WINGDIAPI PROC  WINAPI wglGetProcAddress(LPCSTR);
-
-   //typedef WINGDIAPI PROC (WINAPI * PFNWGLGETPROCADDRESS) (LPCSTR);
-   //typedef void *(WINAPI *PFNwglGetProcAddress) (const char *);
 
 #if 0
    ::memset(&m_app_callbacks, sizeof(::GLWTAppCallbacks), 0);
@@ -298,9 +324,14 @@ window::~window()
 glproc window::get_proc_address(const char* procname)
 {
 #if defined(_WIN32)
-   HMODULE libgl = reinterpret_cast<HMODULE>(m_libgl);
-   glproc ptr = reinterpret_cast<glproc>(GetProcAddress(libgl, procname));
-   if (ptr == nullptr) {
+   glproc ptr = nullptr;
+   if (m_opengl32_dll)
+   {
+      HMODULE opengl32_dll = reinterpret_cast<HMODULE>(m_opengl32_dll);
+      ptr = reinterpret_cast<glproc>(GetProcAddress(opengl32_dll, procname));
+   }
+   if (ptr == nullptr && m_wgl_get_proc_address)
+   {
       PFNWGLGETPROCADDRESS wgl_get_proc_address = reinterpret_cast<PFNWGLGETPROCADDRESS>(m_wgl_get_proc_address);
       ptr = reinterpret_cast<glproc>(wgl_get_proc_address(procname));
    }

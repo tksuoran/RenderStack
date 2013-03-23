@@ -10,7 +10,7 @@ void        set_error_checking(bool enable);
 void        check_error (void);
 const char *enum_string (GLenum e);
 
-#if defined(SUPPORT_LEGACY_OPENGL)
+#if defined(RENDERSTACK_GL_API_OPENGL_WITH_LEGACY) || defined(RENDERSTACK_GL_API_OPENGL_ES_1)
 // Fog - vertex shaders
 void fog_f (GLenum pname, GLfloat param);
 void fog_fv (GLenum pname, const GLfloat *params);
@@ -26,7 +26,7 @@ void tex_env_i(GLenum target, GLenum pname, GLint param);
 void tex_env_iv(GLenum target, GLenum pname, const GLint *params);
 
 // Texgen
-#if !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL) 
 void tex_gen_d (GLenum coord, GLenum pname, GLdouble param);
 void tex_gen_dv (GLenum coord, GLenum pname, const GLdouble *params);
 #endif
@@ -47,12 +47,12 @@ void light_iv (GLenum light, GLenum pname, const GLint *params);
 
 // Matrices
 void load_identity (void);
-#if !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL) 
 void load_matrix_d (const GLdouble *m);
 #endif
 void load_matrix_f (const GLfloat *m);
 void matrix_mode (GLenum mode);
-#if !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL) 
 void mult_matrix_d (const GLdouble *m);
 #endif
 void mult_matrix_f (const GLfloat *m);
@@ -124,11 +124,11 @@ void tex_parameter_iv(GLenum target, GLenum pname, const GLint *params);
 void tex_sub_image_2d(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const GLvoid *pixels);
 void viewport(GLint x, GLint y, GLsizei width, GLsizei height);
 
-#if defined(RENDERSTACK_USE_GLES3) || !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
 void read_buffer(GLenum mode); // es 3
 #endif
 
-#if defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL_ES_2) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
 void depth_range(GLclampf zNear, GLclampf zFar);
 #else
 void clear_depth(GLclampd depth);
@@ -153,7 +153,7 @@ void tex_sub_image_1d(GLenum target, GLint level, GLint xoffset, GLsizei width, 
 void blend_color(GLclampf a, GLclampf b, GLclampf c, GLclampf d);
 void blend_equation(GLenum a);
 
-#if defined(RENDERSTACK_USE_GLES3) || !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
 void draw_range_elements(GLenum a, GLuint b, GLuint c, GLsizei d, GLenum e, const GLvoid *f);
 void tex_image_3d(GLenum a, GLint b, GLint c, GLsizei d, GLsizei e, GLsizei f, GLint g, GLenum h, GLenum i, const GLvoid *j);
 void tex_sub_image_3d(GLenum a, GLint b, GLint c, GLint d, GLint e, GLsizei f, GLsizei g, GLsizei h, GLenum i, GLenum j, const GLvoid *k);
@@ -167,11 +167,11 @@ void compressed_tex_image_2d(GLenum a, GLint b, GLenum c, GLsizei d, GLsizei e, 
 void compressed_tex_sub_image_2d(GLenum a, GLint b, GLint c, GLint d, GLsizei e, GLsizei f, GLenum g, GLsizei h, const GLvoid *i);
 
 // OpenGL ES 3.0
-#if defined(RENDERSTACK_USE_GLES3) || !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
 void compressed_tex_image_3d(GLenum a, GLint b, GLenum c, GLsizei d, GLsizei e, GLsizei f, GLint g, GLsizei h, const GLvoid *i);
 void compressed_tex_sub_image_3d(GLenum a, GLint b, GLint c, GLint d, GLint e, GLsizei f, GLsizei g, GLsizei h, GLenum i, GLsizei j, const GLvoid *k);
 #endif
-#if !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL)
 void compressed_tex_image_1d(GLenum a, GLint b, GLenum c, GLsizei d, GLint e, GLsizei f, const GLvoid *g);
 void compressed_tex_sub_image_1d(GLenum a, GLint b, GLint c, GLsizei d, GLenum e, GLsizei f, const GLvoid *g);
 void get_compressed_tex_image(GLenum a, GLint b, GLvoid *c);
@@ -181,7 +181,7 @@ void get_compressed_tex_image(GLenum a, GLint b, GLvoid *c);
 /*  GL_VERSION_1_4  */ 
 void blend_func_separate(GLenum a, GLenum b, GLenum c, GLenum d);
 
-#if !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL)
 void multi_draw_arrays(GLenum a, GLint *b, GLsizei *c, GLsizei d);
 void multi_draw_elements(GLenum a, const GLsizei *b, GLenum c, const GLvoid* *d, GLsizei e);
 void point_parameter_f(GLenum a, GLfloat b);
@@ -205,7 +205,7 @@ void get_buffer_pointer_v_oes(GLenum target, GLenum pname, GLvoid **params);
 GLboolean unmap_buffer_oes(GLenum target);
 
 // OpenGL ES 3.0
-#if defined(RENDERSTACK_USE_GLES3) || !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
 void gen_queries(GLsizei a, GLuint *b);
 void delete_queries(GLsizei a, const GLuint *b);
 GLboolean is_query(GLuint a);
@@ -217,7 +217,7 @@ GLvoid* map_buffer(GLenum target, GLenum access);
 GLboolean unmap_buffer(GLenum target);
 void get_buffer_pointer_v(GLenum a, GLenum b, GLvoid* *c);
 #endif
-#if !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL)
 void get_buffer_sub_data(GLenum a, GLintptr b, GLsizeiptr c, GLvoid *d);
 void get_query_object_iv(GLuint a, GLenum b, GLint *c);
 #endif
@@ -285,7 +285,7 @@ void vertex_attrib_4f(GLuint a, GLfloat b, GLfloat c, GLfloat d, GLfloat e);
 void vertex_attrib_4fv(GLuint a, const GLfloat *b);
 void vertex_attrib_pointer(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer);
 
-#if !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL)
 void draw_buffers(GLsizei a, const GLenum * b);
 void get_vertex_attrib_dv(GLuint a, GLenum b, GLdouble *c);
 void vertex_attrib_1d(GLuint a, GLdouble b);
@@ -323,7 +323,7 @@ void vertex_attrib_4usv(GLuint a, const GLushort *b);
 /*  GL_VERSION_2_1  */ 
 
 // OpenGL ES 3.0
-#if defined(RENDERSTACK_USE_GLES3) || !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
 void uniform_matrix_2x3fv(GLint a, GLsizei b, GLboolean c, const GLfloat *d);
 void uniform_matrix_3x2fv(GLint a, GLsizei b, GLboolean c, const GLfloat *d);
 void niform_matrix_2x4fv(GLint a, GLsizei b, GLboolean c, const GLfloat *d);
@@ -334,7 +334,7 @@ void uniform_matrix_4x3fv(GLint a, GLsizei b, GLboolean c, const GLfloat *d);
 /*  GL_VERSION_3_0  */ 
 
 // OpenGL ES 3.0
-#if defined(RENDERSTACK_USE_GLES3) || !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
 void get_integer_i_v(GLenum a, GLuint b, GLint *c);
 void begin_transform_feedback(GLenum a);
 void end_transform_feedback(void);
@@ -365,7 +365,7 @@ void clear_buffer_fv(GLenum a, GLint b, const GLfloat *c);
 void clear_buffer_fi(GLenum a, GLint b, GLfloat c, GLint d);
 const GLubyte * get_string_i(GLenum a, GLuint b);
 #endif
-#if !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL)
 void color_mask_i(GLuint a, GLboolean b, GLboolean c, GLboolean d, GLboolean e);
 void get_boolean_i_v(GLenum a, GLuint b, GLboolean *c);
 void enable_i(GLenum a, GLuint b);
@@ -400,11 +400,11 @@ void get_tex_parameter_iuiv(GLenum a, GLenum b, GLuint *c);
 /*  GL_VERSION_3_1  */ 
 
 // OpenGL ES 3.0
-#if defined(RENDERSTACK_USE_GLES3) || !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
 void draw_arrays_instanced(GLenum a, GLint b, GLsizei c, GLsizei d);
 void draw_elements_instanced(GLenum a, GLsizei b, GLenum c, const GLvoid *d, GLsizei e);
 #endif
-#if !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL)
 void tex_buffer(GLenum a, GLenum b, GLuint c);
 void primitive_restart_index(GLuint a);
 #endif
@@ -412,11 +412,11 @@ void primitive_restart_index(GLuint a);
 /*  GL_VERSION_3_2  */ 
 
 // OpenGL ES 3.0
-#if defined(RENDERSTACK_USE_GLES3) || !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
 void get_integer_64i_v(GLenum a, GLuint b, GLint64 *c);
 void get_buffer_parameter_i64v(GLenum a, GLenum b, GLint64 *c);
 #endif
-#if !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL)
 void program_parameter_i(GLuint a, GLenum b, GLint c);
 void framebuffer_texture(GLenum a, GLenum b, GLuint c, GLint d);
 void framebuffer_texture_face(GLenum a, GLenum b, GLuint c, GLint d, GLenum e);
@@ -442,26 +442,26 @@ void get_framebuffer_attachment_parameter_iv(GLenum a, GLenum b, GLenum c, GLint
 void generate_mipmap(GLenum a);
 
 // OpenGL ES 3.0
-#if defined(RENDERSTACK_USE_GLES3) || !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
 void blit_framebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter);
 void renderbuffer_storage_multisample(GLenum target, GLsizei samples, GLenum internal_format, GLsizei width, GLsizei height);
 void framebuffer_texture_layer(GLenum target, GLenum attachment, GLuint texture, GLint level, GLint layer);
 #endif
-#if !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL)
 void framebuffer_texture_1d(GLenum a, GLenum b, GLenum c, GLuint d, GLint e);
 #endif
 
 /*  ARB_map_buffer_range  */ 
 
 // OpenGL ES 3.0
-#if defined(RENDERSTACK_USE_GLES3) || !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
 GLvoid* map_buffer_range(GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access);
 void flush_mapped_buffer_range(GLenum target, GLintptr offset, GLsizeiptr length);
 #endif
 /*  ARB_vertex_array_object  */ 
 
 // OpenGL ES 3.0
-#if defined(RENDERSTACK_USE_GLES3) || !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
 void bind_vertex_array(GLuint array_);
 void delete_vertex_arrays(GLsizei n, const GLuint *arrays);
 void gen_vertex_arrays(GLsizei a, GLuint *b);
@@ -472,14 +472,14 @@ GLboolean is_vertex_array(GLuint a);
 /*  ARB_copy_buffer  */ 
 
 // OpenGL ES 3.0
-#if defined(RENDERSTACK_USE_GLES3) || !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
 void copy_buffer_sub_data(GLenum a, GLenum b, GLintptr c, GLintptr d, GLsizeiptr e);
 #endif
 
 /*  ARB_uniform_buffer_object  */ 
 
 // OpenGL ES 3.0
-#if defined(RENDERSTACK_USE_GLES3) || !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
 void get_uniform_indices(GLuint program, GLsizei uniformCount, const GLchar* *uniformNames, GLuint *uniformIndices);
 void get_active_uniforms_iv(GLuint program, GLsizei uniformCount, const GLuint *uniformIndices, GLenum pname, GLint *params);
 void get_active_uniform_name(GLuint program, GLuint uniformIndex, GLsizei bufSize, GLsizei *length, GLchar *uniformName);
@@ -490,7 +490,7 @@ void uniform_block_binding(GLuint program, GLuint uniformBlockIndex, GLuint unif
 #endif
 /*  3.2  */ 
 /*  ARB_draw_elements_base_vertex  */ 
-#if !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL)
 void draw_elements_base_vertex(GLenum mode, GLsizei count, GLenum type, const GLvoid *indices, GLint basevertex);
 void draw_range_elements_base_vertex(GLenum a, GLuint b, GLuint c, GLsizei d, GLenum e, const GLvoid *f, GLint g);
 void draw_elements_instanced_base_vertex(GLenum a, GLsizei b, GLenum c, const GLvoid *d, GLsizei e, GLint f);
@@ -499,14 +499,14 @@ void multi_draw_elements_base_vertex(GLenum a, const GLsizei *b, GLenum c, const
 
 
 /*  ARB_provoking_vertex  */ 
-#if !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL)
 void provoking_vertex(GLenum a);
 #endif
 
 /*  ARB_sync  */ 
 
 // OpenGL ES 3.0
-#if defined(RENDERSTACK_USE_GLES3) || !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
 GLsync fence_sync(GLenum a, GLbitfield b);
 GLboolean is_sync(GLsync a);
 void delete_sync(GLsync a);
@@ -516,7 +516,7 @@ void get_integer_64v(GLenum a, GLint64 *b);
 void get_sync_iv(GLsync a, GLenum b, GLsizei c, GLsizei *d, GLint *e);
 #endif
 /*  ARB_texture_multisample  */ 
-#if !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL)
 void tex_image_2d_multisample(GLenum a, GLsizei b, GLint c, GLsizei d, GLsizei e, GLboolean f);
 void tex_image_3d_multisample(GLenum a, GLsizei b, GLint c, GLsizei d, GLsizei e, GLsizei f, GLboolean g);
 void get_multisample_fv(GLenum a, GLuint b, GLfloat *c);
@@ -524,12 +524,12 @@ void sample_mask_i(GLuint a, GLbitfield b);
 #endif
 
 /*  GL_ARB_sample_shading  */ 
-#if !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL)
 void min_sample_shading(GLclampf value);
 #endif
 
 /*  GL_ARB_sampler_objects  */ 
-#if defined(RENDERSTACK_USE_GLES3) || !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
 void gen_samplers(GLsizei count, GLuint *samplers);
 void delete_samplers(GLsizei count, const GLuint *samplers);
 GLboolean is_sampler(GLuint sampler);
@@ -541,7 +541,7 @@ void sampler_parameter_fv(GLuint sampler, GLenum pname, const GLfloat *param);
 void get_sampler_parameter_iv(GLuint sampler, GLenum pname, GLint *params);
 void get_sampler_parameter_fv(GLuint sampler, GLenum pname, GLfloat *params);
 #endif
-#if !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL)
 void sampler_parameter_i_iv(GLuint sampler, GLenum pname, const GLint *param);
 void sampler_parameter_i_uiv(GLuint sampler, GLenum pname, const GLuint *param);
 void get_sampler_parameter_i_iv(GLuint sampler, GLenum pname, GLint *params);
@@ -549,14 +549,14 @@ void get_sampler_parameter_i_uiv(GLuint sampler, GLenum pname, GLuint *params);
 #endif
 
 /*  GL_ARB_timer_query  */ 
-#if !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL)
 void query_counter(GLuint id, GLenum target);
 void get_query_object_i64v(GLuint id, GLenum pname, GLint64 *params);
 void get_query_object_ui64v(GLuint id, GLenum pname, GLuint64 *params);
 #endif
 
 /*  GL_ARB_tessellation_shader  */
-#if !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL)
 void patch_parameter_i(GLenum pname, GLint value);
 void patch_parameter_fv(GLenum pname, const GLfloat *values);
 #endif
@@ -564,32 +564,34 @@ void patch_parameter_fv(GLenum pname, const GLfloat *values);
 /*  GL_ARB_get_program_binary  */
 
 // OpenGL ES 3.0
-#if defined(RENDERSTACK_USE_GLES3) || !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
 void get_program_binary(GLuint program, GLsizei bufSize, GLsizei *length, GLenum *binaryFormat, GLvoid *binary);
 void program_binary(GLuint program, GLenum binaryFormat, const GLvoid *binary, GLsizei length);
 void program_parameter_i(GLuint program, GLenum pname, GLint value);
 #endif
 
 /*  GL_ARB_base_instance  */
-#if !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL)
 void draw_arrays_instanced_base_instance(GLenum mode, GLint first, GLsizei count, GLsizei primcount, GLuint baseinstance);
 void draw_elements_instanced_base_instance(GLenum mode, GLsizei count, GLenum type, const void *indices, GLsizei primcount, GLuint baseinstance);
 void draw_elements_instanced_base_vertex_base_instance(GLenum mode, GLsizei count, GLenum type, const void *indices, GLsizei primcount, GLint basevertex, GLuint baseinstance);
 #endif
 
 /*  GL_ARB_transform_feedback2  */
-#if !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
 void bind_transform_feedback(GLenum target, GLuint id);
 void delete_transform_feedbacks(GLsizei n, const GLuint *ids);
 void gen_transform_feedbacks(GLsizei n, GLuint *ids);
 GLboolean is_transform_feedback(GLuint id);
 void pause_transform_feedback(void);
 void resume_transform_feedback(void);
+#endif
+#if defined(RENDERSTACK_GL_API_OPENGL)
 void draw_transform_feedback(GLenum mode, GLuint id);
 #endif
 
 /*  GL_ARB_transform_feedback3  */
-#if !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL)
 void draw_transform_feedback_stream(GLenum mode, GLuint id, GLuint stream);
 void begin_query_indexed(GLenum target, GLuint index, GLuint id);
 void end_query_indexed(GLenum target, GLuint index);
@@ -597,7 +599,7 @@ void get_query_indexed_iv(GLenum target, GLuint index, GLenum pname, GLint *para
 #endif
 
 /*  GL_ARB_transform_feedback_instanced  */
-#if !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL)
 void draw_transform_feedback_instanced(GLenum mode, GLuint id, GLsizei primcount);
 void draw_transform_feedback_stream_instanced(GLenum mode, GLuint id, GLuint stream, GLsizei primcount);
 #endif

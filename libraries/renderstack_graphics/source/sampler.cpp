@@ -13,7 +13,7 @@ sampler::sampler()
 ,  m_compare_mode (gl::texture_compare_mode::none)
 ,  m_compare_func (gl::depth_function::less)
 {
-#if defined(RENDERSTACK_USE_GLES3) || !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
    if (configuration::can_use.sampler_object)
       gl::gen_samplers(1, &m_sampler);
 #endif
@@ -21,7 +21,7 @@ sampler::sampler()
 
 sampler::~sampler()
 {
-#if defined(RENDERSTACK_USE_GLES3) || !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
    if (configuration::can_use.sampler_object)
       gl::delete_samplers(1, &m_sampler);
 #endif
@@ -57,7 +57,7 @@ void sampler::apply(unsigned int texture_unit, gl::texture_target::value bind_ta
    //  Workarounds for AMD driver bug
    //  http://www.opengl.org/discussion_boards/ubbthreads.php?ubb=showflat&Number=298749#Post298749
 
-#if defined(RENDERSTACK_USE_GLES3) || !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
    if (configuration::can_use.sampler_object)
    {
       gl::sampler_parameter_i(m_sampler, gl::sampler_parameter::texture_min_filter, m_min_filter);

@@ -7,28 +7,30 @@ namespace renderstack { namespace graphics {
 using namespace std;
 
 uniform::uniform(std::string const &name, GLint index, size_t count, gl::active_uniform_type::value type, size_t offset)
-:   m_name      (name)
-,   m_count     (count)
-,   m_type      (type)
-,   m_index     (index)
-,   m_block     (-1)
-,   m_offset    (offset)
-,   m_texture_unit_index(0)
-//,   m_sampler   (nullptr)
-,   m_is_array  (false)
+:  m_name      (name)
+,  m_count     (count)
+,  m_type      (type)
+,  m_precision (precision::highp)
+,  m_index     (index)
+,  m_block     (-1)
+,  m_offset    (offset)
+,  m_texture_unit_index(0)
+,  m_sampler   (nullptr)
+,  m_is_array  (false)
 {
 }
 
 uniform::uniform(std::string const &name, GLint index, size_t count, gl::active_uniform_type::value type)
-:   m_name      (name)
-,   m_count     (count)
-,   m_type      (type)
-,   m_index     (index)
-,   m_block     (-1)
-,   m_offset    (0)
-,   m_texture_unit_index(0)
-//,   m_sampler   (nullptr)
-,   m_is_array  (false)
+:  m_name      (name)
+,  m_count     (count)
+,  m_type      (type)
+,  m_precision (precision::highp)
+,  m_index     (index)
+,  m_block     (-1)
+,  m_offset    (0)
+,  m_texture_unit_index(0)
+,  m_sampler   (nullptr)
+,  m_is_array  (false)
 {
 }
 
@@ -65,6 +67,16 @@ size_t uniform::count() const
 gl::active_uniform_type::value uniform::type() const
 { 
    return m_type;
+}
+
+precision::value uniform::precision_qualifier() const
+{
+   return m_precision;
+}
+
+void uniform::set_precision_qualifier(precision::value value)
+{
+   m_precision = value;
 }
 
 std::string const &uniform::name() const

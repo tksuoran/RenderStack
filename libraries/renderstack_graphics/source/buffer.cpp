@@ -115,7 +115,7 @@ void *buffer::map(size_t first, size_t count, gl::buffer_access_mask::value acce
    m_mapped_size   = static_cast<GLsizeiptr>(count * m_stride);
    m_mapped_access = access;
 
-#if defined(RENDERSTACK_USE_GLES3) || !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
    if (configuration::can_use.map_buffer_range)
    {
       m_mapped_ptr = gl::map_buffer_range(
@@ -166,7 +166,7 @@ void buffer::unmap()
       m_mapped_ptr);
    set_text_color(C_GREY);
 
-#if defined(RENDERSTACK_USE_GLES3) || !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
    if (configuration::can_use.map_buffer_range)
    {
       GLboolean res = gl::unmap_buffer(m_target);
@@ -209,7 +209,7 @@ void buffer::flush(size_t first, size_t count)
    size_t offset  = first * m_stride;
    size_t size    = count * m_stride;
 
-#if defined(RENDERSTACK_USE_GLES3) || !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
    if (configuration::can_use.map_buffer_range)
    {
       slog_trace(
@@ -254,7 +254,7 @@ void buffer::flush(size_t first, size_t count)
       );
    }
 }
-
+#if defined(RENDERSTACK_GL_API_OPENGL)
 void buffer::dump() const
 {
    bool     allocated   = false;
@@ -310,7 +310,7 @@ void buffer::dump() const
       delete[] data;
    }
 }
-
+#endif
 void buffer::flush_and_unmap(size_t count)
 {
    bool flush_explicit = (m_mapped_access & gl::buffer_access_mask::map_flush_explicit_bit) == gl::buffer_access_mask::map_flush_explicit_bit;
@@ -337,7 +337,7 @@ size_t buffer::free_capacity() const
 
 void buffer::bind_range(unsigned int binding_point, size_t offset, size_t size)
 {
-#if defined(RENDERSTACK_USE_GLES3) || !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
    if (configuration::can_use.bind_buffer_range)
    {
       gl::bind_buffer_range(

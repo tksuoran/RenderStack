@@ -159,13 +159,17 @@ void ninepatch::render()
 
    if (r->vertex_stream()->use())
    {
+#if defined(RENDERSTACK_GL_API_OPENGL)
       if (configuration::can_use.draw_elements_base_vertex)
       {
          GLint base_vertex = static_cast<GLint>(mesh().first_vertex());
          gl::draw_elements_base_vertex(begin_mode, count, index_type, index_pointer, base_vertex);
       }
       else
+#endif
+      {
          gl::draw_elements(begin_mode, count, index_type, index_pointer);
+      }
    }
    else
    {

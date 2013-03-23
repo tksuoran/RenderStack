@@ -29,11 +29,27 @@ using namespace renderstack::ui;
 using namespace renderstack::toolkit;
 
 
+#if defined(RENDERSTACK_GL_API_OPENGL)
 application::application()
 :  window      (512, 512, "OpenGL", 3, 2)
 ,  m_test_mode (false)
 {
 }
+#endif
+#if defined(RENDERSTACK_GL_API_OPENGL_ES_3)
+application::application()
+:  window      (512, 512, "OpenGL ES 3", 3, 0)
+,  m_test_mode (false)
+{
+}
+#endif
+#if defined(RENDERSTACK_GL_API_OPENGL_ES_2)
+application::application()
+:  window      (512, 512, "OpenGL ES 2", 2, 0)
+,  m_test_mode (false)
+{
+}
+#endif
 
 application::~application()
 {

@@ -2,7 +2,7 @@
 
 include_directories(
    ${RENDERSTACK_WINDOW_TOOLKIT_INCLUDE_DIRS}
-   ${CMAKE_SOURCE_DIR}/libraries/khronos
+   ${KHRONOS_INCLUDE}
    ${CMAKE_SOURCE_DIR}/libraries/renderstack_graphics/include
    ${CMAKE_SOURCE_DIR}/libraries/renderstack_toolkit/include
 )

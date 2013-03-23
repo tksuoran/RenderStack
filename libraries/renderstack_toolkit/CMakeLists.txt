@@ -29,24 +29,19 @@ if (RENDERSTACK_USE_GLWT)
    list(APPEND sources source/glwt_window.cpp)
 endif()
 
-if (RENDERSTACK_USE_GLES2_OR_GLES3)
-   list(
-      APPEND sources
-      include/renderstack_toolkit/dynamic_opengl_es3.hpp
-      source/gles3ext.cpp
-   )
-else ()
-   list(
-      APPEND sources
-      include/renderstack_toolkit/glext.hpp
-      source/glext.cpp
-   )
+#if (RENDERSTACK_GL_API_OPENGL_ES_2 OR RENDERSTACK_GL_API_OPENGL_ES_3)
+#   list(APPEND sources include/renderstack_toolkit/dynamic_opengl_es3.hpp)
+#   list(APPEND sources source/gles3ext.cpp)
+#endif ()
+
+if (RENDERSTACK_GL_API_OPENGL)
+   list(APPEND sources include/renderstack_toolkit/glext.hpp source/glext.cpp)
 endif ()
 
 include_directories(
    ${RENDERSTACK_WINDOW_TOOLKIT_INCLUDE_DIRS}
    ${GLM_INCLUDE_DIRS}
-   ${CMAKE_SOURCE_DIR}/libraries/khronos
+   ${KHRONOS_INCLUDE}
    ${CMAKE_SOURCE_DIR}/libraries/renderstack_toolkit/include
 )
 

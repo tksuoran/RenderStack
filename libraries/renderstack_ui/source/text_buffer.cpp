@@ -102,13 +102,17 @@ void text_buffer::render()
 
       if (r->vertex_stream()->use())
       {
+#if defined(RENDERSTACK_GL_API_OPENGL)
          if (renderstack::graphics::configuration::can_use.draw_elements_base_vertex)
          {
             GLint base_vertex = static_cast<GLint>(m_mesh.first_vertex());
             gl::draw_elements_base_vertex(begin_mode, count, index_type, index_pointer, base_vertex);
          }
          else
+#endif
+         {
             gl::draw_elements(begin_mode, count, index_type, index_pointer);
+         }
       }
       else
       {

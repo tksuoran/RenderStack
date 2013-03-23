@@ -32,6 +32,63 @@ bool  configuration::must_use_vertex_array_object         = false;
 
 configuration::can_use_t configuration::can_use;
 
+configuration::can_use_t::can_use_t()
+{
+   vertex_buffer                 = false; // 150 map buffer etc.
+   gl_version_300                = false; // 300 -----------------------------------
+   gpu_shader4                   = false; // 300 integer attributes
+   conditional_render            = false; // 300
+   map_buffer_range              = false; // 300
+   bind_buffer_range             = false; // 300
+   texture_float                 = false; // 300
+   color_buffer_float            = false; // 300
+   depth_buffer_float            = false; // 300
+   packed_float                  = false; // 300
+   texture_shared_exponent       = false; // 300
+   framebuffer_object            = false; // 300
+   half_float                    = false; // 300
+   half_float_pixel              = false; // 300
+   framebuffer_multisample       = false; // 300
+   framebuffer_blit              = false; // 300
+   texture_integer               = false; // 300
+   texture_array                 = false; // 300
+   texture_r                     = false; // 300
+   texture_rg                    = false; // 300
+   packed_depth_stencil          = false; // 300
+   draw_buffers2                 = false; // 300 Per-color-attachment blend enables and color writemasks
+   texture_compression_rgtc      = false; // 300
+   vertex_array_object           = false; // 300
+   integer_framebuffer_format    = false; // 300
+   bind_frag_data_location       = false; // 300 - alias for shader_model_version >= 4
+   integer_attributes            = false; // 300
+   instanced_arrays              = false; // 300
+   gl_version_310                = false; // 310 -----------------------------------
+   draw_instanced                = false; // 310
+   texture_buffer_object         = false; // 310
+   uniform_buffer_object         = false; // 310
+   gl_version_320                = false; // 320 -----------------------------------
+   seamless_cube_map             = false; // 320
+   draw_elements_base_vertex     = false; // 320
+   geometry_shaders              = false; // 320
+   gl_version_330                = false; // 330 -----------------------------------
+   sampler_object                = false; // 330
+   timer_query                   = false; // 330
+   gl_version_400                = false; // 400 -----------------------------------
+   gpu_shader5                   = false; // 400
+   transform_feedback            = false; // 400
+   tesselation_shaders           = false; // 400
+   gl_version_410                = false; // 410 -----------------------------------
+   binary_shaders                = false; // 410
+
+   frame_terminator              = false; // 
+   string_marker                 = false;
+
+   pixel_buffer_object           = false; //  \todo
+
+	map_buffer_oes						= false;
+	discard_framebuffer_oes       = false;
+	invalidate_framebuffer        = false;
+}
 bool  configuration::throw_program_exceptions             = true;
 unsigned int   configuration::default_vao                 = 0;
 int   configuration::max_texture_size                     = 64;
@@ -48,7 +105,7 @@ int   configuration::max_fragment_uniform_blocks          = 0;
 int   configuration::max_geometry_uniform_blocks          = 0;
 int   configuration::max_tess_control_uniform_blocks      = 0;
 int   configuration::max_tess_evaluation_uniform_blocks   = 0;
-unsigned int configuration::uniform_buffer_offset_alignment      = 1;
+unsigned int configuration::uniform_buffer_offset_alignment = 1024;
 
 static vector<string> split(string text, char separator)
 {
@@ -120,35 +177,104 @@ static string get_string(int e)
    return (c_str != nullptr) ? string(c_str) : string();
 }
 
-void configuration::check(vector<string> const &extensions, bool &var, string const &name, int gl_min_ver, string const &gl_ext)
+void configuration::check(vector<string> const &extensions, bool &var, string const &name,
+								  int gl_min_ver, int gles_min_ver, string const &gl_ext)
 {
+#if defined(RENDERSTACK_GL_API_OPENGL)
+   (void)gles_min_ver;
    if (gl_version >= gl_min_ver || (gl_ext.length() > 1 && contains(extensions, gl_ext)))
    {
       var = true;
       log_info(name.c_str());
    }
+#endif
+#if defined(RENDERSTACK_GL_API_OPENGL_ES_2) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
+   (void)gl_min_ver;
+   if (gl_version >= gles_min_ver || (gl_ext.length() > 1 && contains(extensions, gl_ext)))
+   {
+      var = true;
+      log_info(name.c_str());
+   }
+#endif
+}
+void configuration::check(vector<string> const &extensions, bool &var, string const &name,
+								  int gl_min_ver, int gles_min_ver, string const &gl_ext, string const &gl_ext2)
+{
+#if defined(RENDERSTACK_GL_API_OPENGL)
+   (void)gles_min_ver;
+   if (gl_version >= gl_min_ver || 
+		(gl_ext.length() > 1 && contains(extensions, gl_ext)) ||
+		(gl_ext2.length() > 1 && contains(extensions, gl_ext2)))
+   {
+      var = true;
+      log_info(name.c_str());
+   }
+#endif
+#if defined(RENDERSTACK_GL_API_OPENGL_ES_2) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
+   (void)gl_min_ver;
+   if (gl_version >= gles_min_ver || 
+		(gl_ext.length() > 1 && contains(extensions, gl_ext)) ||
+		(gl_ext2.length() > 1 && contains(extensions, gl_ext2)))
+   {
+      var = true;
+      log_info(name.c_str());
+   }
+#endif
+}
+void configuration::check(vector<string> const &extensions, bool &var, string const &name,
+								  int gl_min_ver, int gles_min_ver, string const &gl_ext, string const &gl_ext2, string const &gl_ext3)
+{
+#if defined(RENDERSTACK_GL_API_OPENGL)
+   (void)gles_min_ver;
+   if (gl_version >= gl_min_ver || 
+		(gl_ext.length() > 1 && contains(extensions, gl_ext)) ||
+		(gl_ext2.length() > 1 && contains(extensions, gl_ext2)) ||
+		(gl_ext3.length() > 1 && contains(extensions, gl_ext3)))
+   {
+      var = true;
+      log_info(name.c_str());
+   }
+#endif
+#if defined(RENDERSTACK_GL_API_OPENGL_ES_2) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
+   (void)gl_min_ver;
+   if (gl_version >= gles_min_ver || 
+		(gl_ext.length() > 1 && contains(extensions, gl_ext)) ||
+		(gl_ext2.length() > 1 && contains(extensions, gl_ext2)) ||
+		(gl_ext3.length() > 1 && contains(extensions, gl_ext3)))
+   {
+      var = true;
+      log_info(name.c_str());
+   }
+#endif
 }
 
 void configuration::initialize()
 {
    vector<string> extensions;
 
-   string vendor      = get_string(GL_VENDOR);
-   string renderer    = get_string(GL_RENDERER);
-   string version     = get_string(GL_VERSION);
+   string gl_vendor			= get_string(GL_VENDOR);
+   string gl_renderer		= get_string(GL_RENDERER);
+   string gl_version_str   = get_string(GL_VERSION);
    //bool gles20 = false; // TODO
 
-   log_info("Vendor:   %s\n", vendor.c_str());
-   log_info("Renderer: %s\n", renderer.c_str());
-   log_info("Version:  %s\n", version.c_str());
+   log_info("GL Vendor:     %s\n", gl_vendor.c_str());
+   log_info("GL Renderer:   %s\n", gl_renderer.c_str());
+   log_info("GL Version:    %s\n", gl_version_str.c_str());
 
    {
-      int c = vendor.compare("Intel");
+      int c = gl_vendor.compare("Intel");
       if (c == 0)
          configuration::intel = true;
    }
 
-   vector<string> versions = split(version, '.');
+   // TODO: "OpenGL ES "
+#if defined(RENDERSTACK_GL_API_OPENGL_ES_2) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
+   string opengl_es = gl_version_str.substr(0, 10);
+   if (opengl_es != "OpenGL ES ")
+      throw std::runtime_error("Unexpected GL_VERSION (should have started with OpenGL ES ");
+   gl_version_str = gl_version_str.substr(10);
+#endif
+   vector<string> versions = split(gl_version_str, '.');
 
    int major = (versions.size() > 0) ? ::atoi(digits_only(versions[0]).c_str()) : 0;
    int minor = (versions.size() > 1) ? ::atoi(digits_only(versions[1]).c_str()) : 0;
@@ -157,8 +283,7 @@ void configuration::initialize()
 
    gl::get_integer_v(GL_MAX_TEXTURE_SIZE, &max_texture_size);
 
-#if !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
-   // TODO Enable for GLES 3
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
    if (gl_version >= 300)
    {
       //  GL 3 introduced a new way to access extension strings
@@ -183,16 +308,37 @@ void configuration::initialize()
       extensions = split(e, ' ');
    }
 
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
    if (gl_version >= 200 || contains(extensions, "GL_ARB_shading_language_100"))
    {
       try
       {
          string shading_language_version = get_string(GL_SHADING_LANGUAGE_VERSION);
+         log_info("GLSL Version:  %s\n", shading_language_version.c_str());
+         string fallback_prefix = "OpenGL ES GLSL ";
+         string expected_prefix = "OpenGL ES GLSL ES ";
+         size_t prefix_len = expected_prefix.size();
+         string prefix = shading_language_version.substr(0, prefix_len);
+         if (prefix != expected_prefix)
+         {
+            expected_prefix = fallback_prefix;
+            prefix_len = expected_prefix.size();
+            prefix = shading_language_version.substr(0, prefix_len);
+            log_info("Warning: Invalid OpenGL ES GLSL ES version prefix\n");
+         }
+         shading_language_version = shading_language_version.substr(prefix_len);
          versions = split(shading_language_version, '.');
 
          major = (versions.size() > 0) ? ::atoi(digits_only(versions[0]).c_str()) : 0;
          minor = (versions.size() > 1) ? ::atoi(digits_only(versions[1]).c_str()) : 0;
          glsl_version = (major * 100) + minor;
+#if defined(RENDERSTACK_GL_API_OPENGL_ES_3)
+         if (glsl_version < 300)
+         {
+            log_info("Warning: Invalid OpenGL ES GLSL ES version - forcing 300\n");
+            glsl_version = 300;
+         }
+#endif
       }
       catch (...)
       {
@@ -200,6 +346,7 @@ void configuration::initialize()
          //  Note: implicit value for glsl shader source version is 110 if not explicitly set
       }
    }
+#endif
 
    log_trace("glVersion:   %d\n", gl_version);
    log_trace("glslVersion: %d\n", glsl_version);
@@ -215,28 +362,38 @@ void configuration::initialize()
    }
 #endif
 
-#if !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
+#if !defined(RENDERSTACK_GL_API_OPENGL_ES_3)
+   if (gl_version >= 120 || contains(extensions, "GL_EXT_texture3D"))
+#endif
    {
-      if (gl_version >= 120 || contains(extensions, "GL_EXT_texture3D"))
-      {
-         gl::get_integer_v(GL_MAX_3D_TEXTURE_SIZE, &max_3d_texture_size);
-      }
+      gl::get_integer_v(GL_MAX_3D_TEXTURE_SIZE, &max_3d_texture_size);
    }
 #endif
 
+#if defined(RENDERSTACK_GL_API_OPENGL)
    if (gl_version >= 130 || contains(extensions, "GL_ARB_texture_cube_map"))
-   {
       gl::get_integer_v(GL_MAX_CUBE_MAP_TEXTURE_SIZE, &max_cube_map_texture_size);
-   }
+#endif
+#if defined(RENDERSTACK_GL_API_OPENGL_ES_3)
+   gl::get_integer_v(GL_MAX_CUBE_MAP_TEXTURE_SIZE, &max_cube_map_texture_size);
+#endif
 
+#if defined(RENDERSTACK_GL_API_OPENGL)
    if (gl_version >= 200)
    {
       gl::get_integer_v(GL_MAX_TEXTURE_IMAGE_UNITS, &max_texture_image_units);
       gl::get_integer_v(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &max_combined_texture_image_units);
    }
+#endif
+#if defined(RENDERSTACK_GL_API_OPENGL_ES_2) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
+   gl::get_integer_v(GL_MAX_TEXTURE_IMAGE_UNITS, &max_texture_image_units);
+   gl::get_integer_v(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &max_combined_texture_image_units);
+#endif
+
 
    //  GL 3.0 introduced context flags
-#if !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL)
    {
       if (gl_version >= 300)
       {
@@ -252,7 +409,7 @@ void configuration::initialize()
 #endif
 
    //  GL 3.3 introduced context profile mask
-#if !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL)
    {
       if (gl_version >= 330)
       {
@@ -274,32 +431,70 @@ void configuration::initialize()
    }
 #endif
 
-   check(extensions, can_use.vertex_buffer,              "vertex_buffer",              150, "GL_ARB_vertex_buffer_object");
-   check(extensions, can_use.conditional_render,         "conditional_render",         300, "GL_NV_conditional_render");
-   check(extensions, can_use.gpu_shader4,                "gpu_shader4",                300, "GL_EXT_gpu_shader4");
-   check(extensions, can_use.map_buffer_range,           "map_buffer_range",           300, "GL_ARB_map_buffer_range");
-   check(extensions, can_use.framebuffer_object,         "framebuffer_object",         300, "GL_ARB_framebuffer_object");
-   check(extensions, can_use.color_buffer_float,         "color_buffer_float",         300, "GL_ARB_color_buffer_float");
-   check(extensions, can_use.depth_buffer_float,         "depth_buffer_float",         300, "GL_NV_depth_buffer_float");
-   check(extensions, can_use.texture_float,              "texture_float",              300, "GL_ARB_texture_float");
-   check(extensions, can_use.packed_float,               "packed_float",               300, "GL_EXT_packed_float");
-   check(extensions, can_use.texture_shared_exponent,    "texture_shared_exponent",    300, "GL_EXT_texture_shared_exponent");
-   check(extensions, can_use.half_float,                 "half_float",                 300, "GL_NV_half_float");
-   check(extensions, can_use.half_float_pixel,           "half_float_pixel",           300, "GL_ARB_half_float_pixel");
-   check(extensions, can_use.framebuffer_multisample,    "framebuffer_multisample",    300, "GL_EXT_framebuffer_multisample");
-   check(extensions, can_use.framebuffer_blit,           "framebuffer_blit",           300, "GL_EXT_framebuffer_blit");
-   check(extensions, can_use.texture_integer,            "texture_integer",            300, "GL_EXT_texture_integer");
-   check(extensions, can_use.texture_array,              "texture_array",              300, "GL_EXT_texture_array");
-   check(extensions, can_use.texture_r,                  "texture_r",                  300, "");
-   check(extensions, can_use.texture_rg,                 "texture_rg",                 300, "");
-   check(extensions, can_use.packed_depth_stencil,       "packed_depth_stencil",       300, "GL_EXT_packed_depth_stencil");
-   check(extensions, can_use.draw_buffers2,              "draw_buffers2",              300, "GL_EXT_draw_buffers2");
-   check(extensions, can_use.texture_compression_rgtc,   "texture_compression_rgtc",   300, "GL_EXT_texture_compression_rgtc");
+	// Extension versions have not been tested
 
-   check(extensions, can_use.vertex_array_object,        "vertex_array_object",        300, "GL_ARB_vertex_array_object");
-   check(extensions, can_use.integer_framebuffer_format, "integer_framebuffer_format", 300, "GL_EXT_gpu_shader4"); // GL_EXT_texture_integer too?
-   check(extensions, can_use.bind_frag_data_location,    "bind_frag_data_location",    300, "");
-   check(extensions, can_use.instanced_arrays,           "instanced_arrays",           300, "GL_ARB_instanced_arrays");
+   check(extensions, can_use.map_buffer_oes,             "map_buffer_oes",             999, 999, "GL_OES_mapbuffer");
+	check(extensions, can_use.discard_framebuffer_oes,    "discard_framebuffer_oes",    999, 999, "GL_EXT_discard_framebuffer");
+
+	check(extensions, can_use.texture_3d,						"texture_3d",                 120, 300, "GL_EXT_texture3D",
+                                                                                                 "GL_OES_texture_3D");
+   check(extensions, can_use.vertex_buffer,              "vertex_buffer",              150, 100, "GL_ARB_vertex_buffer_object");
+	check(extensions, can_use.pixel_buffer_object,			"pixel_buffer_object",			210, 300, "GL_ARB_pixel_buffer_object",
+																																 "GL_NV_pixel_buffer_object");
+   check(extensions, can_use.gpu_shader4,                "gpu_shader4",                300, 300, "GL_EXT_gpu_shader4");
+   check(extensions, can_use.map_buffer_range,           "map_buffer_range",           300, 300, "GL_ARB_map_buffer_range",
+																																 "GL_EXT_map_buffer_range");
+   check(extensions, can_use.framebuffer_object,         "framebuffer_object",         300, 200, "GL_ARB_framebuffer_object",
+                                                                                                 "GL_OES_framebuffer_object");
+   check(extensions, can_use.depth_buffer_float,         "depth_buffer_float",         300, 300, "GL_NV_depth_buffer_float");
+   check(extensions, can_use.texture_float,              "texture_float",              300, 300, "GL_ARB_texture_float");
+   check(extensions, can_use.packed_float,               "packed_float",               300, 300, "GL_EXT_packed_float",
+                                                                                                 "GL_NV_packed_float");
+   check(extensions, can_use.texture_shared_exponent,    "texture_shared_exponent",    300, 300, "GL_EXT_texture_shared_exponent");
+   check(extensions, can_use.half_float,                 "half_float",                 300, 300, "GL_NV_half_float");
+   check(extensions, can_use.framebuffer_multisample,    "framebuffer_multisample",    300, 300, "GL_EXT_framebuffer_multisample",
+                                                                                                 "GL_NV_framebuffer_multisample",
+                                                                                                 "GL_ANGLE_framebuffer_multisample");
+   check(extensions, can_use.framebuffer_blit,           "framebuffer_blit",           300, 300, "GL_EXT_framebuffer_blit",
+                                                                                                 "GL_NV_framebuffer_blit",
+																																 "GL_ANGLE_framebuffer_blit");
+   check(extensions, can_use.texture_integer,            "texture_integer",            300, 300, "GL_EXT_texture_integer");
+   check(extensions, can_use.texture_array,              "texture_array",              300, 300, "GL_EXT_texture_array",
+                                                                                                 "GL_NV_texture_array");
+   check(extensions, can_use.texture_r,                  "texture_r",                  300, 300, "");
+   check(extensions, can_use.texture_rg,                 "texture_rg",                 300, 300, "");
+   check(extensions, can_use.packed_depth_stencil,       "packed_depth_stencil",       300, 300, "GL_EXT_packed_depth_stencil");
+   check(extensions, can_use.vertex_array_object,        "vertex_array_object",        300, 300, "GL_ARB_vertex_array_object");
+   check(extensions, can_use.integer_framebuffer_format, "integer_framebuffer_format", 300, 300, "GL_EXT_gpu_shader4"); // GL_EXT_texture_integer too?
+   check(extensions, can_use.instanced_arrays,           "instanced_arrays",           300, 300, "GL_ARB_instanced_arrays",
+                                                                                                 "GL_NV_instanced_arrays",
+																																 "GL_ANGLE_instanced_arrays");
+   check(extensions, can_use.color_buffer_float,         "color_buffer_float",         300, 999, "GL_ARB_color_buffer_float",
+                                                                                                 "GL_EXT_color_buffer_float");
+   check(extensions, can_use.draw_instanced,             "draw_instanced",             310, 300, "GL_ARB_draw_instanced",
+                                                                                                 "GL_NV_draw_instanced");
+   check(extensions, can_use.uniform_buffer_object,      "uniform_buffer_object",      310, 300, "GL_ARB_uniform_buffer_object");
+   check(extensions, can_use.seamless_cube_map,          "seamless_cube_map",          320, 300, "GL_ARB_seamless_cube_map");
+   check(extensions, can_use.sampler_object,             "sampler_object",             330, 300, "ARB_sampler_objects");
+   check(extensions, can_use.transform_feedback,         "transform_feedback",         400, 300, "GL_ARB_transform_feedback3");
+   check(extensions, can_use.binary_shaders,             "binary_shaders",             410, 300, "GL_ARB_get_program_binary");
+	check(extensions, can_use.tex_storage,						"tex_storage",						420, 999, "GL_ARB_texture_storage");
+	check(extensions, can_use.invalidate_framebuffer,     "invalidate_framebuffer",     430, 999, "GL_ARB_invalidate_subdata");
+
+#if defined(RENDERSTACK_GL_API_OPENGL)
+   check(extensions, can_use.bind_frag_data_location,    "bind_frag_data_location",    300, 999, "");
+   check(extensions, can_use.conditional_render,         "conditional_render",         300, 999, "GL_NV_conditional_render");
+   check(extensions, can_use.half_float_pixel,           "half_float_pixel",           300, 999, "GL_ARB_half_float_pixel");
+   check(extensions, can_use.draw_buffers2,              "draw_buffers2",              300, 999, "GL_EXT_draw_buffers2");
+   check(extensions, can_use.texture_compression_rgtc,   "texture_compression_rgtc",   300, 999, "GL_EXT_texture_compression_rgtc");
+   check(extensions, can_use.texture_buffer_object,      "texture_buffer_object",      310, 999, "GL_ARB_texture_buffer_object");
+   check(extensions, can_use.draw_elements_base_vertex,  "draw_elements_base_vertex",  320, 999, "GL_ARB_draw_elements_base_vertex");
+   check(extensions, can_use.geometry_shaders,           "geometry_shaders",           320, 999, "GL_ARB_geometry_shader4");
+   check(extensions, can_use.timer_query,                "timer_query",                330, 999, "GL_ARB_timer_query");
+   check(extensions, can_use.gpu_shader5,                "gpu_shader5",                400, 999, "GL_EXT_gpu_shader5");
+   check(extensions, can_use.tesselation_shaders,        "tesselation_shaders",        400, 999, "GL_ARB_tesselation_shader");
+#endif
+
    can_use.bind_buffer_range = can_use.map_buffer_range; // TODO
    if (can_use.vertex_array_object)
    {
@@ -307,19 +502,21 @@ void configuration::initialize()
       //gl::bind_vertex_array(default_vao);
    }
 
-   check(extensions, can_use.draw_instanced,             "draw_instanced",             310, "GL_ARB_draw_instanced");
-   check(extensions, can_use.texture_buffer_object,      "texture_buffer_object",      310, "GL_ARB_texture_buffer_object");
-   check(extensions, can_use.uniform_buffer_object,      "uniform_buffer_object",      310, "GL_ARB_uniform_buffer_object");
-   check(extensions, can_use.seamless_cube_map,          "seamless_cube_map",          320, "GL_ARB_seamless_cube_map");
-   check(extensions, can_use.draw_elements_base_vertex,  "draw_elements_base_vertex",  320, "GL_ARB_draw_elements_base_vertex");
-   check(extensions, can_use.geometry_shaders,           "geometry_shaders",           320, "GL_ARB_geometry_shader4");
-   check(extensions, can_use.sampler_object,             "sampler_object",             330, "ARB_sampler_objects");
-   check(extensions, can_use.timer_query,                "timer_query",                330, "GL_ARB_timer_query");
-   check(extensions, can_use.gpu_shader5,                "gpu_shader5",                400, "GL_EXT_gpu_shader5");
-   check(extensions, can_use.transform_feedback,         "transform_feedback",         400, "GL_ARB_transform_feedback3");
-   check(extensions, can_use.tesselation_shaders,        "tesselation_shaders",        400, "GL_ARB_tesselation_shader");
-   check(extensions, can_use.binary_shaders,             "binary_shaders",             410, "GL_ARB_get_program_binary");
+	if (gl_vendor == "ARM Ltd.")
+	{
+		if (gl_renderer == "OpenGL ES Emulator Revision r2p0-00rel0")
+		{
+			can_use.map_buffer_range = false;
+			log_info("Disabling map buffer range support for ARM ES 3.0 Emulator\n");
+		}
+	}
+   if (gl_renderer == "Qualcomm OpenGL ES 3.0 Emulator")
+   {
+      can_use.transform_feedback = false;
+      log_info("Disabling transform feedback support for Qualcomm ES 3.0 Emulator\n");
+   }
 
+#if defined(RENDERSTACK_GL_API_OPENGL)
    //  GL versions 3.0, 3.1 and 3.2 use forwardCompatible
    //  GL versions 3.3 and later have coreProfile
    //  Default VAO no longer exists in GL version 3.1 forward compatible contexts
@@ -328,6 +525,7 @@ void configuration::initialize()
       must_use_vertex_array_object = true;
       log_info("must_use_vertex_array_object\n");
    }
+#endif
 
    if (contains(extensions, "GL_GREMEDY_frame_terminator"))
    {
@@ -340,7 +538,7 @@ void configuration::initialize()
       log_info("can_use_string_marker\n");
    }
 
-#if !defined(RENDERSTACK_USE_GLES2_OR_GLES3) && !defined(RENDERSTACK_USE_OPENGL_ES3)
+#if defined(RENDERSTACK_GL_API_OPENGL)
    if (can_use.texture_buffer_object)
    {
       // \todo check gl core version requirement
@@ -351,7 +549,7 @@ void configuration::initialize()
    }
 #endif
 
-#if defined(RENDERSTACK_USE_GLES3) || !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
    if (can_use.uniform_buffer_object)
    {
       GLint alignment;
@@ -361,13 +559,16 @@ void configuration::initialize()
       gl::get_integer_v(GL_MAX_VERTEX_UNIFORM_BLOCKS,        &max_vertex_uniform_blocks);
       gl::get_integer_v(GL_MAX_FRAGMENT_UNIFORM_BLOCKS,      &max_fragment_uniform_blocks);
       uniform_buffer_offset_alignment = static_cast<GLuint>(alignment);
-      if (can_use.geometry_shaders) {
+#if defined(RENDERSTACK_GL_API_OPENGL)
+      if (can_use.geometry_shaders)
          gl::get_integer_v(GL_MAX_GEOMETRY_UNIFORM_BLOCKS, &max_geometry_uniform_blocks);
-      }
-      if (can_use.tesselation_shaders) {
+
+      if (can_use.tesselation_shaders)
+      {
          gl::get_integer_v(GL_MAX_TESS_CONTROL_UNIFORM_BLOCKS, &max_tess_control_uniform_blocks);
          gl::get_integer_v(GL_MAX_TESS_EVALUATION_UNIFORM_BLOCKS, &max_tess_evaluation_uniform_blocks);
       }
+#endif
       log_info(
          "can_use_uniform_buffer_object " 
          "(max block size = %d"
@@ -397,6 +598,9 @@ void configuration::initialize()
    if (shader_model_version > 4)
       shader_model_version = 4;
 #endif
+
+   can_use.map_buffer_range      = false;
+   can_use.uniform_buffer_object = false;
 
 #if 0
    can_use.vertex_array_object = false;

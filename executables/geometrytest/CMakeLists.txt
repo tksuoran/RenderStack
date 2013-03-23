@@ -4,7 +4,7 @@
 # message("FREETYPE_LIBRARIES = ${FREETYPE_LIBRARIES}")
 
 include_directories(
-    SYSTEM ${CMAKE_SOURCE_DIR}/libraries/khronos
+   ${KHRONOS_INCLUDE}
 )
 
 include_directories(

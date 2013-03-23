@@ -32,7 +32,9 @@ public:
    void        flush_and_unmap(std::size_t count);
    std::size_t free_capacity  () const;
    void        bind_range     (unsigned int binding_point, std::size_t offset, std::size_t size);
+#if defined(RENDERSTACK_GL_API_OPENGL)
    void        dump           () const;
+#endif
 
 private:
    gl::buffer_target::value   m_target;

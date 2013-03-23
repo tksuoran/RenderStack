@@ -84,7 +84,11 @@ string uniform_block::source(int glsl_version) const
       {
          auto uniform = *i;
          string const &name = uniform->name();
-         ss << "    " << gl_uniform_type_name(uniform->type()) << " " << name;
+         ss << "    ";
+#if defined(RENDERSTACK_GL_API_OPENGL_ES_2) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
+         ss << precision::desc(uniform->precision_qualifier()) << " ";
+#endif
+         ss << gl_uniform_type_name(uniform->type()) << " " << name;
          if (uniform->is_array())
             ss << "[" << uniform->count() << "]";
 

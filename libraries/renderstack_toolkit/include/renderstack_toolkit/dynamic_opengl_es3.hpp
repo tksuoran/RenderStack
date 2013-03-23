@@ -2,8 +2,12 @@
 #define renderstack_toolkit__dynamic_opengl_es3_h
 
 #include "platform.hpp"
-#include "GLES2/gl2.h"
-//#include "GLES3/gl3.h"
+#if defined(RENDERSTACK_GL_API_OPENGL_ES_2)
+# include "GLES2/gl2.h"
+#endif
+#if defined(RENDERSTACK_GL_API_OPENGL_ES_3)
+# include "GLES3/gl3.h"
+#endif
 #include "GLES2/gl2ext.h"
 #include "GLES3/gl3ext.h"
 
@@ -152,6 +156,7 @@ typedef void            (GL_APIENTRY *RS_ES2_PFNGLVERTEXATTRIB4FV               
 typedef void            (GL_APIENTRY *RS_ES2_PFNGLVERTEXATTRIBPOINTER                   ) (GLuint indx, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const void* ptr);
 typedef void            (GL_APIENTRY *RS_ES2_PFNGLVIEWPORT                              ) (GLint x, GLint y, GLsizei width, GLsizei height);
 
+#if defined(RENDERSTACK_GL_API_OPENGL_ES_3)
 typedef void           (GL_APIENTRY *RS_ES3_PFNGLREADBUFFER                     ) (GLenum mode);
 typedef void           (GL_APIENTRY *RS_ES3_PFNGLDRAWRANGEELEMENTS              ) (GLenum mode, GLuint start, GLuint end, GLsizei count, GLenum type, const GLvoid* indices);
 typedef void           (GL_APIENTRY *RS_ES3_PFNGLTEXIMAGE3D                     ) (GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLenum format, GLenum type, const GLvoid* pixels);
@@ -256,6 +261,7 @@ typedef void           (GL_APIENTRY *RS_ES3_PFNGLINVALIDATESUBFRAMEBUFFER       
 typedef void           (GL_APIENTRY *RS_ES3_PFNGLTEXSTORAGE2D                   ) (GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height);
 typedef void           (GL_APIENTRY *RS_ES3_PFNGLTEXSTORAGE3D                   ) (GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth);
 typedef void           (GL_APIENTRY *RS_ES3_PFNGLGETINTERNALFORMATIV            ) (GLenum target, GLenum internalformat, GLenum pname, GLsizei bufSize, GLint* params);
+#endif
 
 extern RS_ES2_PFNGLACTIVETEXTURE                         glActiveTexture                         ;
 extern RS_ES2_PFNGLATTACHSHADER                          glAttachShader                          ;
@@ -402,6 +408,7 @@ extern RS_ES2_PFNGLVIEWPORT                              glViewport             
 
 // OpenGL ES 3.0
 
+#if defined(RENDERSTACK_GL_API_OPENGL_ES_3)
 extern RS_ES3_PFNGLREADBUFFER                     glReadBuffer                    ;
 extern RS_ES3_PFNGLDRAWRANGEELEMENTS              glDrawRangeElements             ;
 extern RS_ES3_PFNGLTEXIMAGE3D                     glTexImage3D                    ;
@@ -506,6 +513,7 @@ extern RS_ES3_PFNGLINVALIDATESUBFRAMEBUFFER       glInvalidateSubFramebuffer    
 extern RS_ES3_PFNGLTEXSTORAGE2D                   glTexStorage2D                  ;
 extern RS_ES3_PFNGLTEXSTORAGE3D                   glTexStorage3D                  ;
 extern RS_ES3_PFNGLGETINTERNALFORMATIV            glGetInternalformativ           ;
+#endif
 
 // OpenGL ES 2.0 Extensions
 #if 1

@@ -49,10 +49,17 @@
 #   include <windows.h>
 #endif
 
-#if defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL_ES_3)
 //# include "renderstack_toolkit/dynamic_opengl_es3.hpp"
-# include "renderstack_toolkit/dynamic_opengl_es2.hpp"
-#else
+# include "GLES3/gl3.h"
+#endif
+
+#if defined(RENDERSTACK_GL_API_OPENGL_ES_2)
+//# include "renderstack_toolkit/dynamic_opengl_es2.hpp"
+# include "GLES2/gl2.h"
+#endif
+
+#if defined(RENDERSTACK_GL_API_OPENGL)
 # include <GL/glcorearb.h>
 # include "renderstack_toolkit/glext.hpp"
 #endif

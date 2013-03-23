@@ -109,12 +109,23 @@ unsigned int program::make_shader(
    string               &compiled_src
 )
 {
-   int status;
+   int delete_status;
+   int compile_status;
+   int shader_type;
 
    stringstream sb;
+#if defined(RENDERSTACK_GL_API_OPENGL_ES_3)
+   sb << "#version " << m_glsl_version << " es\n";
+#else
    sb << "#version " << m_glsl_version << "\n";
+#endif
    for (auto i = m_defines.cbegin(); i != m_defines.cend(); ++i)
       sb << "#define " << i->first << " " << i->second << "\n";
+
+   // TODO Temporary
+#if defined(RENDERSTACK_GL_API_OPENGL_ES_2) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
+   sb << "precision highp float;\n";
+#endif
 
    // TODO If we can not use uniform buffers, replace "block_name." with "block_name_"
    bool use_uniform_buffers = 
@@ -153,8 +164,10 @@ unsigned int program::make_shader(
 
       gl::shader_source(shader, 1, source, nullptr);
       gl::compile_shader(shader);
-      gl::get_shader_iv(shader, gl::shader_parameter::compile_status, &status);
-      if (status != GL_TRUE)
+      gl::get_shader_iv(shader, gl::shader_parameter::compile_status, &compile_status);
+      gl::get_shader_iv(shader, gl::shader_parameter::shader_type, &shader_type);
+      gl::get_shader_iv(shader, gl::shader_parameter::delete_status, &delete_status);
+      if (compile_status != GL_TRUE)
       {
          GLint length;
          gl::get_shader_iv(shader, gl::shader_parameter::info_log_length, &length);
@@ -188,7 +201,9 @@ program::program(string const &name, int glsl_version, shared_ptr<class samplers
 
    assert(mappings);
 
+#if 0 // TODO use layout qualifiers
    mappings->bind_attrib_locations(*this);
+#endif
 }
 
 void program::bind_attrib_location(int location, string const name)
@@ -199,7 +214,7 @@ void program::bind_attrib_location(int location, string const name)
 // TODO We must configure outputs programmatically
 void program::bind_frag_data_location(int location, string const &name)
 {
-#if !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL)
    if (configuration::shader_model_version >= 4)
    {
       gl::bind_frag_data_location(m_program, location, name.c_str());
@@ -207,10 +222,16 @@ void program::bind_frag_data_location(int location, string const &name)
    else
 #endif
    {
+#if 0
       if (location == 0)
          define(name, "gl_FragColor");
       else
+#endif
+#if defined(RENDERSTACK_GL_API_OPENGL_ES_3)
+         throw std::runtime_error("You must use layout qualifier for fragment shader outputs on OpenGL ES 3");
+#else
          throw runtime_error("MRT not supported");
+#endif
    }
 }
 
@@ -414,7 +435,7 @@ program &program::set_fs(string const &source)
 }
 void program::transform_feedback(vector<string> varyings, GLenum buffer_mode)
 {
-#if !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
    if (m_glsl_version >= 400 /*configuration::can_use.transform_feedback*/)
    {
       vector<char const *> c_array(varyings.size());
@@ -428,7 +449,11 @@ void program::transform_feedback(vector<string> varyings, GLenum buffer_mode)
    {
       (void)varyings;
       (void)buffer_mode;
-      throw runtime_error("transform feedback is not supported / require GLSL version 4.00");
+#if defined(RENDERSTACK_GL_API_OPENGL)
+      throw runtime_error("transform feedback is not supported, requires GLSL version 4.00");
+#else
+      throw runtime_error("transform feedback is not supported");
+#endif
    }
 }
 static char const * const attrib_type_str(GLenum type)
@@ -484,14 +509,46 @@ void program::link()
 #endif
 
    gl::link_program(m_program);
-   int status;
-   gl::get_program_iv(m_program, gl::program_parameter::link_status, &status);
-   if (status != GL_TRUE)
+   int link_status                  = GL_FALSE;
+   int validate_status              = GL_FALSE;
+   int info_log_length              = 0;
+   int attached_shaders             = 0;
+   int active_attributes            = 0;
+   int active_attribute_max_length  = 128;
+   int active_uniforms              = 0;
+   int active_uniform_max_length    = 128;
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
+   int active_uniform_blocks        = 0;
+   int active_uniform_block_max_name_length  = 128;
+   int transform_feedback_buffer_mode        = GL_INTERLEAVED_ATTRIBS;
+   int transform_feedback_varyings           = 0;
+   int transform_feedback_varying_max_length = 0;
+#endif
+   gl::get_program_iv(m_program, gl::program_parameter::link_status, &link_status);
+   gl::get_program_iv(m_program, gl::program_parameter::validate_status, &validate_status);
+   gl::get_program_iv(m_program, gl::program_parameter::info_log_length, &info_log_length);
+   gl::get_program_iv(m_program, gl::program_parameter::attached_shaders, &attached_shaders);
+   gl::get_program_iv(m_program, gl::program_parameter::active_attributes, &active_attributes);
+   gl::get_program_iv(m_program, gl::program_parameter::active_attribute_max_length, &active_attribute_max_length);
+   gl::get_program_iv(m_program, gl::program_parameter::active_uniforms, &active_uniforms);
+   gl::get_program_iv(m_program, gl::program_parameter::active_uniform_max_length, &active_uniform_max_length);
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
+   if (configuration::can_use.uniform_buffer_object)
    {
-      GLint length;
-      gl::get_program_iv(m_program, gl::program_parameter::info_log_length, &length);
-      string log(length + 1, 0);
-      gl::get_program_info_log(m_program, length, nullptr, &log[0]);
+      gl::get_program_iv(m_program, gl::program_parameter::active_uniform_blocks, &active_uniform_blocks);
+      gl::get_program_iv(m_program, gl::program_parameter::active_uniform_block_max_name_length, &active_uniform_block_max_name_length);
+   }
+   if (configuration::can_use.transform_feedback)
+   {
+      gl::get_program_iv(m_program, gl::program_parameter::transform_feedback_buffer_mode, &transform_feedback_buffer_mode);
+      gl::get_program_iv(m_program, gl::program_parameter::transform_feedback_varyings, &transform_feedback_varyings);
+      gl::get_program_iv(m_program, gl::program_parameter::transform_feedback_varying_max_length, &transform_feedback_varying_max_length);
+   }
+#endif
+   if (link_status != GL_TRUE)
+   {
+      string log(info_log_length + 1, 0);
+      gl::get_program_info_log(m_program, info_log_length, nullptr, &log[0]);
       log_function("Program linking failed: ");
       log_function(&log[0]);
       log_function("\n");
@@ -501,38 +558,23 @@ void program::link()
    //  This is required by gl::uniform_1i() calls
    gl::use_program(m_program);
 
-   int buffer_size = 128;
-   gl::get_program_iv(
-      m_program, 
-      gl::program_parameter::active_uniform_max_length,
-      &buffer_size
-   );
-
+   int buffer_size = active_uniform_max_length;
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
    bool use_uniform_buffers = 
       renderstack::graphics::configuration::can_use.uniform_buffer_object && 
       (m_glsl_version >= 140) &&
       (renderstack::graphics::configuration::shader_model_version >= 4);
 
-   if (use_uniform_buffers)
-   {
-      int buffer_size2 = 128;
-      gl::get_program_iv(
-         m_program, 
-         gl::program_parameter::active_uniform_block_max_name_length,
-         &buffer_size2
-      );
-      if (buffer_size2 > buffer_size)
-         buffer_size = buffer_size2;
-   }
+   if (use_uniform_buffers && active_uniform_block_max_name_length > buffer_size)
+      buffer_size = active_uniform_block_max_name_length;
+#endif
    vector<char> buffer(buffer_size + 1);
 
    int uniform_count;
 
-#if !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
    if (use_uniform_buffers)
    {
-      int active_uniform_blocks;
-      gl::get_program_iv(m_program, gl::program_parameter::active_uniform_blocks, &active_uniform_blocks);
       if (active_uniform_blocks < 0)
       {
          assert(0);
@@ -575,11 +617,7 @@ void program::link()
    }
 #endif
 
-   gl::get_program_iv(
-      m_program,
-      gl::program_parameter::active_uniforms,
-      &uniform_count
-   );
+   uniform_count = active_uniforms;
 
    GLint   size;
    GLenum  type;
@@ -633,43 +671,44 @@ void program::link()
       }
    }
 
-#if !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
+# if defined(RENDERSTACK_GL_API_OPENGL) 
    if (m_glsl_version >= 400)
+# endif
    {
-      int transform_feedback_varyings = 0;
-      int transform_feedback_varying_max_length = 0;
-      gl::get_program_iv(m_program, gl::program_parameter::transform_feedback_varyings,  &transform_feedback_varyings);
-      gl::get_program_iv(m_program, gl::program_parameter::transform_feedback_varying_max_length, &transform_feedback_varying_max_length);
       if (transform_feedback_varyings < 0)
       {
          assert(0);
          transform_feedback_varyings = 0;
       }
-      if (transform_feedback_varying_max_length < 0)
+      if (transform_feedback_varyings > 0)
       {
-         assert(0);
-      }
-      string buffer_(transform_feedback_varying_max_length + 1, 0);
-      ::GLsizei length;
-      ::GLsizei size2;
-      ::GLenum  type2;
-      for (unsigned int i = 0; i < static_cast<unsigned int>(transform_feedback_varyings); ++i)
-      {
-         gl::get_transform_feedback_varying(
-            m_program,
-            i,
-            transform_feedback_varying_max_length,
-            &length,
-            &size2,
-            &type2,
-            &buffer_[0]
-         );
+         if (transform_feedback_varying_max_length < 0)
+         {
+            assert(0);
+         }
+         string buffer_(transform_feedback_varying_max_length + 1, 0);
+         ::GLsizei length;
+         ::GLsizei size2;
+         ::GLenum  type2;
+         for (unsigned int i = 0; i < static_cast<unsigned int>(transform_feedback_varyings); ++i)
+         {
+            gl::get_transform_feedback_varying(
+               m_program,
+               i,
+               transform_feedback_varying_max_length,
+               &length,
+               &size2,
+               &type2,
+               &buffer_[0]
+            );
 
-         if (size2 > 1)
-            log_function("transform feedback varying %d %s %s[%d]\n", i, attrib_type_str(type2), &buffer_[0], size2);
-         else
-            log_function("transform feedback varying %d %s %s\n", i, attrib_type_str(type2), &buffer_[0]);
+            if (size2 > 1)
+               log_function("transform feedback varying %d %s %s[%d]\n", i, attrib_type_str(type2), &buffer_[0], size2);
+            else
+               log_function("transform feedback varying %d %s %s\n", i, attrib_type_str(type2), &buffer_[0]);
 
+         }
       }
    }
 #endif

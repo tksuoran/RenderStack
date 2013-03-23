@@ -27,6 +27,7 @@ public:
    static bool  throw_program_exceptions             ;
 
    struct can_use_t {
+      bool  texture_3d                    ; // 120
       bool  vertex_buffer                 ; // 150 map buffer etc.
       bool  gl_version_300                ; // 300 -----------------------------------
       bool  gpu_shader4                   ; // 300 integer attributes
@@ -77,6 +78,12 @@ public:
       bool  string_marker                 ;
 
       bool  pixel_buffer_object           ; //  \todo
+
+		bool	map_buffer_oes						;
+		bool  discard_framebuffer_oes       ;
+		bool  invalidate_framebuffer        ;
+		bool  tex_storage                   ;
+		can_use_t();
    };
 
    static can_use_t can_use;
@@ -101,7 +108,9 @@ public:
    static void initialize();
 
 private:
-   static void check(std::vector<std::string> const &extensions, bool &var, std::string const &name, int gl_min_ver, std::string const &gl_ext);
+   static void check(std::vector<std::string> const &extensions, bool &var, std::string const &name, int gl_min_ver, int gles_min_ver, std::string const &gl_ext);
+   static void check(std::vector<std::string> const &extensions, bool &var, std::string const &name, int gl_min_ver, int gles_min_ver, std::string const &gl_ext, std::string const &gl_ext2);
+   static void check(std::vector<std::string> const &extensions, bool &var, std::string const &name, int gl_min_ver, int gles_min_ver, std::string const &gl_ext, std::string const &gl_ext2, std::string const &gl_ext3);
 };
 
 } }

@@ -1,4 +1,4 @@
-#if defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL_ES_2) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
 
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_toolkit/gl.hpp"
@@ -31,7 +31,7 @@
 namespace gl { namespace detail {
 
    // OpenGL ES 2.0 function pointers
-#if 1
+#if defined(RENDERSTACK_GL_API_OPENGL_ES_2) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
    RS_ES2_PFNGLACTIVETEXTURE                         glActiveTexture                         = nullptr;
    RS_ES2_PFNGLATTACHSHADER                          glAttachShader                          = nullptr;
    RS_ES2_PFNGLBINDATTRIBLOCATION                    glBindAttribLocation                    = nullptr;
@@ -193,7 +193,7 @@ namespace gl { namespace detail {
    PFNGLFRAMEBUFFERTEXTURE2DMULTISAMPLEEXTPROC       glFramebufferTexture2DMultisampleEXT    ;
    
    // OpenGL ES 3.0 function pointers
-#if defined(RENDERSTACK_USE_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL_ES_3)
    RS_ES3_PFNGLREADBUFFER                             glReadBuffer                     = nullptr; // From OpenGL 1.0
 
    RS_ES3_PFNGLDRAWRANGEELEMENTS                      glDrawRangeElements              = nullptr; // From OpenGL 1.2
@@ -319,7 +319,9 @@ namespace gl { namespace detail {
    RS_ES3_PFNGLTEXSTORAGE3D                           glTexStorage3D                   = nullptr;
 
    RS_ES3_PFNGLGETINTERNALFORMATIV                    glGetInternalformativ            = nullptr;  // In GL_ARB_internalformat_query
+#endif
 
+#if 0
    /*  GL_OES_get_program_binary */
    PFNGLGETPROGRAMBINARYOESPROC                      glGetProgramBinaryOES                   = nullptr;
    PFNGLPROGRAMBINARYOESPROC                         glProgramBinaryOES                      = nullptr;
@@ -437,7 +439,7 @@ void window::get_extensions()
    if (es == NULL)
       throw std::runtime_error("Could not open libGLESv2");
 
-#if 1 // OpenGL ES 2.0
+#if defined(RENDERSTACK_GL_API_OPENGL_ES_2) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
    gl::detail::glActiveTexture                           = (RS_ES2_PFNGLACTIVETEXTURE                         )::get_sym(es, "glActiveTexture");
    gl::detail::glAttachShader                            = (RS_ES2_PFNGLATTACHSHADER                          )::get_sym(es, "glAttachShader");
    gl::detail::glBindAttribLocation                      = (RS_ES2_PFNGLBINDATTRIBLOCATION                    )::get_sym(es, "glBindAttribLocation");
@@ -595,7 +597,7 @@ void window::get_extensions()
 #endif
 
    // OpenGL ES 3.0
-#if defined(RENDERSTACK_USE_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL_ES_3)
    gl::detail::glReadBuffer                    = (RS_ES3_PFNGLREADBUFFER                     )::get_sym(es, "glReadBuffer");
    gl::detail::glDrawRangeElements             = (RS_ES3_PFNGLDRAWRANGEELEMENTS              )::get_sym(es, "glDrawRangeElements");
    gl::detail::glTexImage3D                    = (RS_ES3_PFNGLTEXIMAGE3D                     )::get_sym(es, "glTexImage3D");

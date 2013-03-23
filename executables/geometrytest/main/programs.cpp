@@ -104,6 +104,10 @@ void programs::prepare_gl_resources()
    {
       std::string shader_path;
 
+#if defined(RENDERSTACK_GL_API_OPENGL_ES_3)
+      shader_path    = "res/shaders/sm4/";
+      m_glsl_version = 300;
+#else
       if ((renderstack::graphics::configuration::shader_model_version >= 5)
           && (renderstack::graphics::configuration::glsl_version >= 400))
       {
@@ -127,6 +131,7 @@ void programs::prepare_gl_resources()
          shader_path    = "res/shaders/sm0/";
          m_glsl_version = 120;
       }
+#endif
 
       font = make_shared<program>("font", m_glsl_version, samplers, mappings);
       font->add(block);

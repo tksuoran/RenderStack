@@ -22,7 +22,7 @@ vertex_stream::vertex_stream()
 :  m_vertex_array_object(~0u)
 ,  m_last_base_vertex(~0u)
 {
-#if defined(RENDERSTACK_USE_GLES3) || !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
    if (
       configuration::must_use_vertex_array_object || 
       (
@@ -38,7 +38,7 @@ vertex_stream::vertex_stream()
 
 vertex_stream::~vertex_stream()
 {
-#if defined(RENDERSTACK_USE_GLES3) || !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
    if (
       (m_vertex_array_object != ~0u) &&
       (
@@ -74,7 +74,7 @@ void vertex_stream::clear()
    
 bool vertex_stream::use()
 {
-#if defined(RENDERSTACK_USE_GLES3) || !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
    if (
       configuration::must_use_vertex_array_object || 
       (
@@ -96,7 +96,7 @@ void vertex_stream::setup_attribute_pointers(GLint base_vertex)
 
    if (configuration::use_gl1)
    {
-#     if defined(SUPPORT_LEGACY_OPENGL)
+#     if defined(RENDERSTACK_GL_API_OPENGL_WITH_LEGACY)
       {
          setup_attribute_pointers_old(basevertex);
       }
@@ -112,7 +112,7 @@ void vertex_stream::setup_attribute_pointers(GLint base_vertex)
    }
 }
 
-#if defined(SUPPORT_LEGACY_OPENGL)
+#if defined(RENDERSTACK_GL_API_OPENGL_WITH_LEGACY)
 void vertex_stream::setup_attribute_pointers_old(GLint basevertex)
 {
    for (auto i = m_vertex_stream_bindings.begin(); i != m_vertex_stream_bindings.end(); ++i)
@@ -192,7 +192,7 @@ void vertex_stream::setup_attribute_pointers_new(GLint basevertex)
       assert(mapping);
 
       gl::enable_vertex_attrib_array(mapping->dst_index());
-#if defined(RENDERSTACK_USE_GLES3) || !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
       if (
          (attribute->shader_type() == gl::vertex_attrib_pointer_type::double_   ) ||
          (attribute->shader_type() == gl::vertex_attrib_pointer_type::float_    ) ||
@@ -209,7 +209,7 @@ void vertex_stream::setup_attribute_pointers_new(GLint basevertex)
             reinterpret_cast<char*>(basevertex * binding.stride() + attribute->offset())
          );
       }
-#if defined(RENDERSTACK_USE_GLES3) || !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
       else
       {
          gl::vertex_attrib_i_pointer(
@@ -228,7 +228,7 @@ void vertex_stream::disable_attributes()
 {
    if (configuration::use_gl1)
    {
-#if defined(SUPPORT_LEGACY_OPENGL)
+#if defined(RENDERSTACK_GL_API_OPENGL_WITH_LEGACY)
       disable_attributes_old();
 #else
       throw std::exception();
@@ -240,7 +240,7 @@ void vertex_stream::disable_attributes()
    }
 }
 
-#if defined(SUPPORT_LEGACY_OPENGL)
+#if defined(RENDERSTACK_GL_API_OPENGL_WITH_LEGACY)
 void vertex_stream::disable_attributes_old()
 {
    for (auto i = vertex_stream_bindings().begin(); i != vertex_stream_bindings().end(); ++i)

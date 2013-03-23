@@ -1,6 +1,6 @@
 [submodule "libraries/glfw"]
 	path = libraries/glfw
-	url = git://github.com/tksuoran/glfw.git
+	url = git://github.com/elmindreda/glfw.git
 [submodule "libraries/glwt"]
 	path = libraries/glwt
-	url = git://github.com/tksuoran/glwt.git
+	url = git://github.com/rikusalminen/glwt.git
