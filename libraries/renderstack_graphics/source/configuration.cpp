@@ -315,6 +315,7 @@ void configuration::initialize()
       {
          string shading_language_version = get_string(GL_SHADING_LANGUAGE_VERSION);
          log_info("GLSL Version:  %s\n", shading_language_version.c_str());
+#if defined(RENDERSTACK_GL_API_OPENGL_ES_3)
          string fallback_prefix = "OpenGL ES GLSL ";
          string expected_prefix = "OpenGL ES GLSL ES ";
          size_t prefix_len = expected_prefix.size();
@@ -327,6 +328,7 @@ void configuration::initialize()
             log_info("Warning: Invalid OpenGL ES GLSL ES version prefix\n");
          }
          shading_language_version = shading_language_version.substr(prefix_len);
+#endif
          versions = split(shading_language_version, '.');
 
          major = (versions.size() > 0) ? ::atoi(digits_only(versions[0]).c_str()) : 0;
@@ -599,30 +601,52 @@ void configuration::initialize()
       shader_model_version = 4;
 #endif
 
-   can_use.map_buffer_range      = false;
-   can_use.uniform_buffer_object = false;
+   // can_use.map_buffer_range      = false;
+   // can_use.uniform_buffer_object = false;
 
-#if 0
-   can_use.vertex_array_object = false;
-   gl::detail::glGenVertexArrays = nullptr;
-   gl::detail::glBindVertexArray = nullptr;
-   can_use.draw_elements_base_vertex = false;
+#if 0 // Disable vertex array object
+	if (!configuration::must_use_vertex_array_object)
+	{
+		can_use.vertex_array_object = false;
+		gl::detail::glGenVertexArrays = nullptr;
+		gl::detail::glBindVertexArray = nullptr;
+	}
+	else
+	{
+		log_info("Warning: Cannot disable vertex array object in Core profile");
+	}
 #endif
 
-#if 0
-   can_use.map_buffer_range      = false;
-   gl::detail::glBindBufferRange = nullptr;
-   gl::detail::glBindBufferBase  = nullptr;
-   can_use.uniform_buffer_object = false;
-
-   //can_use.texture_rg            = false;
-
-   can_use.uniform_buffer_object = false;
-
-
+#if 0 // Disable draw elements base vertex
    can_use.draw_elements_base_vertex = false;
-   gl::detail::glDrawElementsBaseVertex = nullptr;
+	gl::detail::glDrawElementsInstancedBaseVertex = nullptr;
 #endif
+
+#if 0 // Disable Map Buffer Range
+   can_use.map_buffer_range					= false;
+	gl::detail::glMapBufferRange				= nullptr;
+	gl::detail::glFlushMappedBufferRange	= nullptr;
+	gl::detail::glUnmapBuffer					= nullptr;
+#endif
+
+#if 0 // Disable uniform buffer
+   can_use.uniform_buffer_object			= false;
+	gl::detail::glUniformBlockBinding	= nullptr;
+   gl::detail::glBindBufferRange			= nullptr;
+   gl::detail::glBindBufferBase			= nullptr;
+#endif
+
+#if 0 // Disable transform feedback
+	can_use.transform_feedback						= false;
+	gl::detail::glTransformFeedbackVaryings	= nullptr;
+	gl::detail::glGenTransformFeedbacks			= nullptr;
+	gl::detail::glIsTransformFeedback			= nullptr;
+	gl::detail::glDeleteTransformFeedbacks		= nullptr;
+	gl::detail::glBeginTransformFeedback		= nullptr;
+	gl::detail::glPauseTransformFeedback		= nullptr;
+	gl::detail::glResumeTransformFeedback		= nullptr;
+	gl::detail::glEndTransformFeedback			= nullptr;
+#endif 
 
 #if 0
    shader_model_version = 0;

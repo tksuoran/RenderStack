@@ -114,11 +114,17 @@ unsigned int program::make_shader(
    int shader_type;
 
    stringstream sb;
-#if defined(RENDERSTACK_GL_API_OPENGL_ES_3)
-   sb << "#version " << m_glsl_version << " es\n";
-#else
-   sb << "#version " << m_glsl_version << "\n";
+	if (m_glsl_version > 0)
+	{
+#if defined(RENDERSTACK_GL_API_OPENGL)
+		sb << "#version " << m_glsl_version << "\n";
 #endif
+		// No GLSL versions in ES 2 .. ?
+#if defined(RENDERSTACK_GL_API_OPENGL_ES_3)
+	   sb << "#version " << m_glsl_version << " es\n";
+#endif
+	}
+
    for (auto i = m_defines.cbegin(); i != m_defines.cend(); ++i)
       sb << "#define " << i->first << " " << i->second << "\n";
 
@@ -201,7 +207,7 @@ program::program(string const &name, int glsl_version, shared_ptr<class samplers
 
    assert(mappings);
 
-#if 0 // TODO use layout qualifiers
+#if 1 // TODO use layout qualifiers
    mappings->bind_attrib_locations(*this);
 #endif
 }
@@ -209,30 +215,6 @@ program::program(string const &name, int glsl_version, shared_ptr<class samplers
 void program::bind_attrib_location(int location, string const name)
 {
    gl::bind_attrib_location(m_program, location, name.c_str());
-}
-
-// TODO We must configure outputs programmatically
-void program::bind_frag_data_location(int location, string const &name)
-{
-#if defined(RENDERSTACK_GL_API_OPENGL)
-   if (configuration::shader_model_version >= 4)
-   {
-      gl::bind_frag_data_location(m_program, location, name.c_str());
-   }
-   else
-#endif
-   {
-#if 0
-      if (location == 0)
-         define(name, "gl_FragColor");
-      else
-#endif
-#if defined(RENDERSTACK_GL_API_OPENGL_ES_3)
-         throw std::runtime_error("You must use layout qualifier for fragment shader outputs on OpenGL ES 3");
-#else
-         throw runtime_error("MRT not supported");
-#endif
-   }
 }
 
 void program::define(string const &key, string const &value)
@@ -369,38 +351,53 @@ program &program::load_vs(string const &path)
 }
 program &program::load_tcs(string const &path)
 {
+#if defined(RENDERSTACK_GL_API_OPENGL)
+	// It is important to use selected GLSL version, not configuration
    if (m_glsl_version >= 400)
    {
       load_shader(shader_type::tess_control_shader, path);
       return *this;
    }
    else
+#else
+	(void)path;
+#endif
    {
       throw runtime_error("tesselation shaders are not supported / require GLSL version 4.00");
    }
 }
 program &program::load_tes(string const &path)
 {
-   if (m_glsl_version >= 400)
+#if defined(RENDERSTACK_GL_API_OPENGL)
+	// It is important to use selected GLSL version, not configuration
+	if (m_glsl_version >= 400)
    {
       load_shader(shader_type::tess_evaluation_shader, path);
       return *this;
    }
    else
+#else
+	(void)path;
+#endif
    {
-      throw runtime_error("tesselation shaders are not supported / require GLSL version 4.00");
+      throw runtime_error("Tesselation shaders are not supported");
    }
 }
 program &program::load_gs(string const &path)
 {
-   if (m_glsl_version >= 150 /*configuration::can_use.geometry_shaders*/)
+#if defined(RENDERSTACK_GL_API_OPENGL)
+	// It is important to use selected GLSL version, not configuration
+   if (m_glsl_version >= 150)
    {
       load_shader(shader_type::geometry_shader, path);
       return *this;
    }
    else
+#else
+	(void)path;
+#endif
    {
-      throw runtime_error("geometry shaders are not supported / require GLSL version 1.50");
+      throw runtime_error("Geometry shaders are not supported");
    }
 }
 program &program::load_fs(string const &path)
@@ -458,7 +455,8 @@ void program::transform_feedback(vector<string> varyings, GLenum buffer_mode)
 }
 static char const * const attrib_type_str(GLenum type)
 {
-   switch (type) {
+   switch (type)
+	{
    case gl::active_attrib_type::int_             : return "int_";
    case gl::active_attrib_type::unsigned_int     : return "unsigned_int";
    case gl::active_attrib_type::float_           : return "float_";
@@ -606,6 +604,7 @@ void program::link()
             auto block = fi->second.lock();
             unsigned int binding_point = block->binding_point();
 
+				slog_trace("program::link() uniform block: %s binding point: %u", name.c_str(), binding_point);
             gl::uniform_block_binding(m_program, i, binding_point);
          }
          else
@@ -672,9 +671,7 @@ void program::link()
    }
 
 #if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
-# if defined(RENDERSTACK_GL_API_OPENGL) 
-   if (m_glsl_version >= 400)
-# endif
+	if (configuration::can_use.transform_feedback)
    {
       if (transform_feedback_varyings < 0)
       {

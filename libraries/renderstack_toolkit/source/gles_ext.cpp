@@ -2,6 +2,7 @@
 
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_toolkit/gl.hpp"
+#include <EGL/egl.h>
 #include "renderstack_toolkit/window.hpp"
 
 #if defined(RENDERSTACK_USE_GLFW)
@@ -31,7 +32,7 @@
 namespace gl { namespace detail {
 
    // OpenGL ES 2.0 function pointers
-#if defined(RENDERSTACK_GL_API_OPENGL_ES_2) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
+#if defined(RENDERSTACK_GL_API_OPENGL_ES_2) && defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
    RS_ES2_PFNGLACTIVETEXTURE                         glActiveTexture                         = nullptr;
    RS_ES2_PFNGLATTACHSHADER                          glAttachShader                          = nullptr;
    RS_ES2_PFNGLBINDATTRIBLOCATION                    glBindAttribLocation                    = nullptr;
@@ -193,7 +194,7 @@ namespace gl { namespace detail {
    PFNGLFRAMEBUFFERTEXTURE2DMULTISAMPLEEXTPROC       glFramebufferTexture2DMultisampleEXT    ;
    
    // OpenGL ES 3.0 function pointers
-#if defined(RENDERSTACK_GL_API_OPENGL_ES_3)
+#if defined(RENDERSTACK_GL_API_OPENGL_ES_3) && defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
    RS_ES3_PFNGLREADBUFFER                             glReadBuffer                     = nullptr; // From OpenGL 1.0
 
    RS_ES3_PFNGLDRAWRANGEELEMENTS                      glDrawRangeElements              = nullptr; // From OpenGL 1.2
@@ -322,15 +323,6 @@ namespace gl { namespace detail {
 #endif
 
 #if 0
-   /*  GL_OES_get_program_binary */
-   PFNGLGETPROGRAMBINARYOESPROC                      glGetProgramBinaryOES                   = nullptr;
-   PFNGLPROGRAMBINARYOESPROC                         glProgramBinaryOES                      = nullptr;
-
-   /*  GL_OES_mapbuffer  */
-   PFNGLMAPBUFFEROESPROC                             glMapBufferOES                          = nullptr;
-   PFNGLUNMAPBUFFEROESPROC                           glUnmapBufferOES                        = nullptr;
-   PFNGLGETBUFFERPOINTERVOESPROC                     glGetBufferPointervOES                  = nullptr;
-
    /*  GL_OES_texture_3D  */
    PFNGLTEXIMAGE3DOESPROC                            glTexImage3DOES                         = nullptr;
    PFNGLTEXSUBIMAGE3DOESPROC                         glTexSubImage3DOES                      = nullptr;
@@ -344,13 +336,6 @@ namespace gl { namespace detail {
    PFNGLDELETEVERTEXARRAYSOESPROC                    glDeleteVertexArraysOES                 = nullptr;
    PFNGLGENVERTEXARRAYSOESPROC                       glGenVertexArraysOES                    = nullptr;
    PFNGLISVERTEXARRAYOESPROC                         glIsVertexArrayOES                      = nullptr;
-
-   /* GL_EXT_discard_framebuffer */
-   PFNGLDISCARDFRAMEBUFFEREXTPROC                    glDiscardFramebufferEXT                 = nullptr;
-
-   /* GL_EXT_multisampled_render_to_texture */
-   PFNGLRENDERBUFFERSTORAGEMULTISAMPLEEXTPROC        glRenderbufferStorageMultisampleEXT     = nullptr;
-   PFNGLFRAMEBUFFERTEXTURE2DMULTISAMPLEEXTPROC       glFramebufferTexture2DMultisampleEXT    = nullptr; 
 
    /* GL_EXT_multi_draw_arrays  */
    PFNGLMULTIDRAWARRAYSEXTPROC                       glMultiDrawArraysEXT                    = nullptr;
@@ -408,18 +393,20 @@ namespace gl { namespace detail {
 
 } }
 
-#if defined(WIN32)
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
+# if defined(WIN32) 
 static void *get_sym(HMODULE es, const char *fn)
 {
    return (void *)GetProcAddress(es, fn);
 }
-#endif
+# endif
 
-#if defined(LINUX) || defined(ANDROID)
+# if defined(LINUX) || defined(ANDROID)
 static void *get_sym(void *es, const char *fn)
 {
    return (void *)dlsym(es, fn);
 }
+# endif
 #endif
 
 namespace renderstack { namespace toolkit {
@@ -429,17 +416,17 @@ using namespace std;
 
 void window::get_extensions()
 {
-#if defined(WIN32)
+#if defined(RENDERSTACK_GL_API_OPENGL_ES_2) && defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
+# if defined(WIN32)
    HMODULE es = LoadLibraryA("libGLESv2.dll");
-#elif defined(LINUX) || defined(ANDROID)
+# elif defined(LINUX) || defined(ANDROID)
    void *es = dlopen("libGLESv2.so", RTLD_NOW);
-#else
-# error "Unsupported platform"
-#endif
+# else
+#  error "Unsupported platform"
+# endif
    if (es == NULL)
       throw std::runtime_error("Could not open libGLESv2");
 
-#if defined(RENDERSTACK_GL_API_OPENGL_ES_2) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
    gl::detail::glActiveTexture                           = (RS_ES2_PFNGLACTIVETEXTURE                         )::get_sym(es, "glActiveTexture");
    gl::detail::glAttachShader                            = (RS_ES2_PFNGLATTACHSHADER                          )::get_sym(es, "glAttachShader");
    gl::detail::glBindAttribLocation                      = (RS_ES2_PFNGLBINDATTRIBLOCATION                    )::get_sym(es, "glBindAttribLocation");
@@ -586,18 +573,18 @@ void window::get_extensions()
 
    // OpenGL ES 2.0 extensions
 #if 1
-   gl::detail::glGetProgramBinaryOES                     = (PFNGLGETPROGRAMBINARYOESPROC                  )::get_sym(es, "glGetProgramBinaryOES");
-   gl::detail::glProgramBinaryOES                        = (PFNGLPROGRAMBINARYOESPROC                     )::get_sym(es, "glProgramBinaryOES");
-   gl::detail::glMapBufferOES                            = (PFNGLMAPBUFFEROESPROC                         )::get_sym(es, "glMapBufferOES");
-   gl::detail::glUnmapBufferOES                          = (PFNGLUNMAPBUFFEROESPROC                       )::get_sym(es, "glUnmapBufferOES");
-   gl::detail::glGetBufferPointervOES                    = (PFNGLGETBUFFERPOINTERVOESPROC                 )::get_sym(es, "glGetBufferPointervOES");
-   gl::detail::glDiscardFramebufferEXT                   = (PFNGLDISCARDFRAMEBUFFEREXTPROC                )::get_sym(es, "glDiscardFramebufferEXT");
-   gl::detail::glRenderbufferStorageMultisampleEXT       = (PFNGLRENDERBUFFERSTORAGEMULTISAMPLEEXTPROC    )::get_sym(es, "glRenderbufferStorageMultisampleEXT");
-   gl::detail::glFramebufferTexture2DMultisampleEXT      = (PFNGLFRAMEBUFFERTEXTURE2DMULTISAMPLEEXTPROC   )::get_sym(es, "glFramebufferTexture2DMultisampleEXT");
+   gl::detail::glGetProgramBinaryOES						= (PFNGLGETPROGRAMBINARYOESPROC						)eglGetProcAddress("glGetProgramBinaryOES");
+   gl::detail::glProgramBinaryOES							= (PFNGLPROGRAMBINARYOESPROC							)eglGetProcAddress("glProgramBinaryOES");
+   gl::detail::glMapBufferOES									= (PFNGLMAPBUFFEROESPROC								)eglGetProcAddress("glMapBufferOES");
+   gl::detail::glUnmapBufferOES								= (PFNGLUNMAPBUFFEROESPROC								)eglGetProcAddress("glUnmapBufferOES");
+   gl::detail::glGetBufferPointervOES						= (PFNGLGETBUFFERPOINTERVOESPROC						)eglGetProcAddress("glGetBufferPointervOES");
+   gl::detail::glDiscardFramebufferEXT						= (PFNGLDISCARDFRAMEBUFFEREXTPROC					)eglGetProcAddress("glDiscardFramebufferEXT");
+   gl::detail::glRenderbufferStorageMultisampleEXT		= (PFNGLRENDERBUFFERSTORAGEMULTISAMPLEEXTPROC	)eglGetProcAddress("glRenderbufferStorageMultisampleEXT");
+   gl::detail::glFramebufferTexture2DMultisampleEXT	= (PFNGLFRAMEBUFFERTEXTURE2DMULTISAMPLEEXTPROC	)eglGetProcAddress("glFramebufferTexture2DMultisampleEXT");
 #endif
 
    // OpenGL ES 3.0
-#if defined(RENDERSTACK_GL_API_OPENGL_ES_3)
+#if defined(RENDERSTACK_GL_API_OPENGL_ES_3) && defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
    gl::detail::glReadBuffer                    = (RS_ES3_PFNGLREADBUFFER                     )::get_sym(es, "glReadBuffer");
    gl::detail::glDrawRangeElements             = (RS_ES3_PFNGLDRAWRANGEELEMENTS              )::get_sym(es, "glDrawRangeElements");
    gl::detail::glTexImage3D                    = (RS_ES3_PFNGLTEXIMAGE3D                     )::get_sym(es, "glTexImage3D");

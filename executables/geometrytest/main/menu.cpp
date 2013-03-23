@@ -81,8 +81,8 @@ void menu::action(weak_ptr<action_source> source)
    auto s = source.lock();
    if (s == m_map_editor)
    {
-      assert(m_game);
-      m_application->set_screen(m_game);
+		if (m_game)
+	      m_application->set_screen(m_game);
    }
 
    if (s == m_quit)
@@ -163,14 +163,17 @@ void menu::on_load()
    d->set_child_layout_style(area_layout_style::extend_horizontal);
 
    weak_ptr<action_sink> as = action_sink::shared_from_this();
-   m_map_editor = smart_ptr_builder::create_shared_ptr<action_source, area>(new button("Map Editor", bs));
-   m_quit       = smart_ptr_builder::create_shared_ptr<action_source, area>(new button("Quit",       bs));
 
-   m_map_editor->set_sink(as);
+   m_quit = smart_ptr_builder::create_shared_ptr<action_source, area>(new button("Quit", bs));
    m_quit->set_sink(as);
+   d->add(m_quit);
 
-   d->add(m_quit);      
-   d->add(m_map_editor);
+	if (m_game)
+	{
+		m_map_editor = smart_ptr_builder::create_shared_ptr<action_source, area>(new button("Map Editor", bs));
+	   m_map_editor->set_sink(as);
+	   d->add(m_map_editor);
+	}
 
    m_root_layer->add(d);
 #endif
@@ -206,12 +209,17 @@ void menu::on_resize(int width, int height)
 
    if (use_uniform_buffers)
    {
+#if 0	 // Work around for ARM Ltd. / OpenGL ES Emulator Revision r2p0-00rel0
+      auto p = m_programs->textured;			 1
+      p->use();
+#endif
+
       uniform_offsets &o = m_programs->uniform_offsets;
       m_uniform_buffer_range->bind(m_programs->block->binding_point());
       unsigned char *start = m_uniform_buffer_range->begin_edit();
 
       ::memcpy(&start[o.model_to_clip],   value_ptr(ortho), 16 * sizeof(float));
-      ::memcpy(&start[o.color],           value_ptr(white),  4 * sizeof(float));
+      ::memcpy(&start[o.color],				value_ptr(white),  4 * sizeof(float));
       m_uniform_buffer_range->end_edit();
    }
    else

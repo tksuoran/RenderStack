@@ -179,7 +179,9 @@ window::window(int width, int height, std::string const &title, int major, int m
    {
 #if !defined(NDEBUG)
       ::glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+# if !defined(__APPLE__)
       ::glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT,  GL_TRUE);
+# endif
 #endif
    }
 
@@ -247,9 +249,11 @@ window::~window()
    ::glfwTerminate();
 }
 
+#if defined(RENDERSTACK_GL_API_OPENGL_ES_3)
 void window::get_extensions()
 {
 }
+#endif
 
 glproc window::get_proc_address(const char* procname)
 {

@@ -1,5 +1,7 @@
 #include "renderstack_toolkit/platform.hpp"
-
+#if defined(RENDERSTACK_GL_API_OPENGL_ES_2)
+# include "renderstack_toolkit/gles_ext.hpp"
+#endif
 #include "renderstack_toolkit/gl_core.hpp"
 #include "renderstack_toolkit/logstream.hpp"
 #include <cassert>
@@ -209,9 +211,11 @@ const char *enum_string(GLenum e)
 #if defined(RENDERSTACK_GL_API_OPENGL)
    case GL_QUERY_COUNTER_BITS                : return "GL_QUERY_COUNTER_BITS";
 #endif
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
    case GL_CURRENT_QUERY                     : return "GL_CURRENT_QUERY";
    case GL_QUERY_RESULT                      : return "GL_QUERY_RESULT";
    case GL_QUERY_RESULT_AVAILABLE            : return "GL_QUERY_RESULT_AVAILABLE";
+#endif
    case GL_ARRAY_BUFFER_BINDING              : return "GL_ARRAY_BUFFER_BINDING";
    case GL_ELEMENT_ARRAY_BUFFER_BINDING      : return "GL_ELEMENT_ARRAY_BUFFER_BINDING";
    case GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING: return "GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING";
@@ -221,17 +225,19 @@ const char *enum_string(GLenum e)
    case GL_READ_WRITE                        : return "GL_READ_WRITE";
    case GL_BUFFER_ACCESS                     : return "GL_BUFFER_ACCESS";
 #endif
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
    case GL_BUFFER_MAPPED                     : return "GL_BUFFER_MAPPED";
    case GL_BUFFER_MAP_POINTER                : return "GL_BUFFER_MAP_POINTER";
-   case GL_STREAM_DRAW                       : return "GL_STREAM_DRAW";
    case GL_STREAM_READ                       : return "GL_STREAM_READ";
    case GL_STREAM_COPY                       : return "GL_STREAM_COPY";
-   case GL_STATIC_DRAW                       : return "GL_STATIC_DRAW";
    case GL_STATIC_READ                       : return "GL_STATIC_READ";
    case GL_STATIC_COPY                       : return "GL_STATIC_COPY";
-   case GL_DYNAMIC_DRAW                      : return "GL_DYNAMIC_DRAW";
    case GL_DYNAMIC_READ                      : return "GL_DYNAMIC_READ";
    case GL_DYNAMIC_COPY                      : return "GL_DYNAMIC_COPY";
+#endif
+   case GL_STREAM_DRAW                       : return "GL_STREAM_DRAW";
+   case GL_STATIC_DRAW                       : return "GL_STATIC_DRAW";
+   case GL_DYNAMIC_DRAW                      : return "GL_DYNAMIC_DRAW";
 #if defined(RENDERSTACK_GL_API_OPENGL)
    case GL_SAMPLES_PASSED                    : return "GL_SAMPLES_PASSED";
    case GL_SRC1_ALPHA                        : return "GL_SRC1_ALPHA";
@@ -256,11 +262,13 @@ const char *enum_string(GLenum e)
    case GL_ACTIVE_ATTRIBUTE_MAX_LENGTH             : return "GL_ACTIVE_ATTRIBUTE_MAX_LENGTH";
    case GL_ACTIVE_UNIFORMS                         : return "GL_ACTIVE_UNIFORMS";
    case GL_ACTIVE_UNIFORM_MAX_LENGTH               : return "GL_ACTIVE_UNIFORM_MAX_LENGTH";
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
    case GL_ACTIVE_UNIFORM_BLOCKS                   : return "GL_ACTIVE_UNIFORM_BLOCKS";
    case GL_ACTIVE_UNIFORM_BLOCK_MAX_NAME_LENGTH    : return "GL_ACTIVE_UNIFORM_BLOCK_MAX_NAME_LENGTH";
    case GL_TRANSFORM_FEEDBACK_BUFFER_MODE          : return "GL_TRANSFORM_FEEDBACK_BUFFER_MODE";
    case GL_TRANSFORM_FEEDBACK_VARYINGS             : return "GL_TRANSFORM_FEEDBACK_VARYINGS";
    case GL_TRANSFORM_FEEDBACK_VARYING_MAX_LENGTH   : return "GL_TRANSFORM_FEEDBACK_VARYING_MAX_LENGTH";
+#endif
 
    default: return "???"; 
 }
@@ -1371,10 +1379,8 @@ GLvoid* map_buffer_oes(GLenum target, GLenum access)
 #if defined(LOG_GL) || defined(LOG_GL_MAP_BUFFER) || defined(LOG_GL_BUFFER)
    log_trace("map_buffer_oes(target = %s, access = 0x%04x)", enum_string(target), enum_string(access));
 #endif
-
    assert(gl::detail::glMapBufferOES != nullptr);
    GLvoid* res = gl::detail::glMapBufferOES(target, access);
-
 #if defined(LOG_GL) || defined(LOG_GL_MAP_BUFFER) || defined(LOG_GL_BUFFER)
    log_trace(":%p", res);
 #endif
@@ -1387,7 +1393,6 @@ void get_buffer_pointer_v_oes(GLenum target, GLenum pname, GLvoid **params)
    slog_trace("get_buffer_pointer_v_oes(target = %s, pname = %s, params = %p)",
       enum_string(target), enum_string(pname), params);
 #endif
-
    assert(gl::detail::glGetBufferPointervOES != nullptr);
    gl::detail::glGetBufferPointervOES(target, pname, params);
    check_error();
@@ -1397,7 +1402,6 @@ GLboolean unmap_buffer_oes(GLenum target)
 #if defined(LOG_GL) || defined(LOG_GL_MAP_BUFFER) || defined(LOG_GL_BUFFER)
    slog_trace("unmap_buffer_oes(target = %s)", enum_string(target));
 #endif
-
    assert(gl::detail::glUnmapBufferOES != nullptr);
    GLboolean res = gl::detail::glUnmapBufferOES(target);
    check_error();
@@ -2896,7 +2900,7 @@ void end_transform_feedback(void)
 void bind_buffer_range(GLenum target, GLuint index, GLuint buffer, GLintptr offset, GLsizeiptr size)
 {
 #if defined(LOG_GL) || defined(LOG_GL_BUFFER)
-   log_trace("bind_buffer_range(%s, %u, %u, %u, %u)",
+   log_trace("bind_buffer_range(target = %s, index = %u, buffer = %u, offset = %u, size = %u)",
       enum_string(target),
       index,
       buffer,
@@ -3406,7 +3410,7 @@ GLuint get_uniform_block_index(GLuint program, const GLchar *uniformBlockName)
    assert(gl::detail::glGetUniformBlockIndex != nullptr);
    GLuint res = gl::detail::glGetUniformBlockIndex (program, uniformBlockName);
 #else
-   GLuint res = ::glGetUniformBlockIndex (program, uniformBlockName);
+   GLuint res = ::glGetUniformBlockIndex(program, uniformBlockName);
 #endif
    check_error();
    return res;
@@ -3415,9 +3419,9 @@ void get_active_uniform_block_iv(GLuint program, GLuint uniformBlockIndex, GLenu
 {  LOG_GL_FUNCTION(__FUNCTION__);
 #if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glGetActiveUniformBlockiv != nullptr);
-   gl::detail::glGetActiveUniformBlockiv (program, uniformBlockIndex, pname, params);
+   gl::detail::glGetActiveUniformBlockiv(program, uniformBlockIndex, pname, params);
 #else
-   ::glGetActiveUniformBlockiv (program, uniformBlockIndex, pname, params);
+   ::glGetActiveUniformBlockiv(program, uniformBlockIndex, pname, params);
 #endif
    check_error();
 }
@@ -3427,17 +3431,23 @@ void get_active_uniform_block_name(GLuint program, GLuint uniformBlockIndex, GLs
    assert(gl::detail::glGetActiveUniformBlockName != nullptr);
    gl::detail::glGetActiveUniformBlockName (program, uniformBlockIndex, bufSize, length, uniformBlockName);
 #else
-   ::glGetActiveUniformBlockName (program, uniformBlockIndex, bufSize, length, uniformBlockName);
+   ::glGetActiveUniformBlockName(program, uniformBlockIndex, bufSize, length, uniformBlockName);
 #endif
    check_error();
 }
 void uniform_block_binding(GLuint program, GLuint uniformBlockIndex, GLuint uniformBlockBinding)
-{  LOG_GL_FUNCTION(__FUNCTION__);
+{  
+#if defined(LOG_GL) || defined(LOG_GL_BUFFER)
+   log_trace("uniform_block_binding(program = %u, uniformBlockIndex = %u, uniformBlockBinding = %u)",
+		program,
+      uniformBlockIndex,
+      uniformBlockBinding);
+#endif
 #if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glUniformBlockBinding != nullptr);
    gl::detail::glUniformBlockBinding (program, uniformBlockIndex, uniformBlockBinding);
 #else
-   ::glUniformBlockBinding (program, uniformBlockIndex, uniformBlockBinding);
+   ::glUniformBlockBinding(program, uniformBlockIndex, uniformBlockBinding);
 #endif
    check_error();
 }

@@ -1,4 +1,4 @@
-#if !defined(RENDERSTACK_USE_GLES2_OR_GLES3)
+#if defined(RENDERSTACK_GL_API_OPENGL)
 
 #include "renderstack_toolkit/platform.hpp"
 #if defined(_WIN32)

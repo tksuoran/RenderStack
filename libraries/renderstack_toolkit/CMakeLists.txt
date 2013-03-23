@@ -29,10 +29,11 @@ if (RENDERSTACK_USE_GLWT)
    list(APPEND sources source/glwt_window.cpp)
 endif()
 
-#if (RENDERSTACK_GL_API_OPENGL_ES_2 OR RENDERSTACK_GL_API_OPENGL_ES_3)
-#   list(APPEND sources include/renderstack_toolkit/dynamic_opengl_es3.hpp)
-#   list(APPEND sources source/gles3ext.cpp)
-#endif ()
+if (RENDERSTACK_GL_API_OPENGL_ES_2)
+   list(APPEND sources source/gles_ext.cpp)
+endif ()
+
+# list(APPEND sources include/renderstack_toolkit/dynamic_opengl_es3.hpp)
 
 if (RENDERSTACK_GL_API_OPENGL)
    list(APPEND sources include/renderstack_toolkit/glext.hpp source/glext.cpp)

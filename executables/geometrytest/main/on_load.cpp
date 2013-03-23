@@ -85,10 +85,13 @@ bool application::on_load()
 
       setup_gl_state();
 
-      //if (m_game)
-      //   set_screen(m_game);
+#if 1
       if (m_menu)
          set_screen(m_menu);
+#else
+      if (m_game)
+         set_screen(m_game);
+#endif
 
       m_last_screen.reset();
       return true;

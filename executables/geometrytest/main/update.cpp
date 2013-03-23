@@ -34,7 +34,7 @@ void game::update_fixed_steps()
       update_fixed_step();
       m_simulation_time += dt;
       ++updates;
-      if (updates > 1000)
+      if (updates > 100000)
          throw std::runtime_error("oh no!");
    }
 }

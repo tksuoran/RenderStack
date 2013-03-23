@@ -42,7 +42,6 @@ public:
    }
 
    void                             bind_attrib_location    (int location, std::string const name);
-   void                             bind_frag_data_location (int location, std::string const &name);
 
    void                             define              (std::string const &key, std::string const &value);
    int                              get_uniform_location(const char *name);

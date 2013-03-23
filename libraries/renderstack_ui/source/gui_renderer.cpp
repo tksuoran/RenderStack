@@ -99,7 +99,9 @@ gui_renderer::gui_renderer()
       m_vertex_buffer->bind();
       m_index_buffer->bind();
       m_vertex_stream->setup_attribute_pointers(0);
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
       gl::bind_vertex_array(0);
+#endif
    }
 
    m_uniform_block = renderstack::graphics::context::current()->make_uniform_block("gui");

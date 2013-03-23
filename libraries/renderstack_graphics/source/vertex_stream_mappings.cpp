@@ -89,13 +89,8 @@ void vertex_stream_mappings::add(
 
 void vertex_stream_mappings::bind_attrib_locations(program &program)
 {
-   if (configuration::can_use.bind_frag_data_location)
-   {
-      for (auto mapping = m_mappings.begin(); mapping != m_mappings.end(); ++mapping)
-         program.bind_attrib_location((*mapping)->dst_index(), (*mapping)->name());
-
-      program.bind_frag_data_location(0, "out_color");
-   }
+   for (auto mapping = m_mappings.begin(); mapping != m_mappings.end(); ++mapping)
+      program.bind_attrib_location((*mapping)->dst_index(), (*mapping)->name());
 }
 
 std::shared_ptr<vertex_stream> vertex_stream_mappings::make_vertex_stream(

@@ -164,11 +164,11 @@ void log_write(log_category *cat, int level, const char *format, ...)
 
 
 log_category graphics_buffer           (C_YELLOW,  C_GRAY, LOG_WARN);
-log_category log_program               (C_YELLOW,  C_GRAY, LOG_WARN);
+log_category log_program               (C_YELLOW,  C_GRAY, LOG_TRACE);
 log_category log_ubo_pool              (C_GREEN,   C_GRAY, LOG_WARN);
 log_category log_vbo_pool              (C_GREEN,   C_GRAY, LOG_WARN);
 log_category log_vertex_stream         (C_GREEN,   C_GRAY, LOG_WARN);
-log_category log_vertex_stream_mappings(C_GREEN,   C_GRAY, LOG_TRACE);
+log_category log_vertex_stream_mappings(C_GREEN,   C_GRAY, LOG_WARN);
 log_category graphics_geometry_mesh    (C_RED,     C_GRAY, LOG_WARN);
 log_category graphics_mesh             (C_MAGENTA, C_GRAY, LOG_WARN);
 log_category log_renderer              (C_YELLOW,  C_GRAY, LOG_WARN);

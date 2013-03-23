@@ -149,7 +149,7 @@ void game::render_meshes()
    gl::enable(gl::enable_cap::cull_face);
 
    auto rc = renderstack::renderer::context::current();
-   auto r = rc->renderer();
+   //auto r = rc->renderer();
 
    auto p = m_programs->basic;
 
@@ -229,10 +229,6 @@ void game::render_meshes()
          else
 #endif
          {
-         mesh->vertex_buffer()->bind();
-         mesh->index_buffer()->bind();
-         vertex_stream->setup_attribute_pointers(0);
-
             gl::draw_elements(begin_mode, count, index_type, index_pointer);
          }
       }

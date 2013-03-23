@@ -57,6 +57,7 @@
 #if defined(RENDERSTACK_GL_API_OPENGL_ES_2)
 //# include "renderstack_toolkit/dynamic_opengl_es2.hpp"
 # include "GLES2/gl2.h"
+# include "GLES2/gl2ext.h"
 #endif
 
 #if defined(RENDERSTACK_GL_API_OPENGL)

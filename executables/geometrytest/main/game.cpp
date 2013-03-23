@@ -105,8 +105,8 @@ void game::on_load()
    {
       vector<std::shared_ptr<renderstack::geometry::geometry>> g_collection;
 
-      g_collection.push_back(make_shared<renderstack::geometry::shapes::cuboctahedron>(1.0));
-#if 0
+      //g_collection.push_back(make_shared<renderstack::geometry::shapes::cuboctahedron>(1.0));
+#if 1
       g_collection.push_back(make_shared<renderstack::geometry::shapes::disc>(1.0, 0.8, 32, 2));
       g_collection.push_back(make_shared<renderstack::geometry::shapes::triangle>(0.8f / 0.57735027f));
       g_collection.push_back(make_shared<renderstack::geometry::shapes::sphere>(1.0f, 12, 4));
@@ -169,8 +169,10 @@ void game::on_load()
          total_index_count += total_info.index_count_centroid_points;
 
       // Allocate a single VBO big enough to hold all vertices
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
       if (configuration::can_use.vertex_array_object)
          gl::bind_vertex_array(0);
+#endif
 
       buffer_info.set_vertex_buffer(
          make_shared<renderstack::graphics::vertex_buffer>(
@@ -209,7 +211,13 @@ void game::on_load()
    }
 #endif
 
-   if (renderstack::graphics::configuration::can_use.uniform_buffer_object)
+   // Test all conditions; can_use.uniform_buffer_object can be forced to false
+   bool use_uniform_buffers = 
+      renderstack::graphics::configuration::can_use.uniform_buffer_object &&
+      (m_programs->glsl_version() >= 140) &&
+      (renderstack::graphics::configuration::shader_model_version >= 4);
+
+   if (use_uniform_buffers)
    {
       size_t size = 0;
 
