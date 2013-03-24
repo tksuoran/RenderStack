@@ -5,6 +5,7 @@
 #include <EGL/egl.h>
 #include "renderstack_toolkit/window.hpp"
 
+#if 0
 #if defined(RENDERSTACK_USE_GLFW)
 # include <GL/glfw3.h>
 #else
@@ -16,13 +17,13 @@
 # endif // WIN32
 
 # if defined(LINUX) || defined(ANDROID)
-
 #  include <stdlib.h>
 #  include <dlfcn.h>
 # else
 #  error "Bad platform"
 # endif // LINUX || ANDROID_NDK
 
+#endif
 #endif
 
 #include <cstdio>

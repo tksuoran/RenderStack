@@ -66,8 +66,10 @@ private:
    ::GLWTConfig            m_glwt_config;
 
 # if defined(_WIN32)
+#  if defined(RENDERSTACK_GL_API_OPENGL)
    void                    *m_opengl32_dll;
    void                    *m_wgl_get_proc_address;
+#  endif
 
    void                    *m_winmm_dll;
    void                    *m_time_get_time;

@@ -5,6 +5,10 @@
 //#include <GLXW/glxw.h>
 #include <stdexcept>
 
+#if defined(RENDERSTACK_GL_API_OPENGL_ES_2) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
+# include <EGL/egl.h>
+#endif
+
 #if defined(_WIN32)
 typedef DWORD (WINAPI *PFNTIMEGETTIME)(void);
 #endif
@@ -200,11 +204,13 @@ double window::time() const
       PFNTIMEGETTIME time_get_time = reinterpret_cast<PFNTIMEGETTIME>(m_time_get_time);
       return time_get_time() * 0.001;
    }
-#else
-   double res = m_fake_time;
-   m_fake_time += (1.0 / 250.0);
-   return res; // TODO
+	else
 #endif
+	{
+		double res = m_fake_time;
+		m_fake_time += (1.0 / 250.0);
+		return res;
+	}
 }
 
 # if defined(_WIN32)
@@ -212,8 +218,11 @@ typedef WINGDIAPI PROC (WINAPI * PFNWGLGETPROCADDRESS) (LPCSTR);
 #endif
 
 window::window(int width, int height, std::string const &title, int major, int minor)
+:	m_winmm_dll(0)
+,	m_time_get_time(nullptr)
 {
-#if defined(_WIN32)
+#if defined(RENDERSTACK_GL_API_OPENGL)
+# if defined(_WIN32)
    HMODULE opengl32_dll = LoadLibraryA("opengl32.dll");
    if (opengl32_dll)
    {
@@ -225,7 +234,9 @@ window::window(int width, int height, std::string const &title, int major, int m
    {
       m_wgl_get_proc_address = nullptr;
    }
-
+# endif
+#endif
+# if defined(_WIN32)
    HMODULE winmm_dll = LoadLibraryA("winmm.dll");
    if (winmm_dll)
    {
@@ -237,13 +248,7 @@ window::window(int width, int height, std::string const &title, int major, int m
    {
       m_time_get_time = nullptr;
    }
-#endif
-
-#if 0
-   ::memset(&m_app_callbacks, sizeof(::GLWTAppCallbacks), 0);
-   m_app_callbacks.error_callback = s_error_callback;
-   m_app_callbacks.userdata = nullptr;
-#endif
+# endif
 
    ::memset(&m_glwt_config, sizeof(::GLWTConfig), 0);
    m_glwt_config.red_bits            = 8;
@@ -256,21 +261,32 @@ window::window(int width, int height, std::string const &title, int major, int m
    m_glwt_config.api_version_major   = major;
    m_glwt_config.api_version_minor   = minor;
 
-   if (major >= 3) {
+   if (major >= 3)
+	{
       m_glwt_config.sample_buffers   = 1;
       m_glwt_config.samples          = 4;
-   } else {
+   }
+	else
+	{
       m_glwt_config.sample_buffers   = 0;
       m_glwt_config.samples          = 0;
    }
 
-#if defined(_DEBUG)
-   if (major >= 3) {
+#if defined(RENDERSTACK_GL_API_OPENGL)
+	m_glwt_config.api |= GLWT_API_OPENGL;
+#endif
+#if defined(RENDERSTACK_GL_API_OPENGL_ES_2) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
+	m_glwt_config.api |= GLWT_API_OPENGL_ES;
+#endif
+
+#if defined(_DEBUG) && !defined(__APPLE__)
+   if (major >= 3)
+	{
       // TODO request forward compatible
       m_glwt_config.api |= GLWT_PROFILE_DEBUG;
    }
 #endif
-   if (major >= 3)
+   if ((major >= 3) && (minor >= 2))
       m_glwt_config.api |= GLWT_PROFILE_CORE;
 
    if (::glwtInit(&m_glwt_config, &s_error_callback, NULL) != 0)
@@ -323,7 +339,8 @@ window::~window()
 
 glproc window::get_proc_address(const char* procname)
 {
-#if defined(_WIN32)
+#if defined(RENDERSTACK_GL_API_OPENGL)
+# if defined(_WIN32)
    glproc ptr = nullptr;
    if (m_opengl32_dll)
    {
@@ -338,8 +355,8 @@ glproc window::get_proc_address(const char* procname)
    return ptr;
 
    // TODO try to get with ARB postfix if glproc == NULL
-#endif
-#if defined(__APPLE__)
+# endif
+# if defined(__APPLE__)
    NSSymbol symbol;
    char *symbolName = (char*)malloc (strlen (procname) + 2); // 1
    strcpy(symbolName + 1, procname); // 2
@@ -349,6 +366,12 @@ glproc window::get_proc_address(const char* procname)
       symbol = NSLookupAndBindSymbol (symbolName);
    free (symbolName); // 5
    return (glproc)(symbol ? NSAddressOfSymbol (symbol) : NULL); // 6
+# endif
+#else
+   glproc ptr = nullptr;
+   ptr = reinterpret_cast<glproc>(eglGetProcAddress(procname));
+
+   return ptr;
 #endif
 }
 
