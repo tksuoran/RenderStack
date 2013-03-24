@@ -377,9 +377,8 @@ void menu::render()
       tex_parameter_i(texture_target::texture_2d, texture_parameter_name::texture_min_filter, texture_min_filter::linear);
       tex_parameter_i(texture_target::texture_2d, texture_parameter_name::texture_mag_filter, texture_mag_filter::linear);
 #endif
-      tex_parameter_i(texture_target::texture_2d, texture_parameter_name::texture_wrap_r,     gl::texture_wrap_mode::clamp_to_edge);
-      tex_parameter_i(texture_target::texture_2d, texture_parameter_name::texture_wrap_s,     gl::texture_wrap_mode::clamp_to_edge);
-      tex_parameter_i(texture_target::texture_2d, texture_parameter_name::texture_wrap_t,     gl::texture_wrap_mode::clamp_to_edge);
+      tex_parameter_i(texture_target::texture_2d, texture_parameter_name::texture_wrap_s, gl::texture_wrap_mode::clamp_to_edge);
+      tex_parameter_i(texture_target::texture_2d, texture_parameter_name::texture_wrap_t, gl::texture_wrap_mode::clamp_to_edge);
 
       assert(m_mesh);
 
