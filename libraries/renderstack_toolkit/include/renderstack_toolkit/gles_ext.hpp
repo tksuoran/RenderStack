@@ -13,87 +13,90 @@
 namespace gl { namespace detail {
 
 /*  GL_OES_get_program_binary */
-extern PFNGLGETPROGRAMBINARYOESPROC                     glGetProgramBinaryOES               ;
-extern PFNGLPROGRAMBINARYOESPROC                        glProgramBinaryOES                  ;
+typedef void (GL_APIENTRYP RS_ES2_PFNGLGETPROGRAMBINARYOESPROC) (GLuint program, GLsizei bufSize, GLsizei *length, GLenum *binaryFormat, GLvoid *binary);
+typedef void (GL_APIENTRYP RS_ES2_PFNGLPROGRAMBINARYOESPROC) (GLuint program, GLenum binaryFormat, const GLvoid *binary, GLint length);
+
+extern RS_ES2_PFNGLGETPROGRAMBINARYOESPROC                     glGetProgramBinaryOES               ;
+extern RS_ES2_PFNGLPROGRAMBINARYOESPROC                        glProgramBinaryOES                  ;
 
 /*  GL_OES_mapbuffer  */
-extern PFNGLMAPBUFFEROESPROC                            glMapBufferOES                      ;
-extern PFNGLUNMAPBUFFEROESPROC                          glUnmapBufferOES                    ;
-extern PFNGLGETBUFFERPOINTERVOESPROC                    glGetBufferPointervOES              ;
+typedef void*     (GL_APIENTRYP RS_ES2_PFNGLMAPBUFFEROESPROC) (GLenum target, GLenum access);
+typedef GLboolean (GL_APIENTRYP RS_ES2_PFNGLUNMAPBUFFEROESPROC) (GLenum target);
+typedef void      (GL_APIENTRYP RS_ES2_PFNGLGETBUFFERPOINTERVOESPROC) (GLenum target, GLenum pname, GLvoid** params);
+
+extern RS_ES2_PFNGLMAPBUFFEROESPROC                            glMapBufferOES                      ;
+extern RS_ES2_PFNGLUNMAPBUFFEROESPROC                          glUnmapBufferOES                    ;
+extern RS_ES2_PFNGLGETBUFFERPOINTERVOESPROC                    glGetBufferPointervOES              ;
 
 /*  GL_OES_texture_3D  */
-extern PFNGLTEXIMAGE3DOESPROC                           glTexImage3DOES                     ;
-extern PFNGLTEXSUBIMAGE3DOESPROC                        glTexSubImage3DOES                  ;
-extern PFNGLCOPYTEXSUBIMAGE3DOESPROC                    glCopyTexSubImage3DOES              ;
-extern PFNGLCOMPRESSEDTEXIMAGE3DOESPROC                 glCompressedTexImage3DOES           ;
-extern PFNGLCOMPRESSEDTEXSUBIMAGE3DOESPROC              glCompressedTexSubImage3DOES        ;
-extern PFNGLFRAMEBUFFERTEXTURE3DOES                     glFramebufferTexture3DOES           ;
+typedef void (GL_APIENTRYP RS_ES2_PFNGLTEXIMAGE3DOESPROC) (GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLenum format, GLenum type, const GLvoid* pixels);
+typedef void (GL_APIENTRYP RS_ES2_PFNGLTEXSUBIMAGE3DOESPROC) (GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const GLvoid* pixels);
+typedef void (GL_APIENTRYP RS_ES2_PFNGLCOPYTEXSUBIMAGE3DOESPROC) (GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLint x, GLint y, GLsizei width, GLsizei height);
+typedef void (GL_APIENTRYP RS_ES2_PFNGLCOMPRESSEDTEXIMAGE3DOESPROC) (GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLsizei imageSize, const GLvoid* data);
+typedef void (GL_APIENTRYP RS_ES2_PFNGLCOMPRESSEDTEXSUBIMAGE3DOESPROC) (GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLsizei imageSize, const GLvoid* data);
+typedef void (GL_APIENTRYP RS_ES2_PFNGLFRAMEBUFFERTEXTURE3DOES) (GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level, GLint zoffset);
+
+extern RS_ES2_PFNGLTEXIMAGE3DOESPROC                           glTexImage3DOES                     ;
+extern RS_ES2_PFNGLTEXSUBIMAGE3DOESPROC                        glTexSubImage3DOES                  ;
+extern RS_ES2_PFNGLCOPYTEXSUBIMAGE3DOESPROC                    glCopyTexSubImage3DOES              ;
+extern RS_ES2_PFNGLCOMPRESSEDTEXIMAGE3DOESPROC                 glCompressedTexImage3DOES           ;
+extern RS_ES2_PFNGLCOMPRESSEDTEXSUBIMAGE3DOESPROC              glCompressedTexSubImage3DOES        ;
+extern RS_ES2_PFNGLFRAMEBUFFERTEXTURE3DOES                     glFramebufferTexture3DOES           ;
 
 /* GL_OES_vertex_array_object */
-extern PFNGLBINDVERTEXARRAYOESPROC                      glBindVertexArrayOES                ;
-extern PFNGLDELETEVERTEXARRAYSOESPROC                   glDeleteVertexArraysOES             ;
-extern PFNGLGENVERTEXARRAYSOESPROC                      glGenVertexArraysOES                ;
-extern PFNGLISVERTEXARRAYOESPROC                        glIsVertexArrayOES                  ;
+typedef void      (GL_APIENTRYP RS_ES2_PFNGLBINDVERTEXARRAYOESPROC) (GLuint array);
+typedef void      (GL_APIENTRYP RS_ES2_PFNGLDELETEVERTEXARRAYSOESPROC) (GLsizei n, const GLuint *arrays);
+typedef void      (GL_APIENTRYP RS_ES2_PFNGLGENVERTEXARRAYSOESPROC) (GLsizei n, GLuint *arrays);
+typedef GLboolean (GL_APIENTRYP RS_ES2_PFNGLISVERTEXARRAYOESPROC) (GLuint array);
+
+extern RS_ES2_PFNGLBINDVERTEXARRAYOESPROC                      glBindVertexArrayOES                ;
+extern RS_ES2_PFNGLDELETEVERTEXARRAYSOESPROC                   glDeleteVertexArraysOES             ;
+extern RS_ES2_PFNGLGENVERTEXARRAYSOESPROC                      glGenVertexArraysOES                ;
+extern RS_ES2_PFNGLISVERTEXARRAYOESPROC                        glIsVertexArrayOES                  ;
 
 /* GL_EXT_discard_framebuffer */
-extern PFNGLDISCARDFRAMEBUFFEREXTPROC                   glDiscardFramebufferEXT             ;
+typedef void (GL_APIENTRYP RS_ES2_PFNGLDISCARDFRAMEBUFFEREXTPROC) (GLenum target, GLsizei numAttachments, const GLenum *attachments);
+
+extern RS_ES2_PFNGLDISCARDFRAMEBUFFEREXTPROC                   glDiscardFramebufferEXT             ;
 
 /* GL_EXT_multisampled_render_to_texture */
-extern PFNGLRENDERBUFFERSTORAGEMULTISAMPLEEXTPROC       glRenderbufferStorageMultisampleEXT     ;
-extern PFNGLFRAMEBUFFERTEXTURE2DMULTISAMPLEEXTPROC      glFramebufferTexture2DMultisampleEXT    ;
+typedef void (GL_APIENTRYP RS_ES2_PFNGLRENDERBUFFERSTORAGEMULTISAMPLEEXTPROC) (GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height);
+typedef void (GL_APIENTRYP RS_ES2_PFNGLFRAMEBUFFERTEXTURE2DMULTISAMPLEEXTPROC) (GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level, GLsizei samples);
 
-/* GL_EXT_multi_draw_arrays  */
-extern PFNGLMULTIDRAWARRAYSEXTPROC                      glMultiDrawArraysEXT                ;
-extern PFNGLMULTIDRAWELEMENTSEXTPROC                    glMultiDrawElementsEXT              ;
+extern RS_ES2_PFNGLRENDERBUFFERSTORAGEMULTISAMPLEEXTPROC       glRenderbufferStorageMultisampleEXT ;
+extern RS_ES2_PFNGLFRAMEBUFFERTEXTURE2DMULTISAMPLEEXTPROC      glFramebufferTexture2DMultisampleEXT;
 
 /* GL_EXT_occlusion_query_boolean */
-extern PFNGLGENQUERIESEXTPROC                           glGenQueriesEXT                         ;
-extern PFNGLDELETEQUERIESEXTPROC                        glDeleteQueriesEXT                      ;
-extern PFNGLISQUERYEXTPROC                              glIsQueryEXT                            ;
-extern PFNGLBEGINQUERYEXTPROC                           glBeginQueryEXT                         ;
-extern PFNGLENDQUERYEXTPROC                             glEndQueryEXT                           ;
-extern PFNGLGETQUERYIVEXTPROC                           glGetQueryivEXT                         ;
-extern PFNGLGETQUERYOBJECTUIVEXTPROC                    glGetQueryObjectuivEXT                  ;
+typedef void      (GL_APIENTRYP RS_ES2_PFNGLGENQUERIESEXTPROC) (GLsizei n, GLuint *ids);
+typedef void      (GL_APIENTRYP RS_ES2_PFNGLDELETEQUERIESEXTPROC) (GLsizei n, const GLuint *ids);
+typedef GLboolean (GL_APIENTRYP RS_ES2_PFNGLISQUERYEXTPROC) (GLuint id);
+typedef void      (GL_APIENTRYP RS_ES2_PFNGLBEGINQUERYEXTPROC) (GLenum target, GLuint id);
+typedef void      (GL_APIENTRYP RS_ES2_PFNGLENDQUERYEXTPROC) (GLenum target);
+typedef void      (GL_APIENTRYP RS_ES2_PFNGLGETQUERYIVEXTPROC) (GLenum target, GLenum pname, GLint *params);
+typedef void      (GL_APIENTRYP RS_ES2_PFNGLGETQUERYOBJECTUIVEXTPROC) (GLuint id, GLenum pname, GLuint *params);
 
-/* GL_EXT_separate_shader_objects */
-extern PFNGLUSEPROGRAMSTAGESEXTPROC                     glUseProgramStagesEXT                   ;
-extern PFNGLACTIVESHADERPROGRAMEXTPROC                  glActiveShaderProgramEXT                ;
-extern PFNGLCREATESHADERPROGRAMVEXTPROC                 glCreateShaderProgramvEXT               ;
-extern PFNGLBINDPROGRAMPIPELINEEXTPROC                  glBindProgramPipelineEXT                ;
-extern PFNGLDELETEPROGRAMPIPELINESEXTPROC               glDeleteProgramPipelinesEXT             ;
-extern PFNGLGENPROGRAMPIPELINESEXTPROC                  glGenProgramPipelinesEXT                ;
-extern PFNGLISPROGRAMPIPELINEEXTPROC                    glIsProgramPipelineEXT                  ;
-extern PFNGLPROGRAMPARAMETERIEXTPROC                    glProgramParameteriEXT                  ;
-extern PFNGLGETPROGRAMPIPELINEIVEXTPROC                 glGetProgramPipelineivEXT               ;
-extern PFNGLPROGRAMUNIFORM1IEXTPROC                     glProgramUniform1iEXT                   ;
-extern PFNGLPROGRAMUNIFORM2IEXTPROC                     glProgramUniform2iEXT                   ;
-extern PFNGLPROGRAMUNIFORM3IEXTPROC                     glProgramUniform3iEXT                   ;
-extern PFNGLPROGRAMUNIFORM4IEXTPROC                     glProgramUniform4iEXT                   ;
-extern PFNGLPROGRAMUNIFORM1FEXTPROC                     glProgramUniform1fEXT                   ;
-extern PFNGLPROGRAMUNIFORM2FEXTPROC                     glProgramUniform2fEXT                   ;
-extern PFNGLPROGRAMUNIFORM3FEXTPROC                     glProgramUniform3fEXT                   ;
-extern PFNGLPROGRAMUNIFORM4FEXTPROC                     glProgramUniform4fEXT                   ;
-extern PFNGLPROGRAMUNIFORM1IVEXTPROC                    glProgramUniform1ivEXT                  ;
-extern PFNGLPROGRAMUNIFORM2IVEXTPROC                    glProgramUniform2ivEXT                  ;
-extern PFNGLPROGRAMUNIFORM3IVEXTPROC                    glProgramUniform3ivEXT                  ;
-extern PFNGLPROGRAMUNIFORM4IVEXTPROC                    glProgramUniform4ivEXT                  ;
-extern PFNGLPROGRAMUNIFORM1FVEXTPROC                    glProgramUniform1fvEXT                  ;
-extern PFNGLPROGRAMUNIFORM2FVEXTPROC                    glProgramUniform2fvEXT                  ;
-extern PFNGLPROGRAMUNIFORM3FVEXTPROC                    glProgramUniform3fvEXT                  ;
-extern PFNGLPROGRAMUNIFORM4FVEXTPROC                    glProgramUniform4fvEXT                  ;
-extern PFNGLPROGRAMUNIFORMMATRIX2FVEXTPROC              glProgramUniformMatrix2fvEXT            ;
-extern PFNGLPROGRAMUNIFORMMATRIX3FVEXTPROC              glProgramUniformMatrix3fvEXT            ;
-extern PFNGLPROGRAMUNIFORMMATRIX4FVEXTPROC              glProgramUniformMatrix4fvEXT            ;
-extern PFNGLVALIDATEPROGRAMPIPELINEEXTPROC              glValidateProgramPipelineEXT            ;
-extern PFNGLGETPROGRAMPIPELINEINFOLOGEXTPROC            glGetProgramPipelineInfoLogEXT          ;
+extern RS_ES2_PFNGLGENQUERIESEXTPROC                           glGenQueriesEXT                     ;
+extern RS_ES2_PFNGLDELETEQUERIESEXTPROC                        glDeleteQueriesEXT                  ;
+extern RS_ES2_PFNGLISQUERYEXTPROC                              glIsQueryEXT                        ;
+extern RS_ES2_PFNGLBEGINQUERYEXTPROC                           glBeginQueryEXT                     ;
+extern RS_ES2_PFNGLENDQUERYEXTPROC                             glEndQueryEXT                       ;
+extern RS_ES2_PFNGLGETQUERYIVEXTPROC                           glGetQueryivEXT                     ;
+extern RS_ES2_PFNGLGETQUERYOBJECTUIVEXTPROC                    glGetQueryObjectuivEXT              ;
 
 /* GL_EXT_texture_storage */
-extern PFNGLTEXSTORAGE1DEXTPROC                         glTexStorage1DEXT                       ;
-extern PFNGLTEXSTORAGE2DEXTPROC                         glTexStorage2DEXT                       ;
-extern PFNGLTEXSTORAGE3DEXTPROC                         glTexStorage3DEXT                       ;
-extern PFNGLTEXTURESTORAGE1DEXTPROC                     glTextureStorage1DEXT                   ;
-extern PFNGLTEXTURESTORAGE2DEXTPROC                     glTextureStorage2DEXT                   ;
-extern PFNGLTEXTURESTORAGE3DEXTPROC                     glTextureStorage3DEXT                   ;
+typedef void (GL_APIENTRYP RS_ES2_PFNGLTEXSTORAGE1DEXTPROC) (GLenum target, GLsizei levels, GLenum internalformat, GLsizei width);
+typedef void (GL_APIENTRYP RS_ES2_PFNGLTEXSTORAGE2DEXTPROC) (GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height);
+typedef void (GL_APIENTRYP RS_ES2_PFNGLTEXSTORAGE3DEXTPROC) (GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth);
+typedef void (GL_APIENTRYP RS_ES2_PFNGLTEXTURESTORAGE1DEXTPROC) (GLuint texture, GLenum target, GLsizei levels, GLenum internalformat, GLsizei width);
+typedef void (GL_APIENTRYP RS_ES2_PFNGLTEXTURESTORAGE2DEXTPROC) (GLuint texture, GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height);
+typedef void (GL_APIENTRYP RS_ES2_PFNGLTEXTURESTORAGE3DEXTPROC) (GLuint texture, GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth);
+
+extern RS_ES2_PFNGLTEXSTORAGE1DEXTPROC                         glTexStorage1DEXT                   ;
+extern RS_ES2_PFNGLTEXSTORAGE2DEXTPROC                         glTexStorage2DEXT                   ;
+extern RS_ES2_PFNGLTEXSTORAGE3DEXTPROC                         glTexStorage3DEXT                   ;
+extern RS_ES2_PFNGLTEXTURESTORAGE1DEXTPROC                     glTextureStorage1DEXT               ;
+extern RS_ES2_PFNGLTEXTURESTORAGE2DEXTPROC                     glTextureStorage2DEXT               ;
+extern RS_ES2_PFNGLTEXTURESTORAGE3DEXTPROC                     glTextureStorage3DEXT               ;
 
 } }
 

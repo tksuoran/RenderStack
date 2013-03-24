@@ -453,6 +453,7 @@ void program::transform_feedback(vector<string> varyings, GLenum buffer_mode)
 #endif
    }
 }
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
 static char const * const attrib_type_str(GLenum type)
 {
    switch (type)
@@ -488,6 +489,7 @@ static char const * const attrib_type_str(GLenum type)
    default: return "?";
    };
 }
+#endif
 void program::add(weak_ptr<class uniform_block> uniform_block)
 {
    m_uniform_blocks[uniform_block.lock()->block_name()] = uniform_block;

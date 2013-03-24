@@ -2,6 +2,7 @@
 
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_toolkit/gl.hpp"
+#include "renderstack_toolkit/gles_ext.hpp"
 #include <EGL/egl.h>
 #include "renderstack_toolkit/window.hpp"
 
@@ -179,20 +180,20 @@ namespace gl { namespace detail {
 #endif
 
    /*  GL_OES_get_program_binary */
-   PFNGLGETPROGRAMBINARYOESPROC                      glGetProgramBinaryOES               ;
-   PFNGLPROGRAMBINARYOESPROC                         glProgramBinaryOES                  ;
+   RS_ES2_PFNGLGETPROGRAMBINARYOESPROC                glGetProgramBinaryOES               ;
+   RS_ES2_PFNGLPROGRAMBINARYOESPROC                   glProgramBinaryOES                  ;
 
    /*  GL_OES_mapbuffer  */
-   PFNGLMAPBUFFEROESPROC                             glMapBufferOES                      ;
-   PFNGLUNMAPBUFFEROESPROC                           glUnmapBufferOES                    ;
-   PFNGLGETBUFFERPOINTERVOESPROC                     glGetBufferPointervOES              ;
+   RS_ES2_PFNGLMAPBUFFEROESPROC                       glMapBufferOES                      ;
+   RS_ES2_PFNGLUNMAPBUFFEROESPROC                     glUnmapBufferOES                    ;
+   RS_ES2_PFNGLGETBUFFERPOINTERVOESPROC               glGetBufferPointervOES              ;
 
    /* GL_EXT_discard_framebuffer */
-   PFNGLDISCARDFRAMEBUFFEREXTPROC                    glDiscardFramebufferEXT             ;
+   RS_ES2_PFNGLDISCARDFRAMEBUFFEREXTPROC              glDiscardFramebufferEXT             ;
 
    /* GL_EXT_multisampled_render_to_texture */
-   PFNGLRENDERBUFFERSTORAGEMULTISAMPLEEXTPROC        glRenderbufferStorageMultisampleEXT     ;
-   PFNGLFRAMEBUFFERTEXTURE2DMULTISAMPLEEXTPROC       glFramebufferTexture2DMultisampleEXT    ;
+   RS_ES2_PFNGLRENDERBUFFERSTORAGEMULTISAMPLEEXTPROC  glRenderbufferStorageMultisampleEXT	;
+   RS_ES2_PFNGLFRAMEBUFFERTEXTURE2DMULTISAMPLEEXTPROC glFramebufferTexture2DMultisampleEXT;
    
    // OpenGL ES 3.0 function pointers
 #if defined(RENDERSTACK_GL_API_OPENGL_ES_3) && defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
@@ -573,16 +574,17 @@ void window::get_extensions()
 #endif
 
    // OpenGL ES 2.0 extensions
-#if 1
-   gl::detail::glGetProgramBinaryOES						= (PFNGLGETPROGRAMBINARYOESPROC						)eglGetProcAddress("glGetProgramBinaryOES");
-   gl::detail::glProgramBinaryOES							= (PFNGLPROGRAMBINARYOESPROC							)eglGetProcAddress("glProgramBinaryOES");
-   gl::detail::glMapBufferOES									= (PFNGLMAPBUFFEROESPROC								)eglGetProcAddress("glMapBufferOES");
-   gl::detail::glUnmapBufferOES								= (PFNGLUNMAPBUFFEROESPROC								)eglGetProcAddress("glUnmapBufferOES");
-   gl::detail::glGetBufferPointervOES						= (PFNGLGETBUFFERPOINTERVOESPROC						)eglGetProcAddress("glGetBufferPointervOES");
-   gl::detail::glDiscardFramebufferEXT						= (PFNGLDISCARDFRAMEBUFFEREXTPROC					)eglGetProcAddress("glDiscardFramebufferEXT");
-   gl::detail::glRenderbufferStorageMultisampleEXT		= (PFNGLRENDERBUFFERSTORAGEMULTISAMPLEEXTPROC	)eglGetProcAddress("glRenderbufferStorageMultisampleEXT");
-   gl::detail::glFramebufferTexture2DMultisampleEXT	= (PFNGLFRAMEBUFFERTEXTURE2DMULTISAMPLEEXTPROC	)eglGetProcAddress("glFramebufferTexture2DMultisampleEXT");
-#endif
+   gl::detail::glGetProgramBinaryOES                  = (RS_ES2_PFNGLGETPROGRAMBINARYOESPROC                )eglGetProcAddress("glGetProgramBinaryOES");
+   gl::detail::glProgramBinaryOES                     = (RS_ES2_PFNGLPROGRAMBINARYOESPROC                   )eglGetProcAddress("glProgramBinaryOES");
+
+   gl::detail::glMapBufferOES                         = (RS_ES2_PFNGLMAPBUFFEROESPROC                       )eglGetProcAddress("glMapBufferOES");
+   gl::detail::glUnmapBufferOES                       = (RS_ES2_PFNGLUNMAPBUFFEROESPROC                     )eglGetProcAddress("glUnmapBufferOES");
+   gl::detail::glGetBufferPointervOES                 = (RS_ES2_PFNGLGETBUFFERPOINTERVOESPROC               )eglGetProcAddress("glGetBufferPointervOES");
+
+   gl::detail::glDiscardFramebufferEXT                = (RS_ES2_PFNGLDISCARDFRAMEBUFFEREXTPROC              )eglGetProcAddress("glDiscardFramebufferEXT");
+
+   gl::detail::glRenderbufferStorageMultisampleEXT    = (RS_ES2_PFNGLRENDERBUFFERSTORAGEMULTISAMPLEEXTPROC  )eglGetProcAddress("glRenderbufferStorageMultisampleEXT");
+   gl::detail::glFramebufferTexture2DMultisampleEXT   = (RS_ES2_PFNGLFRAMEBUFFERTEXTURE2DMULTISAMPLEEXTPROC )eglGetProcAddress("glFramebufferTexture2DMultisampleEXT");
 
    // OpenGL ES 3.0
 #if defined(RENDERSTACK_GL_API_OPENGL_ES_3) && defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
