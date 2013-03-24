@@ -213,13 +213,15 @@ double window::time() const
 	}
 }
 
-# if defined(_WIN32)
+#if defined(_WIN32)
 typedef WINGDIAPI PROC (WINAPI * PFNWGLGETPROCADDRESS) (LPCSTR);
 #endif
 
 window::window(int width, int height, std::string const &title, int major, int minor)
+#if defined(_WIN32)
 :	m_winmm_dll(0)
 ,	m_time_get_time(nullptr)
+#endif
 {
 #if defined(RENDERSTACK_GL_API_OPENGL)
 # if defined(_WIN32)

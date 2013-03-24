@@ -34,9 +34,8 @@ public:
    }
 };
 
-class projection_type
+namespace projection_type
 {
-public:
    enum value {
       other = 0,              //  Projection is done by shader in unusual way - hemispherical for example
       perspective_horizontal,
@@ -50,7 +49,7 @@ public:
       stereoscopic_horizontal,
       stereoscopic_vertical
    };
-};
+}
 
 class projection
 {

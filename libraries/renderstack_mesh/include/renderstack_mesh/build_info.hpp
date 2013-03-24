@@ -15,8 +15,6 @@
 
 namespace renderstack { namespace mesh {
 
-class normal_style;
-
 // Controls what kind of mesh should be built from geometry
 class geometry_mesh_format_info
 {

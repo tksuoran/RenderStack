@@ -161,49 +161,50 @@ if (RENDERSTACK_USE_GLWT)
    add_subdirectory(libraries/glwt)
    set(RENDERSTACK_WINDOW_TOOLKIT_INCLUDE_DIRS "${glwt_SOURCE_DIR}/include;${glxw_BINARY_DIR}/include")
    add_definitions(-DRENDERSTACK_USE_GLWT=1)
-   set(RENDERSTACK_WINDOW_TOOLKIT_LIBRARIES glwt;glxw)
+   set(RENDERSTACK_WINDOW_TOOLKIT_LIBRARIES glwt)
    if (RENDERSTACK_USE_EGL)
+      set(RENDERSTACK_WINDOW_TOOLKIT_LIBRARIES glxw_egl;${RENDERSTACK_WINDOW_TOOLKIT_LIBRARIES})
       set(KHRONOS_INCLUDE ${GLXW_EGL_PATH};${KHRONOS_INCLUDE})
-		find_path(
-			EGL_LIBRARY
-			libEGL.lib
-			PATHS
-			"C:/Imagination/PowerVR/GraphicsSDK/SDK_3.1/Builds/Windows/x86_32/Lib/libEGL.lib"
-			"C:/Program Files (x86)/ARM/Mali Developer Tools/OpenGL ES 3.0 Emulator v1.0.0/lib/32-bit/libEGL.lib"
-			"C:/AdrenoSDK/Lib/Win32/OGLES3/libEGL.lib"
-		)
-		set(RENDERSTACK_WINDOW_TOOLKIT_LIBRARIES "${EGL_LIBRARY}";${RENDERSTACK_WINDOW_TOOLKIT_LIBRARIES})
+      find_path(
+         EGL_LIBRARY
+         libEGL.lib
+         PATHS
+         "C:/Imagination/PowerVR/GraphicsSDK/SDK_3.1/Builds/Windows/x86_32/Lib/libEGL.lib"
+         "C:/Program Files (x86)/ARM/Mali Developer Tools/OpenGL ES 3.0 Emulator v1.0.0/lib/32-bit/libEGL.lib"
+         "C:/AdrenoSDK/Lib/Win32/OGLES3/libEGL.lib"
+      )
+      set(RENDERSTACK_WINDOW_TOOLKIT_LIBRARIES "${EGL_LIBRARY}";${RENDERSTACK_WINDOW_TOOLKIT_LIBRARIES})
    endif ()
    if (RENDERSTACK_GL_API_OPENGL)
       add_definitions(-DRENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
       add_definitions(-DGLFW_INCLUDE_GLCOREARB -DGLCOREARB_PROTOTYPES)
-		set(KHRONOS_INCLUDE ${CMAKE_SOURCE_DIR}/libraries/khronos;${KHRONOS_INCLUDE})
+      set(KHRONOS_INCLUDE ${CMAKE_SOURCE_DIR}/libraries/khronos;${KHRONOS_INCLUDE})
    endif ()
    if (RENDERSTACK_GL_API_OPENGL_ES_2)
-		find_path(
-			GLESv2_LIBRARY
-			libGLESv2.lib
-			PATHS
-			"C:/Imagination/PowerVR/GraphicsSDK/SDK_3.1/Builds/Windows/x86_32/Lib/libGLESv2.lib"
-			"C:/Program Files (x86)/ARM/Mali Developer Tools/OpenGL ES 3.0 Emulator v1.0.0/lib/32-bit/libGLESv2.lib"
-			"C:/AdrenoSDK/Lib/Win32/OGLES3/libGLESv2.lib"
-		)
-		if (GLESv2_LIBRARY)
-			set(RENDERSTACK_WINDOW_TOOLKIT_LIBRARIES "${GLESv2_LIBRARY}";${RENDERSTACK_WINDOW_TOOLKIT_LIBRARIES})
-		endif()
+      find_path(
+         GLESv2_LIBRARY
+         libGLESv2.lib
+         PATHS
+         "C:/Imagination/PowerVR/GraphicsSDK/SDK_3.1/Builds/Windows/x86_32/Lib/libGLESv2.lib"
+         "C:/Program Files (x86)/ARM/Mali Developer Tools/OpenGL ES 3.0 Emulator v1.0.0/lib/32-bit/libGLESv2.lib"
+         "C:/AdrenoSDK/Lib/Win32/OGLES3/libGLESv2.lib"
+      )
+      if (GLESv2_LIBRARY)
+         set(RENDERSTACK_WINDOW_TOOLKIT_LIBRARIES "${GLESv2_LIBRARY}";${RENDERSTACK_WINDOW_TOOLKIT_LIBRARIES})
+      endif()
    endif ()
    if (RENDERSTACK_GL_API_OPENGL_ES_3)
-		find_path(
-			GLESv3_LIBRARY
-			libGLESv2.lib
-			PATHS
-			"C:/Imagination/PowerVR/GraphicsSDK/SDK_3.1/Builds/Windows/x86_32/Lib/libGLESv2.lib"
-			"C:/Program Files (x86)/ARM/Mali Developer Tools/OpenGL ES 3.0 Emulator v1.0.0/lib/32-bit/libGLESv2.lib"
-			"C:/AdrenoSDK/Lib/Win32/OGLES3/libGLESv2.lib"
-		)
-		if (GLESv3_LIBRARY)
-			set(RENDERSTACK_WINDOW_TOOLKIT_LIBRARIES "${GLESv3_LIBRARY}";${RENDERSTACK_WINDOW_TOOLKIT_LIBRARIES})
-		endif()
+      find_path(
+         GLESv3_LIBRARY
+         libGLESv2.lib
+         PATHS
+         "C:/Imagination/PowerVR/GraphicsSDK/SDK_3.1/Builds/Windows/x86_32/Lib/libGLESv2.lib"
+         "C:/Program Files (x86)/ARM/Mali Developer Tools/OpenGL ES 3.0 Emulator v1.0.0/lib/32-bit/libGLESv2.lib"
+         "C:/AdrenoSDK/Lib/Win32/OGLES3/libGLESv2.lib"
+      )
+      if (GLESv3_LIBRARY)
+         set(RENDERSTACK_WINDOW_TOOLKIT_LIBRARIES "${GLESv3_LIBRARY}";${RENDERSTACK_WINDOW_TOOLKIT_LIBRARIES})
+      endif()
    endif ()
 endif()
 

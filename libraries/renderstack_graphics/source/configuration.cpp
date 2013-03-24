@@ -7,6 +7,7 @@
 #include <cctype>
 #include <cstdlib>
 #include <list>
+#include <stdexcept>
 
 log_category graphics_configuration(C_GREEN, C_GRAY, LOG_TRACE);
 #define LOG_CATEGORY &graphics_configuration

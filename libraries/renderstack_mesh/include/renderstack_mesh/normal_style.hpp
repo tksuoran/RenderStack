@@ -3,17 +3,16 @@
 
 namespace renderstack { namespace mesh {
 
-class normal_style
+namespace normal_style
 {
-public:
    enum value
    {
       corner_normals,
       polygon_normals,
       point_normals
    };
-   static const char *desc(enum value a);
-};
+   const char *desc(enum value a);
+}
 
 } }
 

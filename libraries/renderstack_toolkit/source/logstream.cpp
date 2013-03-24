@@ -7,6 +7,7 @@
 # include <unistd.h>
 #endif
 #include <iostream>
+#include <cstdarg>
 
 #if defined(WIN32) && 0
 debugstream s_debug;
