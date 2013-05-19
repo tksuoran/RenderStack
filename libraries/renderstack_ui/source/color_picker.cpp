@@ -155,10 +155,11 @@ void color_picker::draw_self(ui_context &context)
       {
          if (context.mouse_buttons[0 /* TODO glfw_mouse_button_left*/])
          {
-            int x = context.mouse.x;
-            int y = context.mouse.y;
+            double x = context.mouse.x;
+            double y = context.mouse.y;
             unsigned char data[4];
-            gl::read_pixels(x, y, 1, 1, gl::pixel_format::rgba, gl::pixel_type::unsigned_byte, data);
+
+            gl::read_pixels(dround(x), dround(y), 1, 1, gl::pixel_format::rgba, gl::pixel_type::unsigned_byte, data);
 
             float r2 = float(data[0]) / 255.0f;
             float g2 = float(data[1]) / 255.0f;

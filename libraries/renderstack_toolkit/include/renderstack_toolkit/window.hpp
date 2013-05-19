@@ -31,8 +31,8 @@ public:
    void     make_current();
 
    int      get_mouse_button  (int button);
-   void     get_mouse_pos     (int &xpos, int &ypos);
-   void     set_mouse_pos     (int xpos, int ypos);
+   void     get_mouse_pos     (double &xpos, double &ypos);
+   void     set_mouse_pos     (double xpos, double ypos);
    void     capture_mouse     (bool capture);
    bool     get_mouse_capture () const;
    void     show_cursor       (bool show);
@@ -90,7 +90,7 @@ public:
    virtual void update();
    virtual void on_key_down(int key);
    virtual void on_key_up(int key);
-   virtual void on_mouse_moved(int x, int y);
+   virtual void on_mouse_moved(double x, double y);
    virtual void on_mouse_button(int button, int value);
    virtual void on_scroll(double x, double y);
 };

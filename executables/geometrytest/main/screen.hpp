@@ -13,7 +13,7 @@ public:
    virtual void on_resize        (int width, int height){(void)width;(void)height;}
    virtual void on_key_down      (int key){(void)key;}
    virtual void on_key_up        (int key){(void)key;}
-   virtual void on_mouse_moved   (int x, int y){(void)x;(void)y;}
+   virtual void on_mouse_moved   (double x, double y){(void)x;(void)y;}
    virtual void on_mouse_button  (int button, int value){(void)button;(void)value;}
    virtual void on_scroll        (double x, double y){(void)x;(void)y;}
 };

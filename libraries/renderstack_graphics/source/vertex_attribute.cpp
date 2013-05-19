@@ -26,13 +26,13 @@ const char *vertex_attribute_usage::desc(enum value a)
 }
 
 vertex_attribute::vertex_attribute(
-   vertex_attribute_usage::value           usage,
-   gl::vertex_attrib_pointer_type::value   data_type,
-   gl::vertex_attrib_pointer_type::value   shader_type,
-   size_t                                  index,
-   size_t                                  dimension,
-   size_t                                  offset,
-   bool                                    normalized
+   vertex_attribute_usage::value          usage,
+   gl::vertex_attrib_pointer_type::value  data_type,
+   gl::vertex_attrib_pointer_type::value  shader_type,
+   size_t                                 index,
+   size_t                                 dimension,
+   size_t                                 offset,
+   bool                                   normalized
 )
 :  m_usage        (usage)
 ,  m_data_type    (data_type)

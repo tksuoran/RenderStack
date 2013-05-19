@@ -56,13 +56,14 @@ vertex_stream::~vertex_stream()
 }
 
 vertex_stream_binding &vertex_stream::add(
+   weak_ptr<class vertex_buffer>    vertex_buffer,
    weak_ptr<vertex_stream_mapping>  mapping, 
    weak_ptr<vertex_attribute>       attribute,
    size_t                           stride
 )
 {
    m_vertex_stream_bindings.push_back(
-      vertex_stream_binding(mapping, attribute, stride)
+      vertex_stream_binding(vertex_buffer, mapping, attribute, stride)
    );
    return m_vertex_stream_bindings.back();
 }
@@ -113,6 +114,7 @@ void vertex_stream::setup_attribute_pointers(GLint base_vertex)
 }
 
 #if defined(RENDERSTACK_GL_API_OPENGL_WITH_LEGACY)
+// This path is outdated
 void vertex_stream::setup_attribute_pointers_old(GLint basevertex)
 {
    for (auto i = m_vertex_stream_bindings.begin(); i != m_vertex_stream_bindings.end(); ++i)
@@ -185,6 +187,7 @@ void vertex_stream::setup_attribute_pointers_new(GLint basevertex)
    for (auto i = m_vertex_stream_bindings.begin(); i != m_vertex_stream_bindings.end(); ++i)
    {
       auto binding    = *i;
+      auto vbo        = binding.vertex_buffer().lock();
       auto attribute  = binding.vertex_attribute().lock();
       auto mapping    = binding.vertex_stream_mapping().lock();
 
@@ -192,14 +195,31 @@ void vertex_stream::setup_attribute_pointers_new(GLint basevertex)
       assert(mapping);
 
       gl::enable_vertex_attrib_array(mapping->dst_index());
+
 #if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
-      if (
-         (attribute->shader_type() == gl::vertex_attrib_pointer_type::double_   ) ||
-         (attribute->shader_type() == gl::vertex_attrib_pointer_type::float_    ) ||
-         (attribute->shader_type() == gl::vertex_attrib_pointer_type::half_float)
-      )
-#endif
+      switch (attribute->shader_type())
       {
+      case gl::vertex_attrib_pointer_type::byte:
+      case gl::vertex_attrib_pointer_type::unsigned_byte:
+      case gl::vertex_attrib_pointer_type::short_:
+      case gl::vertex_attrib_pointer_type::unsigned_short:
+      case gl::vertex_attrib_pointer_type::int_:
+      case gl::vertex_attrib_pointer_type::unsigned_int:
+         gl::vertex_attrib_i_pointer(
+            mapping->dst_index(),
+            static_cast<GLint>(attribute->dimension()),
+            attribute->data_type(),
+            static_cast<GLsizei>(binding.stride()),
+            reinterpret_cast<char*>(basevertex * binding.stride() + attribute->offset())
+         );
+         break;
+
+      case gl::vertex_attrib_pointer_type::float_:
+      case gl::vertex_attrib_pointer_type::double_:
+      case gl::vertex_attrib_pointer_type::half_float:
+      case gl::vertex_attrib_pointer_type::fixed:
+      case gl::vertex_attrib_pointer_type::unsigned_int_2101010_rev:
+      case gl::vertex_attrib_pointer_type::int_2101010_rev:
          gl::vertex_attrib_pointer(
             mapping->dst_index(),
             static_cast<GLint>(attribute->dimension()), 
@@ -208,18 +228,21 @@ void vertex_stream::setup_attribute_pointers_new(GLint basevertex)
             static_cast<GLsizei>(binding.stride()), 
             reinterpret_cast<char*>(basevertex * binding.stride() + attribute->offset())
          );
+         break;
+
+      default:
+         throw std::runtime_error("Bad vertex attrib pointer type");
+         break;
       }
-#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
-      else
-      {
-         gl::vertex_attrib_i_pointer(
-            mapping->dst_index(),
-            static_cast<GLint>(attribute->dimension()),
-            attribute->data_type(),
-            static_cast<GLsizei>(binding.stride()),
-            reinterpret_cast<char*>(basevertex * binding.stride() + attribute->offset())
-         );
-      }
+#else
+      gl::vertex_attrib_pointer(
+         mapping->dst_index(),
+         static_cast<GLint>(attribute->dimension()), 
+         attribute->data_type(), 
+         attribute->normalized(),
+         static_cast<GLsizei>(binding.stride()), 
+         reinterpret_cast<char*>(basevertex * binding.stride() + attribute->offset())
+      );
 #endif
    }
 }

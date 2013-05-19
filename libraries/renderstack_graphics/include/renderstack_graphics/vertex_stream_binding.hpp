@@ -18,13 +18,15 @@ class vertex_stream_binding
 {
 public:
    vertex_stream_binding(
+      std::weak_ptr<class vertex_buffer>           vertex_buffer,
       std::weak_ptr<class vertex_stream_mapping>   mapping,
       std::weak_ptr<class vertex_attribute>        attribute,
       std::size_t                                  stride
    );
 
    vertex_stream_binding(vertex_stream_binding const &other)
-   :  m_vertex_stream_mapping (other.vertex_stream_mapping())
+   :  m_vertex_buffer         (other.vertex_buffer())
+   ,  m_vertex_stream_mapping (other.vertex_stream_mapping())
    ,  m_vertex_attribute      (other.vertex_attribute())
    ,  m_stride                (other.stride())
    {
@@ -38,11 +40,14 @@ public:
 
    void swap(vertex_stream_binding &other) 
    {
+      m_vertex_buffer.swap(other.vertex_buffer());
       m_vertex_stream_mapping.swap(other.vertex_stream_mapping());
       m_vertex_attribute.swap(other.vertex_attribute());
       std::swap(m_stride, other.stride_());
    }
 
+   std::weak_ptr<class vertex_buffer>           const &vertex_buffer() const;
+   std::weak_ptr<class vertex_buffer>           &vertex_buffer();
    std::weak_ptr<class vertex_stream_mapping>   const &vertex_stream_mapping() const;
    std::weak_ptr<class vertex_stream_mapping>   &vertex_stream_mapping();
    std::weak_ptr<class vertex_attribute>        const &vertex_attribute() const;
@@ -53,6 +58,7 @@ private:
    std::size_t                                  &stride_() { return m_stride; }
 
 private:
+   std::weak_ptr<class vertex_buffer>           m_vertex_buffer;
    std::weak_ptr<class vertex_stream_mapping>   m_vertex_stream_mapping;
    std::weak_ptr<class vertex_attribute>        m_vertex_attribute;
    std::size_t                                  m_stride;

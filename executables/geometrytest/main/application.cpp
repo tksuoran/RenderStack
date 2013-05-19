@@ -92,7 +92,7 @@ void application::on_key_up(int key)
 {
    m_screen->on_key_up(key);
 }
-void application::on_mouse_moved(int x, int y)
+void application::on_mouse_moved(double x, double y)
 {
    m_screen->on_mouse_moved(x, y);
 }

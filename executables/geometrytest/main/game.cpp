@@ -526,7 +526,7 @@ void game::on_key_up(int key)
    }
 #endif
 }
-void game::on_mouse_moved(int x, int y)
+void game::on_mouse_moved(double x, double y)
 {
    if (m_controls.mouse_locked == false)
    {
@@ -542,19 +542,19 @@ void game::on_mouse_moved(int x, int y)
       return;
    }
 
-   int x_delta = x - m_controls.mouse_x;
-   int y_delta = y - m_controls.mouse_y;
+   double x_delta = x - m_controls.mouse_x;
+   double y_delta = y - m_controls.mouse_y;
 
    if (x_delta != 0)
    {
-      float value = (float)(x_delta) / 8192.0f;
+      float value = static_cast<float>(x_delta / 8192.0);
       m_controls.camera_controller.rotate_y().adjust(-value);
       m_controls.mouse_x = x;
    }
 
    if (y_delta != 0)
    {
-      float value = (float)(y_delta) / 8192.0f;
+      float value = static_cast<float>(y_delta / 8192.0);
       m_controls.camera_controller.rotate_x().adjust(-value);
       m_controls.mouse_y = y;
    }

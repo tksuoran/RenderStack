@@ -6,16 +6,26 @@ namespace renderstack { namespace graphics {
 using namespace std;
 
 vertex_stream_binding::vertex_stream_binding(
+   weak_ptr<class vertex_buffer>          vertex_buffer,
    weak_ptr<class vertex_stream_mapping>  mapping,
    weak_ptr<class vertex_attribute>       attribute,
    size_t                                 stride
 )
-:  m_vertex_stream_mapping(mapping)
+:  m_vertex_buffer(vertex_buffer)
+,  m_vertex_stream_mapping(mapping)
 ,  m_vertex_attribute(attribute)
 ,  m_stride(stride)
 {
 }
 
+weak_ptr<class vertex_buffer> const &vertex_stream_binding::vertex_buffer() const
+{
+   return m_vertex_buffer;
+}
+weak_ptr<class vertex_buffer> &vertex_stream_binding::vertex_buffer()
+{
+   return m_vertex_buffer;
+}
 weak_ptr<class vertex_stream_mapping> const &vertex_stream_binding::vertex_stream_mapping() const
 {
    return m_vertex_stream_mapping;

@@ -21,14 +21,17 @@ public:
    vertex_stream();
    ~vertex_stream();
 
-   vertex_stream_binding   &add(std::weak_ptr<vertex_stream_mapping> mapping, std::weak_ptr<vertex_attribute> attribute, std::size_t stride);
-   void                    clear();
-   std::size_t             count() const { return m_vertex_stream_bindings.size(); }
-
-   bool     use();
-   void     setup_attribute_pointers(GLint basevertex = 0);
-   void     disable_attributes();
-   uint32_t last_base_vertex();
+   vertex_stream_binding &add(
+      std::weak_ptr<class vertex_buffer>     vertex_buffer,
+      std::weak_ptr<vertex_stream_mapping>   mapping,
+      std::weak_ptr<vertex_attribute>        attribute,
+      std::size_t                            stride);
+   void        clear();
+   std::size_t count() const { return m_vertex_stream_bindings.size(); }
+   bool        use();
+   void        setup_attribute_pointers(GLint basevertex = 0);
+   void        disable_attributes();
+   uint32_t    last_base_vertex();
 
 private:
 #if defined(SUPPORT_LEGACY_OPENGL)

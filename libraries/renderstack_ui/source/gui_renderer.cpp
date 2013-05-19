@@ -55,7 +55,7 @@ gui_renderer::gui_renderer()
 {
    slog_trace("gui_renderer::gui_renderer()");
 
-   m_mappings = renderstack::graphics::context::current()->make_vertex_stream_mappings("gui_renderer mappings");
+   m_mappings = make_shared<renderstack::graphics::vertex_stream_mappings>();
    m_mappings->add("a_position",       vertex_attribute_usage::position,   0, 0);
    m_mappings->add("a_normal",         vertex_attribute_usage::normal,     0, 1);
    m_mappings->add("a_normal_flat",    vertex_attribute_usage::normal,     1, 2);
@@ -82,7 +82,8 @@ gui_renderer::gui_renderer()
       false
    );
 
-   m_vertex_stream = m_mappings->make_vertex_stream(m_vertex_format);
+   m_vertex_stream = make_shared<renderstack::graphics::vertex_stream>();
+   m_mappings->add_to_vertex_stream(m_vertex_stream, m_vertex_buffer, m_vertex_format);
    m_vertex_stream->use();
 
    m_vertex_buffer = make_shared<renderstack::graphics::vertex_buffer>(

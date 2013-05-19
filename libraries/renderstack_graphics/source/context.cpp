@@ -50,9 +50,7 @@ context::context()
 ,  s_mapped_vertex_buffer(nullptr)
 ,  s_mapped_uniform_buffer(nullptr)
 ,  s_next_uniform_block_binding_point(0)
-,  s_vertex_stream_mappings_instance_index(0)
 {
-   s_global_vertex_stream_mappings = make_vertex_stream_mappings("global vertex_stream_mappings");
 }
 context::~context()
 {
@@ -173,20 +171,6 @@ std::shared_ptr<renderstack::graphics::samplers> context::global_samplers()
    if (!s_global_samplers)
       s_global_samplers = std::make_shared<renderstack::graphics::samplers>();
    return s_global_samplers;
-}
-
-/*std::shared_ptr<vertex_stream_mappings> context::global_vertex_stream_mappings()
-{
-   return s_global_vertex_stream_mappings;
-}*/
-std::shared_ptr<vertex_stream_mappings> context::make_vertex_stream_mappings(std::string const &name)
-{ 
-   return std::shared_ptr<vertex_stream_mappings>(
-      new vertex_stream_mappings(
-         name, 
-         s_vertex_stream_mappings_instance_index++
-      )
-   );
 }
 
 class shader_monitor &context::shader_monitor()

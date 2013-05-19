@@ -11,6 +11,11 @@ inline int round(float num)
     return (int)((num > 0.0f) ? std::floor(num + 0.5f) : std::ceil(num - 0.5f));
 }
 
+inline int dround(double num)
+{
+    return (int)((num > 0.0) ? std::floor(num + 0.5) : std::ceil(num - 0.5));
+}
+
 inline unsigned int uint_from_vector3(glm::vec3 const &v)
 {
     float  rf  = v.x * 255.0f;

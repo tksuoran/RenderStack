@@ -53,8 +53,6 @@ private:
 public:
    std::shared_ptr<uniform_block>                     make_uniform_block(std::string const &name);
    std::shared_ptr<renderstack::graphics::samplers>   global_samplers();
-   std::shared_ptr<vertex_stream_mappings>            make_vertex_stream_mappings(std::string const &name);
-   //std::shared_ptr<vertex_stream_mappings>            global_vertex_stream_mappings();
    class shader_monitor                               &shader_monitor();
 
 private:
@@ -74,8 +72,6 @@ private:
    uniform_block_collection         s_uniform_block_instances;
 
    std::shared_ptr<vertex_stream_mappings>            s_global_vertex_stream_mappings;
-   unsigned int                                       s_vertex_stream_mappings_instance_index;
-   vertex_stream_mappings_collection                  s_vertex_stream_mappings_collection;
 
    class shader_monitor                               m_shader_monitor;
    std::shared_ptr<renderstack::graphics::samplers>   s_global_samplers;

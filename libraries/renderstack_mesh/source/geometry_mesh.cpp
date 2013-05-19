@@ -296,14 +296,9 @@ void geometry_mesh::build_mesh_from_geometry(
    if (format_info.want_centroid_points())
       total_index_count += mi.index_count_centroid_points;
 
-   // Prepare VAO, part 1. 
-   setup_vertex_stream(format_info.mappings());
-   vertex_stream()->use();
-   // Can't do these yet as we don't have vbo / ibo yet as we are just about to create them.
-   // We do need to make sure that we have a right VAO bound when we create them though.
-   //    get_mesh()->vertex_buffer()->bind();
-   //    get_mesh()->index_buffer()->bind();
-   //    vertex_stream()->setup_attribute_pointers(0);
+   // Prepare VAO, so that it is bound while we work on VBO and IBO
+   m_vertex_stream = make_shared<renderstack::graphics::vertex_stream>();
+   vertex_stream()->use(); // VAO is in default state at this point
 
    if (buffer_info.vertex_buffer())
    {
@@ -317,6 +312,9 @@ void geometry_mesh::build_mesh_from_geometry(
       // No shared VBO, allocate individual VBO
       m_mesh->allocate_vertex_buffer(m_vertex_format->stride(), total_vertex_count);
    }
+
+   // Complete VAO by setting up vertex attribute pointers
+   setup_vertex_stream(buffer_info, format_info.mappings());
 
    m_mesh->vertex_buffer()->bind();
    char *vertex_start = reinterpret_cast<char *>(
@@ -605,9 +603,14 @@ void geometry_mesh::build_mesh_from_geometry(
    m_vertex_stream.use();
 }*/
 
-void geometry_mesh::setup_vertex_stream(shared_ptr<renderstack::graphics::vertex_stream_mappings> mappings)
+void geometry_mesh::setup_vertex_stream(
+   geometry_mesh_buffer_info const &buffer_info,
+   shared_ptr<renderstack::graphics::vertex_stream_mappings> mappings)
 {
-   m_vertex_stream = mappings->make_vertex_stream(vertex_format());
+   mappings->add_to_vertex_stream(
+      m_vertex_stream,
+      buffer_info.vertex_buffer(),
+      buffer_info.vertex_format());
 }
 
 static inline void write(

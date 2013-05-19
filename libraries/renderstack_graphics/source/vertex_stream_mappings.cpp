@@ -16,18 +16,11 @@ namespace renderstack { namespace graphics {
 using namespace std;
 
 
-vertex_stream_mappings::vertex_stream_mappings(std::string const &name, unsigned int instance_index)
-:  m_name(name)
-,  m_instance_index(instance_index)
+vertex_stream_mappings::vertex_stream_mappings()
 {
 }
 vertex_stream_mappings::~vertex_stream_mappings()
 {
-}
-
-unsigned int vertex_stream_mappings::instance_index() const
-{
-   return m_instance_index;
 }
 
 void vertex_stream_mappings::clear()
@@ -93,12 +86,14 @@ void vertex_stream_mappings::bind_attrib_locations(program &program)
       program.bind_attrib_location((*mapping)->dst_index(), (*mapping)->name());
 }
 
-std::shared_ptr<vertex_stream> vertex_stream_mappings::make_vertex_stream(
-   std::shared_ptr<vertex_format> vertex_format
+void vertex_stream_mappings::add_to_vertex_stream(
+   std::shared_ptr<class vertex_stream> vertex_stream,
+   std::shared_ptr<class vertex_buffer> vertex_buffer,
+   std::shared_ptr<class vertex_format> vertex_format
 ) const
 {
-   std::shared_ptr<vertex_stream> vertex_stream = std::make_shared<class vertex_stream>();
-   slog_trace("vertex_stream_mappings::bind_attributes()", m_name.c_str());
+   //std::shared_ptr<vertex_stream> vertex_stream = std::make_shared<class vertex_stream>();
+   slog_trace("vertex_stream_mappings::bind_attributes()");
 
    if (vertex_stream->count() != 0)
       throw runtime_error("this vertex stream is already bound");
@@ -117,13 +112,13 @@ std::shared_ptr<vertex_stream> vertex_stream_mappings::make_vertex_stream(
             static_cast<unsigned int>(attribute->index()));
 
          vertex_stream->add(
+            vertex_buffer,
             *mapping,
             attribute,
             vertex_format->stride()
          );
       }
    }
-   return vertex_stream;
 }
 
 } }

@@ -306,7 +306,7 @@ void menu::on_key_up(int key)
 {
    (void)key;
 }
-void menu::on_mouse_moved(int x, int y)
+void menu::on_mouse_moved(double x, double y)
 {
    (void)x;
    (void)y;
@@ -437,9 +437,11 @@ void menu::render()
       ui_context c;
       int iw = m_application->width();
       int ih = m_application->height();
-
-      m_application->get_mouse_pos(c.mouse.x, c.mouse.y);
-      c.mouse.y = ih - 1 - c.mouse.y;
+      double x;
+      double y;
+      m_application->get_mouse_pos(x, y);
+      c.mouse.x = static_cast<float>(x);
+      c.mouse.y = static_cast<float>(ih - 1 - y);
       c.mouse_buttons[0] = (m_application->get_mouse_button(0) != 0);
       c.mouse_buttons[1] = (m_application->get_mouse_button(1) != 0);
       c.mouse_buttons[2] = (m_application->get_mouse_button(2) != 0);

@@ -51,8 +51,8 @@ struct controls
    bool              ignore_mouse;
    bool              left_shift;
    bool              right_shift;
-   int               mouse_x;
-   int               mouse_y;
+   double            mouse_x;
+   double            mouse_y;
    glm::mat4         view_projection;
    glm::mat4         inverse_view_projection;
    glm::vec3         home;
@@ -100,7 +100,7 @@ public:
    void update          ();
    void on_key_down     (int key);
    void on_key_up       (int key);
-   void on_mouse_moved  (int x, int y);
+   void on_mouse_moved  (double x, double y);
    void on_mouse_button (int button, int value);
    void on_scroll       (double x, double y);
 

@@ -97,7 +97,7 @@ static void s_key(GLFWwindow *win, int k, int action)
    }
 }
 
-static void s_mouse_pos(GLFWwindow *win, int x, int y)
+static void s_mouse_pos(GLFWwindow *win, double x, double y)
 {
    class window *window = reinterpret_cast<class window *>(::glfwGetWindowUserPointer(win));
    if (window)
@@ -286,12 +286,12 @@ int window::get_mouse_button(int button)
 {
    return ::glfwGetMouseButton((GLFWwindow*)m_window, button);
 }
-void window::get_mouse_pos(int &xpos, int &ypos)
+void window::get_mouse_pos(double &xpos, double &ypos)
 {
    ::glfwGetCursorPos((GLFWwindow*)m_window, &xpos, &ypos);
 }
 
-void window::set_mouse_pos(int xpos, int ypos)
+void window::set_mouse_pos(double xpos, double ypos)
 {
    ::glfwSetCursorPos((GLFWwindow*)m_window, xpos, ypos);
 }
@@ -360,7 +360,7 @@ void window::on_key_up(int key)
    (void)key;
 }
 
-void window::on_mouse_moved(int x, int y)
+void window::on_mouse_moved(double x, double y)
 {
    (void)x;
    (void)y;

@@ -58,7 +58,7 @@ void programs::prepare_gl_resources()
    monitor.set_dst_path(dst_path);
    monitor.set_src_path(src_path);
 
-   mappings = renderstack::graphics::context::current()->make_vertex_stream_mappings("renderer s_mappings");
+   mappings = make_shared<renderstack::graphics::vertex_stream_mappings>();
    mappings->add("a_position",            vertex_attribute_usage::position,   0, 0);
    mappings->add("a_normal",              vertex_attribute_usage::normal,     0, 1);
    mappings->add("a_normal_flat",         vertex_attribute_usage::normal,     1, 2);

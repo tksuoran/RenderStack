@@ -51,7 +51,9 @@ public:
    std::shared_ptr<renderstack::graphics::vertex_format> vertex_format() { return m_vertex_format; }
    std::shared_ptr<renderstack::graphics::vertex_stream> vertex_stream() { return m_vertex_stream; }
    
-   void setup_vertex_stream(std::shared_ptr<renderstack::graphics::vertex_stream_mappings> mappings);
+   void setup_vertex_stream(
+      geometry_mesh_buffer_info const &buffer_info,
+      std::shared_ptr<renderstack::graphics::vertex_stream_mappings> mappings);
 
    index_range const &fill_indices             () const { return m_fill_indices; }
    index_range const &edge_line_indices        () const { return m_edge_line_indices; }

@@ -16,7 +16,7 @@ namespace renderstack { namespace ui {
 
 struct ui_context
 {
-   glm::ivec2  mouse;
+   glm::vec2   mouse;
    bool        mouse_buttons[3]; // 0 left 1 right 2 middle
 };
 
