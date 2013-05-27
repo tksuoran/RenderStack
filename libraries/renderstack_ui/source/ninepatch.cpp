@@ -4,9 +4,6 @@
 #include "renderstack_ui/gui_renderer.hpp"
 #include "renderstack_ui/style.hpp"
 #include "renderstack_graphics/configuration.hpp"
-#include "renderstack_graphics/context.hpp"
-#include "renderstack_graphics/vertex_buffer.hpp"
-#include "renderstack_graphics/index_buffer.hpp"
 #include "renderstack_graphics/vertex_format.hpp"
 #include "renderstack_graphics/vertex_stream_mappings.hpp"
 #include "renderstack_toolkit/gl.hpp"
@@ -14,7 +11,7 @@
 #include "renderstack_toolkit/lodepng.h"
 #include "renderstack_toolkit/logstream.hpp"
 
-#define LOG_CATEGORY &log_ninepatch
+#define LOG_CATEGORY &log_ui_ninepatch
 
 namespace renderstack { namespace ui {
 
@@ -23,7 +20,10 @@ using namespace gl;
 using namespace renderstack::graphics;
 
 
-ninepatch::ninepatch(shared_ptr<ninepatch_style> style)
+ninepatch::ninepatch(
+   shared_ptr<class gui_renderer>   gui_renderer,
+   shared_ptr<ninepatch_style>      style
+)
 :  m_style(style)
 {
    //  16 vertices, 9 quads 
@@ -35,17 +35,13 @@ ninepatch::ninepatch(shared_ptr<ninepatch_style> style)
    //   4  5  6  7     
    //                  
    //   0  1  2  3     
-   auto uc = renderstack::ui::context::current();
-   auto r = uc->gui_renderer();
+   m_mesh.allocate_vertex_buffer(gui_renderer->vertex_buffer(), 16);
+   m_mesh.allocate_index_buffer(gui_renderer->index_buffer(), 9 * 6);
 
-   r->vertex_stream()->use();
-
-   m_mesh.allocate_vertex_buffer(r->vertex_buffer(), 16);
-   m_mesh.allocate_index_buffer(r->index_buffer(), 9 * 6);
-
-   m_mesh.index_buffer()->bind();
+   gui_renderer->edit_ibo();
    unsigned short *start = static_cast<unsigned short *>(
-      m_mesh.index_buffer()->map_indices(
+      m_mesh.index_buffer()->map(
+         gui_renderer->renderer(),
          m_mesh.first_index(), 
          m_mesh.index_count(), 
          (gl::buffer_access_mask::value)
@@ -79,10 +75,11 @@ ninepatch::ninepatch(shared_ptr<ninepatch_style> style)
    make_quad(14, 15, 11, 10);
 #undef make_quad
 
-   m_mesh.index_buffer()->unmap_indices();
+   m_mesh.index_buffer()->unmap(gui_renderer->renderer());
 }
 
 void ninepatch::place(
+   shared_ptr<class gui_renderer> gui_renderer,
    float x0,
    float y0,
    float width,
@@ -94,9 +91,10 @@ void ninepatch::place(
    m_size.x = width;
    m_size.y = height;
 
-   m_mesh.vertex_buffer()->bind();
+   gui_renderer->edit_vbo();
 
-   float *ptr = (float*)m_mesh.vertex_buffer()->map_vertices(
+   float *ptr = (float*)m_mesh.vertex_buffer()->map(
+      gui_renderer->renderer(),
       m_mesh.first_vertex(),
       m_mesh.vertex_count(),
       (gl::buffer_access_mask::value)
@@ -141,43 +139,27 @@ void ninepatch::place(
       }
    }
 
-   m_mesh.vertex_buffer()->unmap_vertices();
+   m_mesh.vertex_buffer()->unmap(gui_renderer->renderer());
 }
 
-void ninepatch::render()
+void ninepatch::render(shared_ptr<class gui_renderer> renderer)
 {
    slog_trace("ninepatch::render()");
 
    gl::begin_mode::value         begin_mode     = gl::begin_mode::triangles;
    GLsizei                       count          = static_cast<GLsizei>(mesh().index_count());
    gl::draw_elements_type::value index_type     = gl::draw_elements_type::unsigned_short;
-   GLvoid                        *index_pointer = reinterpret_cast<GLvoid*>(mesh().first_index() * mesh().index_buffer()->index_stride());
+   GLvoid                        *index_pointer = reinterpret_cast<GLvoid*>(mesh().first_index() * mesh().index_buffer()->stride());
+   GLint                         base_vertex    = configuration::can_use.draw_elements_base_vertex
+                                                   ? static_cast<GLint>(mesh().first_vertex())
+                                                   : 0;
 
-
-   auto uc = renderstack::ui::context::current();
-   auto r = uc->gui_renderer();
-
-   if (r->vertex_stream()->use())
-   {
-#if defined(RENDERSTACK_GL_API_OPENGL)
-      if (configuration::can_use.draw_elements_base_vertex)
-      {
-         GLint base_vertex = static_cast<GLint>(mesh().first_vertex());
-         gl::draw_elements_base_vertex(begin_mode, count, index_type, index_pointer, base_vertex);
-      }
-      else
-#endif
-      {
-         gl::draw_elements(begin_mode, count, index_type, index_pointer);
-      }
-   }
-   else
-   {
-      r->vertex_buffer()->bind();
-      r->index_buffer()->bind();
-      r->vertex_stream()->setup_attribute_pointers(0);
-      gl::draw_elements(begin_mode, count, index_type, index_pointer);
-   }
+   renderer->draw_elements_base_vertex(
+      begin_mode,
+      count,
+      index_type,
+      index_pointer,
+      base_vertex);
 }
 
 } }

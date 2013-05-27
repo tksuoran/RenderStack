@@ -27,4 +27,9 @@ add_library(
    source/transform.cpp
 )
 
+source_group(
+   "RenderStack Scene Sources"
+   REGULAR_EXPRESSION
+   "include/renderstack_scene/.*\\.inl|include/renderstack_scene/.*\\.hpp|source/.*\\.cpp")
+
 install(TARGETS renderstack_scene DESTINATION lib)

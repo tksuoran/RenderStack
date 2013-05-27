@@ -9,8 +9,7 @@
 #include <list>
 #include <stdexcept>
 
-log_category graphics_configuration(C_GREEN, C_GRAY, LOG_TRACE);
-#define LOG_CATEGORY &graphics_configuration
+#define LOG_CATEGORY &log_graphics_configuration
 
 namespace renderstack { namespace graphics {
 
@@ -86,12 +85,13 @@ configuration::can_use_t::can_use_t()
 
    pixel_buffer_object           = false; //  \todo
 
-	map_buffer_oes						= false;
+	map_buffer_oes                = false;
 	discard_framebuffer_oes       = false;
 	invalidate_framebuffer        = false;
 }
 bool  configuration::throw_program_exceptions             = true;
 unsigned int   configuration::default_vao                 = 0;
+int   configuration::max_vertex_attribs                   = 0;
 int   configuration::max_texture_size                     = 64;
 int   configuration::max_3d_texture_size                  = 0;
 int   configuration::max_cube_map_texture_size            = 0;
@@ -179,7 +179,7 @@ static string get_string(int e)
 }
 
 void configuration::check(vector<string> const &extensions, bool &var, string const &name,
-								  int gl_min_ver, int gles_min_ver, string const &gl_ext)
+                          int gl_min_ver, int gles_min_ver, string const &gl_ext)
 {
 #if defined(RENDERSTACK_GL_API_OPENGL)
    (void)gles_min_ver;
@@ -223,14 +223,14 @@ void configuration::check(vector<string> const &extensions, bool &var, string co
 #endif
 }
 void configuration::check(vector<string> const &extensions, bool &var, string const &name,
-								  int gl_min_ver, int gles_min_ver, string const &gl_ext, string const &gl_ext2, string const &gl_ext3)
+                          int gl_min_ver, int gles_min_ver, string const &gl_ext, string const &gl_ext2, string const &gl_ext3)
 {
 #if defined(RENDERSTACK_GL_API_OPENGL)
    (void)gles_min_ver;
    if (gl_version >= gl_min_ver || 
-		(gl_ext.length() > 1 && contains(extensions, gl_ext)) ||
-		(gl_ext2.length() > 1 && contains(extensions, gl_ext2)) ||
-		(gl_ext3.length() > 1 && contains(extensions, gl_ext3)))
+      (gl_ext.length() > 1 && contains(extensions, gl_ext)) ||
+      (gl_ext2.length() > 1 && contains(extensions, gl_ext2)) ||
+      (gl_ext3.length() > 1 && contains(extensions, gl_ext3)))
    {
       var = true;
       log_info(name.c_str());
@@ -239,9 +239,9 @@ void configuration::check(vector<string> const &extensions, bool &var, string co
 #if defined(RENDERSTACK_GL_API_OPENGL_ES_2) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
    (void)gl_min_ver;
    if (gl_version >= gles_min_ver || 
-		(gl_ext.length() > 1 && contains(extensions, gl_ext)) ||
-		(gl_ext2.length() > 1 && contains(extensions, gl_ext2)) ||
-		(gl_ext3.length() > 1 && contains(extensions, gl_ext3)))
+      (gl_ext.length() > 1 && contains(extensions, gl_ext)) ||
+      (gl_ext2.length() > 1 && contains(extensions, gl_ext2)) ||
+      (gl_ext3.length() > 1 && contains(extensions, gl_ext3)))
    {
       var = true;
       log_info(name.c_str());
@@ -283,6 +283,15 @@ void configuration::initialize()
    gl_version = (major * 100) + (minor * 10);
 
    gl::get_integer_v(GL_MAX_TEXTURE_SIZE, &max_texture_size);
+   log_trace("max texture size: %d\n", max_texture_size);
+
+   if (gl_version >= 200) // TODO extension?
+   {
+      gl::get_integer_v(GL_MAX_VERTEX_ATTRIBS, &max_vertex_attribs);
+      log_trace("max vertex attribs: %d\n", max_vertex_attribs);
+   }
+   else
+      max_vertex_attribs = 0;
 
 #if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
    if (gl_version >= 300)
@@ -439,14 +448,14 @@ void configuration::initialize()
    check(extensions, can_use.map_buffer_oes,             "map_buffer_oes",             999, 999, "GL_OES_mapbuffer");
 	check(extensions, can_use.discard_framebuffer_oes,    "discard_framebuffer_oes",    999, 999, "GL_EXT_discard_framebuffer");
 
-	check(extensions, can_use.texture_3d,						"texture_3d",                 120, 300, "GL_EXT_texture3D",
+	check(extensions, can_use.texture_3d,                 "texture_3d",                 120, 300, "GL_EXT_texture3D",
                                                                                                  "GL_OES_texture_3D");
    check(extensions, can_use.vertex_buffer,              "vertex_buffer",              150, 100, "GL_ARB_vertex_buffer_object");
-	check(extensions, can_use.pixel_buffer_object,			"pixel_buffer_object",			210, 300, "GL_ARB_pixel_buffer_object",
-																																 "GL_NV_pixel_buffer_object");
+	check(extensions, can_use.pixel_buffer_object,        "pixel_buffer_object",        210, 300, "GL_ARB_pixel_buffer_object",
+                                                                                                 "GL_NV_pixel_buffer_object");
    check(extensions, can_use.gpu_shader4,                "gpu_shader4",                300, 300, "GL_EXT_gpu_shader4");
    check(extensions, can_use.map_buffer_range,           "map_buffer_range",           300, 300, "GL_ARB_map_buffer_range",
-																																 "GL_EXT_map_buffer_range");
+                                                                                                 "GL_EXT_map_buffer_range");
    check(extensions, can_use.framebuffer_object,         "framebuffer_object",         300, 200, "GL_ARB_framebuffer_object",
                                                                                                  "GL_OES_framebuffer_object");
    check(extensions, can_use.depth_buffer_float,         "depth_buffer_float",         300, 300, "GL_NV_depth_buffer_float");
@@ -460,7 +469,7 @@ void configuration::initialize()
                                                                                                  "GL_ANGLE_framebuffer_multisample");
    check(extensions, can_use.framebuffer_blit,           "framebuffer_blit",           300, 300, "GL_EXT_framebuffer_blit",
                                                                                                  "GL_NV_framebuffer_blit",
-																																 "GL_ANGLE_framebuffer_blit");
+                                                                                                 "GL_ANGLE_framebuffer_blit");
    check(extensions, can_use.texture_integer,            "texture_integer",            300, 300, "GL_EXT_texture_integer");
    check(extensions, can_use.texture_array,              "texture_array",              300, 300, "GL_EXT_texture_array",
                                                                                                  "GL_NV_texture_array");
@@ -469,9 +478,6 @@ void configuration::initialize()
    check(extensions, can_use.packed_depth_stencil,       "packed_depth_stencil",       300, 300, "GL_EXT_packed_depth_stencil");
    check(extensions, can_use.vertex_array_object,        "vertex_array_object",        300, 300, "GL_ARB_vertex_array_object");
    check(extensions, can_use.integer_framebuffer_format, "integer_framebuffer_format", 300, 300, "GL_EXT_gpu_shader4"); // GL_EXT_texture_integer too?
-   check(extensions, can_use.instanced_arrays,           "instanced_arrays",           300, 300, "GL_ARB_instanced_arrays",
-                                                                                                 "GL_NV_instanced_arrays",
-																																 "GL_ANGLE_instanced_arrays");
    check(extensions, can_use.color_buffer_float,         "color_buffer_float",         300, 999, "GL_ARB_color_buffer_float",
                                                                                                  "GL_EXT_color_buffer_float");
    check(extensions, can_use.draw_instanced,             "draw_instanced",             310, 300, "GL_ARB_draw_instanced",
@@ -479,9 +485,12 @@ void configuration::initialize()
    check(extensions, can_use.uniform_buffer_object,      "uniform_buffer_object",      310, 300, "GL_ARB_uniform_buffer_object");
    check(extensions, can_use.seamless_cube_map,          "seamless_cube_map",          320, 300, "GL_ARB_seamless_cube_map");
    check(extensions, can_use.sampler_object,             "sampler_object",             330, 300, "ARB_sampler_objects");
+   check(extensions, can_use.instanced_arrays,           "instanced_arrays",           330, 300, "GL_ARB_instanced_arrays",
+                                                                                                 "GL_NV_instanced_arrays",
+                                                                                                 "GL_ANGLE_instanced_arrays");
    check(extensions, can_use.transform_feedback,         "transform_feedback",         400, 300, "GL_ARB_transform_feedback3");
    check(extensions, can_use.binary_shaders,             "binary_shaders",             410, 300, "GL_ARB_get_program_binary");
-	check(extensions, can_use.tex_storage,						"tex_storage",						420, 999, "GL_ARB_texture_storage");
+	check(extensions, can_use.tex_storage,                "tex_storage",                420, 300, "GL_ARB_texture_storage");
 	check(extensions, can_use.invalidate_framebuffer,     "invalidate_framebuffer",     430, 999, "GL_ARB_invalidate_subdata");
 
 #if defined(RENDERSTACK_GL_API_OPENGL)

@@ -17,11 +17,8 @@ class uniform_block : public std::enable_shared_from_this<uniform_block>
 public:
    typedef std::vector<std::shared_ptr<uniform> > uniform_collection;
 
-   uniform_block(
-      std::string const &name,
-      std::string const &block_name,
-      unsigned int      binding_point
-   );
+   uniform_block(unsigned int binding_point, std::string const &name);
+   uniform_block(unsigned int binding_point, std::string const &name, std::string const &block_name);
    ~uniform_block()
    {
    }
@@ -51,6 +48,7 @@ public:
    std::shared_ptr<uniform> add_mat4(std::string const &name, unsigned int dimension);
    std::shared_ptr<uniform> add_int(std::string const &name);
    std::shared_ptr<uniform> add_int(std::string const &name, unsigned int dimension);
+   // TODO add_ivecN(), add_uvecN()
    std::shared_ptr<uniform> add_uint(std::string const &name);
    std::shared_ptr<uniform> add_uint(std::string const &name, unsigned int dimension);
 

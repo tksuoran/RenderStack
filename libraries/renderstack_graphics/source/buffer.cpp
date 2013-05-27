@@ -1,6 +1,7 @@
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_graphics/configuration.hpp"
 #include "renderstack_graphics/buffer.hpp"
+#include "renderstack_graphics/renderer.hpp"
 #include "renderstack_toolkit/gl.hpp"
 #include "renderstack_toolkit/logstream.hpp"
 #include <cstdint>
@@ -8,7 +9,7 @@
 #include <cstring>
 #include <stdexcept>
 
-#define LOG_CATEGORY &graphics_buffer
+#define LOG_CATEGORY &log_graphics_buffer
 
 namespace renderstack { namespace graphics {
 
@@ -18,26 +19,116 @@ using namespace std;
 #define GUARD_BYTES 32
 #define DEBUG_BUFFER 1
 
+namespace buffer_target
+{
+
+gl::buffer_target::value gl_buffer_target(value rs_target)
+{
+   switch (rs_target)
+   {
+   case array_buffer        : return gl::buffer_target::array_buffer          ;
+   case element_array_buffer: return gl::buffer_target::element_array_buffer  ;
+   case pixel_pack_buffer   : return gl::buffer_target::pixel_pack_buffer     ;
+   case pixel_unpack_buffer : return gl::buffer_target::pixel_unpack_buffer   ;
+   case copy_read_buffer    : return gl::buffer_target::copy_read_buffer      ;
+   case copy_write_buffer   : return gl::buffer_target::copy_write_buffer     ;
+
+   case uniform_buffer      :
+      if (!configuration::can_use.uniform_buffer_object)
+         throw std::runtime_error("uniform buffer not supported");
+      return gl::buffer_target::uniform_buffer;
+
+   case texture_buffer      :
+      if (!configuration::can_use.texture_buffer_object)
+         throw std::runtime_error("texture buffer not supported");
+      return gl::buffer_target::texture_buffer;
+
+   case draw_indirect_buffer:
+      // TODO can sue
+      return gl::buffer_target::draw_indirect_buffer;
+
+   default:
+      throw std::runtime_error("invalid buffer target");
+   }
+}
+
+const char * const desc(value target)
+{
+   switch (target)
+   {
+   case array_buffer        : return "array_buffer";
+   case element_array_buffer: return "element_array_buffer";
+   case pixel_pack_buffer   : return "pixel_pack_buffer";
+   case pixel_unpack_buffer : return "pixel_unpack_buffer";
+   case copy_read_buffer    : return "copy_read_buffer";
+   case copy_write_buffer   : return "copy_write_buffer";
+   case uniform_buffer      : return "uniform_buffer";
+   case texture_buffer      : return "texture_buffer";
+   case draw_indirect_buffer: return "draw_indirect_buffer";
+
+   default:
+      throw std::runtime_error("invalid buffer target");
+   }
+}
+
+}
+
 buffer::buffer(
-   gl::buffer_target::value      target, 
+   buffer_target::value          target, 
    size_t                        capacity, 
    size_t                        stride,
    gl::buffer_usage_hint::value  usage
 )
-:  m_target       (target)
-,  m_stride       (stride)
-,  m_capacity     (capacity)
-,  m_next_free    (0)
-,  m_buffer_object(0)
+:  m_gl_name   (~0u)
+,  m_target    (target)
+,  m_stride    (stride)
+,  m_capacity  (capacity)
+,  m_next_free (0)
+,  m_usage     (usage)
 {
-   //  vertices
-   gl::gen_buffers(1, &m_buffer_object);
-   bind_buffer(m_target, m_buffer_object);
-   buffer_data(m_target, static_cast<GLintptr>(capacity * stride), nullptr, usage);
+   gl::gen_buffers(1, &m_gl_name);
+
+   log_trace(
+      "buffer::buffer(target = %s, capacity = %u, stride = %u, usage = %s) name = %u",
+      buffer_target::desc(target),
+      static_cast<unsigned int>(capacity),
+      static_cast<unsigned int>(stride),
+      gl::enum_string(usage),
+      m_gl_name
+   );
+}
+
+void buffer::allocate_storage(class renderer &renderer)
+{
+   shared_ptr<class buffer> old;
+
+   if (m_target == buffer_target::element_array_buffer)
+   {
+      auto va = renderer.vertex_array();
+      old = va->set_index_buffer(shared_from_this());
+   }
+   else
+   {
+      old = renderer.set_buffer(m_target, shared_from_this());
+   }
+
+   log_trace(
+      "buffer::allocate_storage() target = %s, name = %u",
+      buffer_target::desc(m_target),
+      m_gl_name
+   );
+
+   buffer_data(
+      buffer_target::gl_buffer_target(m_target),
+      static_cast<GLintptr>(m_capacity * m_stride),
+      nullptr,
+      m_usage
+   );
 
    if (!configuration::can_use.map_buffer_range)
    {
-      size_t new_size = GUARD_BYTES + (capacity * stride) + GUARD_BYTES;
+      size_t new_size = GUARD_BYTES + (m_capacity * m_stride) + GUARD_BYTES;
+
       try
       {
          m_data_copy.resize(new_size);
@@ -47,16 +138,19 @@ buffer::buffer(
          // Most likely we run out of memory :(
          throw runtime_error("memory error in buffer::buffer()");
       }
+
       ::memset(&m_data_copy[0], 0xcd, new_size);
    }
 
-   log_trace(
-      "buffer::buffer(target = %s, capacity = %u, stride = %u, usage = %s)",
-      gl::enum_string(target),
-      static_cast<unsigned int>(capacity),
-      static_cast<unsigned int>(stride),
-      gl::enum_string(usage)
-   );
+   if (m_target == buffer_target::element_array_buffer)
+   {
+      auto va = renderer.vertex_array();
+      (void)va->set_index_buffer(old);
+   }
+   else
+   {
+      (void)renderer.set_buffer(m_target, old);
+   }
 }
 
 void buffer::validate()
@@ -76,17 +170,9 @@ void buffer::validate()
 
 buffer::~buffer()
 {
-   delete_buffers(1, &m_buffer_object);
+   delete_buffers(1, &m_gl_name);
 
    validate();
-}
-
-void buffer::bind()
-{
-   // GLint vao = 0;
-   // gl::get_integer_v(GL_VERTEX_ARRAY_BINDING, &vao);
-
-   bind_buffer(m_target, m_buffer_object);
 }
 
 size_t buffer::allocate(size_t count)
@@ -99,17 +185,20 @@ size_t buffer::allocate(size_t count)
    return first;
 }
 
-void *buffer::map(size_t first, size_t count, gl::buffer_access_mask::value access)
+void *buffer::map(class renderer &renderer, size_t first, size_t count, gl::buffer_access_mask::value access)
 {
-   slog_trace("buffer::map(target = %s first = %u count = %u access = 0x%x)",
-      gl::enum_string(m_target),
+   slog_trace("buffer::map(target = %s first = %u count = %u access = 0x%x) name = %u",
+      buffer_target::desc(m_target),
       static_cast<unsigned int>(first),
       static_cast<unsigned int>(count),
-      access);
+      access,
+      m_gl_name);
 
    // Note, this is in multiples of stride
    if (first + count > m_capacity)
       throw runtime_error("first + count > m_capacity");
+
+   assert(renderer.map_buffer(m_target, shared_from_this()));
 
    m_mapped_offset = static_cast<GLsizeiptr>(first * m_stride);
    m_mapped_size   = static_cast<GLsizeiptr>(count * m_stride);
@@ -119,7 +208,7 @@ void *buffer::map(size_t first, size_t count, gl::buffer_access_mask::value acce
    if (configuration::can_use.map_buffer_range)
    {
       m_mapped_ptr = gl::map_buffer_range(
-         m_target,
+         buffer_target::gl_buffer_target(m_target),
          m_mapped_offset,
          m_mapped_size,
          access
@@ -130,7 +219,7 @@ void *buffer::map(size_t first, size_t count, gl::buffer_access_mask::value acce
    {
       // Access data copy
       uint8_t *start = &m_data_copy[GUARD_BYTES];
-     uint8_t *ptr    = &start[m_mapped_offset];
+      uint8_t *ptr   = &start[m_mapped_offset];
       m_mapped_ptr   = reinterpret_cast<void*>(ptr);
 
 #if defined(_DEBUG)
@@ -156,20 +245,23 @@ void *buffer::map(size_t first, size_t count, gl::buffer_access_mask::value acce
    return m_mapped_ptr;
 }
 
-void buffer::unmap()
+void buffer::unmap(class renderer &renderer)
 {
    slog_trace(
-      "buffer::unmap(target = %s offset = %u size = %u ptr = %p)",
-      gl::enum_string(m_target),
+      "buffer::unmap(target = %s offset = %u size = %u ptr = %p) name = %u",
+      buffer_target::desc(m_target),
       static_cast<unsigned int>(m_mapped_offset),
       static_cast<unsigned int>(m_mapped_size),
-      m_mapped_ptr);
+      m_mapped_ptr,
+      m_gl_name);
    set_text_color(C_GREY);
+
+   assert(renderer.unmap_buffer(m_target, shared_from_this()));
 
 #if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
    if (configuration::can_use.map_buffer_range)
    {
-      GLboolean res = gl::unmap_buffer(m_target);
+      GLboolean res = gl::unmap_buffer(buffer_target::gl_buffer_target(m_target));
       assert(res == GL_TRUE);
    }
    else
@@ -191,7 +283,7 @@ void buffer::unmap()
             throw runtime_error("m_mapped_ptr != reinterpret_cast<void*>(ptr)");
 
          gl::buffer_sub_data(
-            m_target,
+            buffer_target::gl_buffer_target(m_target),
             m_mapped_offset,
             m_mapped_size,
             m_mapped_ptr
@@ -203,26 +295,29 @@ void buffer::unmap()
    m_mapped_access = gl::buffer_access_mask::value(0);
 }
 
-void buffer::flush(size_t first, size_t count)
+void buffer::flush(class renderer &renderer, size_t first, size_t count)
 {
    // unmap will do flush
    size_t offset  = first * m_stride;
    size_t size    = count * m_stride;
 
+   assert(renderer.buffer_is_mapped(m_target, shared_from_this()));
+
 #if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
    if (configuration::can_use.map_buffer_range)
    {
       slog_trace(
-         "buffer::flush(target = %s first = %u count = %u offset = %u size = %u) m_mapped_ptr = %p",
-         gl::enum_string(m_target),
+         "buffer::flush(target = %s first = %u count = %u offset = %u size = %u) m_mapped_ptr = %p name = %u",
+         buffer_target::desc(m_target),
          static_cast<unsigned int>(first),
          static_cast<unsigned int>(count),
          static_cast<unsigned int>(offset),
          static_cast<unsigned int>(size),
-         m_mapped_ptr);
+         m_mapped_ptr,
+         m_gl_name);
                         
       gl::flush_mapped_buffer_range(
-         m_target,
+         buffer_target::gl_buffer_target(m_target),
          static_cast<GLintptr>(offset),
          static_cast<GLsizeiptr>(size)
       );
@@ -233,13 +328,14 @@ void buffer::flush(size_t first, size_t count)
       uint8_t *start = &m_data_copy[GUARD_BYTES];
       uint8_t *ptr   = &start[m_mapped_offset + offset];
 
-      slog_trace("buffer::flush(target = %s first = %u count = %u offset = %u size = %u ptr = %p)",
-         gl::enum_string(m_target),
+      slog_trace("buffer::flush(target = %s first = %u count = %u offset = %u size = %u ptr = %p) name = %u",
+         buffer_target::desc(m_target),
          static_cast<unsigned int>(first),
          static_cast<unsigned int>(count),
          static_cast<unsigned int>(offset),
          static_cast<unsigned int>(size),
-         ptr);
+         ptr,
+         m_gl_name);
 
       validate();
 
@@ -247,7 +343,7 @@ void buffer::flush(size_t first, size_t count)
          throw runtime_error("size > m_mapped_size");
 
       gl::buffer_sub_data(
-         m_target,
+         buffer_target::gl_buffer_target(m_target),
          m_mapped_offset + offset,
          size,
          reinterpret_cast<const GLvoid*>(ptr)
@@ -263,13 +359,13 @@ void buffer::dump() const
    GLint    mapped      = 0;
    uint32_t *data       = nullptr;
 
-   gl::get_buffer_parameter_iv(m_target, GL_BUFFER_MAPPED, &mapped);
+   gl::get_buffer_parameter_iv(buffer_target::gl_buffer_target(m_target), GL_BUFFER_MAPPED, &mapped);
 
    if (mapped == GL_FALSE)
    {
       uint32_t *data = reinterpret_cast<uint32_t *>(
          gl::map_buffer_range(
-            m_target,
+            buffer_target::gl_buffer_target(m_target),
             0,
             m_capacity * m_stride,
             gl::buffer_access_mask::map_read_bit
@@ -283,7 +379,7 @@ void buffer::dump() const
       // This happens if we already had buffer mapped
       data = new uint32_t[count + 1];
 
-      gl::get_buffer_sub_data(m_target, 0, count * 4, data);
+      gl::get_buffer_sub_data(buffer_target::gl_buffer_target(m_target), 0, count * 4, data);
 
       allocated = true;
    }
@@ -301,61 +397,36 @@ void buffer::dump() const
    printf("\n");
 
    if (unmap)
-   {
-      gl::unmap_buffer(m_target);
-   }
+      gl::unmap_buffer(buffer_target::gl_buffer_target(m_target));
 
    if (allocated)
-   {
       delete[] data;
-   }
 }
 #endif
-void buffer::flush_and_unmap(size_t count)
+void buffer::flush_and_unmap(class renderer &renderer, size_t count)
 {
    bool flush_explicit = (m_mapped_access & gl::buffer_access_mask::map_flush_explicit_bit) == gl::buffer_access_mask::map_flush_explicit_bit;
+
+   assert(renderer.buffer_is_mapped(m_target, shared_from_this()));
 
 #if defined(_DEBUG)
    validate();
 #endif
 
-   slog_trace("flush_and_unmap(count = %u)",
-      static_cast<unsigned int>(count));
+   slog_trace("flush_and_unmap(count = %u) name = %u",
+      static_cast<unsigned int>(count), m_gl_name);
 
    //  If explicit is not selected, unmap will do full flush
    //  so we do manual flush only if explicit is selected
    if (flush_explicit)
-      flush(0, count);
+      flush(renderer, 0, count);
 
-   unmap();
+   unmap(renderer);
 }
 
 size_t buffer::free_capacity() const
 {
    return m_capacity - m_next_free;
-}
-
-void buffer::bind_range(unsigned int binding_point, size_t offset, size_t size)
-{
-#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
-   if (configuration::can_use.bind_buffer_range)
-   {
-      gl::bind_buffer_range(
-         m_target, 
-         binding_point, 
-         m_buffer_object, 
-         static_cast<GLsizeiptr>(offset), 
-         static_cast<GLsizeiptr>(size)
-      );
-   }
-   else
-#endif
-   {
-      (void)binding_point;
-      (void)offset;
-      (void)size;
-      throw runtime_error("bind_range() not supported");
-   }
 }
 
 std::size_t buffer::stride() const

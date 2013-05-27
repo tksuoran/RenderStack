@@ -8,10 +8,9 @@
 #include "renderstack_mesh/normal_style.hpp"
 #include "renderstack_mesh/index_range.hpp"
 #include "renderstack_geometry/geometry.hpp"
-#include "renderstack_graphics/index_buffer.hpp"
-#include "renderstack_graphics/vertex_buffer.hpp"
 #include "renderstack_graphics/vertex_format.hpp"
 #include "renderstack_graphics/vertex_stream.hpp"
+#include "renderstack_graphics/renderer.hpp"
 #include <string>
 #include <memory>
 
@@ -29,11 +28,13 @@ class geometry_mesh
 {
 public:
    geometry_mesh(
+      class renderstack::graphics::renderer &renderer,
       std::shared_ptr<renderstack::geometry::geometry> geometry,
       normal_style::value normal_style
    );
 
    geometry_mesh(
+      class renderstack::graphics::renderer &renderer,
       std::shared_ptr<renderstack::geometry::geometry> geometry,
       geometry_mesh_format_info const &format_info,
       geometry_mesh_buffer_info const &buffer_info
@@ -44,6 +45,7 @@ public:
 
 public:
    void build_mesh_from_geometry(
+      class renderstack::graphics::renderer &renderer,
       geometry_mesh_format_info const &format_info,
       geometry_mesh_buffer_info const &buffer_info
    );

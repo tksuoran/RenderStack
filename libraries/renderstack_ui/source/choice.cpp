@@ -5,8 +5,11 @@ namespace renderstack { namespace ui {
 using namespace std;
 using namespace renderstack::toolkit;
 
-choice_item::choice_item(string const &label, shared_ptr<class style> style)
-:  push_button(label, style)
+choice_item::choice_item(
+   shared_ptr<class gui_renderer> renderer,
+   string const &label,
+   shared_ptr<class style> style)
+:  push_button(renderer, label, style)
 {
    set_name("choice item: " + label);
 }
@@ -38,8 +41,13 @@ void choice_item::connect(weak_ptr<class choice> choice)
 }
 
 
-choice::choice(shared_ptr<class style> style, shared_ptr<class style> choice_item_style, orientation::value orientation_in)
-:  dock                 (style, orientation_in)
+choice::choice(
+   shared_ptr<class gui_renderer> renderer,
+   shared_ptr<class style> style,
+   shared_ptr<class style> choice_item_style,
+   orientation::value orientation_in
+)
+:  dock                 (renderer, style, orientation_in)
 ,  m_choice_item_style  (choice_item_style)
 {
    set_name("choice");
@@ -90,7 +98,7 @@ void choice::set_selected(weak_ptr<choice_item> value)
 shared_ptr<choice_item> choice::add_choice_item(string const &label, bool select)
 {
    std::shared_ptr<choice_item> item = smart_ptr_builder::create_shared_ptr<action_source, choice_item, area>(
-      new choice_item(label, m_choice_item_style)
+      new choice_item(renderer(), label, m_choice_item_style)
    );
    // choice_item handles actions itself
    item->set_sink(item); // this can not be done in constructor as shared_from_this won't work

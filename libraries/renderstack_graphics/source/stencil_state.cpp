@@ -1,7 +1,7 @@
 #include "renderstack_toolkit/platform.hpp"
-#include "renderstack_renderer/stencil_state.hpp"
+#include "renderstack_graphics/stencil_state.hpp"
 
-namespace renderstack { namespace renderer {
+namespace renderstack { namespace graphics {
 
 stencil_state const *stencil_state::s_last = nullptr;
 stencil_state stencil_state::s_default;

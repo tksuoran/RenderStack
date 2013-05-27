@@ -12,8 +12,12 @@ private:
    rectangle m_fixed_size;
 
 public:
-   layer(rectangle const &fixed_size)
-   :   m_fixed_size(fixed_size)
+   layer(
+      std::shared_ptr<class gui_renderer> renderer,
+      rectangle const &fixed_size
+   )
+   :  area        (renderer)
+   ,  m_fixed_size(fixed_size)
    {
       reset_parent();
       set_draw_ordering(area_order::post_self);

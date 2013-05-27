@@ -23,28 +23,6 @@ uniform_buffer::~uniform_buffer()
 {
 }
 
-void uniform_buffer::bind()
-{
-   m_buffer.bind();
-}
-
-void uniform_buffer::bind_range(unsigned int binding_point, size_t offset, size_t size)
-{
-   if (configuration::can_use.uniform_buffer_object)
-   {
-      m_buffer.bind_range(
-         binding_point, 
-         offset, 
-         size
-      );
-   }
-   else
-   {
-      throw runtime_error("uniform buffer not supported");
-   }
-   //s_binding_points[binding_point] = &m_data[offset];
-}
-
 size_t uniform_buffer::allocate_bytes(size_t byte_count)
 {
    return m_buffer.allocate(byte_count);

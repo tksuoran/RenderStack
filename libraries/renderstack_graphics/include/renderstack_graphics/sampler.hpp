@@ -23,7 +23,7 @@ public:
    void apply(unsigned int texture_unit, gl::texture_target::value bind_target);
 
 private:
-   unsigned int                    m_sampler;
+   unsigned int                    m_gl_name;
    gl::texture_min_filter::value   m_min_filter;
    gl::texture_mag_filter::value   m_mag_filter;
    gl::texture_wrap_mode::value    m_wrap;

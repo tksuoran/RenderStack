@@ -13,12 +13,13 @@ class menulist : public dock
 {
 public:
    menulist(
-      std::shared_ptr<class style>  style, 
-      orientation::value            orientation, 
-      area_layout_style::value      child_layout_style = area_layout_style::normal
+      std::shared_ptr<class gui_renderer> renderer,
+      std::shared_ptr<class style>        style, 
+      orientation::value                  orientation, 
+      area_layout_style::value            child_layout_style = area_layout_style::normal
    )
-   :   dock        (style, orientation, child_layout_style)
-   ,   m_ninepatch (style->ninepatch_style())
+   :   dock        (renderer, style, orientation, child_layout_style)
+   ,   m_ninepatch (renderer, style->ninepatch_style())
    {
    }
    virtual ~menulist(){}

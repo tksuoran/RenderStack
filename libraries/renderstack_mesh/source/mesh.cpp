@@ -1,12 +1,11 @@
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_toolkit/logstream.hpp"
-#include "renderstack_graphics/vertex_buffer.hpp"
-#include "renderstack_graphics/index_buffer.hpp"
+#include "renderstack_graphics/buffer.hpp"
 #include "renderstack_mesh/mesh.hpp"
 #include "renderstack_mesh/index_range.hpp"
 #include <cassert>
 
-#define LOG_CATEGORY &graphics_mesh
+#define LOG_CATEGORY &log_mesh_mesh
 
 namespace renderstack { namespace mesh {
 
@@ -14,7 +13,9 @@ using namespace std;
 using namespace renderstack::graphics;
 
 mesh::mesh()
-:  m_first_vertex          (0)
+:  m_vertex_buffer   (nullptr)
+,  m_index_buffer    (nullptr)
+,  m_first_vertex          (0)
 ,  m_first_index           (0)
 ,  m_vertex_count          (0)
 ,  m_index_count           (0)
@@ -22,8 +23,8 @@ mesh::mesh()
 {
 }
 
-shared_ptr<renderstack::graphics::vertex_buffer> mesh::vertex_buffer() const { assert(this); return m_vertex_buffer; }
-shared_ptr<renderstack::graphics::index_buffer> mesh::index_buffer() const { assert(this); return m_index_buffer; }
+shared_ptr<renderstack::graphics::buffer> mesh::vertex_buffer() const { assert(this); return m_vertex_buffer; }
+shared_ptr<renderstack::graphics::buffer> mesh::index_buffer() const { assert(this); return m_index_buffer; }
 size_t mesh::first_vertex() const { assert(this); return m_first_vertex; }
 size_t mesh::first_index () const { assert(this); return m_first_index; }
 size_t mesh::vertex_count() const { assert(this); return m_vertex_count; }
@@ -31,6 +32,7 @@ size_t mesh::index_count () const { assert(this); return m_index_count; }
 
 
 void mesh::allocate_vertex_buffer(
+   renderstack::graphics::renderer &renderer, 
    size_t vertex_stride,
    size_t vertex_count,
    gl::buffer_usage_hint::value usage
@@ -43,16 +45,19 @@ void mesh::allocate_vertex_buffer(
       gl::enum_string(usage)
    );
 
-   m_vertex_buffer = std::make_shared<renderstack::graphics::vertex_buffer>(
+   m_vertex_buffer = std::make_shared<renderstack::graphics::buffer>(
+      buffer_target::array_buffer,
       vertex_count,
       vertex_stride, 
       usage
    );
+   m_vertex_buffer->allocate_storage(renderer);
+
    m_vertex_count = vertex_count;
-   m_first_vertex = m_vertex_buffer->allocate_vertices(vertex_count);
+   m_first_vertex = m_vertex_buffer->allocate(vertex_count);
 }
 void mesh::allocate_vertex_buffer(
-   shared_ptr<renderstack::graphics::vertex_buffer> vertex_buffer, 
+   shared_ptr<renderstack::graphics::buffer> vertex_buffer, 
    size_t vertex_count
 )
 {
@@ -63,9 +68,11 @@ void mesh::allocate_vertex_buffer(
 
    m_vertex_buffer = vertex_buffer;
    m_vertex_count = vertex_count;
-   m_first_vertex = vertex_buffer->allocate_vertices(vertex_count);
+   m_first_vertex = vertex_buffer->allocate(vertex_count);
 }
-void mesh::allocate_index_buffer(size_t index_stride, size_t index_count, gl::buffer_usage_hint::value usage)
+void mesh::allocate_index_buffer(
+   renderstack::graphics::renderer &renderer,
+   size_t index_stride, size_t index_count, gl::buffer_usage_hint::value usage)
 {
    slog_trace(
       "mesh::allocate_ibo(index_stride = %u, index_count = %u, usage = %s)",
@@ -74,16 +81,19 @@ void mesh::allocate_index_buffer(size_t index_stride, size_t index_count, gl::bu
       gl::enum_string(usage)
    );
 
-   m_index_buffer = std::make_shared<renderstack::graphics::index_buffer>(
+   m_index_buffer = std::make_shared<renderstack::graphics::buffer>(
+      buffer_target::element_array_buffer,
       index_count,
       index_stride, 
       usage
    );
+   m_index_buffer->allocate_storage(renderer);
+
    m_index_count = index_count;
-   m_first_index = m_index_buffer->allocate_indices(index_count);
+   m_first_index = m_index_buffer->allocate(index_count);
 }
 void mesh::allocate_index_buffer(
-   shared_ptr<renderstack::graphics::index_buffer> index_buffer,
+   shared_ptr<renderstack::graphics::buffer> index_buffer,
    size_t index_count
 )
 {
@@ -95,7 +105,7 @@ void mesh::allocate_index_buffer(
 
    m_index_buffer = index_buffer;
    m_index_count = index_count;
-   m_first_index = index_buffer->allocate_indices(index_count);
+   m_first_index = index_buffer->allocate(index_count);
 }
 void mesh::allocate_index_range(
    gl::begin_mode::value   begin_mode,

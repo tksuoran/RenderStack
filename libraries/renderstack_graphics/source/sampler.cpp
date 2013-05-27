@@ -6,7 +6,7 @@
 namespace renderstack { namespace graphics {
 
 sampler::sampler()
-:  m_sampler      (~0u)
+:  m_gl_name      (~0u)
 ,  m_min_filter   (gl::texture_min_filter::nearest)
 ,  m_mag_filter   (gl::texture_mag_filter::nearest)
 ,  m_wrap         (gl::texture_wrap_mode::clamp_to_edge)
@@ -15,7 +15,7 @@ sampler::sampler()
 {
 #if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
    if (configuration::can_use.sampler_object)
-      gl::gen_samplers(1, &m_sampler);
+      gl::gen_samplers(1, &m_gl_name);
 #endif
 }
 
@@ -23,7 +23,7 @@ sampler::~sampler()
 {
 #if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
    if (configuration::can_use.sampler_object)
-      gl::delete_samplers(1, &m_sampler);
+      gl::delete_samplers(1, &m_gl_name);
 #endif
 }
 
@@ -60,15 +60,15 @@ void sampler::apply(unsigned int texture_unit, gl::texture_target::value bind_ta
 #if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
    if (configuration::can_use.sampler_object)
    {
-      gl::sampler_parameter_i(m_sampler, gl::sampler_parameter::texture_min_filter, m_min_filter);
-      gl::sampler_parameter_i(m_sampler, gl::sampler_parameter::texture_mag_filter, m_mag_filter);
-      gl::sampler_parameter_i(m_sampler, gl::sampler_parameter::texture_compare_mode, m_compare_mode);
-      gl::sampler_parameter_i(m_sampler, gl::sampler_parameter::texture_compare_func, m_compare_func);
-      gl::sampler_parameter_i(m_sampler, gl::sampler_parameter::texture_wrap_s, m_wrap);
-      gl::sampler_parameter_i(m_sampler, gl::sampler_parameter::texture_wrap_t, m_wrap);
-      gl::sampler_parameter_i(m_sampler, gl::sampler_parameter::texture_wrap_r, m_wrap);
+      gl::sampler_parameter_i(m_gl_name, gl::sampler_parameter::texture_min_filter, m_min_filter);
+      gl::sampler_parameter_i(m_gl_name, gl::sampler_parameter::texture_mag_filter, m_mag_filter);
+      gl::sampler_parameter_i(m_gl_name, gl::sampler_parameter::texture_compare_mode, m_compare_mode);
+      gl::sampler_parameter_i(m_gl_name, gl::sampler_parameter::texture_compare_func, m_compare_func);
+      gl::sampler_parameter_i(m_gl_name, gl::sampler_parameter::texture_wrap_s, m_wrap);
+      gl::sampler_parameter_i(m_gl_name, gl::sampler_parameter::texture_wrap_t, m_wrap);
+      gl::sampler_parameter_i(m_gl_name, gl::sampler_parameter::texture_wrap_r, m_wrap);
       gl::tex_parameter_i(bind_target, gl::texture_parameter_name::texture_min_filter, m_min_filter);
-      gl::bind_sampler(texture_unit, m_sampler);
+      gl::bind_sampler(texture_unit, m_gl_name);
    }
    else 
 #endif
@@ -84,7 +84,7 @@ void sampler::apply(unsigned int texture_unit, gl::texture_target::value bind_ta
 
       //  \todo Apply() needs to be called somewhere anyway :P
 
-      //gl::bind_sampler(texture_unit, m_sampler);
+      //gl::bind_sampler(texture_unit, m_gl_name);
    }
 }
 

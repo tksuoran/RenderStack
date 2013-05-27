@@ -1,7 +1,7 @@
 #include "renderstack_toolkit/platform.hpp"
-#include "renderstack_renderer/color_mask_state.hpp"
+#include "renderstack_graphics/color_mask_state.hpp"
 
-namespace renderstack { namespace renderer {
+namespace renderstack { namespace graphics {
 
 color_mask_state color_mask_state::s_default;
 color_mask_state const *color_mask_state::s_last = nullptr;

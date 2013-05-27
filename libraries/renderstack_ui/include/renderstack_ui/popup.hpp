@@ -14,7 +14,10 @@ private:
    bool                        m_is_open;
 
 public:
-   popup(std::shared_ptr<class area> closed, std::shared_ptr<class area> open);
+   popup(
+      std::shared_ptr<class gui_renderer> renderer,
+      std::shared_ptr<class area> closed,
+      std::shared_ptr<class area> open);
 
 public:
    std::shared_ptr<class area> current     () const { return (m_is_open ? m_open : m_closed); }

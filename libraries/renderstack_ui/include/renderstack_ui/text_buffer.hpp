@@ -18,7 +18,11 @@ namespace renderstack { namespace ui {
 class text_buffer
 {
 public:
-   text_buffer(std::shared_ptr<class font> font, std::shared_ptr<renderstack::graphics::vertex_stream_mappings> mappings);
+   text_buffer(
+      std::shared_ptr<class gui_renderer> renderer,
+      std::shared_ptr<class font> font,
+      std::shared_ptr<renderstack::graphics::vertex_stream_mappings> mappings
+   );
    ~text_buffer();
 
    rectangle const               &bounding_box  () const { return m_bounding_box;}
@@ -32,12 +36,13 @@ public:
    std::shared_ptr<class font>   font           ();
 
 private:
-   std::shared_ptr<class font>   m_font;
-   unsigned int                  m_max_chars;
-   rectangle                     m_bounding_box;
-   renderstack::mesh::mesh       m_mesh;
-   float                         *m_vertex_ptr;
-   std::size_t                   m_chars_printed;
+   std::shared_ptr<class gui_renderer> m_renderer;
+   std::shared_ptr<class font>         m_font;
+   unsigned int                        m_max_chars;
+   rectangle                           m_bounding_box;
+   renderstack::mesh::mesh             m_mesh;
+   float                               *m_vertex_ptr;
+   std::size_t                         m_chars_printed;
 };
 
 } }

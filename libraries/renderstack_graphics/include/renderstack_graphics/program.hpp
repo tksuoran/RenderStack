@@ -13,6 +13,8 @@
 
 namespace renderstack { namespace graphics {
 
+class renderer;
+
 class program : public std::enable_shared_from_this<program>
 {
 public:
@@ -62,8 +64,11 @@ public:
    void                             transform_feedback  (std::vector<std::string> varyings, GLenum buffer_mode);
    void                             add                 (std::weak_ptr<class uniform_block> uniform_block);
    void                             link                ();
-   void                             use                 ();
    void                             reload              ();
+
+friend class renderer;
+private:
+   unsigned int gl_name() const { return m_gl_name; }
 
 private:
    struct loaded_shader
@@ -78,7 +83,7 @@ private:
 
    std::string                                                 m_name;
    int                                                         m_glsl_version;
-   unsigned int                                                m_program;
+   unsigned int                                                m_gl_name;
    std::map<std::string, std::weak_ptr<class uniform_block > > m_uniform_blocks;
    std::map<std::string, std::shared_ptr<class uniform > >     m_uniforms;
    std::shared_ptr<class samplers>                             m_samplers;

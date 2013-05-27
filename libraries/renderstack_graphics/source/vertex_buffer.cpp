@@ -8,7 +8,7 @@
 #include <cassert>
 #include <stdexcept>
 
-#define LOG_CATEGORY &log_vbo_pool
+#define LOG_CATEGORY &log_graphics_vertex_buffer
 
 namespace renderstack { namespace graphics {
 
@@ -17,20 +17,15 @@ using namespace gl;
 
 
 vertex_buffer::vertex_buffer(
-   size_t  vertex_capacity, 
-   size_t  vertex_stride,
-   gl::buffer_usage_hint::value usage
+   size_t                        vertex_capacity, 
+   size_t                        vertex_stride,
+   gl::buffer_usage_hint::value  usage
 )
 :  m_buffer(buffer_target::array_buffer, vertex_capacity, vertex_stride, usage)
 {
 }
 vertex_buffer::~vertex_buffer()
 {
-   //delete_buffers(1, &m_vertex_array_object);
-}
-void vertex_buffer::bind()
-{
-   m_buffer.bind();
 }
 size_t vertex_buffer::allocate_vertices(size_t vertex_count)
 {

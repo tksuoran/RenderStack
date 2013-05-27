@@ -11,9 +11,10 @@
 
 namespace renderstack { namespace graphics {
 
+   class buffer;
    class uniform_block;
-   class uniform_buffer;
    class uniform_buffer_range;
+   class renderer;
 
 } }
 
@@ -24,10 +25,11 @@ class lights_uniforms
 {
 public:
    std::shared_ptr<renderstack::graphics::uniform_block>          m_uniform_block;
-   std::shared_ptr<renderstack::graphics::uniform_buffer>         m_uniform_buffer;
+   std::shared_ptr<renderstack::graphics::buffer>                 m_uniform_buffer;
    std::shared_ptr<renderstack::graphics::uniform_buffer_range>   m_uniform_buffer_range;
 
    lights_uniforms(
+      renderstack::graphics::renderer &renderer,
       std::string const &name,
       std::string const &block_name,
       int binding_point,

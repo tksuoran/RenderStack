@@ -1,7 +1,7 @@
 #include "renderstack_scene/light.hpp"
 #include "renderstack_scene/camera.hpp"
 #include "renderstack_graphics/uniform_block.hpp"
-#include "renderstack_graphics/uniform_buffer.hpp"
+#include "renderstack_graphics/buffer.hpp"
 #include "renderstack_graphics/uniform_buffer_range.hpp"
 
 namespace renderstack { namespace scene {
@@ -24,13 +24,14 @@ mat4 light::s_texture_inverse = mat4(
 );
 
 lights_uniforms::lights_uniforms(
+   renderstack::graphics::renderer &renderer,
    string const &name,
    string const &block_name,
    int binding_point,
    int max_light_count
 )
 {
-   m_uniform_block = make_shared<uniform_block>(name, block_name, binding_point);
+   m_uniform_block = make_shared<uniform_block>(binding_point, name, block_name);
    m_uniform_block->add_int(spec.count);
    m_uniform_block->add_vec4(spec.exposure);
    m_uniform_block->add_vec4(spec.bias);
@@ -41,7 +42,13 @@ lights_uniforms::lights_uniforms(
    m_uniform_block->add_mat4(spec.shadow_from_world,   max_light_count);
    m_uniform_block->seal();
 
-   m_uniform_buffer = make_shared<uniform_buffer>(m_uniform_block->size());
+   m_uniform_buffer = make_shared<buffer>(
+      buffer_target::uniform_buffer,
+      m_uniform_block->size(),
+      1
+   );
+   m_uniform_buffer->allocate_storage(renderer);
+
    m_uniform_buffer_range = make_shared<uniform_buffer_range>(
       m_uniform_block,
       m_uniform_buffer

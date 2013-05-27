@@ -3,14 +3,13 @@
 #include "main/game.hpp"
 #include "main/menu.hpp"
 #include "renderstack_graphics/configuration.hpp"
-#include "renderstack_graphics/context.hpp"
 #include "renderstack_graphics/vertex_stream_mappings.hpp"
 #include "renderstack_graphics/uniform_block.hpp"
+#include "renderstack_graphics/renderer.hpp"
 #include "renderstack_toolkit/gl.hpp"
 #include "renderstack_toolkit/strong_gl_enums.hpp"
 #include "renderstack_toolkit/enable_shared_from_this.hpp"
-#include "renderstack_ui/context.hpp"
-#include "renderstack_renderer/context.hpp"
+#include "renderstack_ui/gui_renderer.hpp"
 
 using namespace gl;
 using namespace std;
@@ -37,10 +36,8 @@ bool application::on_exit()
    m_textures.reset();
    m_game.reset();
    m_menu.reset();
-
-   renderstack::ui::context::deinitialize();
-   renderstack::renderer::context::deinitialize();
-   renderstack::graphics::context::deinitialize();
+   m_gui_renderer.reset();
+   m_renderer.reset();
 
    return true;
 }
@@ -48,10 +45,8 @@ bool application::on_load()
 {
    configuration::initialize();
 
-   renderstack::graphics::context::make_current(make_shared<renderstack::graphics::context>());
-
-   renderstack::renderer::context::make_current(make_shared<renderstack::renderer::context>());
-   renderstack::ui::context::make_current(make_shared<renderstack::ui::context>());
+   m_renderer = make_shared<renderstack::graphics::renderer>();
+   m_gui_renderer = make_shared<renderstack::ui::gui_renderer>(m_renderer);
 
    if (m_test_mode)
    {
@@ -66,13 +61,13 @@ bool application::on_load()
       m_programs = make_shared<programs>();
 
       if (m_game)
-         m_game->connect(shared_from_this(), m_menu, m_programs, m_textures);
+         m_game->connect(m_renderer, m_gui_renderer, shared_from_this(), m_menu, m_programs, m_textures);
 
       if (m_menu)
-         m_menu->connect(shared_from_this(), m_game, m_programs, m_textures);
+         m_menu->connect(m_renderer, m_gui_renderer, shared_from_this(), m_game, m_programs, m_textures);
 
       if (m_textures)
-         m_textures->on_load();
+         m_textures->on_load(*m_renderer);
 
       if (m_programs)
          m_programs->prepare_gl_resources();

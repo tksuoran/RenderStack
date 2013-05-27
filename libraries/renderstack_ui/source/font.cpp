@@ -16,12 +16,14 @@
 #include "renderstack_toolkit/gl.hpp"
 #include "renderstack_toolkit/strong_gl_enums.hpp"
 #include "renderstack_graphics/configuration.hpp"
+#include "renderstack_graphics/renderer.hpp"
+#include "renderstack_graphics/texture.hpp"
 #include <stdexcept>
 #include <map>
 #include <memory>
 
-log_category log_font(C_YELLOW, C_GRAY, LOG_WARN);
-#define LOG_CATEGORY &log_font
+log_category log_ui_font(C_YELLOW, C_GRAY, LOG_WARN);
+#define LOG_CATEGORY &log_ui_font
 
 // #define LOG
 
@@ -29,7 +31,7 @@ namespace renderstack { namespace ui {
 
 using namespace gl;
 using namespace std;
-
+using namespace renderstack::graphics;
 /*
 font::font()
 {
@@ -57,14 +59,15 @@ font::font()
 
 font::~font()
 {
-   slog_trace("font::~font()");
-
-   gl::delete_textures(1, &m_texture_object);
-   m_texture_object = 0;
 }
 
 #if defined(RENDERSTACK_USE_FREETYPE)
-font::font(std::string const &path, unsigned int size, float outline_thickness)
+font::font(
+   renderstack::graphics::renderer  &renderer,
+   std::string const                &path,
+   unsigned int                     size,
+   float                            outline_thickness
+)
 :  m_path              (path)
 ,  m_hinting           (true)
 ,  m_regular_grid      (false)
@@ -99,11 +102,7 @@ font::font(std::string const &path, unsigned int size, float outline_thickness)
 
    m_pixel_size = size;
 
-   gen_textures(1, &m_texture_object);
-   gl::active_texture(gl::texture_unit::texture0);
-   bind_texture(texture_target::texture_2d, m_texture_object);
-
-   render();
+   render(renderer);
 }
 void font::validate(FT_Error error)
 {
@@ -113,7 +112,7 @@ void font::validate(FT_Error error)
    if (error)
       throw std::runtime_error("freetype error");
 }
-void font::render()
+void font::render(renderstack::graphics::renderer &renderer)
 {
    slog_trace("font::render()");
 
@@ -462,7 +461,7 @@ void font::render()
 #endif
          }
       }
-      post_process();
+      post_process(renderer);
 
    }
    catch (...)
@@ -473,7 +472,7 @@ void font::render()
 }
 #endif
 
-void font::post_process()
+void font::post_process(renderstack::graphics::renderer &renderer)
 {
    slog_trace("font::post_process()");
 
@@ -494,20 +493,35 @@ void font::post_process()
       f = m_rgb ? gl::pixel_format::rgb            : gl::pixel_format::luminance_alpha;
    }
 
-   gl::tex_image_2d(
-      texture_target::texture_2d, 
-      0,
+   m_texture = make_shared<renderstack::graphics::texture>(
+      renderstack::graphics::texture_target::texture_2d,
       i,
-      m_bitmap->width(), 
-      m_bitmap->height(), 
+      false,
+      m_texture_width,
+      m_texture_height
+   );
+   m_texture->allocate_storage(renderer);
+   unsigned int old_unit;
+   auto old_texture = renderer.set_texture(0, m_texture, &old_unit);
+
+   gl::tex_sub_image_2d(
+      gl::texture_target::texture_2d, 
       0,
+      0,
+      0,
+      m_bitmap->width(), 
+      m_bitmap->height(),
       f,
       gl::pixel_type::unsigned_byte,
       bm.ptr()
    );
 
-   tex_parameter_i(texture_target::texture_2d, texture_parameter_name::texture_min_filter, texture_min_filter::nearest);
-   tex_parameter_i(texture_target::texture_2d, texture_parameter_name::texture_mag_filter, texture_mag_filter::nearest);
+   m_texture->set_min_filter(texture_min_filter::nearest);
+   m_texture->set_mag_filter(texture_mag_filter::nearest);
+
+   m_texture->apply(renderer, 0);
+
+   renderer.restore_texture(texture_target::texture_2d, old_texture, old_unit);
 }
 
 void font::save() const {

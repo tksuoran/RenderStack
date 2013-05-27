@@ -29,9 +29,9 @@ public:
    void add(std::string const &name, vertex_attribute_usage::value src_usage, unsigned int src_index, vertex_attribute_usage::value dst_usage, unsigned int dst_index);
 
    void add_to_vertex_stream(
-      std::shared_ptr<class vertex_stream> vertex_stream,
-      std::shared_ptr<class vertex_buffer> vertex_buffer,
-      std::shared_ptr<class vertex_format> vertex_format) const;
+      std::shared_ptr<class vertex_stream>   vertex_stream,
+      std::shared_ptr<class buffer>          vertex_buffer,
+      std::shared_ptr<class vertex_format>   vertex_format) const;
 
    void bind_attrib_locations(program &program);
    std::vector<std::shared_ptr<vertex_stream_mapping> > const &mappings() const { return m_mappings; }

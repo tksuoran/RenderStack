@@ -51,5 +51,10 @@ add_library(
    ${sources}
 )
 
+source_group(
+   "RenderStack Toolkit Sources"
+   REGULAR_EXPRESSION
+   "include/renderstack_toolkit/.*\\.inl|include/renderstack_toolkit/.*\\.hpp|source/.*\\.cpp")
+
 install(TARGETS renderstack_toolkit DESTINATION lib)
 

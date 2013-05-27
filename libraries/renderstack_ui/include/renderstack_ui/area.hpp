@@ -50,12 +50,14 @@ namespace area_layout_order
    };
 }
 
+class gui_renderer;
+
 class area : public renderstack::toolkit::enable_shared_from_this<area>
 {
 public:
-   area();
-   area(std::shared_ptr<class style> style);
-   area(std::shared_ptr<class style> style, area_layout_order::value layout_x_order, area_layout_order::value layout_y_order);
+   area(std::shared_ptr<class gui_renderer> renderer);
+   area(std::shared_ptr<class gui_renderer> renderer, std::shared_ptr<class style> style);
+   area(std::shared_ptr<class gui_renderer> renderer, std::shared_ptr<class style> style, area_layout_order::value layout_x_order, area_layout_order::value layout_y_order);
    virtual ~area();
 
    typedef std::vector<std::shared_ptr<area> >  area_collection;
@@ -100,9 +102,10 @@ public:
    void                          set_style(std::shared_ptr<class style> value){ m_style = value; }
 
 protected:
-   rectangle                     &rect(){ return m_rect; }
-   void                          set_rect(rectangle const &value){ m_rect = value; }
-   void                          update_in_rect(){ m_in_rect = rect().shrink(style()->padding()); }
+   std::shared_ptr<class renderstack::ui::gui_renderer>   renderer() { return m_renderer; }
+   rectangle                           &rect(){ return m_rect; }
+   void                                set_rect(rectangle const &value){ m_rect = value; }
+   void                                update_in_rect(){ m_in_rect = rect().shrink(style()->padding()); }
 
 public:
    virtual std::shared_ptr<class area> add(std::shared_ptr<class area> area);
@@ -128,30 +131,32 @@ public:
    glm::vec2 const             &do_place(rectangle const &reference_location, glm::vec2 const &grow_direction);
 
 private:
-   std::string                     m_name;
-   std::shared_ptr<class style>    m_style;
-   bool                            m_hidden;
-   glm::vec2                       m_offset_pixels;
-   glm::vec2                       m_offset_self_size_relative;
-   glm::vec2                       m_offset_free_size_relative;
-   glm::vec2                       m_fill_base_pixels;
-   glm::vec2                       m_fill_free_size_relative;
-   std::weak_ptr<class area>       m_parent;
-   area_collection                 m_children;
-   area_order::value               m_draw_ordering;
-   area_order::value               m_event_ordering;
-   area_layout_style::value        m_layout_style;
-   area_layout_order::value        m_layout_x_order;
-   area_layout_order::value        m_layout_y_order;
-   std::weak_ptr<class area>       m_link;
-   glm::vec2                       m_size;
-   rectangle                       m_rect;
-   rectangle                       m_in_rect;
-   bool                            m_clip_to_reference;
+   std::string                   m_name;
+   std::shared_ptr<class renderstack::ui::gui_renderer>
+                                 m_renderer;
+   std::shared_ptr<class style>  m_style;
+   bool                          m_hidden;
+   glm::vec2                     m_offset_pixels;
+   glm::vec2                     m_offset_self_size_relative;
+   glm::vec2                     m_offset_free_size_relative;
+   glm::vec2                     m_fill_base_pixels;
+   glm::vec2                     m_fill_free_size_relative;
+   std::weak_ptr<class area>     m_parent;
+   area_collection               m_children;
+   area_order::value             m_draw_ordering;
+   area_order::value             m_event_ordering;
+   area_layout_style::value      m_layout_style;
+   area_layout_order::value      m_layout_x_order;
+   area_layout_order::value      m_layout_y_order;
+   std::weak_ptr<class area>     m_link;
+   glm::vec2                     m_size;
+   rectangle                     m_rect;
+   rectangle                     m_in_rect;
+   bool                          m_clip_to_reference;
 
-   bool                            m_in_draw;
-   area_collection                 m_add_list;
-   area_collection                 m_remove_list;
+   bool                          m_in_draw;
+   area_collection               m_add_list;
+   area_collection               m_remove_list;
 };
 
 } }

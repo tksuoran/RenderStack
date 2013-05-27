@@ -17,10 +17,18 @@ extern log_category log_menu;
 extern log_category log_programs;
 extern log_category log_textures;
 
+namespace renderstack { namespace renderer { class renderer; } }
+namespace renderstack { namespace ui { class gui_renderer; } }
 
-class application : public renderstack::toolkit::window, public std::enable_shared_from_this<application>
+
+class application
+:  public renderstack::toolkit::window
+,  public std::enable_shared_from_this<application>
 {
 private:
+   std::shared_ptr<renderstack::graphics::renderer>   m_renderer;
+   std::shared_ptr<renderstack::ui::gui_renderer>     m_gui_renderer;
+
    std::shared_ptr<screen>    m_screen;
    std::shared_ptr<screen>    m_last_screen;
    std::shared_ptr<programs>  m_programs;

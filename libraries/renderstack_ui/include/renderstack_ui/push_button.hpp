@@ -17,7 +17,11 @@ public:
    void set_pressed(bool value){ m_pressed = value; }
 
 public:
-   push_button(std::string const &label, std::shared_ptr<class style> style);
+   push_button(
+      std::shared_ptr<class gui_renderer> renderer,
+      std::string const &label,
+      std::shared_ptr<class style> style
+   );
    virtual ~push_button(){}
 
    void draw_self(ui_context &context);

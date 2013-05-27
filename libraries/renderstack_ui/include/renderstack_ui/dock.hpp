@@ -28,9 +28,10 @@ private:
 
 public:
    dock(
-      std::shared_ptr<class style>  style, 
-      orientation::value            orientation, 
-      area_layout_style::value      child_layout_style = area_layout_style::normal
+      std::shared_ptr<class gui_renderer> renderer,
+      std::shared_ptr<class style>        style, 
+      orientation::value                  orientation, 
+      area_layout_style::value            child_layout_style = area_layout_style::normal
    );
    virtual ~dock(){}
 

@@ -9,18 +9,15 @@
 #include "renderstack_ui/gui_renderer.hpp"
 #include "renderstack_toolkit/gl.hpp"
 #include "renderstack_toolkit/logstream.hpp"
+#include "renderstack_graphics/buffer.hpp"
 #include "renderstack_graphics/configuration.hpp"
-#include "renderstack_graphics/context.hpp"
-#include "renderstack_graphics/vertex_buffer.hpp"
-#include "renderstack_graphics/index_buffer.hpp"
 #include "renderstack_graphics/program.hpp"
 #include "renderstack_graphics/uniform_block.hpp"
 #include "renderstack_graphics/uniform_buffer_range.hpp"
 #include "renderstack_graphics/uniform.hpp"
+#include "renderstack_graphics/renderer.hpp"
 #include "renderstack_toolkit/window.hpp"
 #include "renderstack_toolkit/strong_gl_enums.hpp"
-#include "renderstack_renderer/context.hpp"
-#include "renderstack_renderer/renderer.hpp"
 #include "renderstack_ui/button.hpp"
 #include "renderstack_ui/context.hpp"
 #include "renderstack_ui/dock.hpp"
@@ -56,12 +53,16 @@ menu::~menu()
 }
 
 void menu::connect(
+   shared_ptr<renderstack::graphics::renderer>   renderer,
+   shared_ptr<renderstack::ui::gui_renderer>     gui_renderer,
    shared_ptr<application> application,
    shared_ptr<class game>  game,
    shared_ptr<programs>    programs,
    shared_ptr<textures>    textures
 )
 {
+   m_renderer = renderer;
+   m_gui_renderer = gui_renderer;
    m_application = application;
    m_game = game;
    m_programs = programs;
@@ -71,6 +72,8 @@ void menu::disconnect()
 {
    slog_trace("menu::disconnect()");
 
+   m_renderer.reset();
+   m_gui_renderer.reset();
    m_application.reset();
    m_game.reset();
    m_programs.reset();
@@ -93,13 +96,23 @@ void menu::on_load()
    slog_trace("menu::on_load()");
 
 #if defined(RENDER_TEXT) || defined(DEBUG_FONT) 
-   m_font = make_shared<font>("res/fonts/Ubuntu-R.ttf", 48, 4.0f);
-   m_text_buffer = make_shared<text_buffer>(m_font, m_programs->font->mappings());
+   m_font = make_shared<font>(*m_renderer, "res/fonts/Ubuntu-R.ttf", 48, 4.0f);
+   m_text_buffer = make_shared<text_buffer>(
+      m_gui_renderer,
+      m_font,
+      m_programs->font->mappings()
+   );
 #endif
 
    if (renderstack::graphics::configuration::can_use.uniform_buffer_object)
    {
-      m_uniform_buffer = make_shared<uniform_buffer>(m_programs->block->size());
+      m_uniform_buffer = make_shared<buffer>(
+         renderstack::graphics::buffer_target::uniform_buffer,
+         m_programs->block->size(),
+         1
+      );
+      m_uniform_buffer->allocate_storage(*m_renderer);
+
       m_uniform_buffer_range = make_shared<uniform_buffer_range>(
          m_programs->block,
          m_uniform_buffer
@@ -108,21 +121,20 @@ void menu::on_load()
 
    auto p = m_programs->textured;
    auto m = p->mappings();
-   auto uc = renderstack::ui::context::current();
-   auto r = uc->gui_renderer();
+   auto r = m_gui_renderer;
 
 #if defined(RENDER_BACKGROUND)
-   r->vertex_stream()->use();
    m_mesh = make_shared<renderstack::mesh::mesh>();
    m_mesh->allocate_vertex_buffer(r->vertex_buffer(), 4);
    m_mesh->allocate_index_buffer(r->index_buffer(), 6);
 
    /*  Write indices for one quad  */
    {
-      m_mesh->index_buffer()->bind();
+      r->edit_ibo();
       unsigned short *start = static_cast<unsigned short *>(
-         m_mesh->index_buffer()->map_indices(
-         m_mesh->first_index(), 
+         m_mesh->index_buffer()->map(
+            r->renderer(),
+            m_mesh->first_index(), 
             m_mesh->index_count(), 
             (gl::buffer_access_mask::value)
             (
@@ -142,7 +154,7 @@ void menu::on_load()
       *ptr++ = 0 + base_vertex;
       *ptr++ = 1 + base_vertex;
       *ptr++ = 2 + base_vertex;
-      m_mesh->index_buffer()->unmap_indices();
+      m_mesh->index_buffer()->unmap(r->renderer());
    }
 #endif
 
@@ -154,23 +166,23 @@ void menu::on_load()
    float h = (float)m_application->height();
    rectangle size(w, h);
 
-   m_root_layer = smart_ptr_builder::create_shared_ptr<area>(new layer(size));
+   m_root_layer = smart_ptr_builder::create_shared_ptr<area>(new layer(r, size));
    m_root_layer->set_name("m_root_layer");
 
-   auto d = smart_ptr_builder::create_shared_ptr<area>(new menulist(ms, orientation::vertical));
+   auto d = smart_ptr_builder::create_shared_ptr<area>(new menulist(r, ms, orientation::vertical));
    d->set_offset_free_size_relative(glm::vec2( 0.50f,  0.25f));
    d->set_offset_self_size_relative(glm::vec2(-0.50f, -0.50f));
    d->set_child_layout_style(area_layout_style::extend_horizontal);
 
    weak_ptr<action_sink> as = action_sink::shared_from_this();
 
-   m_quit = smart_ptr_builder::create_shared_ptr<action_source, area>(new button("Quit", bs));
+   m_quit = smart_ptr_builder::create_shared_ptr<action_source, area>(new button(r, "Quit", bs));
    m_quit->set_sink(as);
    d->add(m_quit);
 
 	if (m_game)
 	{
-		m_map_editor = smart_ptr_builder::create_shared_ptr<action_source, area>(new button("Map Editor", bs));
+		m_map_editor = smart_ptr_builder::create_shared_ptr<action_source, area>(new button(r, "Map Editor", bs));
 	   m_map_editor->set_sink(as);
 	   d->add(m_map_editor);
 	}
@@ -192,9 +204,7 @@ void menu::on_resize(int width, int height)
    float h = (float)height;  // (float)m_window->height();
 
 #if defined(RENDER_GUI)
-   auto uc = renderstack::ui::context::current();
-   auto r = uc->gui_renderer();
-   r->prepare();
+   auto r = m_gui_renderer;
    r->on_resize(width, height);
 
    m_root_layer->set_layer_size(w, h);
@@ -210,17 +220,24 @@ void menu::on_resize(int width, int height)
    if (use_uniform_buffers)
    {
 #if 0	 // Work around for ARM Ltd. / OpenGL ES Emulator Revision r2p0-00rel0
-      auto p = m_programs->textured;			 1
+      auto p = m_programs->textured;
       p->use();
 #endif
 
       uniform_offsets &o = m_programs->uniform_offsets;
-      m_uniform_buffer_range->bind(m_programs->block->binding_point());
-      unsigned char *start = m_uniform_buffer_range->begin_edit();
+
+      auto buffer = m_uniform_buffer_range->uniform_buffer().lock();
+      //m_renderer->set_buffer(buffer->target(), buffer);
+
+      m_renderer->set_uniform_buffer_range(
+         m_programs->block->binding_point(),
+         m_uniform_buffer_range);
+
+      unsigned char *start = m_uniform_buffer_range->begin_edit(r->renderer());
 
       ::memcpy(&start[o.model_to_clip],   value_ptr(ortho), 16 * sizeof(float));
-      ::memcpy(&start[o.color],				value_ptr(white),  4 * sizeof(float));
-      m_uniform_buffer_range->end_edit();
+      ::memcpy(&start[o.color],           value_ptr(white),  4 * sizeof(float));
+      m_uniform_buffer_range->end_edit(r->renderer());
    }
    else
    {
@@ -228,7 +245,7 @@ void menu::on_resize(int width, int height)
 #if defined(RENDER_BACKGROUND)
       {
          auto p = m_programs->textured;
-         p->use();
+         m_renderer->set_program(p);
          gl::uniform_matrix_4fv(p->uniform_at(m_programs->uniform_keys.model_to_clip), 1, GL_FALSE, value_ptr(ortho));
          gl::uniform_4fv       (p->uniform_at(m_programs->uniform_keys.color        ), 1, value_ptr(white));
       }
@@ -237,7 +254,7 @@ void menu::on_resize(int width, int height)
 #if (defined(RENDER_TEXT) || defined(RENDER_GUI))
       {
          auto p = m_programs->font;
-         p->use();
+         m_renderer->set_program(p);
          gl::uniform_matrix_4fv(p->uniform_at(m_programs->uniform_keys.model_to_clip), 1, GL_FALSE, value_ptr(ortho));
          gl::uniform_4fv       (p->uniform_at(m_programs->uniform_keys.color        ), 1, value_ptr(white));
       }
@@ -247,14 +264,17 @@ void menu::on_resize(int width, int height)
 #if defined(RENDER_BACKGROUND)
    {
       /*  Write corner vertices for one quad  */
-      m_mesh->vertex_buffer()->bind();
-      float *ptr = (float*)m_mesh->vertex_buffer()->map_vertices(
-         m_mesh->first_vertex(),
-         m_mesh->vertex_count(),
-         (gl::buffer_access_mask::value)
-         (
-            gl::buffer_access_mask::map_write_bit | 
-            gl::buffer_access_mask::map_invalidate_range_bit
+      r->edit_vbo();
+      float *ptr = static_cast<float*>(
+         m_mesh->vertex_buffer()->map(
+            r->renderer(),
+            m_mesh->first_vertex(),
+            m_mesh->vertex_count(),
+            (gl::buffer_access_mask::value)
+            (
+               gl::buffer_access_mask::map_write_bit | 
+               gl::buffer_access_mask::map_invalidate_range_bit
+            )
          )
       );
 
@@ -271,19 +291,19 @@ void menu::on_resize(int width, int height)
       *ptr++ =   max_x; *ptr++ = max_y; *ptr++ = 1.0f; *ptr++ = 1.0f;
       *ptr++ =    0.0f; *ptr++ = max_y; *ptr++ = 0.0f; *ptr++ = 1.0f;
 
-      m_mesh->vertex_buffer()->unmap_vertices();
+      m_mesh->vertex_buffer()->unmap(r->renderer());
    }
 #endif
 
 #if defined(RENDER_TEXT)
    if (m_text_buffer)
    {
-      std::string title = "Hello, World!";
-      //std::string title = "The quick brown fox jumps over the lazy dog. 1234567890";
-      //std::string title = "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG. 1234567890";
-      //std::string title = "Volumetric Elements";
-      float x  = std::floor(w / 2.0f);
-      float y  = std::ceil(3.0f * h / 4.0f);
+      string title = "Hello, World!";
+      //string title = "The quick brown fox jumps over the lazy dog. 1234567890";
+      //string title = "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG. 1234567890";
+      //string title = "Volumetric Elements";
+      float x = floor(w / 2.0f);
+      float y = ceil(3.0f * h / 4.0f);
 
       m_text_buffer->begin_print();
       m_text_buffer->print_center(title, x, y);
@@ -350,8 +370,7 @@ void menu::render()
 {
    slog_trace("menu::render()");
 
-   auto uc = renderstack::ui::context::current();
-   auto r = uc->gui_renderer();
+   auto r = m_gui_renderer;
 
    gl::clear_color(0.5f, 0.0f, 0.0f, 1.0f);
    gl::clear(clear_buffer_mask::color_buffer_bit | clear_buffer_mask::depth_buffer_bit);
@@ -364,22 +383,25 @@ void menu::render()
    if (m_textures)
    {
       auto p = m_programs->textured;
-      p->use();
-
-      active_texture(gl::texture_unit::texture0 + 1);
+      m_renderer->set_program(p);
 
 #if defined(DEBUG_FONT)
-      bind_texture(texture_target::texture_2d, m_font->texture());
-      tex_parameter_i(texture_target::texture_2d, texture_parameter_name::texture_min_filter, texture_min_filter::nearest);
-      tex_parameter_i(texture_target::texture_2d, texture_parameter_name::texture_mag_filter, texture_mag_filter::nearest);
+      auto t = m_font->texture();
+      (void)m_renderer->set_texture(1, t);
+      t->set_min_filter(texture_min_filter::nearest);
+      t->set_mag_filter(texture_mag_filter::nearest);
+      t->set_wrap(0, gl::texture_wrap_mode::clamp_to_edge);
+      t->set_wrap(1, gl::texture_wrap_mode::clamp_to_edge);
+      t->apply(*m_renderer, 1);
 #else
-      bind_texture(texture_target::texture_2d, m_textures->background_texture_object);
-      tex_parameter_i(texture_target::texture_2d, texture_parameter_name::texture_min_filter, texture_min_filter::linear);
-      tex_parameter_i(texture_target::texture_2d, texture_parameter_name::texture_mag_filter, texture_mag_filter::linear);
+      auto t = m_textures->background_texture;
+      (void)m_renderer->set_texture(1, t);
+      t->set_min_filter(texture_min_filter::linear);
+      t->set_mag_filter(texture_mag_filter::linear);
+      t->set_wrap(0, gl::texture_wrap_mode::clamp_to_edge);
+      t->set_wrap(1, gl::texture_wrap_mode::clamp_to_edge);
+      t->apply(*m_renderer, 1);
 #endif
-      tex_parameter_i(texture_target::texture_2d, texture_parameter_name::texture_wrap_s, gl::texture_wrap_mode::clamp_to_edge);
-      tex_parameter_i(texture_target::texture_2d, texture_parameter_name::texture_wrap_t, gl::texture_wrap_mode::clamp_to_edge);
-
       assert(m_mesh);
 
       gl::begin_mode::value         begin_mode     = gl::begin_mode::triangles;
@@ -387,29 +409,11 @@ void menu::render()
       gl::draw_elements_type::value index_type     = gl::draw_elements_type::unsigned_short;
       size_t                        first_index    = m_mesh->first_index();
       GLvoid                        *index_pointer = reinterpret_cast<GLvoid*>(first_index * sizeof(unsigned short));
+      GLint base_vertex = configuration::can_use.draw_elements_base_vertex
+         ? static_cast<GLint>(m_mesh->first_vertex())
+         : 0;
       
-      bool vao_path = r->vertex_stream()->use();
-      if (vao_path)
-      {
-#if defined(RENDERSTACK_GL_API_OPENGL)
-         if (configuration::can_use.draw_elements_base_vertex)
-         {
-            GLint base_vertex = static_cast<GLint>(m_mesh->first_vertex());
-            gl::draw_elements_base_vertex(begin_mode, count, index_type, index_pointer, base_vertex);
-         }
-         else
-#endif
-         {
-            gl::draw_elements(begin_mode, count, index_type, index_pointer);
-         }
-      }
-      else
-      {
-         r->vertex_buffer()->bind();
-         r->index_buffer()->bind();
-         r->vertex_stream()->setup_attribute_pointers(0);
-         gl::draw_elements(begin_mode, count, index_type, index_pointer);
-      }
+      r->draw_elements_base_vertex(begin_mode, count, index_type, index_pointer, base_vertex);
    }
 #endif
 
@@ -418,15 +422,20 @@ void menu::render()
    {
       auto p = m_programs->font;
 
-      p->use();
+      m_renderer->set_program(p);
 
       assert(m_font);
 
       enable(gl::enable_cap::blend);
-      active_texture(GL_TEXTURE0);
-      bind_texture(texture_target::texture_2d, m_font->texture());
-      tex_parameter_i(texture_target::texture_2d, texture_parameter_name::texture_min_filter, texture_min_filter::nearest);
-      tex_parameter_i(texture_target::texture_2d, texture_parameter_name::texture_mag_filter, texture_mag_filter::nearest);
+
+      auto t = m_font->texture();
+      (void)m_renderer->set_texture(0, t);
+      t->set_min_filter(texture_min_filter::nearest);
+      t->set_mag_filter(texture_mag_filter::nearest);
+      t->set_wrap(0, gl::texture_wrap_mode::clamp_to_edge);
+      t->set_wrap(1, gl::texture_wrap_mode::clamp_to_edge);
+      t->apply(*m_renderer, 0);
+
       m_text_buffer->render();
       disable(gl::enable_cap::blend);
    }
@@ -445,10 +454,8 @@ void menu::render()
       c.mouse_buttons[0] = (m_application->get_mouse_button(0) != 0);
       c.mouse_buttons[1] = (m_application->get_mouse_button(1) != 0);
       c.mouse_buttons[2] = (m_application->get_mouse_button(2) != 0);
-      auto uc = renderstack::ui::context::current();
-      auto r = uc->gui_renderer();
-      r->prepare();
-      r->on_resize(iw, ih);
+      m_gui_renderer->on_resize(iw, ih);
+      m_gui_renderer->prepare();
       m_root_layer->draw(c);
    }
 #endif

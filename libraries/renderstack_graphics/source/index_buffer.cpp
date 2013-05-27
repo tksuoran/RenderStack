@@ -6,8 +6,7 @@
 #include <cassert>
 #include <stdexcept>
 
-log_category log_ibo_pool(C_GREEN, C_GRAY, LOG_TRACE);
-#define LOG_CATEGORY &log_ibo_pool
+#define LOG_CATEGORY &log_graphics_index_buffer
 
 namespace renderstack { namespace graphics {
 
@@ -25,10 +24,6 @@ index_buffer::index_buffer(
 }
 index_buffer::~index_buffer()
 {
-}
-void index_buffer::bind()
-{
-   m_buffer.bind();
 }
 size_t index_buffer::allocate_indices(size_t index_count)
 {

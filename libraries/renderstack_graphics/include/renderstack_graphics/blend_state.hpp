@@ -1,13 +1,13 @@
-#ifndef renderstack_renderer__blend_state_hpp
-#define renderstack_renderer__blend_state_hpp
+#ifndef renderstack_graphics__blend_state_hpp
+#define renderstack_graphics__blend_state_hpp
 
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_toolkit/gl.hpp"
 #include "renderstack_toolkit/strong_gl_enums.hpp"
-#include "renderstack_renderer/render_state.hpp"
+#include "renderstack_graphics/render_state.hpp"
 #include <glm/glm.hpp>
 
-namespace renderstack { namespace renderer {
+namespace renderstack { namespace graphics {
 
 class blend_state_component
 {

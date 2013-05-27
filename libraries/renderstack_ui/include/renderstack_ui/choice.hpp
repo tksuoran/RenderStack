@@ -15,7 +15,10 @@ namespace renderstack { namespace ui {
 class choice;
 class push_button;
 
-class choice_item : public push_button, public action_sink, public renderstack::toolkit::enable_shared_from_this<choice_item>
+class choice_item
+:  public push_button
+,  public action_sink
+,  public renderstack::toolkit::enable_shared_from_this<choice_item>
 {
 private:
    std::weak_ptr<class choice>   m_choice;
@@ -26,14 +29,21 @@ public:
    void set_label(std::string const &value){ m_label = value; }
 
 public:
-   choice_item(std::string const &label, std::shared_ptr<class style> style);
+   choice_item(
+      std::shared_ptr<class gui_renderer> renderer,
+      std::string const &label,
+      std::shared_ptr<class style> style
+   );
    virtual ~choice_item();
 
    void action(std::weak_ptr<action_source> source);
    void connect(std::weak_ptr<class choice> choice);
 };
 
-class choice : public dock, public action_source, public renderstack::toolkit::enable_shared_from_this<choice>
+class choice
+:  public dock
+,  public action_source
+,  public renderstack::toolkit::enable_shared_from_this<choice>
 {
 private:
    std::weak_ptr<choice_item>                   m_selected;
@@ -46,9 +56,10 @@ public:
    void                                               set_selected(std::weak_ptr<choice_item> value);
 
    choice(
-      std::shared_ptr<class style>  style,
-      std::shared_ptr<class style>  choice_item_style,
-      orientation::value            orientation_in
+      std::shared_ptr<class gui_renderer> renderer,
+      std::shared_ptr<class style>        style,
+      std::shared_ptr<class style>        choice_item_style,
+      orientation::value                  orientation_in
    );
    virtual ~choice();
 

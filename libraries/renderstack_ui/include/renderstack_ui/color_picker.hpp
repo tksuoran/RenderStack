@@ -18,7 +18,7 @@ namespace renderstack { namespace ui {
 class color_picker : public area
 {
 public:
-   color_picker(std::shared_ptr<class style> style);
+   color_picker(std::shared_ptr<class gui_renderer> renderer, std::shared_ptr<class style> style);
    virtual ~color_picker(){}
 
    void animate();

@@ -22,32 +22,33 @@
 #define C_GREY          1|2|4
 #define C_WHITE         1|2|4|8
 
-struct log_category {
+struct log_category
+{
    int color[2];
    int level;
    int indent;
 
-   log_category(int color0, int color1, int level_) {
+   log_category(int color0, int color1, int level_)
+   {
       color[0] = color0;
       color[1] = color1;
       level = level_;
    }
 };
 
-extern log_category graphics_buffer;
-extern log_category log_program;
-extern log_category log_ubo_pool;
-extern log_category log_vbo_pool;
-extern log_category log_vertex_stream;
-extern log_category log_vertex_stream_mappings;
-extern log_category graphics_geometry_mesh;
-extern log_category graphics_mesh;
-extern log_category log_renderer;
-extern log_category log_gui_renderer;
-extern log_category log_button;
-extern log_category log_ninepatch;
-extern log_category log_ninepatch_style;
-extern log_category log_text_buffer;
+extern log_category log_graphics_buffer;
+extern log_category log_graphics_configuration;
+extern log_category log_graphics_program;
+extern log_category log_graphics_vertex_stream;
+extern log_category log_graphics_vertex_stream_mappings;
+extern log_category log_mesh_geometry_mesh;
+extern log_category log_mesh_mesh;
+extern log_category log_graphics_renderer;
+extern log_category log_ui_gui_renderer;
+extern log_category log_ui_button;
+extern log_category log_ui_ninepatch;
+extern log_category log_ui_ninepatch_style;
+extern log_category log_ui_text_buffer;
 
 
 extern void set_text_color(int c);

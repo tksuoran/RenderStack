@@ -29,10 +29,13 @@ public:
    glm::vec2 const                  &size() const { return m_size; }
 
 public:
-   ninepatch(std::shared_ptr<ninepatch_style> style);
+   ninepatch(
+      std::shared_ptr<class gui_renderer> renderer,
+      std::shared_ptr<ninepatch_style>    style
+   );
 
-   void place(float x0, float y0, float width, float height);
-   void render();
+   void place(std::shared_ptr<class gui_renderer> renderer, float x0, float y0, float width, float height);
+   void render(std::shared_ptr<class gui_renderer> renderer);
 };
 
 } }

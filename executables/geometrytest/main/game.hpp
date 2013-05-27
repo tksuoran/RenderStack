@@ -3,6 +3,7 @@
 
 #include "renderstack_toolkit/platform.hpp"
 #include "main/screen.hpp"
+#include "main/programs.hpp"
 #include "renderer/model.hpp"
 #include "renderstack_ui/action.hpp"
 #include "renderstack_toolkit/window.hpp"
@@ -24,9 +25,10 @@ namespace renderstack
    }
    namespace ui
    {
-      class layer;
       class button;
       class font;
+      class gui_renderer;
+      class layer;
       class text_buffer;
    }
    namespace mesh
@@ -41,7 +43,6 @@ namespace renderstack
 
 class vmap;
 class menu;
-class programs;
 class textures;
 class application;
 
@@ -83,6 +84,8 @@ public:
    }
 
    void connect(
+      std::shared_ptr<renderstack::graphics::renderer>   renderer,
+      std::shared_ptr<renderstack::ui::gui_renderer>     gui_renderer,
       std::shared_ptr<application>  application,
       std::shared_ptr<menu>         menu,
       std::shared_ptr<programs>     programs,
@@ -122,19 +125,33 @@ private:
    void update_fixed_step     ();
    void update_once_per_frame ();
 
+   bool use_uniform_buffers() const
+   {
+      // Test all conditions; can_use.uniform_buffer_object can be forced to false
+      bool use_uniform_buffers = 
+         renderstack::graphics::configuration::can_use.uniform_buffer_object &&
+         (m_programs->glsl_version() >= 140) &&
+         (renderstack::graphics::configuration::shader_model_version >= 4);
+      return use_uniform_buffers;
+   }
+
 private:
-   std::shared_ptr<application>                    m_application;
-   std::shared_ptr<menu>                           m_menu;
-   std::shared_ptr<programs>                       m_programs;
-   std::shared_ptr<textures>                       m_textures;
+   std::shared_ptr<application>                       m_application;
 
-   std::shared_ptr<renderstack::ui::font>          m_font;
-   std::shared_ptr<renderstack::ui::text_buffer>   m_text_buffer;
+   std::shared_ptr<renderstack::graphics::renderer>   m_renderer;
+   std::shared_ptr<renderstack::ui::gui_renderer>     m_gui_renderer;
 
-   std::shared_ptr<renderstack::ui::layer>         m_root_layer;
-   std::shared_ptr<renderstack::ui::button>        m_menu_button;
+   std::shared_ptr<menu>                              m_menu;
+   std::shared_ptr<programs>                          m_programs;
+   std::shared_ptr<textures>                          m_textures;
 
-   std::shared_ptr<renderstack::graphics::uniform_buffer>         m_uniform_buffer;
+   std::shared_ptr<renderstack::ui::font>             m_font;
+   std::shared_ptr<renderstack::ui::text_buffer>      m_text_buffer;
+
+   std::shared_ptr<renderstack::ui::layer>            m_root_layer;
+   std::shared_ptr<renderstack::ui::button>           m_menu_button;
+
+   std::shared_ptr<renderstack::graphics::buffer>                 m_uniform_buffer;
    std::shared_ptr<renderstack::graphics::uniform_buffer_range>   m_mesh_render_uniform_buffer_range;
    std::shared_ptr<renderstack::graphics::uniform_buffer_range>   m_text_uniform_buffer_range;
 
@@ -145,8 +162,8 @@ private:
    double                                          m_max_frame_dt;
    double                                          m_simulation_time;
 
-   renderstack::renderer::render_states            m_font_render_states;
-   renderstack::renderer::render_states            m_mesh_render_states;
+   renderstack::graphics::render_states            m_font_render_states;
+   renderstack::graphics::render_states            m_mesh_render_states;
 
    controls                                        m_controls;
    std::vector<

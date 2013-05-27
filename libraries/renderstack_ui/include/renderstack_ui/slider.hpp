@@ -33,10 +33,11 @@ public:
    void set_trigger(bool value){ m_trigger = value; }
 
    slider(
-      std::shared_ptr<class style> style,
-      std::string const            &label, 
-      float                        min, 
-      float                        max
+      std::shared_ptr<class gui_renderer> renderer,
+      std::shared_ptr<class style>        style,
+      std::string const                   &label, 
+      float                               min, 
+      float                               max
    );
    virtual ~slider(){}
 

@@ -331,6 +331,7 @@ void uniform_matrix_4x2fv(GLint a, GLsizei b, GLboolean c, const GLfloat *d);
 void uniform_matrix_3x4fv(GLint a, GLsizei b, GLboolean c, const GLfloat *d);
 void uniform_matrix_4x3fv(GLint a, GLsizei b, GLboolean c, const GLfloat *d);
 #endif
+
 /*  GL_VERSION_3_0  */ 
 
 // OpenGL ES 3.0
@@ -338,7 +339,7 @@ void uniform_matrix_4x3fv(GLint a, GLsizei b, GLboolean c, const GLfloat *d);
 void get_integer_i_v(GLenum a, GLuint b, GLint *c);
 void begin_transform_feedback(GLenum a);
 void end_transform_feedback(void);
-void bind_buffer_range(GLenum a, GLuint b, GLuint c, GLintptr d, GLsizeiptr e);
+void bind_buffer_range(GLenum target, GLuint index, GLuint buffer, GLintptr offset, GLsizeiptr size);
 void bind_buffer_base(GLenum a, GLuint b, GLuint c);
 void transform_feedback_varyings(GLuint a, GLsizei b, const GLchar* *c, GLenum d);
 void get_transform_feedback_varying(GLuint a, GLuint b, GLsizei c, GLsizei *d, GLsizei *e, GLenum *f, GLchar *g);
@@ -405,7 +406,7 @@ void draw_arrays_instanced(GLenum a, GLint b, GLsizei c, GLsizei d);
 void draw_elements_instanced(GLenum a, GLsizei b, GLenum c, const GLvoid *d, GLsizei e);
 #endif
 #if defined(RENDERSTACK_GL_API_OPENGL)
-void tex_buffer(GLenum a, GLenum b, GLuint c);
+void tex_buffer(GLenum target, GLenum internalformat, GLuint buffer);
 void primitive_restart_index(GLuint a);
 #endif
 
@@ -602,6 +603,20 @@ void get_query_indexed_iv(GLenum target, GLuint index, GLenum pname, GLint *para
 #if defined(RENDERSTACK_GL_API_OPENGL)
 void draw_transform_feedback_instanced(GLenum mode, GLuint id, GLsizei primcount);
 void draw_transform_feedback_stream_instanced(GLenum mode, GLuint id, GLuint stream, GLsizei primcount);
+#endif
+
+/*  GL_VERSION_3_3 */
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
+void vertex_attrib_divisor(GLuint index, GLuint divisor);
+#endif
+
+/*  GL_ARB_texture_storage  */
+#if defined(RENDERSTACK_GL_API_OPENGL)
+void tex_storage_1d(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width);
+#endif
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
+void tex_storage_2d(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height);
+void tex_storage_3d(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth);
 #endif
 
 } /* namespace gl */

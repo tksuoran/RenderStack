@@ -471,6 +471,14 @@ extern PFNGLGETQUERYINDEXEDIVPROC                           glGetQueryIndexediv 
 extern PFNGLDRAWTRANSFORMFEEDBACKINSTANCEDPROC              glDrawTransformFeedbackInstanced      ;
 extern PFNGLDRAWTRANSFORMFEEDBACKSTREAMINSTANCEDPROC        glDrawTransformFeedbackStreamInstanced;
 
+/*  GL_VERSION_3_3  */ 
+extern PFNGLVERTEXATTRIBDIVISORPROC                         glVertexAttribDivisor                 ;
+
+/*  GL_ARB_texture_storage  */
+extern PFNGLTEXSTORAGE1DPROC                                glTexStorage1D;
+extern PFNGLTEXSTORAGE2DPROC                                glTexStorage2D;
+extern PFNGLTEXSTORAGE3DPROC                                glTexStorage3D;
+
 } }
 
 #endif

@@ -23,12 +23,10 @@
 #include "renderstack_geometry/triangle.hpp"
 #include "renderstack_geometry/cone.hpp"
 #include "renderstack_geometry/cube.hpp"
-#include "renderstack_graphics/context.hpp"
 #include "renderstack_graphics/configuration.hpp"
 #include "renderstack_mesh/geometry_mesh.hpp"
 #include "renderstack_mesh/build_info.hpp"
-#include "renderstack_renderer/context.hpp"
-#include "renderstack_renderer/renderer.hpp"
+#include "renderstack_graphics/renderer.hpp"
 #include <cassert>
 
 #if defined(RENDERSTACK_USE_GLFW)
@@ -67,12 +65,16 @@ game::game()
 }
 
 void game::connect(
+   shared_ptr<renderstack::graphics::renderer>   renderer,
+   shared_ptr<renderstack::ui::gui_renderer>     gui_renderer,
    std::shared_ptr<application>  application,
    std::shared_ptr<menu>         menu,
    std::shared_ptr<programs>     programs,
    std::shared_ptr<textures>     textures
 )
 {
+   m_renderer     = renderer;
+   m_gui_renderer = gui_renderer;
    m_application  = application;
    m_menu         = menu;
    m_programs     = programs;
@@ -174,21 +176,25 @@ void game::on_load()
          gl::bind_vertex_array(0);
 #endif
 
-      buffer_info.set_vertex_buffer(
-         make_shared<renderstack::graphics::vertex_buffer>(
-            total_vertex_count,
-            buffer_info.vertex_format()->stride(),
-            gl::buffer_usage_hint::static_draw
-         )
+      auto vbo = make_shared<renderstack::graphics::buffer>(
+         renderstack::graphics::buffer_target::array_buffer,
+         total_vertex_count,
+         buffer_info.vertex_format()->stride(),
+         gl::buffer_usage_hint::static_draw
       );
+      vbo->allocate_storage(*m_renderer);
+      buffer_info.set_vertex_buffer(vbo);
+
       // Allocate a single IBO big enough to hold all indices
-      buffer_info.set_index_buffer(
-         make_shared<renderstack::graphics::index_buffer>(
-            total_index_count,
-            4,                                  // stride
-            ::buffer_usage_hint::static_draw
-         )
+      auto ibo = make_shared<renderstack::graphics::buffer>(
+         renderstack::graphics::buffer_target::element_array_buffer,
+         total_index_count,
+         4,                                  // stride
+         gl::buffer_usage_hint::static_draw
       );
+      ibo->allocate_storage(*m_renderer);
+
+      buffer_info.set_index_buffer(ibo);
       
       size_t count = g_collection.size();
       float x = -float(count - 1);
@@ -198,7 +204,7 @@ void game::on_load()
       {
          mat4 position;
          renderstack::create_translation(x, 0.0f, 0.0f, position);
-         auto gm = make_shared<renderstack::mesh::geometry_mesh>(*i, format_info, buffer_info);
+         auto gm = make_shared<renderstack::mesh::geometry_mesh>(*m_renderer, *i, format_info, buffer_info);
          auto m = make_shared<model>();
          m->set_geometry_mesh(gm);
          m->frame()->parent_from_local().set(position);
@@ -235,9 +241,13 @@ void game::on_load()
 
       if (size > 0)
       {
-         m_uniform_buffer = make_shared<uniform_buffer>
-            (m_programs->block->size() * size
+         // TODO should I use size here as stride?
+         m_uniform_buffer = make_shared<buffer>(
+            renderstack::graphics::buffer_target::uniform_buffer,
+            m_programs->block->size() * size,
+            1
          );
+         m_uniform_buffer->allocate_storage(*m_renderer);
       }
 
 #if defined(USE_MESHES)
@@ -260,8 +270,8 @@ void game::on_load()
    auto p = m_programs->font;
    auto m = p->mappings();
 
-   m_font = make_shared<font>("res/fonts/Ubuntu-R.ttf", 10);
-   m_text_buffer = make_shared<text_buffer>(m_font, m);
+   m_font = make_shared<font>(*m_renderer, "res/fonts/Ubuntu-R.ttf", 10);
+   m_text_buffer = make_shared<text_buffer>(m_gui_renderer, m_font, m);
 #endif
 
    m_controls.home = vec3(0.0f, 1.7f, 10.0f);
@@ -296,8 +306,7 @@ void game::setup_gui()
    slog_trace("game::setup_gui()");
    assert(m_application);
 
-   auto uc = renderstack::ui::context::current();
-   auto r  = uc->gui_renderer();
+   auto r  = m_gui_renderer;
    auto bs = r->button_style();
    auto cs = r->choice_style();
    auto ms = r->menulist_style();
@@ -308,16 +317,19 @@ void game::setup_gui()
    float h = (float)m_application->height();
    rectangle size(w, h);
 
-   m_root_layer = smart_ptr_builder::create_shared_ptr<area>(new layer(size));
+   m_root_layer = smart_ptr_builder::create_shared_ptr<area>(new layer(r, size));
    m_root_layer->set_name("m_root_layer");
 
-   auto d = smart_ptr_builder::create_shared_ptr<area>(new menulist(ms, orientation::vertical));
+   auto d = smart_ptr_builder::create_shared_ptr<area>(new menulist(r, ms, orientation::vertical));
    d->set_offset_free_size_relative(glm::vec2(  1.0f,  1.0f));
    d->set_offset_self_size_relative(glm::vec2( -1.0f, -1.0f));
    d->set_child_layout_style(area_layout_style::extend_horizontal);
 
    weak_ptr<action_sink> as = action_sink::shared_from_this();
-   m_menu_button = smart_ptr_builder::create_shared_ptr<action_source, area>(new button("Back to Menu",  bs)); m_menu_button->set_sink(as);
+   m_menu_button = smart_ptr_builder::create_shared_ptr<action_source, area>(
+      new button(r, "Back to Menu", bs)
+   );
+   m_menu_button->set_sink(as);
    d->add(m_menu_button);
 
 #if 1
@@ -325,7 +337,7 @@ void game::setup_gui()
       renderstack::ui::action_source, 
       renderstack::ui::choice,
       renderstack::ui::area>(
-         new renderstack::ui::choice(cs, bs, orientation::horizontal)
+         new renderstack::ui::choice(r, cs, bs, orientation::horizontal)
       );
    c->add_choice_item("Foo", true);
 
@@ -335,7 +347,8 @@ void game::setup_gui()
    //auto p = new color_picker(ps);
    //d->add(p);
 
-   auto s = smart_ptr_builder::create_shared_ptr<action_source, area>(new slider(ss, "Slider", 0.0f, 1.0f));
+   auto s = smart_ptr_builder::create_shared_ptr<action_source, area>(
+      new slider(r, ss, "Slider", 0.0f, 1.0f));
    d->add(s);
 #endif
 
@@ -356,8 +369,7 @@ void game::on_resize(int width, int height)
    float w = (float)width;   // (float)m_window->width();
    float h = (float)height;  // (float)m_window->height();
 
-   auto uc = renderstack::ui::context::current();
-   auto r = uc->gui_renderer();
+   auto r = m_gui_renderer;
    r->on_resize(width, height);
 
    if (m_root_layer)

@@ -1,7 +1,6 @@
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_toolkit/logstream.hpp"
 #include "renderstack_graphics/configuration.hpp"
-#include "renderstack_graphics/context.hpp"
 #include "renderstack_graphics/program.hpp"
 #include "renderstack_graphics/vertex_format.hpp"
 #include "renderstack_graphics/vertex_stream.hpp"
@@ -9,7 +8,7 @@
 #include "renderstack_graphics/vertex_stream_mapping.hpp"
 #include <stdexcept>
 
-#define LOG_CATEGORY &log_vertex_stream_mappings
+#define LOG_CATEGORY &log_graphics_vertex_stream_mappings
 
 namespace renderstack { namespace graphics {
 
@@ -87,9 +86,9 @@ void vertex_stream_mappings::bind_attrib_locations(program &program)
 }
 
 void vertex_stream_mappings::add_to_vertex_stream(
-   std::shared_ptr<class vertex_stream> vertex_stream,
-   std::shared_ptr<class vertex_buffer> vertex_buffer,
-   std::shared_ptr<class vertex_format> vertex_format
+   std::shared_ptr<class vertex_stream>   vertex_stream,
+   std::shared_ptr<class buffer>          vertex_buffer,
+   std::shared_ptr<class vertex_format>   vertex_format
 ) const
 {
    //std::shared_ptr<vertex_stream> vertex_stream = std::make_shared<class vertex_stream>();

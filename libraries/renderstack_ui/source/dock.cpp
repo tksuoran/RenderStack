@@ -12,8 +12,13 @@ using namespace std;
 using namespace glm;
 
 
-dock::dock(shared_ptr<class style> style, orientation::value orientation, area_layout_style::value child_layout_style)
+dock::dock(
+   shared_ptr<class gui_renderer>   renderer,
+   shared_ptr<class style>          style,
+   orientation::value               orientation,
+   area_layout_style::value         child_layout_style)
 :  area(
+      renderer,
       style,
       ((orientation == orientation::horizontal) ? area_layout_order::increasing : area_layout_order::none),
       ((orientation == orientation::vertical  ) ? area_layout_order::increasing : area_layout_order::none)

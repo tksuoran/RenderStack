@@ -14,18 +14,19 @@
 #include "renderstack_geometry/polygon.hpp"
 #include "renderstack_geometry/point.hpp"
 
-#include "renderstack_graphics/vertex_buffer.hpp"
-#include "renderstack_graphics/index_buffer.hpp"
+#include "renderstack_graphics/buffer.hpp"
 #include "renderstack_graphics/configuration.hpp"
 #include "renderstack_graphics/vertex_attribute.hpp"
 #include "renderstack_graphics/vertex_format.hpp"
 #include "renderstack_graphics/vertex_stream.hpp"
 #include "renderstack_graphics/vertex_stream_mappings.hpp"
 
+#include "renderstack_graphics/renderer.hpp"
+
 #include <stdexcept>
 #include <map>
 
-#define LOG_CATEGORY &graphics_geometry_mesh
+#define LOG_CATEGORY &log_mesh_geometry_mesh
 
 namespace renderstack { namespace mesh {
 
@@ -40,19 +41,21 @@ static inline void write(char *data_ptr, gl::vertex_attrib_pointer_type::value t
 static inline void write(char *data_ptr, gl::vertex_attrib_pointer_type::value type, vec4 const &value);
 
 geometry_mesh::geometry_mesh(
-   shared_ptr<renderstack::geometry::geometry>  geometry,
-   geometry_mesh_format_info const              &format_info,
-   geometry_mesh_buffer_info const              &buffer_info
+   class renderer &renderer,
+   shared_ptr<class geometry> geometry,
+   geometry_mesh_format_info const &format_info,
+   geometry_mesh_buffer_info const &buffer_info
 )
 :  m_geometry(geometry)
 ,  m_vertex_stream(nullptr)
 {
-   build_mesh_from_geometry(format_info, buffer_info);
+   build_mesh_from_geometry(renderer, format_info, buffer_info);
 }
 
 geometry_mesh::geometry_mesh(
-   shared_ptr<renderstack::geometry::geometry> geometry,
-   normal_style::value                         normal_style
+   class renderer &renderer,
+   shared_ptr<class geometry> geometry,
+   normal_style::value normal_style
 )
 :  m_geometry(geometry)
 ,  m_vertex_stream(nullptr)
@@ -61,7 +64,7 @@ geometry_mesh::geometry_mesh(
    geometry_mesh_buffer_info buffer_info;
 
    format_info.set_normal_style(normal_style);
-   build_mesh_from_geometry(format_info, buffer_info);
+   build_mesh_from_geometry(renderer, format_info, buffer_info);
 }
 
 shared_ptr<mesh> geometry_mesh::get_mesh()
@@ -70,7 +73,7 @@ shared_ptr<mesh> geometry_mesh::get_mesh()
 }
 
 void geometry_mesh::prepare_vertex_format(
-   std::shared_ptr<renderstack::geometry::geometry> geometry,
+   shared_ptr<class geometry> geometry,
    geometry_mesh_format_info const &format_info,
    geometry_mesh_buffer_info &buffer_info
 )
@@ -145,6 +148,7 @@ void geometry_mesh::prepare_vertex_format(
 }
 
 void geometry_mesh::build_mesh_from_geometry(
+   class renderstack::graphics::renderer &renderer,
    geometry_mesh_format_info const &format_info,
    geometry_mesh_buffer_info const &buffer_info
 )
@@ -273,6 +277,10 @@ void geometry_mesh::build_mesh_from_geometry(
    auto t_id_vec3       = (attribute_id_vec3      ) ? attribute_id_vec3      ->data_type() : format_info.id_vec3_type();
    auto t_id_uint       = (attribute_id_uint      ) ? attribute_id_uint      ->data_type() : format_info.id_uint_type();
 
+   m_vertex_stream = make_shared<renderstack::graphics::vertex_stream>();
+   auto va = m_vertex_stream->vertex_array();
+   auto old_va = renderer.set_vertex_array(va);
+
    renderstack::geometry::geometry::mesh_info mi;
    m_geometry->info(mi);
 
@@ -296,10 +304,6 @@ void geometry_mesh::build_mesh_from_geometry(
    if (format_info.want_centroid_points())
       total_index_count += mi.index_count_centroid_points;
 
-   // Prepare VAO, so that it is bound while we work on VBO and IBO
-   m_vertex_stream = make_shared<renderstack::graphics::vertex_stream>();
-   vertex_stream()->use(); // VAO is in default state at this point
-
    if (buffer_info.vertex_buffer())
    {
       // Shared VBO given, allocate space from that
@@ -310,15 +314,13 @@ void geometry_mesh::build_mesh_from_geometry(
    else
    {
       // No shared VBO, allocate individual VBO
-      m_mesh->allocate_vertex_buffer(m_vertex_format->stride(), total_vertex_count);
+      m_mesh->allocate_vertex_buffer(renderer, m_vertex_format->stride(), total_vertex_count);
    }
 
-   // Complete VAO by setting up vertex attribute pointers
-   setup_vertex_stream(buffer_info, format_info.mappings());
-
-   m_mesh->vertex_buffer()->bind();
+   auto old_vbo = renderer.set_buffer(buffer_target::array_buffer, m_mesh->vertex_buffer());
    char *vertex_start = reinterpret_cast<char *>(
-      m_mesh->vertex_buffer()->map_vertices(
+      m_mesh->vertex_buffer()->map(
+         renderer,
          m_mesh->first_vertex(), 
          m_mesh->vertex_count(), 
          static_cast<gl::buffer_access_mask::value>(
@@ -340,13 +342,18 @@ void geometry_mesh::build_mesh_from_geometry(
    else
    {
       // No shared IBO given, allocate individual IBO
-      m_mesh->allocate_index_buffer(4, total_index_count);
+      m_mesh->allocate_index_buffer(renderer, 4, total_index_count);
    }
-   m_mesh->index_buffer()->bind();
 
-   // Prepare VAO, part 2. VAO, VBO and IBO are all bound so just setting pointers to do
-   if (vertex_stream()->use())
-      vertex_stream()->setup_attribute_pointers(0);
+   format_info.mappings()->add_to_vertex_stream(
+      m_vertex_stream,
+      buffer_info.vertex_buffer(),
+      buffer_info.vertex_format());
+
+   // Setup vertex attribute pointers to VAO. This is not necessary if VAO is not used
+   renderer.set_vertex_array(va);
+   renderer.setup_attribute_pointers(m_vertex_stream, 0);
+   va->set_index_buffer(m_mesh->index_buffer());
 
    unsigned int base_vertex = configuration::can_use.draw_elements_base_vertex ? 0 : m_mesh->first_vertex();
 
@@ -364,7 +371,8 @@ void geometry_mesh::build_mesh_from_geometry(
       m_mesh->allocate_index_range(gl::begin_mode::points, mi.polygon_count, m_polygon_centroid_indices);
 
    unsigned int *index_start = reinterpret_cast<unsigned int *>(
-      m_mesh->index_buffer()->map_indices(
+      m_mesh->index_buffer()->map(
+         renderer,
          m_mesh->first_index(), 
          m_mesh->index_count(), 
          static_cast<gl::buffer_access_mask::value>(
@@ -583,8 +591,10 @@ void geometry_mesh::build_mesh_from_geometry(
       }
    }
 
-   m_mesh->vertex_buffer()->unmap_vertices();
-   m_mesh->index_buffer()->unmap_indices();
+   m_mesh->vertex_buffer()->unmap(renderer);
+   m_mesh->index_buffer()->unmap(renderer);
+
+   (void)renderer.set_vertex_array(old_va);
 
    if (vertices_written != vertex_index)
       throw runtime_error("written vertex count does not match written indices");
@@ -598,11 +608,7 @@ void geometry_mesh::build_mesh_from_geometry(
    check_memory_system();
 }
 
-/*void geometry_mesh::use_vertex_stream()
-{
-   m_vertex_stream.use();
-}*/
-
+#if 0
 void geometry_mesh::setup_vertex_stream(
    geometry_mesh_buffer_info const &buffer_info,
    shared_ptr<renderstack::graphics::vertex_stream_mappings> mappings)
@@ -612,6 +618,7 @@ void geometry_mesh::setup_vertex_stream(
       buffer_info.vertex_buffer(),
       buffer_info.vertex_format());
 }
+#endif
 
 static inline void write(
    char                                   *data_ptr, 

@@ -7,6 +7,13 @@
 #include <vector>
 #include <memory>
 
+namespace renderstack { namespace graphics {
+
+class renderer;
+class texture;
+
+} }
+
 namespace renderstack { namespace ui {
 
 class bitmap;
@@ -16,7 +23,12 @@ class font
 public:
    //font();
 #if defined(RENDERSTACK_USE_FREETYPE)
-   font(std::string const &path, unsigned int size, float outline_thickness = 0.0f);
+   font(
+      renderstack::graphics::renderer  &renderer,
+      std::string const                &path,
+      unsigned int                     size,
+      float                            outline_thickness = 0.0f
+   );
 #endif
    ~font();
 
@@ -24,9 +36,9 @@ public:
    float             line_height           () const { return m_line_height; }
    std::size_t       print                 (std::string const &text, rectangle &bounds, float *&ptr, float x, float y) const;
    void              measure               (std::string const &text, rectangle &bounds) const;
-   unsigned int      texture               () const { return m_texture_object; }
-   int               texture_width         () const { return m_texture_width; }
-   int               texture_height        () const { return m_texture_height; }
+
+   std::shared_ptr<class renderstack::graphics::texture>
+                     texture() const { return m_texture; }
 
    bool              hinting               () const { return m_hinting; }
    bool              rgb                   () const { return m_rgb; }
@@ -50,8 +62,8 @@ public:
    void              set_bolding           (float value){ m_bolding = value; }
    void              set_outline_thickness (float value){ m_outline_thickness = value; }
 
-   void              render();
-   void              post_process();
+   void              render(renderstack::graphics::renderer &renderer);
+   void              post_process(renderstack::graphics::renderer &renderer);
 
 private:
    void    validate(int error);
@@ -92,27 +104,28 @@ private:
       std::vector<kerning> kernings;
    };
 
-   ft_char         m_chars_256[256];
-   std::string     m_chars;
-   std::string     m_path;
-   bool            m_hinting;
-   bool            m_regular_grid;
-   bool            m_rgb;
-   unsigned int    m_dpi;
-   float           m_gamma;
-   float           m_saturation;
-   unsigned int    m_pixel_size;
-   float           m_bolding;
-   float           m_outline_thickness;
-   int             m_spacing_delta;
-   int             m_hint_mode;
+   ft_char           m_chars_256[256];
+   std::string       m_chars;
+   std::string       m_path;
+   bool              m_hinting;
+   bool              m_regular_grid;
+   bool              m_rgb;
+   unsigned int      m_dpi;
+   float             m_gamma;
+   float             m_saturation;
+   unsigned int      m_pixel_size;
+   float             m_bolding;
+   float             m_outline_thickness;
+   int               m_spacing_delta;
+   int               m_hint_mode;
 
-   unsigned int    m_texture_object;
-   int             m_texture_width;
-   int             m_texture_height;
-   float           m_line_height;
+   float             m_line_height;
 
-   std::shared_ptr<bitmap> m_bitmap;
+   unsigned int      m_texture_width;
+   unsigned int      m_texture_height;
+
+   std::shared_ptr<class renderstack::graphics::texture> m_texture;
+   std::shared_ptr<class bitmap>                         m_bitmap;
 };
 
 } }

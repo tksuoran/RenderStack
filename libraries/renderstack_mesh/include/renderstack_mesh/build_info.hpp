@@ -4,8 +4,7 @@
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_toolkit/gl.hpp"
 #include "renderstack_toolkit/strong_gl_enums.hpp"
-#include "renderstack_graphics/index_buffer.hpp"
-#include "renderstack_graphics/vertex_buffer.hpp"
+#include "renderstack_graphics/buffer.hpp"
 #include "renderstack_graphics/vertex_format.hpp"
 #include "renderstack_graphics/vertex_stream.hpp"
 #include "renderstack_graphics/vertex_stream_mappings.hpp"
@@ -127,21 +126,21 @@ public:
 
    gl::buffer_usage_hint::value                          usage        () const { return m_usage;         }
    normal_style::value                                   normal_style () const { return m_normal_style;  }
-   std::shared_ptr<renderstack::graphics::index_buffer>  index_buffer () const { return m_index_buffer;  }
-   std::shared_ptr<renderstack::graphics::vertex_buffer> vertex_buffer() const { return m_vertex_buffer; }
+   std::shared_ptr<renderstack::graphics::buffer>        index_buffer () const { return m_index_buffer;  }
+   std::shared_ptr<renderstack::graphics::buffer>        vertex_buffer() const { return m_vertex_buffer; }
    std::shared_ptr<renderstack::graphics::vertex_format> vertex_format() const { return m_vertex_format; }
 
-   void set_usage        (gl::buffer_usage_hint::value                          value) { m_usage = value; }
-   void set_normal_style (normal_style::value                                   value) { m_normal_style = value; }
-   void set_index_buffer (std::shared_ptr<renderstack::graphics::index_buffer>  value) { m_index_buffer = value; }
-   void set_vertex_buffer(std::shared_ptr<renderstack::graphics::vertex_buffer> value) { m_vertex_buffer = value; }
-   void set_vertex_format(std::shared_ptr<renderstack::graphics::vertex_format> value) { m_vertex_format = value; }
+   void set_usage        (gl::buffer_usage_hint::value                           value) { m_usage = value; }
+   void set_normal_style (normal_style::value                                    value) { m_normal_style = value; }
+   void set_index_buffer (std::shared_ptr<renderstack::graphics::buffer>         value) { m_index_buffer = value; }
+   void set_vertex_buffer(std::shared_ptr<renderstack::graphics::buffer>         value) { m_vertex_buffer = value; }
+   void set_vertex_format(std::shared_ptr<renderstack::graphics::vertex_format>  value) { m_vertex_format = value; }
 
 private:
    gl::buffer_usage_hint::value                          m_usage;
    normal_style::value                                   m_normal_style;
-   std::shared_ptr<renderstack::graphics::index_buffer>  m_index_buffer;
-   std::shared_ptr<renderstack::graphics::vertex_buffer> m_vertex_buffer;
+   std::shared_ptr<renderstack::graphics::buffer>        m_index_buffer;
+   std::shared_ptr<renderstack::graphics::buffer>        m_vertex_buffer;
    std::shared_ptr<renderstack::graphics::vertex_format> m_vertex_format;
 };
 

@@ -1,7 +1,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 
 #include "renderstack_ui/area.hpp"
-#include "renderstack_ui/context.hpp"
+#include "renderstack_ui/gui_renderer.hpp"
 #include "renderstack_toolkit/logstream.hpp"
 #include <glm/gtx/string_cast.hpp>
 
@@ -12,8 +12,9 @@ namespace renderstack { namespace ui {
 using namespace std;
 using namespace glm;
 
-area::area()
-:  m_style                    (context::current()->style().default_())
+area::area(shared_ptr<class gui_renderer> renderer)
+:  m_renderer                 (renderer)
+,  m_style                    (renderer->default_style())
 ,  m_hidden                   (false)
 ,  m_offset_pixels            (glm::vec2(0.0f, 0.0f))
 ,  m_offset_self_size_relative(glm::vec2(0.0f, 0.0f))
@@ -34,8 +35,9 @@ area::area()
 ,  m_in_draw                  (false)
 {
 }
-area::area(shared_ptr<class style> style)
-:  m_style                    (style)
+area::area(std::shared_ptr<class gui_renderer> renderer, shared_ptr<class style> style)
+:  m_renderer                 (renderer)
+,  m_style                    (style)
 ,  m_hidden                   (false)
 ,  m_offset_pixels            (glm::vec2(0.0f, 0.0f))
 ,  m_offset_self_size_relative(glm::vec2(0.0f, 0.0f))
@@ -58,11 +60,13 @@ area::area(shared_ptr<class style> style)
 }
 
 area::area(
-   shared_ptr<class style>    style,
-   area_layout_order::value   layout_x_order, 
-   area_layout_order::value   layout_y_order
+   std::shared_ptr<class gui_renderer> renderer,
+   shared_ptr<class style>             style,
+   area_layout_order::value            layout_x_order, 
+   area_layout_order::value            layout_y_order
 )
-:  m_style                    (style)
+:  m_renderer                 (renderer)
+,  m_style                    (style)
 ,  m_hidden                   (false)
 ,  m_offset_pixels            (glm::vec2(0.0f, 0.0f))
 ,  m_offset_self_size_relative(glm::vec2(0.0f, 0.0f))

@@ -1,3 +1,4 @@
+#if 0
 #ifndef renderstack_ui__context_hpp
 #define renderstack_ui__context_hpp
 
@@ -43,5 +44,7 @@ private:
 };
 
 } }
+
+#endif
 
 #endif

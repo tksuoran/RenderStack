@@ -33,7 +33,7 @@ file(GLOB_RECURSE res_sm5 RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_CURREN
 foreach (r ${res_images} ${res_fonts} ${res_sm0} ${res_sm4} ${res_sm5})
    cm_export_file(${CMAKE_CURRENT_SOURCE_DIR}/${r} ${CMAKE_CURRENT_BINARY_DIR}/${r} geometrytest)
 endforeach(r)
-message(STATUS ${CMAKE_CURRENT_BINARY_DIR}/res/source.txt "${CMAKE_CURRENT_SOURCE_DIR}/res")
+# message(STATUS ${CMAKE_CURRENT_BINARY_DIR}/res/source.txt "${CMAKE_CURRENT_SOURCE_DIR}/res")
 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/res/src_path.txt "${CMAKE_CURRENT_SOURCE_DIR}/res")
 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/res/dst_path.txt "${CMAKE_CURRENT_BINARY_DIR}/res")
 
@@ -85,7 +85,6 @@ source_group(res\\shaders\\sm0 FILES ${res_sm0})
 target_link_libraries(
    geometrytest
    renderstack_ui 
-   renderstack_renderer
    renderstack_mesh
    renderstack_graphics
    renderstack_geometry

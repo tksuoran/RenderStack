@@ -3502,11 +3502,11 @@ void draw_elements_instanced(GLenum mode, GLsizei count, GLenum type, const GLvo
 }
 #endif
 #if defined(RENDERSTACK_GL_API_OPENGL)
-void tex_buffer(GLenum a, GLenum b, GLuint c)
+void tex_buffer(GLenum target, GLenum internalformat, GLuint buffer)
 {
    LOG_GL_FUNCTION(__FUNCTION__);
    assert(gl::detail::glTexBuffer != nullptr);
-   gl::detail::glTexBuffer(a, b, c);
+   gl::detail::glTexBuffer(target, internalformat, buffer);
    check_error();
 }
 void primitive_restart_index(GLuint a)
@@ -4055,6 +4055,56 @@ void draw_transform_feedback_stream_instanced(GLenum mode, GLuint id, GLuint str
 {  LOG_GL_FUNCTION(__FUNCTION__);
    assert(gl::detail::glDrawTransformFeedbackStreamInstanced != nullptr);
    gl::detail::glDrawTransformFeedbackStreamInstanced(mode, id, stream, primcount);
+   check_error();
+}
+#endif
+
+/*  GL_VERSION_3_3 */
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
+void vertex_attrib_divisor(GLuint index, GLuint divisor)
+{  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
+   assert(gl::detail::glVertexAttribDivisor != nullptr);
+   gl::detail::glVertexAttribDivisor(index, divisor);
+#else
+   ::glVertexAttribDivisor(index, divisor);
+#endif
+   check_error();
+}
+#endif
+
+/*  GL_ARB_texture_storage  */
+#if defined(RENDERSTACK_GL_API_OPENGL)
+void tex_storage_1d(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width)
+{  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
+   assert(gl::detail::glTexStorage1D != nullptr);
+   gl::detail::glTexStorage1D(target, levels, internalformat, width);
+#else
+   ::glTexStorage1D(target, levels, internalformat, width);
+#endif
+   check_error();
+}
+#endif
+#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
+void tex_storage_2d(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height)
+{  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
+   assert(gl::detail::glTexStorage1D != nullptr);
+   gl::detail::glTexStorage2D(target, levels, internalformat, width, height);
+#else
+   ::glTexStorage1D(target, levels, internalformat, width);
+#endif
+   check_error();
+}
+void tex_storage_3d(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth)
+{  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
+   assert(gl::detail::glTexStorage1D != nullptr);
+   gl::detail::glTexStorage3D(target, levels, internalformat, width, height, depth);
+#else
+   ::glTexStorage1D(target, levels, internalformat, width, height, depth);
+#endif
    check_error();
 }
 #endif

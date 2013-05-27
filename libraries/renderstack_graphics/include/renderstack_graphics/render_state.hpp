@@ -1,7 +1,7 @@
-#ifndef renderstack_renderer__render_state_hpp
-#define renderstack_renderer__render_state_hpp
+#ifndef renderstack_graphics__render_state_hpp
+#define renderstack_graphics__render_state_hpp
 
-namespace renderstack { namespace renderer {
+namespace renderstack { namespace graphics {
 
 class render_state
 {

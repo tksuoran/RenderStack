@@ -1,7 +1,7 @@
 #include "renderstack_toolkit/platform.hpp"
-#include "renderstack_renderer/face_cull_state.hpp"
+#include "renderstack_graphics/face_cull_state.hpp"
 
-namespace renderstack { namespace renderer {
+namespace renderstack { namespace graphics {
 
 face_cull_state face_cull_state::s_default;
 face_cull_state face_cull_state::s_disabled;

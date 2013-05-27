@@ -32,7 +32,8 @@ vertex_attribute::vertex_attribute(
    size_t                                 index,
    size_t                                 dimension,
    size_t                                 offset,
-   bool                                   normalized
+   bool                                   normalized,
+   unsigned int                           divisor
 )
 :  m_usage        (usage)
 ,  m_data_type    (data_type)
@@ -41,6 +42,7 @@ vertex_attribute::vertex_attribute(
 ,  m_dimension    (dimension)
 ,  m_offset       (offset)
 ,  m_normalized   (normalized)
+,  m_divisor      (divisor)
 {
 }
 
@@ -102,6 +104,16 @@ bool vertex_attribute::normalized() const
 size_t vertex_attribute::stride() const
 {
    return m_dimension * size_of_type(m_data_type);
+}
+
+unsigned int vertex_attribute::divisor() const
+{
+   return m_divisor;
+}
+
+void vertex_attribute::set_divisor(unsigned int value)
+{
+   m_divisor = value;
 }
 
 bool vertex_attribute::operator==(vertex_attribute const &other) const

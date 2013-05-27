@@ -1,13 +1,12 @@
 #include "renderstack_toolkit/platform.hpp"
 #include "main/game.hpp"
 #include "main/application.hpp"
+#include "renderstack_graphics/buffer.hpp"
 #include "renderstack_graphics/configuration.hpp"
-#include "renderstack_graphics/shader_monitor.hpp"
 #include "renderstack_graphics/program.hpp"
-#include "renderstack_graphics/vertex_buffer.hpp"
-#include "renderstack_graphics/index_buffer.hpp"
+#include "renderstack_graphics/renderer.hpp"
+#include "renderstack_graphics/shader_monitor.hpp"
 #include "renderstack_graphics/uniform_block.hpp"
-#include "renderstack_graphics/uniform_buffer.hpp"
 #include "renderstack_graphics/uniform_buffer_range.hpp"
 #include "renderstack_graphics/uniform.hpp"
 #include "renderstack_graphics/vertex_format.hpp"
@@ -21,8 +20,6 @@
 #include "renderstack_ui/gui_renderer.hpp"
 #include "renderstack_ui/layer.hpp"
 #include "renderstack_ui/text_buffer.hpp"
-#include "renderstack_renderer/context.hpp"
-#include "renderstack_renderer/renderer.hpp"
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -50,12 +47,6 @@ void game::render_ui()
    assert(m_programs);
    assert(m_text_buffer);
 
-   // Test all conditions; can_use.uniform_buffer_object can be forced to false
-   bool use_uniform_buffers = 
-      renderstack::graphics::configuration::can_use.uniform_buffer_object &&
-      (m_programs->glsl_version() >= 140) &&
-      (renderstack::graphics::configuration::shader_model_version >= 4);
-
    float w = (float)m_application->width();
    float h = (float)m_application->height();
 
@@ -70,9 +61,7 @@ void game::render_ui()
 
    if (chars_printed > 0)
    {
-      auto rc = renderstack::renderer::context::current();
-      auto r = rc->renderer();
-      r->trash();
+      auto r = m_gui_renderer;
 
       auto p = m_programs->font;
       r->set_program(p);
@@ -82,16 +71,18 @@ void game::render_ui()
       gl::scissor(0, 0, (GLsizei)w, (GLsizei)h);
 
       glm::vec4 white(1.0f, 1.0f, 1.0f, 0.66f); // gamma in 4th component
-      if (use_uniform_buffers)
+      if (use_uniform_buffers())
       {
          if (m_text_uniform_buffer_range)
          {
             uniform_offsets &o = m_programs->uniform_offsets;
-            m_text_uniform_buffer_range->bind(m_programs->block->binding_point());
-            unsigned char *start = m_text_uniform_buffer_range->begin_edit();
+            r->renderer().set_uniform_buffer_range(
+               m_programs->block->binding_point(),
+               m_text_uniform_buffer_range);
+            unsigned char *start = m_text_uniform_buffer_range->begin_edit(r->renderer());
             ::memcpy(&start[o.model_to_clip],   value_ptr(ortho), 16 * sizeof(float));
             ::memcpy(&start[o.color],           value_ptr(white), 4 * sizeof(float));
-            m_text_uniform_buffer_range->end_edit();
+            m_text_uniform_buffer_range->end_edit(r->renderer());
          }
       }
       else
@@ -103,25 +94,25 @@ void game::render_ui()
          gl::uniform_4fv(color_ui, 1, value_ptr(white));
       }
 
-      renderstack::renderer::blend_state     ::reset_state();
-      renderstack::renderer::face_cull_state ::reset_state();
-      renderstack::renderer::depth_state     ::reset_state();
-      renderstack::renderer::color_mask_state::reset_state();
-      renderstack::renderer::stencil_state   ::reset_state();
+      renderstack::graphics::blend_state     ::reset_state();
+      renderstack::graphics::face_cull_state ::reset_state();
+      renderstack::graphics::depth_state     ::reset_state();
+      renderstack::graphics::color_mask_state::reset_state();
+      renderstack::graphics::stencil_state   ::reset_state();
 
-      renderstack::renderer::depth_state     ::disabled().execute();
-      renderstack::renderer::face_cull_state ::disabled().execute();
-      renderstack::renderer::stencil_state   ::default_().execute();
+      renderstack::graphics::depth_state     ::disabled().execute();
+      renderstack::graphics::face_cull_state ::disabled().execute();
+      renderstack::graphics::stencil_state   ::default_().execute();
       m_font_render_states.blend.execute();
 
       int texture_ui = p->uniform("font_texture")->index();
       gl::uniform_1i(texture_ui, 0);
 
-      active_texture(gl::texture_unit::texture0);
-      bind_texture(texture_target::texture_2d, m_text_buffer->font()->texture());
-
-      tex_parameter_i(texture_target::texture_2d, texture_parameter_name::texture_min_filter, texture_min_filter::nearest);
-      tex_parameter_i(texture_target::texture_2d, texture_parameter_name::texture_mag_filter, texture_mag_filter::nearest);
+      auto t = m_text_buffer->font()->texture();
+      t->set_min_filter(texture_min_filter::nearest);
+      t->set_mag_filter(texture_mag_filter::nearest);
+      (void)m_renderer->set_texture(0, t);
+      t->apply(*m_renderer, 0);
 
       m_text_buffer->render();
 
@@ -148,18 +139,12 @@ void game::render_meshes()
 
    gl::enable(gl::enable_cap::cull_face);
 
-   auto rc = renderstack::renderer::context::current();
-   //auto r = rc->renderer();
+   auto r = m_renderer;
 
    auto p = m_programs->basic;
 
-#if 0
-   r->trash();
-
+   // r->trash(); ?
    r->set_program(p);
-#else
-   p->use();
-#endif
 
    for (auto i = m_models.cbegin(); i != m_models.cend(); ++i)
    {
@@ -175,12 +160,15 @@ void game::render_meshes()
       {
          if (m_mesh_render_uniform_buffer_range)
          {
-            m_mesh_render_uniform_buffer_range->bind(m_programs->block->binding_point());
+            r->set_uniform_buffer_range(
+               m_programs->block->binding_point(),
+               m_mesh_render_uniform_buffer_range);
+
             uniform_offsets &o = m_programs->uniform_offsets;
-            unsigned char *start = m_mesh_render_uniform_buffer_range->begin_edit();
+            unsigned char *start = m_mesh_render_uniform_buffer_range->begin_edit(*r);
             ::memcpy(&start[o.model_to_clip],   value_ptr(mvp), 16 * sizeof(float));
             ::memcpy(&start[o.color],           value_ptr(fill_color), 4 * sizeof(float));
-            m_mesh_render_uniform_buffer_range->end_edit();
+            m_mesh_render_uniform_buffer_range->end_edit(*r);
          }
       }
       else
@@ -197,49 +185,14 @@ void game::render_meshes()
       GLsizei                       count          = static_cast<GLsizei>(index_range.index_count);
       gl::draw_elements_type::value index_type     = gl::draw_elements_type::unsigned_int;
       GLvoid                        *index_pointer = reinterpret_cast<GLvoid*>(index_range.first_index + mesh->first_index() * sizeof(unsigned int));
+      GLint                         base_vertex    = configuration::can_use.draw_elements_base_vertex
+         ? static_cast<GLint>(mesh->first_vertex())
+         : 0;
 
-#if 0
-      r->set_vertex_stream(
-         vertex_stream, 
-         mesh->vertex_buffer(),
-         mesh->index_buffer()
-      );
+      r->draw_elements_base_vertex(
+         model->geometry_mesh()->vertex_stream(),
+         begin_mode, count, index_type, index_pointer, base_vertex);
 
-#if defined(RENDERSTACK_GL_API_OPENGL)
-      if (configuration::can_use.draw_elements_base_vertex)
-      {
-         GLint base_vertex = static_cast<GLint>(mesh->first_vertex());
-         gl::draw_elements_base_vertex(begin_mode, count, index_type, index_pointer, base_vertex);
-      }
-      else
-#endif
-      {
-         gl::draw_elements(begin_mode, count, index_type, index_pointer);
-      }
-
-#else
-      if (vertex_stream->use())
-      {
-#if defined(RENDERSTACK_GL_API_OPENGL)
-         if (configuration::can_use.draw_elements_base_vertex)
-         {
-            GLint base_vertex = static_cast<GLint>(mesh->first_vertex());
-            gl::draw_elements_base_vertex(begin_mode, count, index_type, index_pointer, base_vertex);
-         }
-         else
-#endif
-         {
-            gl::draw_elements(begin_mode, count, index_type, index_pointer);
-         }
-      }
-      else
-      {
-         mesh->vertex_buffer()->bind();
-         mesh->index_buffer()->bind();
-         vertex_stream->setup_attribute_pointers(0);
-         gl::draw_elements(begin_mode, count, index_type, index_pointer);
-      }
-#endif
       //gl::disable(gl::enable_cap::polygon_offset_fill);
 
 #if 0
@@ -310,8 +263,7 @@ void game::render()
       c.mouse_buttons[0] = (m_application->get_mouse_button(0) != 0);
       c.mouse_buttons[1] = (m_application->get_mouse_button(1) != 0);
       c.mouse_buttons[2] = (m_application->get_mouse_button(2) != 0);
-      auto uc = renderstack::ui::context::current();
-      auto r = uc->gui_renderer();
+      auto r = m_gui_renderer;
       r->prepare();
       r->on_resize(iw, ih);
       

@@ -2,15 +2,14 @@
 #include "main/application.hpp"
 #include "main/programs.hpp"
 #include "renderstack_graphics/configuration.hpp"
-#include "renderstack_graphics/context.hpp"
-#include "renderstack_graphics/shader_monitor.hpp"
 #include "renderstack_graphics/program.hpp"
+#include "renderstack_graphics/renderer.hpp"
 #include "renderstack_graphics/sampler.hpp"
+#include "renderstack_graphics/samplers.hpp"
+#include "renderstack_graphics/shader_monitor.hpp"
 #include "renderstack_graphics/uniform_block.hpp"
 #include "renderstack_graphics/uniform_buffer_range.hpp"
 #include "renderstack_graphics/uniform.hpp"
-#include "renderstack_graphics/samplers.hpp"
-#include "renderstack_renderer/renderer.hpp"
 #include "renderstack_toolkit/file.hpp"
 #include "renderstack_toolkit/logstream.hpp"
 #include <string>
@@ -54,9 +53,11 @@ void programs::prepare_gl_resources()
    string src_path = read("res/src_path.txt");
    string dst_path = read("res/dst_path.txt");
 
+#if 0
    auto monitor = context::current()->shader_monitor();
    monitor.set_dst_path(dst_path);
    monitor.set_src_path(src_path);
+#endif
 
    mappings = make_shared<renderstack::graphics::vertex_stream_mappings>();
    mappings->add("a_position",            vertex_attribute_usage::position,   0, 0);
@@ -83,7 +84,7 @@ void programs::prepare_gl_resources()
    m_poll_shaders = false;
    m_poll_ticks = 0; 
 
-   block = renderstack::graphics::context::current()->make_uniform_block("global");
+   block = make_shared<uniform_block>(1, "global");
    uniform_offsets.model_to_clip = block->add_mat4("model_to_clip")->offset();
    uniform_offsets.viewport      = block->add_vec4("viewport"     )->offset();
    uniform_offsets.color         = block->add_vec4("color"        )->offset();
@@ -96,9 +97,9 @@ void programs::prepare_gl_resources()
    uniform_keys.line_width    = 3;
 
    auto nearest_sampler = make_shared<sampler>();
-   this->samplers = context::current()->global_samplers();
-   samplers->add("font_texture",          gl::active_uniform_type::sampler_2d, nearest_sampler)->set_texture_unit_index(0);
-   samplers->add("background_texture",    gl::active_uniform_type::sampler_2d, nearest_sampler)->set_texture_unit_index(1);
+   samplers = make_shared<class samplers>();
+   samplers->add("font_texture",       gl::active_uniform_type::sampler_2d, nearest_sampler)->set_texture_unit_index(0);
+   samplers->add("background_texture", gl::active_uniform_type::sampler_2d, nearest_sampler)->set_texture_unit_index(1);
 
    try
    {
@@ -164,6 +165,7 @@ void programs::prepare_gl_resources()
 
 void programs::update_fixed_step()
 {
+#if 0
    ++m_poll_ticks;
    if (m_poll_ticks == 30)
    {
@@ -171,4 +173,5 @@ void programs::update_fixed_step()
       monitor.poll();
       m_poll_ticks = 0;
    }
+#endif
 }

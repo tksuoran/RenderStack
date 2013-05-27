@@ -6,16 +6,19 @@ namespace renderstack { namespace ui {
 
 using namespace std;
 
-push_button::push_button(string const &label, shared_ptr<class style> style)
-:  button(label, style)
+push_button::push_button(
+   shared_ptr<class gui_renderer> renderer,
+   string const &label,
+   shared_ptr<class style> style
+)
+:  button(renderer, label, style)
 {
    set_name(label);
 }
 
 void push_button::draw_self(ui_context &context)
 {
-   auto uc = context::current();
-   auto r = uc->gui_renderer();
+   auto r = renderer();
    // Renderer.Push();
 
    //  First draw ninepatch
@@ -65,7 +68,7 @@ void push_button::draw_self(ui_context &context)
    }
 
    r->end_edit();
-   ninepatch().render();
+   ninepatch().render(r);
 
    /*  Then draw text  */ 
    if (style()->font())

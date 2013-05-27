@@ -39,14 +39,15 @@ public:
       std::size_t                            index,
       std::size_t                            dimension,
       std::size_t                            offset = 0,
-      bool                                   normalized = false
+      bool                                   normalized = false,
+      unsigned int                           divisor = 0
    );
 
    vertex_attribute_usage::value          usage          () const;
    void                                   set_usage      (vertex_attribute_usage::value value);
    gl::vertex_attrib_pointer_type::value  data_type      () const;
-   gl::vertex_attrib_pointer_type::value  shader_type    () const;
    void                                   set_data_type  (gl::vertex_attrib_pointer_type::value value);
+   gl::vertex_attrib_pointer_type::value  shader_type    () const;
    void                                   set_shader_type(gl::vertex_attrib_pointer_type::value value);
    std::size_t                            index          () const;
    std::size_t                            dimension      () const;
@@ -54,6 +55,8 @@ public:
    void                                   set_offset     (std::size_t value);
    bool                                   normalized     () const;
    std::size_t                            stride         () const;
+   unsigned int                           divisor        () const;
+   void                                   set_divisor    (unsigned int value);
 
    bool operator==(vertex_attribute const &other) const;
    bool operator!=(vertex_attribute const &other) const;
@@ -66,6 +69,7 @@ private:
    std::size_t                            m_dimension;
    std::size_t                            m_offset;
    bool                                   m_normalized;
+   unsigned int                           m_divisor;
 };
 
 } }

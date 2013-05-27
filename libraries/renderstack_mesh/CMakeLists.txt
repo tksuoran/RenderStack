@@ -4,6 +4,7 @@ include_directories(
    ${RENDERSTACK_WINDOW_TOOLKIT_INCLUDE_DIRS}
    ${GLM_INCLUDE_DIRS}
    ${KHRONOS_INCLUDE}
+   ${CMAKE_SOURCE_DIR}/libraries/renderstack_renderer/include
    ${CMAKE_SOURCE_DIR}/libraries/renderstack_geometry/include
    ${CMAKE_SOURCE_DIR}/libraries/renderstack_graphics/include
    ${CMAKE_SOURCE_DIR}/libraries/renderstack_mesh/include
@@ -26,5 +27,9 @@ add_library(
    source/normal_style.cpp
 )
 
+source_group(
+   "RenderStack Mesh Sources"
+   REGULAR_EXPRESSION
+   "include/renderstack_mesh/.*\\.inl|include/renderstack_mesh/.*\\.hpp|source/.*\\.cpp")
 
 install(TARGETS renderstack_mesh DESTINATION lib)

@@ -77,14 +77,15 @@ void slider::set_max(float value)
 }
 
 slider::slider(
-   shared_ptr<class style> style,
-   string const            &label, 
-   float                   min, 
-   float                   max
+   shared_ptr<class gui_renderer>   renderer,
+   shared_ptr<class style>          style,
+   string const                     &label, 
+   float                            min, 
+   float                            max
 )
-:  area           (style)
-,  m_text_buffer  (style->font(), style->program()->mappings())
-,  m_ninepatch    (style->ninepatch_style())
+:  area           (renderer, style)
+,  m_text_buffer  (renderer, style->font(), style->program()->mappings())
+,  m_ninepatch    (renderer, style->ninepatch_style())
 ,  m_label        (label)
 ,  m_min_value    (min)
 ,  m_max_value    (max)
@@ -117,7 +118,7 @@ void slider::update_size()
          set_fill_base_pixels(vec2(30.0f, 10.0f));
       }
 
-      m_ninepatch.place(0.0f, 0.0f, fill_base_pixels().x, fill_base_pixels().y);
+      m_ninepatch.place(renderer(), 0.0f, 0.0f, fill_base_pixels().x, fill_base_pixels().y);
       m_label_dirty = false;
       m_value_dirty = true;
    }
@@ -130,16 +131,14 @@ void slider::begin_place(rectangle const &reference, vec2 const &grow_direction)
    mat4 a, b;
    create_translation(rect().min() + style()->padding(), a);
    create_translation(rect().min(), b);
-   auto uc = context::current();
-   auto r = uc->gui_renderer();
-   mat4 const &o = r->ortho();
+   mat4 const &o = renderer()->ortho();
    m_text_frame       = o * a;
    m_background_frame = o * b;
 }
 void slider::update_place()
 {
    if (size().x != m_bounds.max().x + 2.0f * style()->padding().x)
-      m_ninepatch.place(0.0f, 0.0f, size().x, size().y);
+      m_ninepatch.place(renderer(), 0.0f, 0.0f, size().x, size().y);
 }
 void slider::draw_self(ui_context &context)
 {
@@ -152,8 +151,7 @@ void slider::draw_self(ui_context &context)
       m_text_buffer.end_print();
    }
 
-   auto uc = context::current();
-   auto r = uc->gui_renderer();
+   auto r = renderer();
 
    //r->push();
 
@@ -198,7 +196,7 @@ void slider::draw_self(ui_context &context)
    r->set_t(pixel_x);
 
    r->end_edit();
-   m_ninepatch.render();
+   m_ninepatch.render(r);
 
    /*  Then draw text  */ 
    if (style()->font())

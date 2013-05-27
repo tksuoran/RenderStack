@@ -9,7 +9,7 @@
 #include "renderstack_ui/gui_renderer.hpp"
 #include "renderstack_toolkit/math_util.hpp"
 #include "renderstack_graphics/program.hpp"
-#include "renderstack_renderer/renderer.hpp"
+#include "renderstack_graphics/renderer.hpp"
 #include <glm/glm.hpp>
 
 namespace renderstack { namespace ui {
@@ -17,7 +17,10 @@ namespace renderstack { namespace ui {
 class button : public area, public action_source
 {
 public:
-   button(std::string const &label, std::shared_ptr<class style> style);
+   button(
+      std::shared_ptr<class gui_renderer> renderer,
+      std::string const &label,
+      std::shared_ptr<class style> style);
    virtual ~button(){}
 
    std::string const &label() const;

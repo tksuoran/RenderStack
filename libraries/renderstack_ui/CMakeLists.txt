@@ -25,7 +25,6 @@ add_library(
    include/renderstack_ui/button.hpp
    include/renderstack_ui/choice.hpp
    include/renderstack_ui/color_picker.hpp
-   include/renderstack_ui/context.hpp
    include/renderstack_ui/dock.hpp
    include/renderstack_ui/font.hpp
    include/renderstack_ui/glyph.hpp
@@ -44,7 +43,6 @@ add_library(
    source/button.cpp
    source/choice.cpp
    source/color_picker.cpp
-   source/context.cpp
    source/dock.cpp
    source/font.cpp
    source/glyph.cpp
@@ -58,5 +56,9 @@ add_library(
    source/text_buffer.cpp
 )
 
+source_group(
+   "RenderStack UI Sources"
+   REGULAR_EXPRESSION
+   "include/renderstack_ui/.*\\.inl|include/renderstack_ui/.*\\.hpp|source/.*\\.cpp")
 
 install(TARGETS renderstack_ui DESTINATION lib)

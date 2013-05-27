@@ -1,12 +1,16 @@
-#include "renderstack_ui/context.hpp"
+#include "renderstack_ui/gui_renderer.hpp"
 #include "renderstack_ui/popup.hpp"
 
 namespace renderstack { namespace ui {
 
 using namespace std;
 
-popup::popup(shared_ptr<class area> closed, shared_ptr<class area> open) 
-:  dock     (context::current()->style().null_padding(), orientation::horizontal)
+popup::popup(
+   shared_ptr<class gui_renderer> renderer,
+   shared_ptr<class area> closed,
+   shared_ptr<class area> open
+) 
+:  dock     (renderer, renderer->null_padding_style(), orientation::horizontal)
 ,  m_closed (closed)
 ,  m_open   (open)
 ,  m_is_open(false)

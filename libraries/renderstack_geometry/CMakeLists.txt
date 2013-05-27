@@ -34,5 +34,9 @@ add_library(
    source/cube.cpp
 )
 
+source_group(
+   "RenderStack Geometry Sources"
+   REGULAR_EXPRESSION
+   "include/renderstack_geometry/.*\\.inl|include/renderstack_geometry/.*\\.hpp|source/.*\\.cpp")
 
 install(TARGETS renderstack_geometry DESTINATION lib)

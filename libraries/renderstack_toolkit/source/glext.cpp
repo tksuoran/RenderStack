@@ -477,6 +477,14 @@ PFNGLGETQUERYINDEXEDIVPROC                              glGetQueryIndexediv     
 PFNGLDRAWTRANSFORMFEEDBACKINSTANCEDPROC                 glDrawTransformFeedbackInstanced                = nullptr;
 PFNGLDRAWTRANSFORMFEEDBACKSTREAMINSTANCEDPROC           glDrawTransformFeedbackStreamInstanced          = nullptr;
 
+/*  GL_VERSION_3_3  */ 
+PFNGLVERTEXATTRIBDIVISORPROC                             glVertexAttribDivisor                           = nullptr;
+
+/*  GL_ARB_texture_storage  */
+PFNGLTEXSTORAGE1DPROC                                    glTexStorage1D = nullptr;
+PFNGLTEXSTORAGE2DPROC                                    glTexStorage2D = nullptr;
+PFNGLTEXSTORAGE3DPROC                                    glTexStorage3D = nullptr;
+
 } }
 
 #endif
@@ -852,6 +860,11 @@ void window::get_extensions()
     gl::detail::glGetQueryIndexediv                             = (PFNGLGETQUERYINDEXEDIVPROC                           )get_proc_address("glGetQueryIndexediv");
     gl::detail::glDrawTransformFeedbackInstanced                = (PFNGLDRAWTRANSFORMFEEDBACKINSTANCEDPROC              )get_proc_address("glDrawTransformFeedbackInstanced");
     gl::detail::glDrawTransformFeedbackStreamInstanced          = (PFNGLDRAWTRANSFORMFEEDBACKSTREAMINSTANCEDPROC        )get_proc_address("glDrawTransformFeedbackStreamInstanced");
+    gl::detail::glVertexAttribDivisor                           = (PFNGLVERTEXATTRIBDIVISORPROC                         )get_proc_address("glVertexAttribDivisor");
+    gl::detail::glTexStorage1D                                  = (PFNGLTEXSTORAGE1DPROC                                )get_proc_address("glTexStorage1D");
+    gl::detail::glTexStorage2D                                  = (PFNGLTEXSTORAGE2DPROC                                )get_proc_address("glTexStorage2D");
+    gl::detail::glTexStorage3D                                  = (PFNGLTEXSTORAGE3DPROC                                )get_proc_address("glTexStorage3D");
+
 #endif
 
 #if defined(EXT_SUBSET)

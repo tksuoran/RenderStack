@@ -164,19 +164,18 @@ void log_write(log_category *cat, int level, const char *format, ...)
 }
 
 
-log_category graphics_buffer           (C_YELLOW,  C_GRAY, LOG_WARN);
-log_category log_program               (C_YELLOW,  C_GRAY, LOG_TRACE);
-log_category log_ubo_pool              (C_GREEN,   C_GRAY, LOG_WARN);
-log_category log_vbo_pool              (C_GREEN,   C_GRAY, LOG_WARN);
-log_category log_vertex_stream         (C_GREEN,   C_GRAY, LOG_WARN);
-log_category log_vertex_stream_mappings(C_GREEN,   C_GRAY, LOG_WARN);
-log_category graphics_geometry_mesh    (C_RED,     C_GRAY, LOG_WARN);
-log_category graphics_mesh             (C_MAGENTA, C_GRAY, LOG_WARN);
-log_category log_renderer              (C_YELLOW,  C_GRAY, LOG_WARN);
-log_category log_gui_renderer          (C_GREEN,   C_GRAY, LOG_WARN);
-log_category log_button                (C_YELLOW,  C_GRAY, LOG_WARN);
-log_category log_ninepatch             (C_YELLOW,  C_GRAY, LOG_WARN);
-log_category log_ninepatch_style       (C_YELLOW,  C_GRAY, LOG_WARN);
-log_category log_text_buffer           (C_GREEN,   C_GRAY, LOG_WARN);
+log_category log_graphics_buffer                (C_YELLOW,  C_GRAY, LOG_INFO);
+log_category log_graphics_configuration         (C_GREEN,   C_GRAY, LOG_INFO);
+log_category log_graphics_program               (C_YELLOW,  C_GRAY, LOG_INFO);
+log_category log_graphics_vertex_stream         (C_GREEN,   C_GRAY, LOG_WARN);
+log_category log_graphics_vertex_stream_mappings(C_GREEN,   C_GRAY, LOG_WARN);
+log_category log_mesh_geometry_mesh             (C_RED,     C_GRAY, LOG_WARN);
+log_category log_mesh_mesh                      (C_MAGENTA, C_GRAY, LOG_WARN);
+log_category log_graphics_renderer              (C_YELLOW,  C_GRAY, LOG_WARN);
+log_category log_ui_gui_renderer                (C_GREEN,   C_GRAY, LOG_WARN);
+log_category log_ui_button                      (C_YELLOW,  C_GRAY, LOG_WARN);
+log_category log_ui_ninepatch                   (C_YELLOW,  C_GRAY, LOG_WARN);
+log_category log_ui_ninepatch_style             (C_YELLOW,  C_GRAY, LOG_WARN);
+log_category log_ui_text_buffer                 (C_GREEN,   C_GRAY, LOG_WARN);
 
 

@@ -9,7 +9,7 @@ namespace renderstack { namespace ui {
 void menulist::update()
 {
    if (m_ninepatch.size() != rect().size())
-      m_ninepatch.place(0.0f, 0.0f, rect().size().x, rect().size().y);
+      m_ninepatch.place(renderer(), 0.0f, 0.0f, rect().size().x, rect().size().y);
 }
 
 void menulist::begin_place(rectangle const &reference, glm::vec2 const &grow_direction)
@@ -17,17 +17,14 @@ void menulist::begin_place(rectangle const &reference, glm::vec2 const &grow_dir
    dock::begin_place(reference, grow_direction);
    glm::mat4 a;
    create_translation(rect().min(), a);
-   auto uc = context::current();
-   auto r = uc->gui_renderer();
-   glm::mat4 const &o = r->ortho();
+   glm::mat4 const &o = renderer()->ortho();
    m_background_frame = o * a;
 }
 void menulist::draw_self(ui_context &context)
 {
    update();
 
-   auto uc = context::current();
-   auto r = uc->gui_renderer();
+   auto r = renderer();
 
    gl::enable(gl::enable_cap::blend);
 
@@ -46,7 +43,7 @@ void menulist::draw_self(ui_context &context)
       r->set_color_add  (glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
    }
    r->end_edit();
-   m_ninepatch.render();
+   m_ninepatch.render(r);
 
    gl::disable(gl::enable_cap::blend);
 }

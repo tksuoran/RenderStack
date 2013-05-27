@@ -1,8 +1,9 @@
 #include "renderstack_toolkit/platform.hpp"
-#include "renderstack_toolkit/gl.hpp" // #define USE_EMBEDDED
+#include "renderstack_toolkit/gl.hpp"
 #include "renderstack_graphics/uniform_block.hpp"
 #include "renderstack_graphics/uniform.hpp"
 #include "renderstack_graphics/configuration.hpp"
+#include <cassert>
 #include <stdexcept>
 #include <sstream>
 
@@ -15,14 +16,21 @@ static char const * const gl_uniform_type_name(gl::active_uniform_type::value ty
 {
    switch (type)
    {
-   case gl::active_uniform_type::int_:         return "int  ";
-   case gl::active_uniform_type::unsigned_int: return "uint ";
-   case gl::active_uniform_type::float_:       return "float";
-   case gl::active_uniform_type::float_vec2:   return "vec2 ";
-   case gl::active_uniform_type::float_vec3:   return "vec3 ";
-   case gl::active_uniform_type::float_vec4:   return "vec4 ";
-   case gl::active_uniform_type::float_mat4:   return "mat4 ";
-   default: throw std::runtime_error("unknown uniform type");
+   case gl::active_uniform_type::int_:                return "int   ";
+   case gl::active_uniform_type::int_vec2:            return "ivec2 ";
+   case gl::active_uniform_type::int_vec3:            return "ivec3 ";
+   case gl::active_uniform_type::int_vec4:            return "ivec4 ";
+   case gl::active_uniform_type::unsigned_int:        return "uint  ";
+   case gl::active_uniform_type::unsigned_int_vec2:   return "uvec2 ";
+   case gl::active_uniform_type::unsigned_int_vec3:   return "uvec3 ";
+   case gl::active_uniform_type::unsigned_int_vec4:   return "uvec4 ";
+   case gl::active_uniform_type::float_:              return "float ";
+   case gl::active_uniform_type::float_vec2:          return "vec2  ";
+   case gl::active_uniform_type::float_vec3:          return "vec3  ";
+   case gl::active_uniform_type::float_vec4:          return "vec4  ";
+   case gl::active_uniform_type::float_mat4:          return "mat4  ";
+   default:
+      throw std::runtime_error("unknown uniform type");
    }
 }
 
@@ -51,16 +59,22 @@ void uniform_block::set_name(string const &value)
    m_name = value;
 }
 
-uniform_block::uniform_block(string const &name, string const &block_name, unsigned int binding_point)
+uniform_block::uniform_block(unsigned int binding_point, string const &name)
+:  m_name(name)
+,  m_block_name(name + "_block")
+,  m_binding_point(binding_point)
+,  m_offset(0)
+{
+   assert((int)binding_point < configuration::max_uniform_buffer_bindings);
+}
+
+uniform_block::uniform_block(unsigned int binding_point, string const &name, string const &block_name)
 :  m_name(name)
 ,  m_block_name(block_name)
 ,  m_binding_point(binding_point)
 ,  m_offset(0)
 {
-#if 0
-   if (m_binding_point > configuration::max_uniform_buffer_bindings)
-      throw std::runtime_error("uniform_block binding point too high");
-#endif
+   assert((int)binding_point < configuration::max_uniform_buffer_bindings);
 }
 
 unsigned int uniform_block::binding_point() const

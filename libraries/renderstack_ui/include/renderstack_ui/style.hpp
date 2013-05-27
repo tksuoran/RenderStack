@@ -11,8 +11,6 @@
 
 namespace renderstack { namespace ui {
 
-class context_style;
-
 class style
 {
 public:
@@ -59,37 +57,6 @@ private:
    std::shared_ptr<class ninepatch_style>          m_ninepatch_style;
    std::shared_ptr<renderstack::graphics::program> m_program;
    unsigned int                                    m_texture_unit;
-};
-
-class context_style
-{
-private:
-   std::shared_ptr<style>  s_default;
-   std::shared_ptr<style>  s_null_padding;
-
-public:
-   std::shared_ptr<style> default_()
-   {
-      if (!s_default)
-      {
-         s_default = std::make_shared<style>(
-            glm::vec2(6.0f, 6.0f), 
-            glm::vec2(6.0f, 6.0f)
-         );
-      }
-      return s_default; 
-   }
-   std::shared_ptr<style> null_padding()
-   {
-      if (!s_null_padding)
-      {
-         s_default = std::make_shared<style>(
-            glm::vec2(0.0f, 0.0f), 
-            glm::vec2(0.0f, 0.0f)
-         );
-      }
-      return s_null_padding;
-   }
 };
 
 } }

@@ -4,16 +4,20 @@
 #include "renderstack_ui/gui_renderer.hpp"
 #include "renderstack_toolkit/logstream.hpp"
 
-#define LOG_CATEGORY &log_button
+#define LOG_CATEGORY &log_ui_button
 
 namespace renderstack { namespace ui {
 
 using namespace std;
 
-button::button(std::string const &label, shared_ptr<class style> style)
-:  area           (style)
-,  m_text_buffer  (style->font(), style->program()->mappings())
-,  m_ninepatch    (style->ninepatch_style())
+button::button(
+   shared_ptr<class gui_renderer> renderer,
+   string const                   &label,
+   shared_ptr<class style>        style
+)
+:  area           (renderer, style)
+,  m_text_buffer  (renderer, style->font(), style->program()->mappings())
+,  m_ninepatch    (renderer, style->ninepatch_style())
 ,  m_dirty        (true)
 ,  m_trigger      (false)
 {
@@ -59,7 +63,7 @@ void button::update_size()
       else
          set_fill_base_pixels(glm::vec2(30.0f, 10.0f));
 
-      m_ninepatch.place(0.0f, 0.0f, fill_base_pixels().x, fill_base_pixels().y);
+      m_ninepatch.place(renderer(), 0.0f, 0.0f, fill_base_pixels().x, fill_base_pixels().y);
       m_dirty = false;
    }
 }
@@ -67,7 +71,7 @@ void button::update_place()
 {
    slog_trace("button::update_place()");
    if (size().x != m_bounds.max().x + 2.0f * style()->padding().x)
-      m_ninepatch.place(0.0f, 0.0f, size().x, size().y);
+      m_ninepatch.place(renderer(), 0.0f, 0.0f, size().x, size().y);
 }
 void button::begin_size(glm::vec2 const &free_size_reference)
 {
@@ -81,8 +85,8 @@ void button::begin_place(rectangle const &reference, glm::vec2 const &grow_direc
    glm::mat4 a, b;
    create_translation(rect().min() + style()->padding(), a);
    create_translation(rect().min(), b);
-   auto uc = context::current();
-   glm::mat4 const &o = uc->gui_renderer()->ortho();
+
+   glm::mat4 const &o = renderer()->ortho();
    m_text_frame       = o * a;
    m_background_frame = o * b;
 }
@@ -90,13 +94,17 @@ void button::draw_self(ui_context &context)
 {
    slog_trace("button::draw_self()");
 
-   auto uc = context::current();
-   auto r = uc->gui_renderer();
+   auto r = renderer();
 
    //r->push();
 
    r->set_program(style()->ninepatch_style()->program());
-   r->set_texture(style()->ninepatch_style()->texture_unit(), style()->ninepatch_style()->texture());
+
+   renderstack::graphics::renderer &rr = r->renderer();
+   auto t = style()->ninepatch_style()->texture();
+   r->set_texture(style()->ninepatch_style()->texture_unit(), t);
+   //t->apply(rr, style()->ninepatch_style()->texture_unit());
+
    r->begin_edit();
    r->set_transform(m_background_frame);
    r->set_color_scale(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
@@ -126,7 +134,7 @@ void button::draw_self(ui_context &context)
    }
 
    r->end_edit();
-   m_ninepatch.render();
+   m_ninepatch.render(r);
 
    /*  Then draw text  */ 
    if (style()->font())
@@ -134,7 +142,10 @@ void button::draw_self(ui_context &context)
       gl::enable(gl::enable_cap::blend);
       r->begin_edit();
       r->set_program(style()->program());
-      r->set_texture(style()->texture_unit(), style()->font()->texture());
+      auto t = style()->font()->texture();
+      r->set_texture(style()->texture_unit(), t);
+      t->apply(rr, style()->texture_unit());
+
       r->set_color_add  (glm::vec4(0.00f, 0.00f, 0.00f, 0.0f));
       r->set_color_scale(glm::vec4(0.72f, 0.72f, 0.72f, 2.0f));
       r->set_transform(m_text_frame);

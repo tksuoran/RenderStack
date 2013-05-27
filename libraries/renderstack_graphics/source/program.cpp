@@ -2,8 +2,8 @@
 #include "renderstack_toolkit/gl.hpp"
 #include "renderstack_toolkit/logstream.hpp"
 #include "renderstack_graphics/configuration.hpp"
-#include "renderstack_graphics/context.hpp"
 #include "renderstack_graphics/program.hpp"
+#include "renderstack_graphics/renderer.hpp"
 #include "renderstack_graphics/samplers.hpp"
 #include "renderstack_graphics/uniform_block.hpp"
 #include "renderstack_graphics/uniform.hpp"
@@ -20,7 +20,7 @@
 #include <vector>
 #include <string>
 
-#define LOG_CATEGORY &log_program
+#define LOG_CATEGORY &log_graphics_program
 
 // #define LOG_LINK 1
 
@@ -196,14 +196,19 @@ unsigned int program::make_shader(
    return shader;
 }
 
-program::program(string const &name, int glsl_version, shared_ptr<class samplers> samplers, shared_ptr<class vertex_stream_mappings> mappings)
+program::program(
+   string const                              &name,
+   int                                       glsl_version,
+   shared_ptr<class samplers>                samplers,
+   shared_ptr<class vertex_stream_mappings>  mappings
+)
 :  m_name         (name)
 ,  m_glsl_version (glsl_version)
-,  m_program      (0)
+,  m_gl_name      (~0u)
 ,  m_samplers     (samplers)
 ,  m_mappings     (mappings)
 {
-   m_program = gl::create_program();
+   m_gl_name = gl::create_program();
 
    assert(mappings);
 
@@ -214,7 +219,7 @@ program::program(string const &name, int glsl_version, shared_ptr<class samplers
 
 void program::bind_attrib_location(int location, string const name)
 {
-   gl::bind_attrib_location(m_program, location, name.c_str());
+   gl::bind_attrib_location(m_gl_name, location, name.c_str());
 }
 
 void program::define(string const &key, string const &value)
@@ -223,7 +228,7 @@ void program::define(string const &key, string const &value)
 }
 int program::get_uniform_location(const char *name)
 {
-   return gl::get_uniform_location(m_program, name);
+   return gl::get_uniform_location(m_gl_name, name);
 }
 
 void program::dump_shaders() const
@@ -246,7 +251,7 @@ void program::set_shader(shader_type::value type, string const &source)
    string compiled_src;
    GLuint shader = make_shader(type, source, compiled_src);
 
-   gl::attach_shader(m_program, shader);
+   gl::attach_shader(m_gl_name, shader);
 }
 void program::load_shader(shader_type::value type, string const &path)
 {
@@ -254,7 +259,7 @@ void program::load_shader(shader_type::value type, string const &path)
    string compiled_src;
    GLuint shader = make_shader(type, source, compiled_src);
 
-   gl::attach_shader(m_program, shader);
+   gl::attach_shader(m_gl_name, shader);
 
    loaded_shader resource;
    resource.type              = type;
@@ -266,7 +271,9 @@ void program::load_shader(shader_type::value type, string const &path)
 
    m_loaded_shaders.push_back(resource);
 
+#if 0
    context::current()->shader_monitor().add(resource.path, this);
+#endif
 }
 void program::reload()
 {
@@ -281,7 +288,7 @@ void program::reload()
 
          //  detach old shader, load, compile and attach new
          cout << "reload detach old " << resource.shader << '\n';
-         gl::detach_shader(m_program, resource.shader);
+         gl::detach_shader(m_gl_name, resource.shader);
          //  Mark current shader as 0 before compilation in order to
          //  know when to attach the shader back if compilation fails.
          resource.shader = 0;
@@ -290,7 +297,7 @@ void program::reload()
          resource.shader = make_shader(resource.type, source, compiled_src);
          resource.compiled_src = compiled_src;
          cout << "reload attach new" << resource.shader << '\n';
-         gl::attach_shader(m_program, resource.shader);
+         gl::attach_shader(m_gl_name, resource.shader);
       }
 
       link();
@@ -324,10 +331,10 @@ void program::reload()
 
                if (resource.shader != 0)
                {
-                  gl::detach_shader(m_program, resource.shader);
+                  gl::detach_shader(m_gl_name, resource.shader);
                   gl::delete_shader(resource.shader);
                }
-               gl::attach_shader(m_program, resource.last_good_shader);
+               gl::attach_shader(m_gl_name, resource.last_good_shader);
 
                resource.shader = resource.last_good_shader;
             }
@@ -439,7 +446,7 @@ void program::transform_feedback(vector<string> varyings, GLenum buffer_mode)
       for (size_t i = 0; i < varyings.size(); ++i)
          c_array[i] = varyings[i].c_str();
 
-      gl::transform_feedback_varyings(m_program, static_cast<GLsizei>(varyings.size()), &c_array[0], buffer_mode);
+      gl::transform_feedback_varyings(m_gl_name, static_cast<GLsizei>(varyings.size()), &c_array[0], buffer_mode);
    }
    else
 #endif
@@ -497,7 +504,7 @@ void program::add(weak_ptr<class uniform_block> uniform_block)
 void program::link()
 {
 #if defined(LOG_LINK)
-   cout << "Linking program " << m_program << ":\n";
+   cout << "Linking program " << m_gl_name << ":\n";
    for (auto i = m_loaded_shaders.cbegin(); i != m_loaded_shaders.cend(); ++i)
    {
       cout << i->path << ":\n--------------------------------------------------------------------\n";
@@ -508,7 +515,7 @@ void program::link()
    cout << "\n";
 #endif
 
-   gl::link_program(m_program);
+   gl::link_program(m_gl_name);
    int link_status                  = GL_FALSE;
    int validate_status              = GL_FALSE;
    int info_log_length              = 0;
@@ -524,31 +531,31 @@ void program::link()
    int transform_feedback_varyings           = 0;
    int transform_feedback_varying_max_length = 0;
 #endif
-   gl::get_program_iv(m_program, gl::program_parameter::link_status, &link_status);
-   gl::get_program_iv(m_program, gl::program_parameter::validate_status, &validate_status);
-   gl::get_program_iv(m_program, gl::program_parameter::info_log_length, &info_log_length);
-   gl::get_program_iv(m_program, gl::program_parameter::attached_shaders, &attached_shaders);
-   gl::get_program_iv(m_program, gl::program_parameter::active_attributes, &active_attributes);
-   gl::get_program_iv(m_program, gl::program_parameter::active_attribute_max_length, &active_attribute_max_length);
-   gl::get_program_iv(m_program, gl::program_parameter::active_uniforms, &active_uniforms);
-   gl::get_program_iv(m_program, gl::program_parameter::active_uniform_max_length, &active_uniform_max_length);
+   gl::get_program_iv(m_gl_name, gl::program_parameter::link_status, &link_status);
+   gl::get_program_iv(m_gl_name, gl::program_parameter::validate_status, &validate_status);
+   gl::get_program_iv(m_gl_name, gl::program_parameter::info_log_length, &info_log_length);
+   gl::get_program_iv(m_gl_name, gl::program_parameter::attached_shaders, &attached_shaders);
+   gl::get_program_iv(m_gl_name, gl::program_parameter::active_attributes, &active_attributes);
+   gl::get_program_iv(m_gl_name, gl::program_parameter::active_attribute_max_length, &active_attribute_max_length);
+   gl::get_program_iv(m_gl_name, gl::program_parameter::active_uniforms, &active_uniforms);
+   gl::get_program_iv(m_gl_name, gl::program_parameter::active_uniform_max_length, &active_uniform_max_length);
 #if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
    if (configuration::can_use.uniform_buffer_object)
    {
-      gl::get_program_iv(m_program, gl::program_parameter::active_uniform_blocks, &active_uniform_blocks);
-      gl::get_program_iv(m_program, gl::program_parameter::active_uniform_block_max_name_length, &active_uniform_block_max_name_length);
+      gl::get_program_iv(m_gl_name, gl::program_parameter::active_uniform_blocks, &active_uniform_blocks);
+      gl::get_program_iv(m_gl_name, gl::program_parameter::active_uniform_block_max_name_length, &active_uniform_block_max_name_length);
    }
    if (configuration::can_use.transform_feedback)
    {
-      gl::get_program_iv(m_program, gl::program_parameter::transform_feedback_buffer_mode, &transform_feedback_buffer_mode);
-      gl::get_program_iv(m_program, gl::program_parameter::transform_feedback_varyings, &transform_feedback_varyings);
-      gl::get_program_iv(m_program, gl::program_parameter::transform_feedback_varying_max_length, &transform_feedback_varying_max_length);
+      gl::get_program_iv(m_gl_name, gl::program_parameter::transform_feedback_buffer_mode, &transform_feedback_buffer_mode);
+      gl::get_program_iv(m_gl_name, gl::program_parameter::transform_feedback_varyings, &transform_feedback_varyings);
+      gl::get_program_iv(m_gl_name, gl::program_parameter::transform_feedback_varying_max_length, &transform_feedback_varying_max_length);
    }
 #endif
    if (link_status != GL_TRUE)
    {
       string log(info_log_length + 1, 0);
-      gl::get_program_info_log(m_program, info_log_length, nullptr, &log[0]);
+      gl::get_program_info_log(m_gl_name, info_log_length, nullptr, &log[0]);
       log_function("Program linking failed: ");
       log_function(&log[0]);
       log_function("\n");
@@ -556,7 +563,7 @@ void program::link()
    }
 
    //  This is required by gl::uniform_1i() calls
-   gl::use_program(m_program);
+   gl::use_program(m_gl_name);
 
    int buffer_size = active_uniform_max_length;
 #if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
@@ -584,9 +591,9 @@ void program::link()
       for (unsigned int i = 0; i < static_cast<unsigned int>(active_uniform_blocks); ++i)
       {
          GLsizei length;
-         gl::get_active_uniform_block_name(m_program, i, buffer_size, &length, &buffer[0]);
+         gl::get_active_uniform_block_name(m_gl_name, i, buffer_size, &length, &buffer[0]);
          gl::get_active_uniform_block_iv(
-            m_program,
+            m_gl_name,
             i,
             gl::active_uniform_block_parameter::uniform_block_active_uniforms,
             &uniform_count
@@ -607,7 +614,7 @@ void program::link()
             unsigned int binding_point = block->binding_point();
 
 				slog_trace("program::link() uniform block: %s binding point: %u", name.c_str(), binding_point);
-            gl::uniform_block_binding(m_program, i, binding_point);
+            gl::uniform_block_binding(m_gl_name, i, binding_point);
          }
          else
          {
@@ -628,7 +635,7 @@ void program::link()
       GLsizei length;
 
       gl::get_active_uniform(
-         m_program,
+         m_gl_name,
          i,
          buffer_size,
          &length,
@@ -643,7 +650,7 @@ void program::link()
 
       buffer[length] = 0;
 
-      int index = gl::get_uniform_location(m_program, &buffer[0]);
+      int index = gl::get_uniform_location(m_gl_name, &buffer[0]);
 
       if (index >= 0)
       {
@@ -693,7 +700,7 @@ void program::link()
          for (unsigned int i = 0; i < static_cast<unsigned int>(transform_feedback_varyings); ++i)
          {
             gl::get_transform_feedback_varying(
-               m_program,
+               m_gl_name,
                i,
                transform_feedback_varying_max_length,
                &length,
@@ -717,9 +724,5 @@ shared_ptr<class uniform> program::uniform(string const &name)
    return m_uniforms[name];
 }
 
-void program::use()
-{
-   gl::use_program(m_program);
-}
 
 } }

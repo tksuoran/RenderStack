@@ -1,7 +1,7 @@
 #include "renderstack_toolkit/platform.hpp"
-#include "renderstack_renderer/blend_state.hpp"
+#include "renderstack_graphics/blend_state.hpp"
 
-namespace renderstack { namespace renderer {
+namespace renderstack { namespace graphics {
 
 using namespace glm;
 

@@ -1,7 +1,7 @@
 #include "renderstack_toolkit/platform.hpp"
-#include "renderstack_renderer/depth_state.hpp"
+#include "renderstack_graphics/depth_state.hpp"
 
-namespace renderstack { namespace renderer {
+namespace renderstack { namespace graphics {
 
 depth_state depth_state::s_default;
 depth_state depth_state::s_disabled;

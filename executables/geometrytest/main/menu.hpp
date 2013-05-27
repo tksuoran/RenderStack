@@ -10,15 +10,18 @@
 #include "renderstack_ui/action.hpp"
 #include <memory>
 
-namespace renderstack {
+namespace renderstack
+{
    namespace graphics
    {
       class uniform_buffer;
       class uniform_buffer_range;
    }
-   namespace ui {
+   namespace ui
+   {
       class button;
       class font;
+      class gui_renderer;
       class text_buffer;
       class layer;
    }
@@ -40,6 +43,8 @@ public:
    virtual ~menu();
 
    void connect(
+      std::shared_ptr<renderstack::graphics::renderer>   renderer,
+      std::shared_ptr<renderstack::ui::gui_renderer>     gui_renderer,
       std::shared_ptr<application>  screen,
       std::shared_ptr<class game>   game,
       std::shared_ptr<programs>     programs,
@@ -66,10 +71,12 @@ private:
 
 private:
    std::shared_ptr<application>                                   m_application;
+   std::shared_ptr<renderstack::graphics::renderer>               m_renderer;
+   std::shared_ptr<renderstack::ui::gui_renderer>                 m_gui_renderer;
    std::shared_ptr<class game>                                    m_game;
    std::shared_ptr<programs>                                      m_programs;
    std::shared_ptr<textures>                                      m_textures;
-   std::shared_ptr<renderstack::graphics::uniform_buffer>         m_uniform_buffer;
+   std::shared_ptr<renderstack::graphics::buffer>                 m_uniform_buffer;
    std::shared_ptr<renderstack::graphics::uniform_buffer_range>   m_uniform_buffer_range;
    std::shared_ptr<renderstack::ui::font>                         m_font;
    std::shared_ptr<renderstack::ui::text_buffer>                  m_text_buffer;
