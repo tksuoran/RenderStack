@@ -102,7 +102,7 @@ static void s_error_callback(const char *msg, void *userdata)
 static void s_win_callback(GLWTWindow *window, const GLWTWindowEvent *event, void *userdata)
 {
    (void)window;
-   class window *rs_window = reinterpret_cast<class window *>(userdata);
+   class window *rs_window = static_cast<class window *>(userdata);
    if (rs_window)
       rs_window->glwt_callback(event);
 }
@@ -132,10 +132,10 @@ void window::glwt_callback(const GLWTWindowEvent *event)
    case GLWT_WINDOW_FOCUS_OUT:
       break;
    case GLWT_WINDOW_KEY_UP:
-      on_key_up(event->key.keysym);
+      on_key(event->key.keysym, 1, event->key.mod);
       break;
    case GLWT_WINDOW_KEY_DOWN:
-      on_key_down(event->key.keysym);
+      on_key(event->key.keysym, 0, event->key.mod);
       break;
    case GLWT_WINDOW_BUTTON_UP:
       if (event->button.button < 10)
@@ -149,7 +149,7 @@ void window::glwt_callback(const GLWTWindowEvent *event)
          m_cursor_y = event->button.y;
          on_mouse_moved(m_cursor_x, m_cursor_y);
       }
-      on_mouse_button(event->button.button, 0);
+      on_mouse_button(event->button.button, 0, event->button.mod);
       break;
    case GLWT_WINDOW_BUTTON_DOWN:
       if (event->button.button < 10)
@@ -163,7 +163,7 @@ void window::glwt_callback(const GLWTWindowEvent *event)
          m_cursor_y = event->button.y;
          on_mouse_moved(m_cursor_x, m_cursor_y);
       }
-      on_mouse_button(event->button.button, 1);
+      on_mouse_button(event->button.button, 1, event->button.mod);
       break;
    case GLWT_WINDOW_MOUSE_MOTION:
       m_cursor_x = event->motion.x;
@@ -175,7 +175,7 @@ void window::glwt_callback(const GLWTWindowEvent *event)
          if (m_buttons[i] != new_button_state)
          {
             m_buttons[i] = new_button_state;
-            on_mouse_button(i, new_button_state);
+            on_mouse_button(i, new_button_state, 0);
          }
       }
       break;
@@ -183,12 +183,6 @@ void window::glwt_callback(const GLWTWindowEvent *event)
    case GLWT_WINDOW_MOUSE_LEAVE:
       break;
    }
-}
-
-void window::on_resize(int width, int height)
-{
-   (void)width;
-   (void)height;
 }
 
 void window::set_time(double value)
@@ -201,7 +195,7 @@ double window::time() const
 #if defined(_WIN32)
    if (m_time_get_time)
    {
-      PFNTIMEGETTIME time_get_time = reinterpret_cast<PFNTIMEGETTIME>(m_time_get_time);
+      PFNTIMEGETTIME time_get_time = static_cast<PFNTIMEGETTIME>(m_time_get_time);
       return time_get_time() * 0.001;
    }
 	else
@@ -217,7 +211,7 @@ double window::time() const
 typedef WINGDIAPI PROC (WINAPI * PFNWGLGETPROCADDRESS) (LPCSTR);
 #endif
 
-window::window(int width, int height, std::string const &title, int major, int minor)
+window::window()
 #if defined(_WIN32)
 :	m_winmm_dll(0)
 ,	m_time_get_time(nullptr)
@@ -229,8 +223,8 @@ window::window(int width, int height, std::string const &title, int major, int m
    if (opengl32_dll)
    {
       PFNWGLGETPROCADDRESS wgl_get_proc_address = reinterpret_cast<PFNWGLGETPROCADDRESS>(GetProcAddress(opengl32_dll, "wglGetProcAddress"));
-      m_opengl32_dll = reinterpret_cast<void*>(opengl32_dll);
-      m_wgl_get_proc_address = reinterpret_cast<void*>(wgl_get_proc_address);
+      m_opengl32_dll = static_cast<void*>(opengl32_dll);
+      m_wgl_get_proc_address = static_cast<void*>(wgl_get_proc_address);
    }
    else
    {
@@ -243,15 +237,18 @@ window::window(int width, int height, std::string const &title, int major, int m
    if (winmm_dll)
    {
       PFNTIMEGETTIME time_get_time = reinterpret_cast<PFNTIMEGETTIME>(GetProcAddress(winmm_dll, "timeGetTime"));
-      m_winmm_dll = reinterpret_cast<void*>(winmm_dll);
-      m_time_get_time = reinterpret_cast<void*>(time_get_time);
+      m_winmm_dll = static_cast<void*>(winmm_dll);
+      m_time_get_time = static_cast<void*>(time_get_time);
    }
    else
    {
       m_time_get_time = nullptr;
    }
 # endif
+}
 
+void window::open(int width, int height, std::string const &title, int major, int minor)
+{
    ::memset(&m_glwt_config, sizeof(::GLWTConfig), 0);
    m_glwt_config.red_bits            = 8;
    m_glwt_config.green_bits          = 8;
@@ -297,18 +294,21 @@ window::window(int width, int height, std::string const &title, int major, int m
    m_width = width;
    m_height = height;
 
+   void * void_this = static_cast<void*>(this);
+   window *window_this = static_cast<window*>(void_this);
+
    GLWTWindow *win = ::glwtWindowCreate(
       title.c_str(),
       width,
       height,
-      NULL, 
+      nullptr, 
       s_win_callback, 
-      reinterpret_cast<void*>(this)
+      void_this
    );
    if (!win)
    {
       ::glwtQuit();
-      throw runtime_error("Failed to open GLWt window");
+      throw runtime_error("Failed to open GLWT window");
    }
 
    m_window = win;
@@ -329,13 +329,12 @@ window::window(int width, int height, std::string const &title, int major, int m
 void window::make_current()
 {
    assert(m_window);
-   ::glwtMakeCurrent(reinterpret_cast<GLWTWindow *>(m_window));
+   ::glwtMakeCurrent(static_cast<GLWTWindow *>(m_window));
 }
 
 window::~window()
 {
-   on_exit();
-   ::glwtWindowDestroy(reinterpret_cast<GLWTWindow*>(m_window));
+   ::glwtWindowDestroy(static_cast<GLWTWindow*>(m_window));
    ::glwtQuit();
 }
 
@@ -346,7 +345,7 @@ glproc window::get_proc_address(const char* procname)
    glproc ptr = nullptr;
    if (m_opengl32_dll)
    {
-      HMODULE opengl32_dll = reinterpret_cast<HMODULE>(m_opengl32_dll);
+      HMODULE opengl32_dll = static_cast<HMODULE>(m_opengl32_dll);
       ptr = reinterpret_cast<glproc>(GetProcAddress(opengl32_dll, procname));
    }
    if (ptr == nullptr && m_wgl_get_proc_address)
@@ -371,7 +370,7 @@ glproc window::get_proc_address(const char* procname)
 # endif
 #else
    glproc ptr = nullptr;
-   ptr = reinterpret_cast<glproc>(eglGetProcAddress(procname));
+   ptr = static_cast<glproc>(eglGetProcAddress(procname));
 
    return ptr;
 #endif
@@ -401,13 +400,13 @@ int window::get_mouse_button(int button)
 {
    return m_buttons[button];
 }
-void window::get_mouse_pos(int &xpos, int &ypos)
+void window::get_mouse_pos(double &xpos, double &ypos)
 {
    xpos = m_cursor_x;
    ypos = m_cursor_y;
 }
 
-void window::set_mouse_pos(int xpos, int ypos)
+void window::set_mouse_pos(double xpos, double ypos)
 {
    (void)xpos;
    (void)ypos;
@@ -439,52 +438,9 @@ int window::height() const
    return m_height;
 }
 
-void window::on_key_down(int key)
-{
-   (void)key;
-}
-
-void window::on_key_up(int key)
-{
-   (void)key;
-}
-
-void window::on_mouse_moved(int x, int y)
-{
-   (void)x;
-   (void)y;
-}
-
-void window::on_mouse_button(int button, int value)
-{
-   (void)button;
-   (void)value;
-}
-
-void window::on_scroll(double x, double y)
-{
-   (void)x;
-   (void)y;
-}
-
 void window::swap_buffers()
 {
-   ::glwtSwapBuffers(reinterpret_cast<GLWTWindow*>(m_window));
-}
-
-bool window::on_load()
-{
-   update();
-   return true;
-}
-
-bool window::on_exit()
-{
-   return true;
-}
-
-void window::update()
-{
+   ::glwtSwapBuffers(static_cast<GLWTWindow*>(m_window));
 }
 
 } }

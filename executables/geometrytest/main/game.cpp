@@ -30,7 +30,7 @@
 #include <cassert>
 
 #if defined(RENDERSTACK_USE_GLFW)
-# include <GL/glfw3.h>
+# include <GLFW/glfw3.h>
 #endif
 #if defined(RENDERSTACK_USE_GLWT)
 # include <GLWT/glwt.h>
@@ -474,67 +474,58 @@ void game::shift(bool left, bool value)
    bool any_shift_pressed = m_controls.left_shift || m_controls.right_shift;
    m_controls.camera_controller.translate_y().set_less(any_shift_pressed);
 }
-void game::on_key_down(int key)
+void game::on_key(int key, int action, int mods)
 {
+   bool pressed = action != 0;
+
+   (void)mods;
+
 #if defined(RENDERSTACK_USE_GLFW)
+   if (pressed)
+   {
+      switch (key)
+      {
+      case GLFW_KEY_ESC:   toggle_mouse_lock(); break;
+      case GLFW_KEY_F1:    m_min_frame_dt = 1.0; m_max_frame_dt = 0.0; break;
+      case 'B':            m_controls.fov *= 1.1f; break;
+      case 'N':            m_controls.fov /= 1.1f; break;
+      case 'M':            reset(); break;
+      }
+   }
+
    switch (key)
    {
-   case GLFW_KEY_ESC:    toggle_mouse_lock(); break;
-   case GLFW_KEY_SPACE:  m_controls.camera_controller.translate_y().set_more(true); break;
-   case GLFW_KEY_LSHIFT: shift(true, true); break;
-   case GLFW_KEY_RSHIFT: shift(false, true); break;
-   case GLFW_KEY_F1: m_min_frame_dt = 1.0; m_max_frame_dt = 0.0; break;
-   case 'W': m_controls.camera_controller.translate_z().set_less(true); break;
-   case 'S': m_controls.camera_controller.translate_z().set_more(true); break;
-   case 'D': m_controls.camera_controller.translate_x().set_more(true); break;
-   case 'A': m_controls.camera_controller.translate_x().set_less(true); break;
-   case 'B': m_controls.fov *= 1.1f; break;
-   case 'N': m_controls.fov /= 1.1f; break;
-   case 'M': reset(); break;
+   case GLFW_KEY_SPACE:  m_controls.camera_controller.translate_y().set_more(pressed); break;
+   case GLFW_KEY_LSHIFT: shift(true, pressed); break;
+   case GLFW_KEY_RSHIFT: shift(false, pressed); break;
+   case 'W': m_controls.camera_controller.translate_z().set_less(pressed); break;
+   case 'S': m_controls.camera_controller.translate_z().set_more(pressed); break;
+   case 'D': m_controls.camera_controller.translate_x().set_more(pressed); break;
+   case 'A': m_controls.camera_controller.translate_x().set_less(pressed); break;
    }
 #endif
 #if defined(RENDERSTACK_USE_GLWT)
-   switch (key)
+   if (pressed)
    {
-   case GLWT_KEY_ESCAPE: toggle_mouse_lock(); break;
-   case GLWT_KEY_SPACE:  m_controls.camera_controller.translate_y().set_more(true); break;
-   case GLWT_KEY_LSHIFT: shift(true, true); break;
-   case GLWT_KEY_RSHIFT: shift(false, true); break;
-   case GLWT_KEY_F1: m_min_frame_dt = 1.0; m_max_frame_dt = 0.0; break;
-   case GLWT_KEY_W: m_controls.camera_controller.translate_z().set_less(true); break;
-   case GLWT_KEY_S: m_controls.camera_controller.translate_z().set_more(true); break;
-   case GLWT_KEY_D: m_controls.camera_controller.translate_x().set_more(true); break;
-   case GLWT_KEY_A: m_controls.camera_controller.translate_x().set_less(true); break;
-   case GLWT_KEY_B: m_controls.fov *= 1.1f; break;
-   case GLWT_KEY_N: m_controls.fov /= 1.1f; break;
-   case GLWT_KEY_M: reset(); break;
+      switch (key)
+      {
+      case GLWT_KEY_ESCAPE:   toggle_mouse_lock(); break;
+      case GLWT_KEY_F1:       m_min_frame_dt = 1.0; m_max_frame_dt = 0.0; break;
+      case GLWT_KEY_B:        m_controls.fov *= 1.1f; break;
+      case GLWT_KEY_N:        m_controls.fov /= 1.1f; break;
+      case GLWT_KEY_M:        reset(); break;
+      }
    }
-#endif
-}
-void game::on_key_up(int key)
-{
-#if defined(RENDERSTACK_USE_GLFW)
+
    switch (key)
    {
-   case GLFW_KEY_SPACE:  m_controls.camera_controller.translate_y().set_more(false); break;
-   case GLFW_KEY_LSHIFT: shift(true, false); break;
-   case GLFW_KEY_RSHIFT: shift(false, false); break;
-   case 'W': m_controls.camera_controller.translate_z().set_less(false); break;
-   case 'S': m_controls.camera_controller.translate_z().set_more(false); break;
-   case 'D': m_controls.camera_controller.translate_x().set_more(false); break;
-   case 'A': m_controls.camera_controller.translate_x().set_less(false); break;
-   }
-#endif
-#if defined(RENDERSTACK_USE_GLWT)
-   switch (key)
-   {
-   case GLWT_KEY_SPACE:  m_controls.camera_controller.translate_y().set_more(false); break;
-   case GLWT_KEY_LSHIFT: shift(true, false); break;
-   case GLWT_KEY_RSHIFT: shift(false, false); break;
-   case GLWT_KEY_W: m_controls.camera_controller.translate_z().set_less(false); break;
-   case GLWT_KEY_S: m_controls.camera_controller.translate_z().set_more(false); break;
-   case GLWT_KEY_D: m_controls.camera_controller.translate_x().set_more(false); break;
-   case GLWT_KEY_A: m_controls.camera_controller.translate_x().set_less(false); break;
+   case GLWT_KEY_SPACE:    m_controls.camera_controller.translate_y().set_more(pressed); break;
+   case GLWT_KEY_LSHIFT:   shift(true, pressed); break;
+   case GLWT_KEY_RSHIFT:   shift(false, pressed); break;
+   case GLWT_KEY_W:        m_controls.camera_controller.translate_z().set_less(pressed); break;
+   case GLWT_KEY_S:        m_controls.camera_controller.translate_z().set_more(pressed); break;
+   case GLWT_KEY_D:        m_controls.camera_controller.translate_x().set_more(pressed); break;
+   case GLWT_KEY_A:        m_controls.camera_controller.translate_x().set_less(pressed); break;
    }
 #endif
 }
@@ -571,10 +562,11 @@ void game::on_mouse_moved(double x, double y)
       m_controls.mouse_y = y;
    }
 }
-void game::on_mouse_button(int button, int value)
+void game::on_mouse_button(int button, int action, int mods)
 {
    (void)button;
-   (void)value;
+   (void)action;
+   (void)mods;
 }
 void game::on_scroll(double x, double y)
 {

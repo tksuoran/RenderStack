@@ -29,27 +29,9 @@ using namespace renderstack::ui;
 using namespace renderstack::toolkit;
 
 
-#if defined(RENDERSTACK_GL_API_OPENGL)
 application::application()
-:  window      (512, 512, "OpenGL", 3, 2)
-,  m_test_mode (false)
 {
 }
-#endif
-#if defined(RENDERSTACK_GL_API_OPENGL_ES_3)
-application::application()
-:  window      (512, 512, "OpenGL ES 3", 3, 0)
-,  m_test_mode (false)
-{
-}
-#endif
-#if defined(RENDERSTACK_GL_API_OPENGL_ES_2)
-application::application()
-:  window      (512, 512, "OpenGL ES 2", 2, 0)
-,  m_test_mode (false)
-{
-}
-#endif
 
 application::~application()
 {
@@ -84,21 +66,17 @@ void application::update()
 
    m_screen->update();
 }
-void application::on_key_down(int key)
+void application::on_key(int key, int action, int mods)
 {
-   m_screen->on_key_down(key);
-}
-void application::on_key_up(int key)
-{
-   m_screen->on_key_up(key);
+   m_screen->on_key(key, action, mods);
 }
 void application::on_mouse_moved(double x, double y)
 {
    m_screen->on_mouse_moved(x, y);
 }
-void application::on_mouse_button(int button, int value)
+void application::on_mouse_button(int button, int action, int mods)
 {
-   m_screen->on_mouse_button(button, value);
+   m_screen->on_mouse_button(button, action, mods);
 }
 void application::on_scroll(double x, double y)
 {

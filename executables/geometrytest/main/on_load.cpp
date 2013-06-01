@@ -43,17 +43,28 @@ bool application::on_exit()
 }
 bool application::on_load()
 {
+
+#if defined(RENDERSTACK_GL_API_OPENGL)
+   open(512, 512, "OpenGL", 3, 2);
+#endif
+#if defined(RENDERSTACK_GL_API_OPENGL_ES_3)
+   open(512, 512, "OpenGL ES 3", 3, 0);
+#endif
+#if defined(RENDERSTACK_GL_API_OPENGL_ES_2)
+   open(512, 512, "OpenGL ES 2", 2, 0)
+#endif
+
    configuration::initialize();
 
    m_renderer = make_shared<renderstack::graphics::renderer>();
    m_gui_renderer = make_shared<renderstack::ui::gui_renderer>(m_renderer);
 
-   if (m_test_mode)
+#if 0
    {
       execute_tests();
       return false;
    }
-   else
+#else
    {
       m_game = smart_ptr_builder::create_shared_ptr<renderstack::ui::action_sink>(new game());
       m_menu = smart_ptr_builder::create_shared_ptr<renderstack::ui::action_sink>(new menu());
@@ -80,17 +91,19 @@ bool application::on_load()
 
       setup_gl_state();
 
-#if 1
+#  if 1
       if (m_menu)
          set_screen(m_menu);
-#else
+#  else
       if (m_game)
          set_screen(m_game);
-#endif
+#  endif
 
       m_last_screen.reset();
       return true;
    }
+#endif
+
 }
 
 void application::setup_gl_state()

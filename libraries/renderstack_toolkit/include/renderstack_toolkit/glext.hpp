@@ -49,7 +49,7 @@
 #include <GL/glcorearb.h>
 
 #if defined(RENDERSTACK_USE_GLFW)
-# include <GL/glfw3.h>
+# include <GLFW/glfw3.h>
 #endif
 
 namespace gl { namespace detail {

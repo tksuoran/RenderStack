@@ -318,23 +318,22 @@ void menu::update()
    m_programs->update_fixed_step();
    render();
 }
-void menu::on_key_down(int key)
+void menu::on_key(int key, int action, int mods)
 {
    (void)key;
-}
-void menu::on_key_up(int key)
-{
-   (void)key;
+   (void)action;
+   (void)mods;
 }
 void menu::on_mouse_moved(double x, double y)
 {
    (void)x;
    (void)y;
 }
-void menu::on_mouse_button(int button, int value)
+void menu::on_mouse_button(int button, int action, int mods)
 {
    (void)button;
-   (void)value;
+   (void)action;
+   (void)mods;
 }
 void menu::on_scroll(double x, double y)
 {

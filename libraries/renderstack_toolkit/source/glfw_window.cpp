@@ -1,7 +1,7 @@
 #if defined(RENDERSTACK_USE_GLFW)
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_toolkit/window.hpp"
-#include <GL/glfw3.h>
+#include <GLFW/glfw3.h>
 #include <stdexcept>
 #include <cstdlib>
 
@@ -77,23 +77,12 @@ void end_memory_compare()
 
 namespace renderstack { namespace toolkit {
 
-static void s_key(GLFWwindow *win, int k, int action)
+static void s_key(GLFWwindow *win, int key, int action, int mods)
 {
    class window *window = reinterpret_cast<class window *>(::glfwGetWindowUserPointer(win));
    if (window)
    {
-      switch (action)
-      {
-      case GLFW_PRESS:
-         window->on_key_down(k);
-         break;
-      case GLFW_RELEASE:
-         window->on_key_up(k);
-         break;
-      case GLFW_REPEAT:
-         // TODO
-         break;
-      }
+      window->on_key(key, action, mods);
    }
 }
 
@@ -104,11 +93,11 @@ static void s_mouse_pos(GLFWwindow *win, double x, double y)
       window->on_mouse_moved(x, y);
 }
 
-static void s_mouse_button(GLFWwindow *win, int button, int value)
+static void s_mouse_button(GLFWwindow *win, int button, int action, int mods)
 {
    class window *window = reinterpret_cast<class window *>(::glfwGetWindowUserPointer(win));
    if (window)
-      window->on_mouse_button(button, value);
+      window->on_mouse_button(button, action, mods);
 }
 
 static void s_mouse_wheel(GLFWwindow *win, double x, double y)
@@ -133,12 +122,6 @@ static void s_window_close(GLFWwindow *win)
       window->close();
 }
 
-void window::on_resize(int width, int height)
-{
-   (void)width;
-   (void)height;
-}
-
 void window::set_time(double value)
 {
    ::glfwSetTime(value);
@@ -149,7 +132,7 @@ double window::time() const
    return ::glfwGetTime();
 }
 
-window::window(int width, int height, std::string const &title, int major, int minor)
+void window::open(int width, int height, std::string const &title, int major, int minor)
 {
    if (!::glfwInit())
    {
@@ -232,7 +215,7 @@ window::window(int width, int height, std::string const &title, int major, int m
    ::glfwSetScrollCallback     ((GLFWwindow*)m_window, s_mouse_wheel);
    ::glfwSetWindowCloseCallback((GLFWwindow*)m_window, s_window_close);
 
-   ::glfwSetInputMode((GLFWwindow*)m_window, GLFW_CURSOR_MODE, GLFW_CURSOR_NORMAL);
+   ::glfwSetInputMode((GLFWwindow*)m_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
    ::glfwSetInputMode((GLFWwindow*)m_window, GLFW_STICKY_KEYS, GL_FALSE);
    ::glfwSetInputMode((GLFWwindow*)m_window, GLFW_STICKY_MOUSE_BUTTONS, GL_FALSE);
    ::glfwSwapInterval(1);
@@ -242,9 +225,12 @@ window::window(int width, int height, std::string const &title, int major, int m
    get_extensions();
 }
 
+window::window()
+{
+}
+
 window::~window()
 {
-   on_exit();
    ::glfwDestroyWindow((GLFWwindow*)m_window);
    ::glfwTerminate();
 }
@@ -302,7 +288,15 @@ void window::show_cursor(bool show)
    {
       m_show = show;
       if (!m_capture)
-         ::glfwSetInputMode((GLFWwindow*)m_window, GLFW_CURSOR_MODE, m_capture ? GLFW_CURSOR_CAPTURED : m_show ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_HIDDEN);
+         ::glfwSetInputMode(
+            (GLFWwindow*)m_window,
+            GLFW_CURSOR,
+            m_capture
+               ? GLFW_CURSOR_DISABLED
+               : m_show
+                  ? GLFW_CURSOR_NORMAL
+                  : GLFW_CURSOR_HIDDEN
+         );
    }
 }
 
@@ -311,14 +305,22 @@ void window::capture_mouse(bool capture)
    if (m_capture != capture)
    {
       m_capture = capture;
-      ::glfwSetInputMode((GLFWwindow*)m_window, GLFW_CURSOR_MODE, m_capture ? GLFW_CURSOR_CAPTURED : m_show ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_HIDDEN);
+      ::glfwSetInputMode(
+         (GLFWwindow*)m_window,
+         GLFW_CURSOR,
+         m_capture
+            ? GLFW_CURSOR_DISABLED
+            : m_show
+               ? GLFW_CURSOR_NORMAL
+               : GLFW_CURSOR_HIDDEN
+      );
    }
 }
 
 bool window::get_mouse_capture() const
 {
-   int mode = ::glfwGetInputMode((GLFWwindow*)m_window, GLFW_CURSOR_MODE);
-   if (mode == GLFW_CURSOR_CAPTURED)
+   int mode = ::glfwGetInputMode((GLFWwindow*)m_window, GLFW_CURSOR);
+   if (mode == GLFW_CURSOR_DISABLED)
       return true;
    if (mode == GLFW_CURSOR_NORMAL)
       return false;
@@ -350,52 +352,9 @@ int window::height() const
 #endif
 }
 
-void window::on_key_down(int key)
-{
-   (void)key;
-}
-
-void window::on_key_up(int key)
-{
-   (void)key;
-}
-
-void window::on_mouse_moved(double x, double y)
-{
-   (void)x;
-   (void)y;
-}
-
-void window::on_mouse_button(int button, int value)
-{
-   (void)button;
-   (void)value;
-}
-
-void window::on_scroll(double x, double y)
-{
-   (void)x;
-   (void)y;
-}
-
 void window::swap_buffers()
 {
    ::glfwSwapBuffers((GLFWwindow*)m_window);
-}
-
-bool window::on_load()
-{
-   update();
-   return true;
-}
-
-bool window::on_exit()
-{
-   return true;
-}
-
-void window::update()
-{
 }
 
 } }

@@ -18,8 +18,10 @@ private:
    void* m_window; /* ::GLWTWindow *  */
 
 public:
-   window(int width, int height, std::string const &title, int major, int minor);
+   window();
    virtual ~window();
+
+   void     open        (int width, int height, std::string const &title, int major, int minor);
 
    int      width       () const;
    int      height      () const;
@@ -57,11 +59,11 @@ private:
    bool m_show;
 
 #if defined(RENDERSTACK_USE_GLWT)
-   bool  m_buttons[10];
-   int   m_cursor_x;
-   int   m_cursor_y;
-   int   m_width;
-   int   m_height;
+   bool     m_buttons[10];
+   double   m_cursor_x;
+   double   m_cursor_y;
+   int      m_width;
+   int      m_height;
 
    ::GLWTConfig            m_glwt_config;
 
@@ -84,15 +86,14 @@ public:
 
 public:
    //virtual bool on_close_request();
-   virtual bool on_load();
-   virtual bool on_exit();
-   virtual void on_resize(int width, int height);
-   virtual void update();
-   virtual void on_key_down(int key);
-   virtual void on_key_up(int key);
-   virtual void on_mouse_moved(double x, double y);
-   virtual void on_mouse_button(int button, int value);
-   virtual void on_scroll(double x, double y);
+   virtual bool on_load() = 0;
+   virtual bool on_exit() = 0;
+   virtual void on_resize(int width, int height) = 0;
+   virtual void update() = 0;
+   virtual void on_key(int key, int action, int mods) = 0;
+   virtual void on_mouse_moved(double x, double y) = 0;
+   virtual void on_mouse_button(int button, int action, int mods) = 0;
+   virtual void on_scroll(double x, double y) = 0;
 };
 
 } }

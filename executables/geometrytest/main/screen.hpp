@@ -8,14 +8,13 @@ public:
    {
    }
    virtual void update           () = 0;
-   virtual void on_enter         (){}
-   virtual void on_exit          (){}
-   virtual void on_resize        (int width, int height){(void)width;(void)height;}
-   virtual void on_key_down      (int key){(void)key;}
-   virtual void on_key_up        (int key){(void)key;}
-   virtual void on_mouse_moved   (double x, double y){(void)x;(void)y;}
-   virtual void on_mouse_button  (int button, int value){(void)button;(void)value;}
-   virtual void on_scroll        (double x, double y){(void)x;(void)y;}
+   virtual void on_enter         () = 0;
+   virtual void on_exit          () = 0;
+   virtual void on_resize        (int width, int height) = 0;
+   virtual void on_key           (int key, int action, int mods) = 0;
+   virtual void on_mouse_moved   (double x, double y) = 0;
+   virtual void on_mouse_button  (int button, int action, int mods) =0;
+   virtual void on_scroll        (double x, double y) = 0;
 };
 
 #endif

@@ -101,10 +101,9 @@ public:
    void on_enter        ();
    void on_exit         ();
    void update          ();
-   void on_key_down     (int key);
-   void on_key_up       (int key);
+   void on_key          (int key, int action, int mods);
    void on_mouse_moved  (double x, double y);
-   void on_mouse_button (int button, int value);
+   void on_mouse_button (int button, int action, int mods);
    void on_scroll       (double x, double y);
 
 private:
