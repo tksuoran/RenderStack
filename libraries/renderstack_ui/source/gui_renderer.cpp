@@ -45,6 +45,22 @@ gui_renderer::gui_renderer(std::shared_ptr<class renderstack::graphics::renderer
 {
    slog_trace("gui_renderer::gui_renderer()");
 
+   m_blend_alpha.set_enabled(true);
+   m_blend_alpha.rgb().set_equation_mode(gl::blend_equation_mode::func_add);
+   m_blend_alpha.rgb().set_source_factor(gl::blending_factor_src::src_alpha);
+   m_blend_alpha.rgb().set_destination_factor(gl::blending_factor_dest::one_minus_src_alpha);
+   m_blend_alpha.alpha().set_equation_mode(gl::blend_equation_mode::func_add);
+   m_blend_alpha.alpha().set_source_factor(gl::blending_factor_src::src_alpha);
+   m_blend_alpha.alpha().set_destination_factor(gl::blending_factor_dest::one_minus_src_alpha);
+
+   m_blend_add.set_enabled(true);
+   m_blend_add.rgb().set_equation_mode(gl::blend_equation_mode::func_add);
+   m_blend_add.rgb().set_source_factor(gl::blending_factor_src::one);
+   m_blend_add.rgb().set_destination_factor(gl::blending_factor_dest::one);   
+   m_blend_add.alpha().set_equation_mode(gl::blend_equation_mode::func_add);
+   m_blend_add.alpha().set_source_factor(gl::blending_factor_src::one);
+   m_blend_add.alpha().set_destination_factor(gl::blending_factor_dest::one);
+
    m_renderer = renderer;
 
    m_mappings = make_shared<renderstack::graphics::vertex_stream_mappings>();
@@ -276,6 +292,21 @@ gui_renderer::gui_renderer(std::shared_ptr<class renderstack::graphics::renderer
    r->set_vertex_array(old_va);
 }
 
+void gui_renderer::blend_alpha()
+{
+   m_renderer->track.blend.execute(&m_blend_alpha);
+}
+
+void gui_renderer::blend_add()
+{
+   m_renderer->track.blend.execute(&m_blend_add);
+}
+
+void gui_renderer::blend_disable()
+{
+   m_renderer->track.blend.execute(&m_blend_disabled);
+}
+
 void gui_renderer::edit_vbo()
 {
    slog_trace("gui_renderer::edit_vbo()");
@@ -297,15 +328,9 @@ void gui_renderer::prepare()
 {
    slog_trace("gui_renderer::prepare()");
 
-   gl::depth_mask(0);
-   gl::disable(gl::enable_cap::cull_face);
-   gl::disable(gl::enable_cap::depth_test);
-
-#if 0
-   gl::active_texture(gl::texture_unit::texture0);
-   gl::tex_parameter_i(gl::texture_target::texture_2d, gl::texture_parameter_name::texture_min_filter, gl::texture_min_filter::nearest);
-   gl::tex_parameter_i(gl::texture_target::texture_2d, gl::texture_parameter_name::texture_mag_filter, gl::texture_min_filter::nearest);
-#endif
+   blend_alpha();
+   m_renderer->track.face_cull.execute(&m_face_cull_disabled);
+   m_renderer->track.depth.execute(&m_depth_disabled);
 
    // We bind these for both render and edit uses
 

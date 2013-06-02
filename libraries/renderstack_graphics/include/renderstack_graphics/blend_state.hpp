@@ -4,7 +4,6 @@
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_toolkit/gl.hpp"
 #include "renderstack_toolkit/strong_gl_enums.hpp"
-#include "renderstack_graphics/render_state.hpp"
 #include <glm/glm.hpp>
 
 namespace renderstack { namespace graphics {
@@ -30,16 +29,12 @@ private:
    gl::blending_factor_dest::value  m_destination_factor;
 };
 
-class blend_state : public render_state
+class blend_state
 {
 public:
-   static blend_state const &default_();
-
-   static void reset_state();
-
-public:
    blend_state();
-   virtual ~blend_state();
+
+   void reset();
 
    bool                        enabled() const;
    blend_state_component const &rgb()    const;
@@ -52,19 +47,24 @@ public:
    void set_enabled(bool value);
    void set_color(glm::vec4 const &value);
 
-   void reset();
-   void execute() const;
-
 private:
    bool                    m_enabled;
    blend_state_component   m_rgb;
    blend_state_component   m_alpha;
    glm::vec4               m_color;
+};
+
+class blend_state_tracker
+{
+public:
+   blend_state_tracker();
+
+   void reset();
+   void execute(blend_state const *state);
 
 private:
-   static blend_state const   *s_last;
-   static blend_state         s_default;
-   static blend_state         s_state_cache;
+   blend_state const *m_last;
+   blend_state       m_cache;
 };
 
 } }

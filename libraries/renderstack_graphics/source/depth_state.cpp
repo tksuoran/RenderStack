@@ -3,12 +3,6 @@
 
 namespace renderstack { namespace graphics {
 
-depth_state depth_state::s_default;
-depth_state depth_state::s_disabled;
-depth_state const *depth_state::s_last = nullptr;
-depth_state depth_state::s_state_cache;
-
-
 bool depth_state::enabled() const
 {
    return m_enabled;
@@ -51,14 +45,6 @@ void depth_state::set_far(float value)
    m_far = value;
 }
 
-/*static*/ depth_state const &depth_state::default_()
-{
-   return s_default;
-}
-/*static*/ depth_state const &depth_state::disabled()
-{
-   return s_disabled;
-}
 depth_state::depth_state()
 :  m_enabled   (false)
 ,  m_function  (gl::depth_function::less)
@@ -75,20 +61,7 @@ depth_state::depth_state(bool enabled)
 ,  m_depth_mask(enabled)  // TODO Is this correct?
 {
 }
-/*virtual*/ depth_state::~depth_state()
-{
-}
-/*static*/ void depth_state::reset_state()
-{
-   gl::depth_func(gl::depth_function::less);
-   s_state_cache.set_function(gl::depth_function::less);
-   gl::depth_range(0.0f, 1.0f);
-   s_state_cache.set_near(0.0f);
-   s_state_cache.set_far(1.0f);
-   gl::enable(gl::enable_cap::depth_test);
-   s_state_cache.set_enabled(true);
-   s_last = nullptr;
-}
+
 void depth_state::reset()
 {
    set_enabled(true);
@@ -96,39 +69,57 @@ void depth_state::reset()
    set_near(0.0f);
    set_far(1.0);
 }
-void depth_state::execute() const
+
+
+depth_state_tracker::depth_state_tracker()
+{
+   reset();
+}
+
+void depth_state_tracker::reset()
+{
+   gl::depth_func(gl::depth_function::less);
+   m_cache.set_function(gl::depth_function::less);
+   gl::depth_range(0.0f, 1.0f);
+   m_cache.set_near(0.0f);
+   m_cache.set_far(1.0f);
+   gl::enable(gl::enable_cap::depth_test);
+   m_cache.set_enabled(true);
+   m_last = nullptr;
+}
+void depth_state_tracker::execute(depth_state const *state)
 {
 #if !DISABLE_CACHE
-   if (s_last == this)
+   if (m_last == state)
       return;
 
 #endif
-   if (enabled())
+   if (state->enabled())
    {
 #if !DISABLE_CACHE
-      if (s_state_cache.enabled() == false)
+      if (!m_cache.enabled())
 #endif
       {
          gl::enable(gl::enable_cap::depth_test);
-         s_state_cache.set_enabled(true);
+         m_cache.set_enabled(true);
       }
 #if !DISABLE_CACHE
-      if (s_state_cache.function() != function())
+      if (m_cache.function() != state->function())
 #endif
       {
-         gl::depth_func(function());
-         s_state_cache.set_function(function());
+         gl::depth_func(state->function());
+         m_cache.set_function(state->function());
       }
 #if !DISABLE_CACHE
       if (
-         (s_state_cache.near_() != near_()) ||
-         (s_state_cache.far_()  != far_())
+         (m_cache.near_() != state->near_()) ||
+         (m_cache.far_()  != state->far_())
       )
 #endif
       {
-         gl::depth_range(near_(), far_());
-         s_state_cache.set_near(near_());
-         s_state_cache.set_far(far_());
+         gl::depth_range(state->near_(), state->far_());
+         m_cache.set_near(state->near_());
+         m_cache.set_far(state->far_());
       }
 
    }
@@ -136,23 +127,23 @@ void depth_state::execute() const
    {
 
 #if !DISABLE_CACHE
-      if (s_state_cache.enabled() == true)
+      if (m_cache.enabled())
 #endif
       {
          gl::disable(gl::enable_cap::depth_test);
-         s_state_cache.set_enabled(false);
+         m_cache.set_enabled(false);
       }
    }
 
 #if !DISABLE_CACHE
-   if (s_state_cache.depth_mask() != m_depth_mask)
+   if (m_cache.depth_mask() != state->depth_mask())
 #endif
    {
-      gl::depth_mask(m_depth_mask);
-      s_state_cache.m_depth_mask = m_depth_mask;
+      gl::depth_mask(state->depth_mask());
+      m_cache.set_depth_mask(state->depth_mask());
    }
 
-   s_last = this;
+   m_last = state;
 }
 
 } }

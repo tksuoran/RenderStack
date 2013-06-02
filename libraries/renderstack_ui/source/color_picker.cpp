@@ -128,9 +128,7 @@ void color_picker::draw_self(ui_context &context)
 
       r->set_program(style()->program());
 
-      gl::disable(gl::enable_cap::blend);
-      gl::disable(gl::enable_cap::depth_test);
-      gl::disable(gl::enable_cap::cull_face);
+      r->blend_disable();
 
       auto old_vbo = r->renderer().set_buffer(buffer_target::array_buffer, m_color_mesh->get_mesh()->vertex_buffer());
 

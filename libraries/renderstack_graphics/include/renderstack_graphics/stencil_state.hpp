@@ -4,7 +4,6 @@
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_toolkit/gl.hpp"
 #include "renderstack_toolkit/strong_gl_enums.hpp"
-#include "renderstack_graphics/render_state.hpp"
 #include <glm/glm.hpp>
 
 namespace renderstack { namespace graphics {
@@ -44,10 +43,12 @@ private:
    GLuint                           m_write_mask;
 };
 
-class stencil_state : public render_state
+class stencil_state
 {
 public:
    stencil_state();
+
+   void reset();
    
    bool                          enabled     () const;
    bool                          separate    () const;
@@ -60,23 +61,32 @@ public:
    void                          set_front   (stencil_state_component const &value);
    void                          set_back    (stencil_state_component const &value);
 
-public:
-   static stencil_state const &default_();   
-   static void reset_state();
-   
-   void reset();
-   void execute() const;
-
 private:
    bool                    m_enabled;
    bool                    m_separate;
    stencil_state_component m_front;
    stencil_state_component m_back;
+};
+
+class stencil_state_tracker
+{
+public:
+   stencil_state_tracker();
+
+   void reset();
+   void execute(stencil_state const * state);
 
 private:
-   static stencil_state const *s_last;
-   static stencil_state       s_default;
-   static stencil_state       s_state_cache;
+   void execute_component(
+      gl::stencil_face::value face,
+      stencil_state_component const &state,
+      stencil_state_component &cache
+   );
+   void execute_shared(stencil_state_component const &state, stencil_state &cache);
+
+private:
+   stencil_state const  *m_last;
+   stencil_state        m_cache;
 };
 
 } } 

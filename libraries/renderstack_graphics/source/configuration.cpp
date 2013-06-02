@@ -507,23 +507,19 @@ void configuration::initialize()
    check(extensions, can_use.tesselation_shaders,        "tesselation_shaders",        400, 999, "GL_ARB_tesselation_shader");
 #endif
 
-   can_use.bind_buffer_range = can_use.map_buffer_range; // TODO
-   if (can_use.vertex_array_object)
-   {
-      //gl::gen_vertex_arrays(1, &default_vao);
-      //gl::bind_vertex_array(default_vao);
-   }
+   can_use.bind_buffer_range = can_use.map_buffer_range;
 
-	if (gl_vendor == "ARM Ltd.")
-	{
-		if (gl_renderer == "OpenGL ES Emulator Revision r2p0-00rel0")
-		{
-			can_use.map_buffer_range = false;
-			log_info("Disabling map buffer range support for ARM ES 3.0 Emulator\n");
-		}
-	}
+   if (gl_vendor == "ARM Ltd.")
+   {
+      if (gl_renderer == "OpenGL ES Emulator Revision r2p0-00rel0")
+      {
+         can_use.map_buffer_range = false;
+         log_info("Disabling map buffer range support for ARM ES 3.0 Emulator\n");
+      }
+   }
    if (gl_renderer == "Qualcomm OpenGL ES 3.0 Emulator")
    {
+      // TODO Have they fixed it? Which version was it?
       can_use.transform_feedback = false;
       log_info("Disabling transform feedback support for Qualcomm ES 3.0 Emulator\n");
    }
@@ -615,47 +611,47 @@ void configuration::initialize()
    // can_use.uniform_buffer_object = false;
 
 #if 0 // Disable vertex array object
-	if (!configuration::must_use_vertex_array_object)
-	{
-		can_use.vertex_array_object = false;
-		gl::detail::glGenVertexArrays = nullptr;
-		gl::detail::glBindVertexArray = nullptr;
-	}
-	else
-	{
-		log_info("Warning: Cannot disable vertex array object in Core profile");
-	}
+   // TODOif (!configuration::must_use_vertex_array_object)
+   {
+      can_use.vertex_array_object = false;
+      gl::detail::glGenVertexArrays = nullptr;
+      gl::detail::glBindVertexArray = nullptr;
+   }
+   else
+   {
+      log_info("Warning: Cannot disable vertex array object in Core profile");
+   }
 #endif
 
 #if 0 // Disable draw elements base vertex
    can_use.draw_elements_base_vertex = false;
-	gl::detail::glDrawElementsInstancedBaseVertex = nullptr;
+   gl::detail::glDrawElementsInstancedBaseVertex = nullptr;
 #endif
 
 #if 0 // Disable Map Buffer Range
-   can_use.map_buffer_range					= false;
-	gl::detail::glMapBufferRange				= nullptr;
-	gl::detail::glFlushMappedBufferRange	= nullptr;
-	gl::detail::glUnmapBuffer					= nullptr;
+   can_use.map_buffer_range               = false;
+   gl::detail::glMapBufferRange           = nullptr;
+   gl::detail::glFlushMappedBufferRange   = nullptr;
+   gl::detail::glUnmapBuffer              = nullptr;
 #endif
 
 #if 0 // Disable uniform buffer
-   can_use.uniform_buffer_object			= false;
-	gl::detail::glUniformBlockBinding	= nullptr;
-   gl::detail::glBindBufferRange			= nullptr;
-   gl::detail::glBindBufferBase			= nullptr;
+   can_use.uniform_buffer_object       = false;
+   gl::detail::glUniformBlockBinding   = nullptr;
+   gl::detail::glBindBufferRange       = nullptr;
+   gl::detail::glBindBufferBase        = nullptr;
 #endif
 
 #if 0 // Disable transform feedback
-	can_use.transform_feedback						= false;
-	gl::detail::glTransformFeedbackVaryings	= nullptr;
-	gl::detail::glGenTransformFeedbacks			= nullptr;
-	gl::detail::glIsTransformFeedback			= nullptr;
-	gl::detail::glDeleteTransformFeedbacks		= nullptr;
-	gl::detail::glBeginTransformFeedback		= nullptr;
-	gl::detail::glPauseTransformFeedback		= nullptr;
-	gl::detail::glResumeTransformFeedback		= nullptr;
-	gl::detail::glEndTransformFeedback			= nullptr;
+   can_use.transform_feedback                = false;
+   gl::detail::glTransformFeedbackVaryings   = nullptr;
+   gl::detail::glGenTransformFeedbacks       = nullptr;
+   gl::detail::glIsTransformFeedback         = nullptr;
+   gl::detail::glDeleteTransformFeedbacks    = nullptr;
+   gl::detail::glBeginTransformFeedback      = nullptr;
+   gl::detail::glPauseTransformFeedback      = nullptr;
+   gl::detail::glResumeTransformFeedback     = nullptr;
+   gl::detail::glEndTransformFeedback        = nullptr;
 #endif 
 
 #if 0

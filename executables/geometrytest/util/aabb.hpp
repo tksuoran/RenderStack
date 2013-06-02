@@ -30,24 +30,23 @@ public:
 public:
    int intersect(frustum const &f)
    {
-      for (unsigned int j = 0; j < 6; ++j) {
+      for (unsigned int j = 0; j < 6; ++j)
+      {
          plane const &frustum_plane = f.p[j];
 
          double d = glm::dot(m_center, frustum_plane.n);
          double r = glm::dot(m_extent, frustum_plane.abs_n);
 
          double d_p_r = d + r + frustum_plane.d;
-         if (d_p_r < 0.0) {
+         if (d_p_r < 0.0)
             return OUTSIDE;
-         }
 
          double d_m_r = d - r + frustum_plane.d;
-         if (d_m_r < 0.0) {
+         if (d_m_r < 0.0)
             return INTERSECT;
-         }
       }
 
-      return 1;
+      return INSIDE;
    }
 };
 

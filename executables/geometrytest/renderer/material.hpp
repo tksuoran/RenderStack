@@ -16,7 +16,7 @@ private:
    std::string                                                    m_name;
    std::shared_ptr<renderstack::graphics::uniform_buffer_range>   m_uniform_buffer_range;
    std::shared_ptr<renderstack::graphics::program>                m_program;
-   renderstack::graphics::render_states                           m_render_states;
+   //renderstack::graphics::render_states                           m_render_states;
    bool                                                           m_dirty;
 
 public:

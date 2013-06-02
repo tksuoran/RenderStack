@@ -94,16 +94,7 @@ void game::render_ui()
          gl::uniform_4fv(color_ui, 1, value_ptr(white));
       }
 
-      renderstack::graphics::blend_state     ::reset_state();
-      renderstack::graphics::face_cull_state ::reset_state();
-      renderstack::graphics::depth_state     ::reset_state();
-      renderstack::graphics::color_mask_state::reset_state();
-      renderstack::graphics::stencil_state   ::reset_state();
-
-      renderstack::graphics::depth_state     ::disabled().execute();
-      renderstack::graphics::face_cull_state ::disabled().execute();
-      renderstack::graphics::stencil_state   ::default_().execute();
-      m_font_render_states.blend.execute();
+      m_renderer->track.execute(&m_font_render_states);
 
       int texture_ui = p->uniform("font_texture")->index();
       gl::uniform_1i(texture_ui, 0);
@@ -115,11 +106,6 @@ void game::render_ui()
       t->apply(*m_renderer, 0);
 
       m_text_buffer->render();
-
-      gl::depth_mask(1);
-      gl::enable  (gl::enable_cap::cull_face);
-      gl::enable  (gl::enable_cap::depth_test);
-      gl::disable (gl::enable_cap::blend);
    }
 
 }
@@ -131,15 +117,9 @@ void game::render_meshes()
    if (m_models.size() == 0)
       return;
 
-   // Test all conditions; can_use.uniform_buffer_object can be forced to false
-   bool use_uniform_buffers = 
-      renderstack::graphics::configuration::can_use.uniform_buffer_object &&
-      (m_programs->glsl_version() >= 140) &&
-      (renderstack::graphics::configuration::shader_model_version >= 4);
-
-   gl::enable(gl::enable_cap::cull_face);
-
    auto r = m_renderer;
+
+   r->track.execute(&m_mesh_render_states);
 
    auto p = m_programs->basic;
 
@@ -156,7 +136,7 @@ void game::render_meshes()
       auto mesh            = geometry_mesh->get_mesh();
 
       glm::vec4 fill_color(1.0f, 1.0f, 1.0f, 1.0f);
-      if (use_uniform_buffers)
+      if (use_uniform_buffers())
       {
          if (m_mesh_render_uniform_buffer_range)
          {
@@ -177,34 +157,34 @@ void game::render_meshes()
          gl::uniform_4fv(p->uniform_at(m_programs->uniform_keys.color), 1, value_ptr(fill_color));
       }
 
-      //gl::polygon_offset(1.0f, 1.0f);
-      //gl::enable(gl::enable_cap::polygon_offset_fill);
+      gl::polygon_offset(1.0f, 1.0f);
+      gl::enable(gl::enable_cap::polygon_offset_fill);
+      {
+         gl::begin_mode::value         begin_mode     = gl::begin_mode::triangles;
+         index_range const             &index_range   = geometry_mesh->fill_indices();
+         GLsizei                       count          = static_cast<GLsizei>(index_range.index_count);
+         gl::draw_elements_type::value index_type     = gl::draw_elements_type::unsigned_int;
+         GLvoid                        *index_pointer = reinterpret_cast<GLvoid*>((index_range.first_index + mesh->first_index()) * mesh->index_buffer()->stride());
+         GLint                         base_vertex    = configuration::can_use.draw_elements_base_vertex
+            ? static_cast<GLint>(mesh->first_vertex())
+            : 0;
 
-      gl::begin_mode::value         begin_mode     = gl::begin_mode::triangles;
-      index_range const             &index_range   = geometry_mesh->fill_indices();
-      GLsizei                       count          = static_cast<GLsizei>(index_range.index_count);
-      gl::draw_elements_type::value index_type     = gl::draw_elements_type::unsigned_int;
-      GLvoid                        *index_pointer = reinterpret_cast<GLvoid*>(index_range.first_index + mesh->first_index() * sizeof(unsigned int));
-      GLint                         base_vertex    = configuration::can_use.draw_elements_base_vertex
-         ? static_cast<GLint>(mesh->first_vertex())
-         : 0;
+         r->draw_elements_base_vertex(
+            model->geometry_mesh()->vertex_stream(),
+            begin_mode, count, index_type, index_pointer, base_vertex);
+      }
+      gl::disable(gl::enable_cap::polygon_offset_fill);
 
-      r->draw_elements_base_vertex(
-         model->geometry_mesh()->vertex_stream(),
-         begin_mode, count, index_type, index_pointer, base_vertex);
-
-      //gl::disable(gl::enable_cap::polygon_offset_fill);
-
-#if 0
+#if 1
       glm::vec4 line_color(0.5f, 0.5f, 0.5f, 1.0f);
-      if (use_uniform_buffers)
+      if (use_uniform_buffers())
       {
          if (m_mesh_render_uniform_buffer_range)
          {
-            unsigned char *start = m_mesh_render_uniform_buffer_range->begin_edit();
+            unsigned char *start = m_mesh_render_uniform_buffer_range->begin_edit(*r);
             uniform_offsets &o = m_programs->uniform_offsets;
             ::memcpy(&start[o.color], value_ptr(line_color), 4 * sizeof(float));
-            m_mesh_render_uniform_buffer_range->end_edit();
+            m_mesh_render_uniform_buffer_range->end_edit(*r);
          }
       }
       else
@@ -212,11 +192,20 @@ void game::render_meshes()
          gl::uniform_4fv(p->uniform_at(m_programs->uniform_keys.color), 1, value_ptr(line_color));
       }
 
-      mesh->vertex_stream().use();
-      mesh->get_mesh()->vertex_buffer()->bind();
-      mesh->get_mesh()->index_buffer()->bind();
-      mesh->vertex_stream().setup_attribute_pointers();
-      mesh->render(gl::begin_mode::lines, mesh->edge_line_indices(), normal_style::corner_normals);
+      {
+         gl::begin_mode::value         begin_mode     = gl::begin_mode::lines;
+         index_range const             &index_range   = geometry_mesh->edge_line_indices();
+         GLsizei                       count          = static_cast<GLsizei>(index_range.index_count);
+         gl::draw_elements_type::value index_type     = gl::draw_elements_type::unsigned_int;
+         GLvoid                        *index_pointer = reinterpret_cast<GLvoid*>((index_range.first_index + mesh->first_index()) * mesh->index_buffer()->stride());
+         GLint                         base_vertex    = configuration::can_use.draw_elements_base_vertex
+            ? static_cast<GLint>(mesh->first_vertex())
+            : 0;
+
+         r->draw_elements_base_vertex(
+            model->geometry_mesh()->vertex_stream(),
+            begin_mode, count, index_type, index_pointer, base_vertex);
+      }
 #endif
    }
 }
@@ -226,17 +215,8 @@ void game::render()
 
    int iw = m_application->width();
    int ih = m_application->height();
-   //float w = (float)iw;
-   //float h = (float)ih;
 
-   gl::depth_mask(1);
-   gl::enable(gl::enable_cap::cull_face);
-   gl::enable(gl::enable_cap::depth_test);
-   gl::disable(gl::enable_cap::scissor_test);
-
-   gl::disable(gl::enable_cap::blend);
-   //gl::blend_equation(gl::blend_equation_mode::func_add);
-   gl::blend_func(gl::blending_factor_src::one, gl::blending_factor_dest::one_minus_src_alpha);
+   gl::disable(gl::enable_cap::scissor_test); // TODO render state for this
 
    gl::viewport(0, 0, iw, ih);
    gl::clear_color(0.0f, 0.2f, 0.2f, 0.0f);
@@ -244,14 +224,9 @@ void game::render()
 
    render_meshes();
 
-   //gl::bind_vertex_array(0);
-
-#if 1
    if (m_text_buffer)
       render_ui();
-#endif
 
-#if 1
    if ((m_controls.mouse_locked == false) && m_root_layer)
    {
       ui_context c;
@@ -269,7 +244,6 @@ void game::render()
       
       m_root_layer->draw(c);
    }
-#endif
 
    m_application->swap_buffers();
 }

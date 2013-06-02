@@ -344,26 +344,17 @@ void menu::on_enter()
 {
    slog_trace("menu::on_enter()");
 
-   gl::depth_mask(0);
-   gl::disable(gl::enable_cap::cull_face);
-   gl::disable(gl::enable_cap::depth_test);
-
-   //gl::blend_equation(gl::blend_equation_mode::func_add);
-   gl::blend_func(gl::blending_factor_src::one, gl::blending_factor_dest::one_minus_src_alpha);
+   m_gui_renderer->prepare(); // disable cull face, depth test & mask, blend
 
    gl::clear_color(0.3f, 0.1f, 0.2f, 0.0f);
 
-   gl::disable(gl::enable_cap::scissor_test);
+   gl::disable(gl::enable_cap::scissor_test); // TODO stencil_state
 
    on_resize(m_application->width(), m_application->height());
 }
 void menu::on_exit()
 {
    slog_trace("menu::on_exit()");
-
-   gl::depth_mask(1);
-   gl::enable(gl::enable_cap::cull_face);
-   gl::enable(gl::enable_cap::depth_test);
 }
 void menu::render()
 {
@@ -425,7 +416,7 @@ void menu::render()
 
       assert(m_font);
 
-      enable(gl::enable_cap::blend);
+      m_gui_renderer->blend_alpha();
 
       auto t = m_font->texture();
       (void)m_renderer->set_texture(0, t);
@@ -436,7 +427,8 @@ void menu::render()
       t->apply(*m_renderer, 0);
 
       m_text_buffer->render();
-      disable(gl::enable_cap::blend);
+
+      m_gui_renderer->blend_disable();
    }
 #endif
 

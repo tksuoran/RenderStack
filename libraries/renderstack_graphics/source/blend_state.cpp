@@ -1,13 +1,10 @@
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_graphics/blend_state.hpp"
+#include "renderstack_graphics/renderer.hpp"
 
 namespace renderstack { namespace graphics {
 
 using namespace glm;
-
-blend_state const *blend_state::s_last = nullptr;
-blend_state blend_state::s_default;
-blend_state blend_state::s_state_cache;
 
 blend_state_component::blend_state_component()
 :  m_equation_mode     (gl::blend_equation_mode::func_add)
@@ -49,39 +46,9 @@ void blend_state_component::reset()
    m_destination_factor = gl::blending_factor_dest::one;
 }
 
-/*static*/ blend_state const &blend_state::default_()
-{
-   return s_default;
-}
-
-/*static*/ void blend_state::reset_state()
-{
-   gl::blend_color(0.0f, 0.0f, 0.0f, 0.0f);
-   s_state_cache.m_color = vec4(0.0f, 0.0f, 0.0f, 0.0f);
-   gl::blend_equation_separate(gl::blend_equation_mode::func_add, gl::blend_equation_mode::func_add);
-   s_state_cache.m_rgb  .set_equation_mode(gl::blend_equation_mode::func_add);
-   s_state_cache.m_alpha.set_equation_mode(gl::blend_equation_mode::func_add);
-   gl::blend_func_separate(
-      gl::blending_factor_src::one,
-      gl::blending_factor_dest::one,
-      gl::blending_factor_src::one,
-      gl::blending_factor_dest::one
-   );
-   s_state_cache.m_rgb.set_source_factor       (gl::blending_factor_src::one);
-   s_state_cache.m_rgb.set_source_factor       (gl::blending_factor_src::one);
-   s_state_cache.m_alpha.set_destination_factor(gl::blending_factor_dest::one);
-   s_state_cache.m_alpha.set_destination_factor(gl::blending_factor_dest::one);
-   gl::disable(gl::enable_cap::blend);
-   s_state_cache.m_enabled = false;
-   s_last = nullptr;
-}
-
 blend_state::blend_state()
 {
    reset();
-}
-blend_state::~blend_state()
-{
 }
 
 bool blend_state::enabled() const
@@ -127,64 +94,93 @@ void blend_state::reset()
    m_alpha.reset();
    m_color = vec4(0.0f, 0.0f, 0.0f, 0.0f);
 }
-void blend_state::execute() const
+
+blend_state_tracker::blend_state_tracker()
+{
+   reset();
+}
+
+void blend_state_tracker::reset()
+{
+   gl::blend_color(0.0f, 0.0f, 0.0f, 0.0f);
+   m_cache.set_color(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+   gl::blend_equation_separate(gl::blend_equation_mode::func_add, gl::blend_equation_mode::func_add);
+   m_cache.rgb().set_equation_mode(gl::blend_equation_mode::func_add);
+   m_cache.alpha().set_equation_mode(gl::blend_equation_mode::func_add);
+   gl::blend_func_separate(
+      gl::blending_factor_src::one,
+      gl::blending_factor_dest::one,
+      gl::blending_factor_src::one,
+      gl::blending_factor_dest::one
+   );
+   m_cache.rgb().set_source_factor       (gl::blending_factor_src::one);
+   m_cache.rgb().set_source_factor       (gl::blending_factor_src::one);
+   m_cache.alpha().set_destination_factor(gl::blending_factor_dest::one);
+   m_cache.alpha().set_destination_factor(gl::blending_factor_dest::one);
+   gl::disable(gl::enable_cap::blend);
+   m_cache.set_enabled(false);
+   m_last = nullptr;
+}
+
+void blend_state_tracker::execute(blend_state const *state)
 {
 #if !DISABLE_CACHE
-   if (s_last == this)
+   if (m_last == state)
       return;
 
 #endif
-   if (m_enabled)
+   if (state->enabled())
    {
 #if !DISABLE_CACHE
-      if (s_state_cache.enabled() == false)
+      if (m_cache.enabled() == false)
 #endif
       {
          gl::enable(gl::enable_cap::blend);
-         s_state_cache.set_enabled(true);
+         m_cache.set_enabled(true);
       }
+      auto color = state->color();
 #if !DISABLE_CACHE
-      if (s_state_cache.color() != m_color)
+      if (m_cache.color() != state->color())
 #endif
       {
          gl::blend_color(
-            m_color.x,
-            m_color.y,
-            m_color.z,
-            m_color.w
+            color.x,
+            color.y,
+            color.z,
+            color.w
          );
-         s_state_cache.set_color(m_color);
+         m_cache.set_color(color);
       }
 #if !DISABLE_CACHE
       if (
-         (s_state_cache.rgb().equation_mode() != rgb().equation_mode()) ||
-         (s_state_cache.alpha().equation_mode() != alpha().equation_mode())
+         (m_cache.rgb().equation_mode() != state->rgb().equation_mode()) ||
+         (m_cache.alpha().equation_mode() != state->alpha().equation_mode())
       )
 #endif
       {
-         gl::blend_equation_separate(rgb().equation_mode(), alpha().equation_mode());
-         s_state_cache.rgb  ().set_equation_mode(rgb  ().equation_mode());
-         s_state_cache.alpha().set_equation_mode(alpha().equation_mode());
+         gl::blend_equation_separate(state->rgb().equation_mode(), state->alpha().equation_mode());
+         m_cache.rgb  ().set_equation_mode(state->rgb  ().equation_mode());
+         m_cache.alpha().set_equation_mode(state->alpha().equation_mode());
       }
 #if !DISABLE_CACHE
       if (
-         (s_state_cache.rgb  ().source_factor     () != rgb  ().source_factor()     ) ||
-         (s_state_cache.rgb  ().destination_factor() != rgb  ().destination_factor()) ||
-         (s_state_cache.alpha().source_factor     () != alpha().source_factor()     ) ||
-         (s_state_cache.alpha().destination_factor() != alpha().destination_factor())
+         (m_cache.rgb  ().source_factor     () != state->rgb  ().source_factor()     ) ||
+         (m_cache.rgb  ().destination_factor() != state->rgb  ().destination_factor()) ||
+         (m_cache.alpha().source_factor     () != state->alpha().source_factor()     ) ||
+         (m_cache.alpha().destination_factor() != state->alpha().destination_factor())
       )
 #endif
       {
          gl::blend_func_separate(
-            rgb().source_factor(),
-            rgb().destination_factor(),
-            alpha().source_factor(),
-            alpha().destination_factor()
+            state->rgb().source_factor(),
+            state->rgb().destination_factor(),
+            state->alpha().source_factor(),
+            state->alpha().destination_factor()
          );
-         s_state_cache.rgb  ().set_source_factor     (rgb  ().source_factor()     );
-         s_state_cache.rgb  ().set_destination_factor(rgb  ().destination_factor());
-         s_state_cache.alpha().set_source_factor     (alpha().source_factor()     );
-         s_state_cache.alpha().set_destination_factor(alpha().destination_factor());
+         m_cache.rgb  ().set_source_factor     (state->rgb  ().source_factor()     );
+         m_cache.rgb  ().set_destination_factor(state->rgb  ().destination_factor());
+         m_cache.alpha().set_source_factor     (state->alpha().source_factor()     );
+         m_cache.alpha().set_destination_factor(state->alpha().destination_factor());
       }
 
    }
@@ -192,14 +188,14 @@ void blend_state::execute() const
    {
 
 #if !DISABLE_CACHE
-      if (s_state_cache.enabled() == true)
+      if (m_cache.enabled() == true)
 #endif
       {
          gl::disable(gl::enable_cap::blend);
-         s_state_cache.set_enabled(false);
+         m_cache.set_enabled(false);
       }
    }
-   s_last = this;
+   m_last = state;
 }
 
 //////

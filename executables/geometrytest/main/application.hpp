@@ -47,18 +47,17 @@ public:
 
    void reset();
 
-   bool on_load        ();
-   bool on_exit        ();
-   void on_resize      (int width, int height);
-   void update         ();
+   bool on_load         ();
+   bool on_exit         ();
+   void on_resize       (int width, int height);
+   void update          ();
 
    void on_key          (int key, int action, int mods);
    void on_mouse_moved  (double x, double y);
    void on_mouse_button (int button, int action, int mods);
    void on_scroll       (double x, double y);
 
-   void setup_programs ();
-   void setup_gl_state ();
+   void setup_programs  ();
 };
 
 #endif

@@ -1,3 +1,4 @@
+#error
 #ifndef renderstack_graphics__render_state_hpp
 #define renderstack_graphics__render_state_hpp
 

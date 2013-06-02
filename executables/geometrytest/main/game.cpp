@@ -171,11 +171,6 @@ void game::on_load()
          total_index_count += total_info.index_count_centroid_points;
 
       // Allocate a single VBO big enough to hold all vertices
-#if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
-      if (configuration::can_use.vertex_array_object)
-         gl::bind_vertex_array(0);
-#endif
-
       auto vbo = make_shared<renderstack::graphics::buffer>(
          renderstack::graphics::buffer_target::array_buffer,
          total_vertex_count,
@@ -217,13 +212,7 @@ void game::on_load()
    }
 #endif
 
-   // Test all conditions; can_use.uniform_buffer_object can be forced to false
-   bool use_uniform_buffers = 
-      renderstack::graphics::configuration::can_use.uniform_buffer_object &&
-      (m_programs->glsl_version() >= 140) &&
-      (renderstack::graphics::configuration::shader_model_version >= 4);
-
-   if (use_uniform_buffers)
+   if (use_uniform_buffers())
    {
       size_t size = 0;
 
@@ -280,16 +269,14 @@ void game::on_load()
 
    reset();
 
+   m_mesh_render_states.depth.set_enabled(true);
+   m_mesh_render_states.face_cull.set_enabled(true);
+
 #if defined(USE_FONT)
    m_font_render_states.blend.set_enabled(true);
    m_font_render_states.blend.rgb().set_equation_mode(gl::blend_equation_mode::func_add);
    m_font_render_states.blend.rgb().set_source_factor(gl::blending_factor_src::one);
    m_font_render_states.blend.rgb().set_destination_factor(gl::blending_factor_dest::one_minus_src_alpha);
-# if 0
-   gl::enable        (gl::enable_cap::blend);
-   gl::blend_equation(gl::blend_equation_mode::func_add);
-   gl::blend_func    (gl::blending_factor_src::one, gl::blending_factor_dest::one_minus_src_alpha);
-# endif
 #endif
 
 #if defined(USE_GUI)
@@ -405,9 +392,6 @@ void game::on_enter()
    slog_trace("game::on_enter()");
 
    assert(m_application);
-
-   gl::disable(gl::enable_cap::blend);
-   gl::blend_func(gl::blending_factor_src::one, gl::blending_factor_dest::one_minus_src_alpha);
 
    on_resize(m_application->width(), m_application->height());
 

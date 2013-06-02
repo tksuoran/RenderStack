@@ -89,7 +89,10 @@ bool application::on_load()
       if (m_menu)
          m_menu->on_load();
 
-      setup_gl_state();
+      gl::viewport(0, 0, width(), height());
+
+      gl::clear_color(0.0f, 0.0f, 0.0f, 0.0f);
+      gl::clear(clear_buffer_mask::color_buffer_bit | clear_buffer_mask::depth_buffer_bit);
 
 #  if 1
       if (m_menu)
@@ -106,14 +109,3 @@ bool application::on_load()
 
 }
 
-void application::setup_gl_state()
-{
-   gl::viewport(0, 0, width(), height());
-
-   gl::clear_color(0.0f, 0.0f, 0.0f, 0.0f);
-   gl::clear(clear_buffer_mask::color_buffer_bit | clear_buffer_mask::depth_buffer_bit);
-
-   gl::enable(gl::enable_cap::depth_test);
-   gl::enable(gl::enable_cap::cull_face);
-   gl::enable(gl::enable_cap::scissor_test);
-}

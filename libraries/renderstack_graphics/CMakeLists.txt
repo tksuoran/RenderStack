@@ -32,7 +32,6 @@ add_library(
    include/renderstack_graphics/depth_state.hpp
    include/renderstack_graphics/face_cull_state.hpp
    include/renderstack_graphics/color_mask_state.hpp
-   include/renderstack_graphics/render_state.hpp
    include/renderstack_graphics/renderer.hpp
    include/renderstack_graphics/stencil_state.hpp
 

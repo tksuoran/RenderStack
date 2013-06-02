@@ -25,18 +25,6 @@ namespace renderstack { namespace graphics {
 #define RS_UNIFORM_BINDING_POINT_COUNT 16 // TODO Get rid of this kind of defines?
 
 
-class render_states
-{
-public:
-   blend_state       blend;
-   face_cull_state   face_cull;
-   depth_state       depth;
-   color_mask_state  color_mask;
-   stencil_state     stencil;
-   // TODO: Scissor
-};
-
-
 class texture_unit_state
 {
 public:
@@ -87,13 +75,41 @@ public:
    unsigned int transform_feedback_buffer_binding_indexed[4];
 };
 
+struct render_states
+{
+   color_mask_state  color_mask;
+   blend_state       blend;
+   depth_state       depth;
+   face_cull_state   face_cull;
+   stencil_state     stencil;
+};
+
+struct state_trackers
+{
+   color_mask_state_tracker   color_mask;
+   blend_state_tracker        blend;
+   depth_state_tracker        depth;
+   face_cull_state_tracker    face_cull;
+   stencil_state_tracker      stencil;
+
+   void execute(render_states const *states)
+   {
+      color_mask  .execute(&states->color_mask);
+      blend       .execute(&states->blend     );
+      depth       .execute(&states->depth     );
+      face_cull   .execute(&states->face_cull );
+      stencil     .execute(&states->stencil   );
+   }
+};
 
 class renderer
 {
 public:
    renderer();
 
-   std::shared_ptr<class render_states>   request();
+   state_trackers track;
+
+   //std::shared_ptr<class render_states>   request();
    void                                   push                    ();
    void                                   pop                     ();
    void                                   trash                   ();

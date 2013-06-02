@@ -31,7 +31,8 @@ std::string const &button::label() const
 }
 void button::set_label(std::string const &value)
 {
-   if (value != m_label) {
+   if (value != m_label)
+   {
       m_dirty = true;
       m_label = value;
    }
@@ -139,7 +140,7 @@ void button::draw_self(ui_context &context)
    /*  Then draw text  */ 
    if (style()->font())
    {
-      gl::enable(gl::enable_cap::blend);
+      r->blend_alpha();
       r->begin_edit();
       r->set_program(style()->program());
       auto t = style()->font()->texture();
@@ -151,7 +152,7 @@ void button::draw_self(ui_context &context)
       r->set_transform(m_text_frame);
       r->end_edit();
       m_text_buffer.render();
-      gl::disable(gl::enable_cap::blend);
+      r->blend_disable();
    }
    //r->pop();
 }

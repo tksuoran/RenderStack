@@ -4,6 +4,7 @@
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_graphics/configuration.hpp"
 #include "renderstack_graphics/renderer.hpp"
+#include "renderstack_graphics/blend_state.hpp"
 #include <glm/glm.hpp>
 #include <memory>
 
@@ -33,12 +34,12 @@ class gui_renderer
 public:
    struct uniform_offsets
    {
-      std::size_t  model_to_clip;  /* mat4 */
-      std::size_t  color;          /* vec4 */
-      std::size_t  color_add;      /* vec4 */
-      std::size_t  color_scale;    /* vec4 */
-      std::size_t  hsv_matrix;     /* mat4 */
-      std::size_t  t;              /* float */
+      std::size_t model_to_clip; /* mat4 */
+      std::size_t color;         /* vec4 */
+      std::size_t color_add;     /* vec4 */
+      std::size_t color_scale;   /* vec4 */
+      std::size_t hsv_matrix;    /* mat4 */
+      std::size_t t;             /* float */
    };
 
    gui_renderer(std::shared_ptr<class renderstack::graphics::renderer> renderer);
@@ -48,8 +49,6 @@ public:
    glm::mat4 const &ortho() const { return m_ortho; }
    void begin_edit();
    void end_edit();
-   /*void push();
-   void pop();*/
    void set_program     (std::shared_ptr<renderstack::graphics::program> value);
    void set_texture     (unsigned int unit, std::shared_ptr<renderstack::graphics::texture> texture);
    void set_transform   (glm::mat4 const &value);
@@ -89,10 +88,20 @@ public:
       return use_uniform_buffers;
    }
 
+   void blend_alpha();
+   void blend_add();
+   void blend_disable();
+
 private:
    void map(std::shared_ptr<renderstack::graphics::program> program);
 
 private:
+   renderstack::graphics::blend_state     m_blend_disabled;
+   renderstack::graphics::blend_state     m_blend_alpha;
+   renderstack::graphics::blend_state     m_blend_add;
+   renderstack::graphics::face_cull_state m_face_cull_disabled;
+   renderstack::graphics::depth_state     m_depth_disabled;
+
 
    std::shared_ptr<class renderstack::graphics::renderer>         m_renderer;
 

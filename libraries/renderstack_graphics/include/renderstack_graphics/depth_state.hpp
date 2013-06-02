@@ -4,14 +4,18 @@
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_toolkit/gl.hpp"
 #include "renderstack_toolkit/strong_gl_enums.hpp"
-#include "renderstack_graphics/render_state.hpp"
 #include <glm/glm.hpp>
 
 namespace renderstack { namespace graphics {
 
-class depth_state : public render_state
+class depth_state
 {
 public:
+   depth_state();
+   depth_state(bool enabled);
+
+   void reset();
+
    bool                       enabled     () const;
    gl::depth_function::value  function    () const;
    float                      near_       () const;
@@ -24,33 +28,25 @@ public:
    void set_far         (float value);
    void set_depth_mask  (bool value);
 
-public:
-   static depth_state const &default_();
-   static depth_state const &disabled();
-
-   depth_state();
-   depth_state(bool enabled);
-   virtual ~depth_state();
-
-public:
-   static void reset_state();
-
-public:
-   void reset();
-   void execute() const;
-
 private:
    bool                       m_enabled;
    gl::depth_function::value  m_function;
    float                      m_near;
    float                      m_far;
    bool                       m_depth_mask;
+};
+
+class depth_state_tracker
+{
+public:
+   depth_state_tracker();
+
+   void reset();
+   void execute(depth_state const *state);
 
 private:
-   static depth_state         s_default;
-   static depth_state         s_disabled;
-   static depth_state const   *s_last;
-   static depth_state         s_state_cache;
+   depth_state const *m_last;
+   depth_state       m_cache;
 };
 
 } }

@@ -26,8 +26,7 @@ void menulist::draw_self(ui_context &context)
 
    auto r = renderer();
 
-   gl::enable(gl::enable_cap::blend);
-
+   r->blend_add();
    r->set_program(style()->ninepatch_style()->program());
    r->set_texture(style()->ninepatch_style()->texture_unit(), style()->ninepatch_style()->texture());
    r->begin_edit();
@@ -44,8 +43,7 @@ void menulist::draw_self(ui_context &context)
    }
    r->end_edit();
    m_ninepatch.render(r);
-
-   gl::disable(gl::enable_cap::blend);
+   r->blend_disable();
 }
 
 } }
