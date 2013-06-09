@@ -13,9 +13,12 @@ uniform_buffer_range::uniform_buffer_range(
    weak_ptr<class uniform_block> block,
    weak_ptr<class buffer> uniform_buffer
 )
-:  m_uniform_block(block)
-,  m_uniform_buffer(uniform_buffer)
+:  m_uniform_block   (block)
+,  m_uniform_buffer  (uniform_buffer)
 {
+   assert(block.lock());
+   assert(uniform_buffer.lock());
+
    auto b = block.lock();
 
    m_first_byte = m_uniform_buffer.lock()->allocate(b->size());

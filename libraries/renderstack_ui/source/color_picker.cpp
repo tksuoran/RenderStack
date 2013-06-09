@@ -32,7 +32,8 @@ color_picker::color_picker(
    float inner_radius = 0.70f;
    m_disc_handle_radius = 0.90f;
    m_quad_edge_length = std::sqrt(2.0f) * inner_radius;
-   auto r = gui_renderer->renderer();
+   auto gr = gui_renderer;
+   auto &r = *gr->renderer();
 
    m_color_mesh = make_shared<geometry_mesh>(
       //new renderstack::geometry::shapes::disc(1.0, 0.9, 256, 2),
@@ -78,18 +79,19 @@ void color_picker::begin_place(rectangle const &reference, vec2 const &grow_dire
 }
 void color_picker::draw_self(ui_context &context)
 {
-   auto r = renderer();
+   auto gr = renderer();
+   auto &r = *gr->renderer();
 
    //r->push();
 
-   r->set_program(style()->ninepatch_style()->program());
-   r->set_texture(style()->ninepatch_style()->texture_unit(), style()->ninepatch_style()->texture());
-   r->begin_edit();
-   r->set_transform(m_background_frame);
-   r->set_color_scale(vec4(1.0f, 1.0f, 1.0f, 1.0f));
-   r->set_color_add(vec4(0.0f, 0.0f, 0.0f, 0.0f));
-   r->end_edit();
-   m_ninepatch.render(r);
+   gr->set_program(style()->ninepatch_style()->program());
+   gr->set_texture(style()->ninepatch_style()->texture_unit(), style()->ninepatch_style()->texture());
+   gr->begin_edit();
+   gr->set_transform(m_background_frame);
+   gr->set_color_scale(vec4(1.0f, 1.0f, 1.0f, 1.0f));
+   gr->set_color_add(vec4(0.0f, 0.0f, 0.0f, 0.0f));
+   gr->end_edit();
+   m_ninepatch.render(gr);
 
    {
       animate();
@@ -126,37 +128,37 @@ void color_picker::draw_self(ui_context &context)
       h0[0][2] = 0.0f; h0[1][2] = 0.0f; h0[2][2] = 0.0f; h0[3][2] = 0.0; // v
       h0[0][3] = 0.0f; h0[1][3] = 0.0f; h0[2][3] = 0.0f; h0[3][3] = 0.0f;
 
-      r->set_program(style()->program());
+      gr->set_program(style()->program());
 
-      r->blend_disable();
+      gr->blend_disable();
 
-      auto old_vbo = r->renderer().set_buffer(buffer_target::array_buffer, m_color_mesh->get_mesh()->vertex_buffer());
+      auto old_vbo = r.set_buffer(buffer_target::array_buffer, m_color_mesh->get_mesh()->vertex_buffer());
 
       // TODO must access VAO instead!
-      auto old_ibo = r->renderer().set_buffer(buffer_target::element_array_buffer, m_color_mesh->get_mesh()->index_buffer());
+      auto old_ibo = r.set_buffer(buffer_target::element_array_buffer, m_color_mesh->get_mesh()->index_buffer());
 
-      r->begin_edit();
-      r->set_transform(m_hsv_transform);
-      r->set_hsv_matrix(c);
-      r->set_color_scale(vec4(1.0f, 1.0f, 1.0f, 1.0f));
-      r->set_color_add(vec4(0.0f, 0.0f, 0.0f, 1.0f));
-      r->end_edit();
+      gr->begin_edit();
+      gr->set_transform(m_hsv_transform);
+      gr->set_hsv_matrix(c);
+      gr->set_color_scale(vec4(1.0f, 1.0f, 1.0f, 1.0f));
+      gr->set_color_add(vec4(0.0f, 0.0f, 0.0f, 1.0f));
+      gr->end_edit();
       //m_color_mesh->render(m_color_mesh->fill_indices());
 
-      r->begin_edit();
-      r->set_hsv_matrix(d);
-      r->end_edit();
+      gr->begin_edit();
+      gr->set_hsv_matrix(d);
+      gr->end_edit();
       //m_hsv_disc_mesh->render(gl::begin_mode::triangles, m_hsv_disc_mesh->fill_indices());
 
-      r->begin_edit();
-      r->set_hsv_matrix(d2);
-      r->end_edit();
+      gr->begin_edit();
+      gr->set_hsv_matrix(d2);
+      gr->end_edit();
       //m_hsv_disc2_mesh->render(gl::begin_mode::triangles, m_hsv_disc2_mesh->fill_indices());
 
-      r->begin_edit();
-      r->set_hsv_matrix(t);
-      r->set_color_add(vec4(0.0f, 0.0f, 0.0f, 0.5f));
-      r->end_edit();
+      gr->begin_edit();
+      gr->set_hsv_matrix(t);
+      gr->set_color_add(vec4(0.0f, 0.0f, 0.0f, 0.5f));
+      gr->end_edit();
       //m_hsv_quad_mesh->render(gl::begin_mode::triangles, m_hsv_quad_mesh->fill_indices());
 
       if (rect().hit(context.mouse))
@@ -190,33 +192,33 @@ void color_picker::draw_self(ui_context &context)
 #if 0
       //  draw handles
       {
-         r->begin_edit();
-         r->set_transform(m_disc_handle_transform);
-         r->set_hsv_matrix(h0);
-         r->set_color_add(vec4(0.0f, 0.0f, 0.0f, 0.0f));
-         r->end_edit();
+         gr->begin_edit();
+         gr->set_transform(m_disc_handle_transform);
+         gr->set_hsv_matrix(h0);
+         gr->set_color_add(vec4(0.0f, 0.0f, 0.0f, 0.0f));
+         gr->end_edit();
          m_handle_mesh->render(gl::begin_mode::triangles, m_handle_mesh->fill_indices());
 
-         r->begin_edit();
-         r->set_hsv_matrix(h);
-         r->end_edit();
+         gr->begin_edit();
+         gr->set_hsv_matrix(h);
+         gr->end_edit();
          m_handle2_mesh->render(gl::begin_mode::triangles, m_handle_mesh->fill_indices());
 
-         r->begin_edit();
-         r->set_transform(m_quad_handle_transform);
-         r->set_hsv_matrix(h0);
-         r->end_edit();
+         gr->begin_edit();
+         gr->set_transform(m_quad_handle_transform);
+         gr->set_hsv_matrix(h0);
+         gr->end_edit();
          m_handle_mesh->render(gl::begin_mode::triangles, m_handle_mesh->fill_indices());
 
-         r->begin_edit();
-         r->set_hsv_matrix(h);
-         r->end_edit();
+         gr->begin_edit();
+         gr->set_hsv_matrix(h);
+         gr->end_edit();
          m_handle2_mesh->render(gl::begin_mode::triangles, m_handle_mesh->fill_indices());
       }
 #endif
    }
 
-   r->prepare();
+   gr->prepare();
 }
 
 void color_picker::animate()

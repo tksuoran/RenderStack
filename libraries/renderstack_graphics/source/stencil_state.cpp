@@ -1,8 +1,9 @@
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_graphics/stencil_state.hpp"
 
-namespace renderstack { namespace graphics {
+// #define DISABLE_CACHE 1
 
+namespace renderstack { namespace graphics {
 
 gl::stencil_op_enum::value stencil_state_component::stencil_fail_op() const
 {

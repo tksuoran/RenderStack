@@ -32,11 +32,11 @@ void gui_renderer::map(shared_ptr<renderstack::graphics::program> program)
 
    if (!use_uniform_buffers())
    {
-      program->map_uniform("gui_model_to_clip");
-      program->map_uniform("gui_color_add"    );
-      program->map_uniform("gui_color_scale"  );
-      program->map_uniform("gui_hsv_matrix"   );
-      program->map_uniform("gui_t"            );
+      program->map_uniform(m_uniform_keys.clip_from_model, "gui_clip_from_model");
+      program->map_uniform(m_uniform_keys.color_add      , "gui_color_add"      );
+      program->map_uniform(m_uniform_keys.color_scale    , "gui_color_scale"    );
+      program->map_uniform(m_uniform_keys.hsv_matrix     , "gui_hsv_matrix"     );
+      program->map_uniform(m_uniform_keys.t              , "gui_t"              );
    }
 }
 
@@ -90,11 +90,11 @@ gui_renderer::gui_renderer(std::shared_ptr<class renderstack::graphics::renderer
       false
    );
 
-   auto r = m_renderer;
+   auto &r = *m_renderer;
 
    m_vertex_stream = make_shared<renderstack::graphics::vertex_stream>();
    auto va = m_vertex_stream->vertex_array();
-   auto old_va = r->set_vertex_array(va);
+   auto old_va = r.set_vertex_array(va);
 
    m_vertex_buffer = make_shared<renderstack::graphics::buffer>(
       buffer_target::array_buffer,
@@ -111,23 +111,23 @@ gui_renderer::gui_renderer(std::shared_ptr<class renderstack::graphics::renderer
    m_index_buffer->allocate_storage(*m_renderer);
 
    m_mappings->add_to_vertex_stream(m_vertex_stream, m_vertex_buffer, m_vertex_format);
-   r->setup_attribute_pointers(m_vertex_stream, 0);
+   r.setup_attribute_pointers(m_vertex_stream, 0);
    va->set_index_buffer(m_index_buffer);
 
    // Just one uniform block at index 0 for gui_renderer
    m_uniform_block = make_shared<renderstack::graphics::uniform_block>(0, "gui");
-   m_uniform_offsets.model_to_clip = m_uniform_block->add_mat4 ("model_to_clip")->offset();
-   m_uniform_offsets.color_add     = m_uniform_block->add_vec4 ("color_add"    )->offset();
-   m_uniform_offsets.color_scale   = m_uniform_block->add_vec4 ("color_scale"  )->offset();
-   m_uniform_offsets.hsv_matrix    = m_uniform_block->add_mat4 ("hsv_matrix"   )->offset();
-   m_uniform_offsets.t             = m_uniform_block->add_float("t"            )->offset();
+   m_uniform_offsets.clip_from_model   = m_uniform_block->add_mat4 ("clip_from_model")->offset();
+   m_uniform_offsets.color_add         = m_uniform_block->add_vec4 ("color_add"      )->offset();
+   m_uniform_offsets.color_scale       = m_uniform_block->add_vec4 ("color_scale"    )->offset();
+   m_uniform_offsets.hsv_matrix        = m_uniform_block->add_mat4 ("hsv_matrix"     )->offset();
+   m_uniform_offsets.t                 = m_uniform_block->add_float("t"              )->offset();
    m_uniform_block->seal();
 
-   m_uniform_keys.model_to_clip    = 0;
-   m_uniform_keys.color_add        = 1;
-   m_uniform_keys.color_scale      = 2;
-   m_uniform_keys.hsv_matrix       = 3;
-   m_uniform_keys.t                = 4;
+   m_uniform_keys.clip_from_model   = 0;
+   m_uniform_keys.color_add         = 1;
+   m_uniform_keys.color_scale       = 2;
+   m_uniform_keys.hsv_matrix        = 3;
+   m_uniform_keys.t                 = 4;
 
    try
    {
@@ -213,26 +213,26 @@ gui_renderer::gui_renderer(std::shared_ptr<class renderstack::graphics::renderer
    }
 
    m_font = make_shared<font>(
-      *m_renderer,
+      r,
       "res/fonts/Ubuntu-R.ttf",
       11,
       1.0f
    );
 
    m_button_ninepatch_style = make_shared<ninepatch_style>(
-      *m_renderer,
+      r,
       "res/images/button_released.png",
       m_ninepatch_program,
       1  // texture unit
    );
    m_menulist_ninepatch_style = make_shared<ninepatch_style>(
-      *m_renderer,
+      r,
       "res/images/shadow.png",
       m_ninepatch_program,
       1  // texture unit
    );
    m_slider_ninepatch_style = make_shared<ninepatch_style>(
-      *m_renderer,
+      r,
       "res/images/button_released.png",
       m_slider_program,
       1  // texture unit
@@ -289,22 +289,22 @@ gui_renderer::gui_renderer(std::shared_ptr<class renderstack::graphics::renderer
       m_hsv_program
    );
 
-   r->set_vertex_array(old_va);
+   r.set_vertex_array(old_va);
 }
 
 void gui_renderer::blend_alpha()
 {
-   m_renderer->track.blend.execute(&m_blend_alpha);
+   m_renderer->track().blend().execute(&m_blend_alpha);
 }
 
 void gui_renderer::blend_add()
 {
-   m_renderer->track.blend.execute(&m_blend_add);
+   m_renderer->track().blend().execute(&m_blend_add);
 }
 
 void gui_renderer::blend_disable()
 {
-   m_renderer->track.blend.execute(&m_blend_disabled);
+   m_renderer->track().blend().execute(&m_blend_disabled);
 }
 
 void gui_renderer::edit_vbo()
@@ -328,9 +328,17 @@ void gui_renderer::prepare()
 {
    slog_trace("gui_renderer::prepare()");
 
+   // Default state
+   auto &r = *m_renderer;
+   state_trackers &t = r.track();
+   //m_renderer->track.execute(&m_gui_render_states);
+   t.color_mask().execute(&m_gui_render_states.color_mask);
+   t.blend().execute(&m_gui_render_states.blend);
+   t.depth().execute(&m_gui_render_states.depth);
+   t.face_cull().execute(&m_gui_render_states.face_cull);
+   t.stencil().execute(&m_gui_render_states.stencil);
+
    blend_alpha();
-   m_renderer->track.face_cull.execute(&m_face_cull_disabled);
-   m_renderer->track.depth.execute(&m_depth_disabled);
 
    // We bind these for both render and edit uses
 
@@ -393,13 +401,13 @@ void gui_renderer::set_transform(glm::mat4 const &value)
    if (use_uniform_buffers())
    {
       assert(m_start);
-      ::memcpy(&m_start[m_uniform_offsets.model_to_clip], value_ptr(value), 16 * sizeof(float));
+      ::memcpy(&m_start[m_uniform_offsets.clip_from_model], value_ptr(value), 16 * sizeof(float));
    }
    else
    {
       assert(m_program);
       gl::uniform_matrix_4fv(
-         m_program->uniform_at(m_uniform_keys.model_to_clip), 
+         m_program->uniform_at(m_uniform_keys.clip_from_model), 
          1, 
          GL_FALSE, 
          value_ptr(value)

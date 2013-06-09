@@ -121,19 +121,20 @@ void menu::on_load()
 
    auto p = m_programs->textured;
    auto m = p->mappings();
-   auto r = m_gui_renderer;
+   auto gr = m_gui_renderer;
+   auto &r = *gr->renderer();
 
 #if defined(RENDER_BACKGROUND)
    m_mesh = make_shared<renderstack::mesh::mesh>();
-   m_mesh->allocate_vertex_buffer(r->vertex_buffer(), 4);
-   m_mesh->allocate_index_buffer(r->index_buffer(), 6);
+   m_mesh->allocate_vertex_buffer(gr->vertex_buffer(), 4);
+   m_mesh->allocate_index_buffer(gr->index_buffer(), 6);
 
    /*  Write indices for one quad  */
    {
-      r->edit_ibo();
+      gr->edit_ibo();
       unsigned short *start = static_cast<unsigned short *>(
          m_mesh->index_buffer()->map(
-            r->renderer(),
+            r,
             m_mesh->first_index(), 
             m_mesh->index_count(), 
             (gl::buffer_access_mask::value)
@@ -154,35 +155,35 @@ void menu::on_load()
       *ptr++ = 0 + base_vertex;
       *ptr++ = 1 + base_vertex;
       *ptr++ = 2 + base_vertex;
-      m_mesh->index_buffer()->unmap(r->renderer());
+      m_mesh->index_buffer()->unmap(r);
    }
 #endif
 
 #if defined(RENDER_GUI)
-   auto bs = r->button_style();
-   auto ms = r->menulist_style();
+   auto bs = gr->button_style();
+   auto ms = gr->menulist_style();
 
    float w = (float)m_application->width();
    float h = (float)m_application->height();
    rectangle size(w, h);
 
-   m_root_layer = smart_ptr_builder::create_shared_ptr<area>(new layer(r, size));
+   m_root_layer = smart_ptr_builder::create_shared_ptr<area>(new layer(gr, size));
    m_root_layer->set_name("m_root_layer");
 
-   auto d = smart_ptr_builder::create_shared_ptr<area>(new menulist(r, ms, orientation::vertical));
+   auto d = smart_ptr_builder::create_shared_ptr<area>(new menulist(gr, ms, orientation::vertical));
    d->set_offset_free_size_relative(glm::vec2( 0.50f,  0.25f));
    d->set_offset_self_size_relative(glm::vec2(-0.50f, -0.50f));
    d->set_child_layout_style(area_layout_style::extend_horizontal);
 
    weak_ptr<action_sink> as = action_sink::shared_from_this();
 
-   m_quit = smart_ptr_builder::create_shared_ptr<action_source, area>(new button(r, "Quit", bs));
+   m_quit = smart_ptr_builder::create_shared_ptr<action_source, area>(new button(gr, "Quit", bs));
    m_quit->set_sink(as);
    d->add(m_quit);
 
 	if (m_game)
 	{
-		m_map_editor = smart_ptr_builder::create_shared_ptr<action_source, area>(new button(r, "Map Editor", bs));
+		m_map_editor = smart_ptr_builder::create_shared_ptr<action_source, area>(new button(gr, "Map Editor", bs));
 	   m_map_editor->set_sink(as);
 	   d->add(m_map_editor);
 	}
@@ -195,17 +196,13 @@ void menu::on_resize(int width, int height)
    slog_trace("menu::on_resize()");
 
    // Test all conditions; can_use.uniform_buffer_object can be forced to false
-   bool use_uniform_buffers = 
-      renderstack::graphics::configuration::can_use.uniform_buffer_object &&
-      (m_programs->glsl_version() >= 140) &&
-      (renderstack::graphics::configuration::shader_model_version >= 4);
-
    float w = (float)width;   // (float)m_window->width();
    float h = (float)height;  // (float)m_window->height();
 
 #if defined(RENDER_GUI)
-   auto r = m_gui_renderer;
-   r->on_resize(width, height);
+   auto gr = m_gui_renderer;
+   gr->on_resize(width, height);
+   auto &r = *m_renderer;
 
    m_root_layer->set_layer_size(w, h);
    m_root_layer->update();
@@ -217,7 +214,7 @@ void menu::on_resize(int width, int height)
    mat4        ortho = glm::ortho(0.0f, (float)w, 0.0f, (float)h);
    glm::vec4   white(1.0f, 1.0f, 1.0f, 1.0f);
 
-   if (use_uniform_buffers)
+   if (m_programs->use_uniform_buffers())
    {
 #if 0	 // Work around for ARM Ltd. / OpenGL ES Emulator Revision r2p0-00rel0
       auto p = m_programs->textured;
@@ -233,11 +230,11 @@ void menu::on_resize(int width, int height)
          m_programs->block->binding_point(),
          m_uniform_buffer_range);
 
-      unsigned char *start = m_uniform_buffer_range->begin_edit(r->renderer());
+      unsigned char *start = m_uniform_buffer_range->begin_edit(r);
 
-      ::memcpy(&start[o.model_to_clip],   value_ptr(ortho), 16 * sizeof(float));
+      ::memcpy(&start[o.clip_from_model], value_ptr(ortho), 16 * sizeof(float));
       ::memcpy(&start[o.color],           value_ptr(white),  4 * sizeof(float));
-      m_uniform_buffer_range->end_edit(r->renderer());
+      m_uniform_buffer_range->end_edit(r);
    }
    else
    {
@@ -246,8 +243,8 @@ void menu::on_resize(int width, int height)
       {
          auto p = m_programs->textured;
          m_renderer->set_program(p);
-         gl::uniform_matrix_4fv(p->uniform_at(m_programs->uniform_keys.model_to_clip), 1, GL_FALSE, value_ptr(ortho));
-         gl::uniform_4fv       (p->uniform_at(m_programs->uniform_keys.color        ), 1, value_ptr(white));
+         gl::uniform_matrix_4fv(p->uniform_at(m_programs->uniform_keys.clip_from_model ), 1, GL_FALSE, value_ptr(ortho));
+         gl::uniform_4fv       (p->uniform_at(m_programs->uniform_keys.color           ), 1, value_ptr(white));
       }
 #endif
 
@@ -255,8 +252,8 @@ void menu::on_resize(int width, int height)
       {
          auto p = m_programs->font;
          m_renderer->set_program(p);
-         gl::uniform_matrix_4fv(p->uniform_at(m_programs->uniform_keys.model_to_clip), 1, GL_FALSE, value_ptr(ortho));
-         gl::uniform_4fv       (p->uniform_at(m_programs->uniform_keys.color        ), 1, value_ptr(white));
+         gl::uniform_matrix_4fv(p->uniform_at(m_programs->uniform_keys.clip_from_model ), 1, GL_FALSE, value_ptr(ortho));
+         gl::uniform_4fv       (p->uniform_at(m_programs->uniform_keys.color           ), 1, value_ptr(white));
       }
 #endif
    }
@@ -264,10 +261,10 @@ void menu::on_resize(int width, int height)
 #if defined(RENDER_BACKGROUND)
    {
       /*  Write corner vertices for one quad  */
-      r->edit_vbo();
+      gr->edit_vbo();
       float *ptr = static_cast<float*>(
          m_mesh->vertex_buffer()->map(
-            r->renderer(),
+            r,
             m_mesh->first_vertex(),
             m_mesh->vertex_count(),
             (gl::buffer_access_mask::value)
@@ -291,7 +288,7 @@ void menu::on_resize(int width, int height)
       *ptr++ =   max_x; *ptr++ = max_y; *ptr++ = 1.0f; *ptr++ = 1.0f;
       *ptr++ =    0.0f; *ptr++ = max_y; *ptr++ = 0.0f; *ptr++ = 1.0f;
 
-      m_mesh->vertex_buffer()->unmap(r->renderer());
+      m_mesh->vertex_buffer()->unmap(r);
    }
 #endif
 
@@ -360,7 +357,7 @@ void menu::render()
 {
    slog_trace("menu::render()");
 
-   auto r = m_gui_renderer;
+   auto gr = m_gui_renderer;
 
    gl::clear_color(0.5f, 0.0f, 0.0f, 1.0f);
    gl::clear(clear_buffer_mask::color_buffer_bit | clear_buffer_mask::depth_buffer_bit);
@@ -403,7 +400,7 @@ void menu::render()
          ? static_cast<GLint>(m_mesh->first_vertex())
          : 0;
       
-      r->draw_elements_base_vertex(begin_mode, count, index_type, index_pointer, base_vertex);
+      gr->draw_elements_base_vertex(begin_mode, count, index_type, index_pointer, base_vertex);
    }
 #endif
 

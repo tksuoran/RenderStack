@@ -92,7 +92,7 @@ string samplers::str() const
    stringstream sb;
    for (auto i = m_samplers.cbegin(); i != m_samplers.cend(); ++i)
    {
-      auto uniform = *i;
+      auto &uniform = *i;
 
       sb << "uniform " << c_str(uniform->type()) << " " << uniform->name() << ";\n";
    }

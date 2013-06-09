@@ -47,6 +47,7 @@ ninepatch_style::ninepatch_style(
          h
       );
       m_texture->allocate_storage(renderer);
+      m_texture->set_debug_label(path);
       unsigned int old_unit;
       auto old_texture = renderer.set_texture(0, m_texture, &old_unit);
 

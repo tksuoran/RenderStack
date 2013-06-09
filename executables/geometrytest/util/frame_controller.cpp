@@ -74,7 +74,7 @@ void frame_controller::update()
    create_rotation(m_elevation, vec3_unit_x, elevation_matrix);
    m_rotation_matrix = m_heading_matrix * elevation_matrix;
 
-   m_local_to_parent = m_rotation_matrix;
+   m_parent_from_local = m_rotation_matrix;
    //mat4 parent_to_local = transpose(local_to_parent);
 
    // HACK
@@ -82,7 +82,7 @@ void frame_controller::update()
       m_position.y = 0.03f;
 
    /*  Put translation to column 3  */ 
-   m_local_to_parent[3] = vec4(m_position, 1.0f);
+   m_parent_from_local[3] = vec4(m_position, 1.0f);
 
    /*  Put inverse translation to column 3 */ 
    /*parentToLocal._03 = parentToLocal._00 * -positionInParent.X + parentToLocal._01 * -positionInParent.Y + parentToLocal._02 * - positionInParent.Z;
@@ -90,7 +90,7 @@ void frame_controller::update()
    parentToLocal._23 = parentToLocal._20 * -positionInParent.X + parentToLocal._21 * -positionInParent.Y + parentToLocal._22 * - positionInParent.Z;
    parentToLocal._33 = 1.0f;
    */
-   m_parent_to_local = inverse(m_local_to_parent);
+   m_local_from_parent = inverse(m_parent_from_local);
 
    //Frame.LocalToParent.Set(localToParent, parentToLocal);
 }
@@ -144,7 +144,7 @@ void frame_controller::update_fixed_step()
       m_rotation_matrix = m_heading_matrix * elevation_matrix;
    }
 
-   m_local_to_parent = m_rotation_matrix;
+   m_parent_from_local = m_rotation_matrix;
    //Matrix4 parentToLocal;
 
    //Matrix4.Transpose(localToParent, out parentToLocal);
@@ -154,7 +154,7 @@ void frame_controller::update_fixed_step()
       m_position.y = 0.03f;
 
    /*  Put translation to column 3  */ 
-   m_local_to_parent[3] = vec4(m_position, 1.0f);
+   m_parent_from_local[3] = vec4(m_position, 1.0f);
 
 #if 0
    localToParent._03 = positionInParent.X;
@@ -171,7 +171,7 @@ void frame_controller::update_fixed_step()
    Frame.LocalToParent.Set(localToParent, parentToLocal);
 #endif
 
-   m_parent_to_local = inverse(m_local_to_parent);
+   m_local_from_parent = inverse(m_parent_from_local);
 }
 
 

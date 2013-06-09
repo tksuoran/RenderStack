@@ -11,7 +11,7 @@ varying vec2  v_texcoord;
 
 void main()
 {
-   gl_Position = global_model_to_clip * vec4(a_position.xyz, 1.0);
+   gl_Position = global_clip_from_model * vec4(a_position.xyz, 1.0);
    v_normal    = a_normal;
    v_color     = a_color;
    v_texcoord  = a_texcoord;

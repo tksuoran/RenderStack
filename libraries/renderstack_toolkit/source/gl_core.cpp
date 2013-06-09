@@ -2658,13 +2658,13 @@ GLenum check_framebuffer_status(GLenum a)
    check_error();
    return res;
 }
-void framebuffer_texture_2d(GLenum a, GLenum b, GLenum c, GLuint d, GLint e)
+void framebuffer_texture_2d(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level)
 {  LOG_GL_FUNCTION(__FUNCTION__);
 #if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glFramebufferTexture2D != nullptr);
-   gl::detail::glFramebufferTexture2D(a, b, c, d, e);
+   gl::detail::glFramebufferTexture2D(target, attachment, textarget, texture, level);
 #else
-   ::glFramebufferTexture2D(a, b, c, d, e);
+   ::glFramebufferTexture2D(target, attachment, textarget, texture, level);
 #endif
    check_error();
 }
@@ -3147,13 +3147,13 @@ void clear_buffer_uiv(GLenum a, GLint b, const GLuint *c)
 #endif
    check_error();
 }
-void clear_buffer_fv(GLenum a, GLint b, const GLfloat *c)
+void clear_buffer_fv(GLenum buffer, GLint drawbuffer, const GLfloat *value)
 {  LOG_GL_FUNCTION(__FUNCTION__);
 #if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glClearBufferfv != nullptr);
-   gl::detail::glClearBufferfv(a, b, c);
+   gl::detail::glClearBufferfv(buffer, drawbuffer, value);
 #else
-   ::glClearBufferfv(a, b, c);
+   ::glClearBufferfv(buffer, drawbuffer, value);
 #endif
    check_error();
 }

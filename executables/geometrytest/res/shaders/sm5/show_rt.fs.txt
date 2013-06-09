@@ -1,0 +1,9 @@
+in  vec2 v_texcoord;
+
+out vec4 out_color;
+
+void main(void)
+{
+   //out_color = global.show_rt_transform * texture(show_rt_texture, v_texcoord.xy);
+   out_color = abs(texture(show_rt_texture, v_texcoord.xy));
+}

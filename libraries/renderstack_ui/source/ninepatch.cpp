@@ -26,6 +26,8 @@ ninepatch::ninepatch(
 )
 :  m_style(style)
 {
+   auto &r = *gui_renderer->renderer();
+
    //  16 vertices, 9 quads 
 
    //  12 13 14 15     
@@ -41,7 +43,7 @@ ninepatch::ninepatch(
    gui_renderer->edit_ibo();
    unsigned short *start = static_cast<unsigned short *>(
       m_mesh.index_buffer()->map(
-         gui_renderer->renderer(),
+         r,
          m_mesh.first_index(), 
          m_mesh.index_count(), 
          (gl::buffer_access_mask::value)
@@ -75,7 +77,7 @@ ninepatch::ninepatch(
    make_quad(14, 15, 11, 10);
 #undef make_quad
 
-   m_mesh.index_buffer()->unmap(gui_renderer->renderer());
+   m_mesh.index_buffer()->unmap(r);
 }
 
 void ninepatch::place(
@@ -93,8 +95,10 @@ void ninepatch::place(
 
    gui_renderer->edit_vbo();
 
+   auto &r = *gui_renderer->renderer();
+
    float *ptr = (float*)m_mesh.vertex_buffer()->map(
-      gui_renderer->renderer(),
+      r,
       m_mesh.first_vertex(),
       m_mesh.vertex_count(),
       (gl::buffer_access_mask::value)
@@ -139,7 +143,7 @@ void ninepatch::place(
       }
    }
 
-   m_mesh.vertex_buffer()->unmap(gui_renderer->renderer());
+   m_mesh.vertex_buffer()->unmap(r);
 }
 
 void ninepatch::render(shared_ptr<class gui_renderer> renderer)

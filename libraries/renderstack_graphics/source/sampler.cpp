@@ -27,6 +27,16 @@ sampler::~sampler()
 #endif
 }
 
+void sampler::set_min_filter(gl::texture_min_filter::value value)
+{
+   m_min_filter = value;
+}
+
+void sampler::set_mag_filter(gl::texture_mag_filter::value value)
+{
+   m_mag_filter = value;
+}
+
 gl::texture_min_filter::value sampler::min_filter() const 
 { 
    return m_min_filter; 

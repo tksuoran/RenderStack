@@ -93,6 +93,8 @@ extern float srgb_to_linear(float cs);
 extern float linear_rgb_to_srgb(float cl);
 extern glm::vec3 srgb_to_linear_rgb(glm::vec3 const &srgb);
 extern glm::vec3 linear_rgb_to_srgb(glm::vec3 const linear_rgb);
+extern glm::vec2 cartesian_to_spherical(glm::vec3 v);
+extern glm::vec3 spherical_to_cartesian(glm::vec2 s);
 
 }
 

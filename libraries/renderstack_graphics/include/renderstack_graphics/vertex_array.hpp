@@ -5,6 +5,7 @@
 #include "renderstack_graphics/vertex_attribute.hpp"
 #include "renderstack_toolkit/gl.hpp"
 #include "renderstack_toolkit/strong_gl_enums.hpp"
+#include "renderstack_toolkit/logstream.hpp"
 #include <vector>
 #include <cstddef>
 #include <memory>
@@ -61,7 +62,7 @@ public:
 friend class renderer;
 private:
    unsigned int   gl_name() { return m_gl_name; }
-   void           set_bound(bool value) { m_bound = value; }
+   void           set_bound(bool value);
 
 private:
    GLuint               m_gl_name;

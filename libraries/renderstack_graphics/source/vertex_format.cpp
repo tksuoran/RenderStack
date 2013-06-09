@@ -61,7 +61,7 @@ bool vertex_format::match(vertex_format const& other) const
 
 bool vertex_format::has_attribute(vertex_attribute_usage::value usage, unsigned int index) const
 {
-   for (auto i = m_attributes.begin(); i != m_attributes.end(); ++i)
+   for (auto i = m_attributes.cbegin(); i != m_attributes.cend(); ++i)
    {
       if (
          ((*i)->usage() == usage) &&

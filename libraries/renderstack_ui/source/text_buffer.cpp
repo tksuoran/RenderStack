@@ -43,10 +43,12 @@ text_buffer::text_buffer(
 
    log_trace("preparing index buffer");
 
+   auto &r = *m_renderer->renderer();
+
    m_renderer->edit_ibo();
    unsigned short *start = static_cast<unsigned short *>(
       m_mesh.index_buffer()->map(
-         m_renderer->renderer(),
+         r,
          m_mesh.first_index(), 
          m_mesh.index_count(), 
          (gl::buffer_access_mask::value)
@@ -71,7 +73,7 @@ text_buffer::text_buffer(
       *ptr++ = vertex_index + 3;
       vertex_index += 4;
    }
-   m_mesh.index_buffer()->unmap(m_renderer->renderer());
+   m_mesh.index_buffer()->unmap(r);
 }
 text_buffer::~text_buffer()
 {
@@ -111,9 +113,11 @@ void text_buffer::begin_print()
    //  written - use explicit flushing.
    m_renderer->edit_vbo();
 
+   auto &r = *m_renderer->renderer();
+
    m_vertex_ptr = static_cast<float*>(
       m_mesh.vertex_buffer()->map(
-         m_renderer->renderer(),
+         r,
          m_mesh.first_vertex(),
          m_mesh.vertex_count(),
          (gl::buffer_access_mask::value)
@@ -135,8 +139,10 @@ size_t text_buffer::end_print()
    slog_trace("text_buffer::end_print() m_chars_printed = %u",
       static_cast<unsigned int>(m_chars_printed));
 
+   auto &r = *m_renderer->renderer();
+
    m_vertex_ptr = nullptr;
-   m_mesh.vertex_buffer()->flush_and_unmap(m_renderer->renderer(), 4 * m_chars_printed);
+   m_mesh.vertex_buffer()->flush_and_unmap(r, 4 * m_chars_printed);
    return m_chars_printed;
 }
 void text_buffer::print(std::string const &text, float x, float y)

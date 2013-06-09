@@ -1,6 +1,8 @@
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_graphics/depth_state.hpp"
 
+// #define DISABLE_CACHE 1
+
 namespace renderstack { namespace graphics {
 
 bool depth_state::enabled() const

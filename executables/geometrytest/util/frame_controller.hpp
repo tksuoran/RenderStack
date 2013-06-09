@@ -12,8 +12,8 @@ private:
    float       m_heading;
    glm::mat4   m_heading_matrix;
    glm::mat4   m_rotation_matrix;
-   glm::mat4   m_local_to_parent;
-   glm::mat4   m_parent_to_local;
+   glm::mat4   m_parent_from_local;
+   glm::mat4   m_local_from_parent;
    glm::vec3   m_position;
    controller  m_rotate_x;
    controller  m_rotate_y;
@@ -39,8 +39,8 @@ public:
    glm::vec3         right             () const;
    glm::vec3         up                () const;
    glm::vec3         back              () const;
-   glm::mat4 const   &local_to_parent  () const { return m_local_to_parent; }
-   glm::mat4 const   &parent_to_local  () const { return m_parent_to_local; }
+   glm::mat4 const   &parent_from_local() const { return m_parent_from_local; }
+   glm::mat4 const   &local_from_parent() const { return m_local_from_parent; }
 
    controller &rotate_x        ();
    controller &rotate_y        ();

@@ -62,11 +62,14 @@ void game::update_once_per_frame()
       m_projection
    );
 
-   mat4 const &camera_world_to_view = m_controls.camera_controller.parent_to_local();
-   m_controls.view_projection = m_projection * camera_world_to_view;
+   // local = view
+   // parent = world
 
-   m_controls.inverse_view_projection = glm::inverse(
-      m_controls.view_projection
+   mat4 const &view_from_world = m_controls.camera_controller.local_from_parent();
+   m_controls.clip_from_world = m_projection * view_from_world;
+
+   m_controls.world_from_clip = glm::inverse(
+      m_controls.clip_from_world
    );
 
 }

@@ -236,7 +236,7 @@ void program::dump_shaders() const
    log() << "Shaders for " << m_name << ":\n";
    for (auto i = m_loaded_shaders.begin(); i != m_loaded_shaders.end(); ++i)
    {
-      auto     resource = *i;
+      auto     &resource = *i;
       string   f_source = format(resource.compiled_src);
 
       //  detach old shader, load, compile and attach new
@@ -244,6 +244,23 @@ void program::dump_shaders() const
       log() << f_source;
       log() << "\n";
    }
+}
+
+void program::map_uniform(size_t key, std::string const &name)
+{ 
+   if (m_uniform_map.size() < (key + 1))
+      m_uniform_map.resize(key + 1);
+
+   int location = get_uniform_location(name.c_str());
+   m_uniform_map[key] = location;
+}
+
+int program::uniform_at(std::size_t index) const
+{
+   if (index >= m_uniform_map.size())
+      throw runtime_error("uniform index out of range");
+
+   return m_uniform_map[index];
 }
 
 void program::set_shader(shader_type::value type, string const &source)
@@ -257,7 +274,7 @@ void program::load_shader(shader_type::value type, string const &path)
 {
    string source = read(path);
    string compiled_src;
-   GLuint shader = make_shader(type, source, compiled_src);
+   GLuint shader = make_shader(type, "\n// Loaded from: " + path + "\n\n" + source, compiled_src);
 
    gl::attach_shader(m_gl_name, shader);
 
@@ -284,7 +301,7 @@ void program::reload()
       //  Reload all shaders
       for (auto i = m_loaded_shaders.begin(); i != m_loaded_shaders.end(); ++i)
       {
-         auto resource = *i;
+         auto &resource = *i;
 
          //  detach old shader, load, compile and attach new
          cout << "reload detach old " << resource.shader << '\n';
@@ -320,7 +337,7 @@ void program::reload()
       {
          for (auto i = m_loaded_shaders.begin(); i != m_loaded_shaders.end(); ++i)
          {
-            auto resource = *i;
+            auto &resource = *i;
 
             if (resource.shader != resource.last_good_shader)
             {

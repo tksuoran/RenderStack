@@ -34,12 +34,12 @@ class gui_renderer
 public:
    struct uniform_offsets
    {
-      std::size_t model_to_clip; /* mat4 */
-      std::size_t color;         /* vec4 */
-      std::size_t color_add;     /* vec4 */
-      std::size_t color_scale;   /* vec4 */
-      std::size_t hsv_matrix;    /* mat4 */
-      std::size_t t;             /* float */
+      std::size_t clip_from_model;  /* mat4 */
+      std::size_t color;            /* vec4 */
+      std::size_t color_add;        /* vec4 */
+      std::size_t color_scale;      /* vec4 */
+      std::size_t hsv_matrix;       /* mat4 */
+      std::size_t t;                /* float */
    };
 
    gui_renderer(std::shared_ptr<class renderstack::graphics::renderer> renderer);
@@ -71,7 +71,7 @@ public:
    std::shared_ptr<style> colorpicker_style  () const { return m_colorpicker_style; }
    std::shared_ptr<style> slider_style       () const { return m_slider_style; }
 
-   class renderstack::graphics::renderer                    &renderer()       const { return *m_renderer; }
+   std::shared_ptr<class renderstack::graphics::renderer>   renderer()        const { return m_renderer; }
    std::shared_ptr<renderstack::graphics::vertex_format>    vertex_format()   const { return m_vertex_format; }
    std::shared_ptr<renderstack::graphics::vertex_stream>    vertex_stream()   const { return m_vertex_stream; }
    std::shared_ptr<renderstack::graphics::buffer>           vertex_buffer()   const { return m_vertex_buffer; }
@@ -99,8 +99,7 @@ private:
    renderstack::graphics::blend_state     m_blend_disabled;
    renderstack::graphics::blend_state     m_blend_alpha;
    renderstack::graphics::blend_state     m_blend_add;
-   renderstack::graphics::face_cull_state m_face_cull_disabled;
-   renderstack::graphics::depth_state     m_depth_disabled;
+   renderstack::graphics::render_states   m_gui_render_states;
 
 
    std::shared_ptr<class renderstack::graphics::renderer>         m_renderer;

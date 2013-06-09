@@ -61,6 +61,7 @@ game::game()
 ,  m_menu_button              (nullptr)
 ,  m_text_uniform_buffer_range(nullptr)
 ,  m_frame_dt                 (0.0)
+,  m_screen_active            (false)
 {
 }
 
@@ -101,13 +102,53 @@ void game::reset()
 }
 void game::on_load()
 {
+   assert(m_application);
+
    slog_trace("game::on_load()");
+
+   if (m_programs->use_uniform_buffers())
+   {
+      size_t size = 0;
+
+#if defined(USE_MESHES) || defined(USE_FONT)
+      ++size;
+#endif
+
+#if defined(USE_MESHES)
+      ++size;
+#endif
+
+#if defined(USE_FONT)
+      ++size;
+#endif
+
+      if (size > 0)
+      {
+         // TODO should I use size here as stride?
+         m_uniform_buffer = make_shared<buffer>(
+            renderstack::graphics::buffer_target::uniform_buffer,
+            m_programs->block->size() * size,
+            1
+         );
+         m_uniform_buffer->allocate_storage(*m_renderer);
+      }
+
+#if defined(USE_FONT)
+      m_text_uniform_buffer_range = make_shared<uniform_buffer_range>(
+         m_programs->block,
+         m_uniform_buffer
+      );
+#endif
+   }
+
+   m_deferred_renderer = make_shared<deferred_renderer>(m_renderer, m_programs, m_uniform_buffer);
+   m_forward_renderer = make_shared<forward_renderer>(m_renderer, m_programs, m_uniform_buffer);
 
 #if defined(USE_MESHES)
    {
       vector<std::shared_ptr<renderstack::geometry::geometry>> g_collection;
 
-      //g_collection.push_back(make_shared<renderstack::geometry::shapes::cuboctahedron>(1.0));
+      //g_collection.push_back(make_shared<renderstack::geometry::shapes::sphere>(1.0f, 12, 4));
 #if 1
       g_collection.push_back(make_shared<renderstack::geometry::shapes::disc>(1.0, 0.8, 32, 2));
       g_collection.push_back(make_shared<renderstack::geometry::shapes::triangle>(0.8f / 0.57735027f));
@@ -204,6 +245,7 @@ void game::on_load()
          m->set_geometry_mesh(gm);
          m->frame()->parent_from_local().set(position);
          m->frame()->update_hierarchical_no_cache();
+
          m_models.push_back(m);
 
          ++pos;
@@ -211,48 +253,6 @@ void game::on_load()
       }
    }
 #endif
-
-   if (use_uniform_buffers())
-   {
-      size_t size = 0;
-
-#if defined(USE_MESHES) || defined(USE_FONT)
-      ++size;
-#endif
-
-#if defined(USE_MESHES)
-      ++size;
-#endif
-
-#if defined(USE_FONT)
-      ++size;
-#endif
-
-      if (size > 0)
-      {
-         // TODO should I use size here as stride?
-         m_uniform_buffer = make_shared<buffer>(
-            renderstack::graphics::buffer_target::uniform_buffer,
-            m_programs->block->size() * size,
-            1
-         );
-         m_uniform_buffer->allocate_storage(*m_renderer);
-      }
-
-#if defined(USE_MESHES)
-      m_mesh_render_uniform_buffer_range = make_shared<uniform_buffer_range>(
-         m_programs->block,
-         m_uniform_buffer
-      );
-#endif
-
-#if defined(USE_FONT)
-      m_text_uniform_buffer_range = make_shared<uniform_buffer_range>(
-         m_programs->block,
-         m_uniform_buffer
-      );
-#endif
-   }
 
    // Font
 #if defined(RENDERSTACK_USE_FREETYPE) && defined(USE_FONT)
@@ -265,12 +265,7 @@ void game::on_load()
 
    m_controls.home = vec3(0.0f, 1.7f, 10.0f);
 
-   assert(m_application);
-
    reset();
-
-   m_mesh_render_states.depth.set_enabled(true);
-   m_mesh_render_states.face_cull.set_enabled(true);
 
 #if defined(USE_FONT)
    m_font_render_states.blend.set_enabled(true);
@@ -293,28 +288,28 @@ void game::setup_gui()
    slog_trace("game::setup_gui()");
    assert(m_application);
 
-   auto r  = m_gui_renderer;
-   auto bs = r->button_style();
-   auto cs = r->choice_style();
-   auto ms = r->menulist_style();
-   auto ps = r->colorpicker_style();
-   auto ss = r->slider_style();
+   auto gr = m_gui_renderer;
+   auto bs = gr->button_style();
+   auto cs = gr->choice_style();
+   auto ms = gr->menulist_style();
+   auto ps = gr->colorpicker_style();
+   auto ss = gr->slider_style();
 
    float w = (float)m_application->width();
    float h = (float)m_application->height();
    rectangle size(w, h);
 
-   m_root_layer = smart_ptr_builder::create_shared_ptr<area>(new layer(r, size));
+   m_root_layer = smart_ptr_builder::create_shared_ptr<area>(new layer(gr, size));
    m_root_layer->set_name("m_root_layer");
 
-   auto d = smart_ptr_builder::create_shared_ptr<area>(new menulist(r, ms, orientation::vertical));
+   auto d = smart_ptr_builder::create_shared_ptr<area>(new menulist(gr, ms, orientation::vertical));
    d->set_offset_free_size_relative(glm::vec2(  1.0f,  1.0f));
    d->set_offset_self_size_relative(glm::vec2( -1.0f, -1.0f));
    d->set_child_layout_style(area_layout_style::extend_horizontal);
 
    weak_ptr<action_sink> as = action_sink::shared_from_this();
    m_menu_button = smart_ptr_builder::create_shared_ptr<action_source, area>(
-      new button(r, "Back to Menu", bs)
+      new button(gr, "Back to Menu", bs)
    );
    m_menu_button->set_sink(as);
    d->add(m_menu_button);
@@ -324,7 +319,7 @@ void game::setup_gui()
       renderstack::ui::action_source, 
       renderstack::ui::choice,
       renderstack::ui::area>(
-         new renderstack::ui::choice(r, cs, bs, orientation::horizontal)
+         new renderstack::ui::choice(gr, cs, bs, orientation::horizontal)
       );
    c->add_choice_item("Foo", true);
 
@@ -334,9 +329,9 @@ void game::setup_gui()
    //auto p = new color_picker(ps);
    //d->add(p);
 
-   auto s = smart_ptr_builder::create_shared_ptr<action_source, area>(
-      new slider(r, ss, "Slider", 0.0f, 1.0f));
-   d->add(s);
+   m_slider = smart_ptr_builder::create_shared_ptr<action_source, area>(
+      new slider(gr, ss, "Slider", 0.0f, 80.0f));
+   d->add(m_slider);
 #endif
 
    m_root_layer->add(d);
@@ -345,6 +340,9 @@ void game::setup_gui()
 
 void game::on_resize(int width, int height)
 {
+   if (!m_screen_active)
+      return;
+
 #if !defined(USE_GUI)
    (void)width;
    (void)height;
@@ -356,16 +354,18 @@ void game::on_resize(int width, int height)
    float w = (float)width;   // (float)m_window->width();
    float h = (float)height;  // (float)m_window->height();
 
-   auto r = m_gui_renderer;
-   r->on_resize(width, height);
+   auto gr = m_gui_renderer;
+   gr->on_resize(width, height);
 
    if (m_root_layer)
    {
-      r->prepare();
+      gr->prepare();
       m_root_layer->set_layer_size(w, h);
       m_root_layer->update();
    }
 #endif
+
+   m_deferred_renderer->resize(width, height);
 }
 
 void game::action(weak_ptr<action_source> source)
@@ -384,6 +384,11 @@ void game::action(weak_ptr<action_source> source)
       else
          throw runtime_error("m_menu does not exist");
    }
+
+   /*if (s == m_slider)
+   {
+      m_slider->relative_value();
+   }*/
 #endif
 }
 
@@ -393,12 +398,15 @@ void game::on_enter()
 
    assert(m_application);
 
+   m_screen_active = true;
    on_resize(m_application->width(), m_application->height());
 
    lock_mouse(true);
 }
 void game::on_exit()
 {
+   gl::bind_framebuffer(GL_DRAW_FRAMEBUFFER, 0);
+   m_screen_active = false;
    m_application->capture_mouse(false);
 }
 void controls::reset()

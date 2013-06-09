@@ -54,6 +54,8 @@ public:
 
 public:
    void allocate_storage(class renderer &renderer);
+   void set_debug_label(std::string const &value);
+   std::string const &debug_label() const;
 
    void set_swizzle     (unsigned int i, unsigned int value);
    void set_min_filter  (gl::texture_min_filter::value value);
@@ -80,13 +82,15 @@ public:
 
    static void format_type(unsigned int internal_format, unsigned int &format, unsigned int &type);
 
-friend class renderer;
-private:
+// TODO For now, this is public, since we don't yet have a class for framebuffer object.
+//friend class renderer;
+//private:
    unsigned int gl_name() const { return m_gl_name; }
 
 
 private:
    unsigned int                     m_gl_name;
+   std::string                      m_debug_label;
    texture_target::value            m_target;
    unsigned int                     m_internal_format;
 

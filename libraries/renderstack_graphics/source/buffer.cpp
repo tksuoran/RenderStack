@@ -153,6 +153,16 @@ void buffer::allocate_storage(class renderer &renderer)
    }
 }
 
+void buffer::set_debug_label(std::string const &value)
+{
+   m_debug_label = value;
+}
+
+std::string const &buffer::debug_label() const
+{
+   return m_debug_label;
+}
+
 void buffer::validate()
 {
    if (!configuration::can_use.map_buffer_range)

@@ -11,63 +11,8 @@ namespace renderstack { namespace graphics {
 
 using namespace std;
 
-
-texture_unit_state::texture_unit_state()
-:  sampler_binding(nullptr)
-{
-   for (unsigned int target = 0; target < texture_target::count; ++target)
-      texture_binding[target].reset();
-}
-
-texture_unit_state::texture_unit_state(texture_unit_state const &other)
-:  sampler_binding(other.sampler_binding)
-{
-   for (unsigned int target = 0; target < texture_target::count; ++target)
-      texture_binding[target] = other.texture_binding[target];
-}
-
-
-state::state()
-:  current_program            (nullptr)
-,  vertex_array_binding       (nullptr)
-,  transform_feedback_binding (0)
-,  active_texture             (0)
-,  draw_framebuffer_binding   (0)
-,  read_framebuffer_binding   (0)
-,  renderbuffer_binding       (0)
-,  current_query              (0)
-{
-   // for (int i = 0; i < RS_TEXTURE_UNIT_COUNT; ++i)
-   // texture_unit[i]
-
-   for (int i = 0; i < buffer_target::non_indexed_context_buffer_target_count; ++i)
-      buffer_binding[i].reset();
-
-   for (int i = 0; i < RS_UNIFORM_BINDING_POINT_COUNT; ++i)
-      uniform_buffer_binding_indexed[i].reset();
-}
-state::state(state const &other)
-:  current_program            (other.current_program)
-,  vertex_array_binding       (other.vertex_array_binding)
-,  transform_feedback_binding (other.transform_feedback_binding)
-,  active_texture             (other.active_texture)
-,  draw_framebuffer_binding   (other.draw_framebuffer_binding)
-,  read_framebuffer_binding   (other.read_framebuffer_binding)
-,  renderbuffer_binding       (other.renderbuffer_binding)
-,  current_query              (other.current_query)
-{
-   for (int i = 0; i < RS_TEXTURE_UNIT_COUNT; ++i)
-      texture_unit[i] = other.texture_unit[i];
-
-   for (int i = 0; i < buffer_target::non_indexed_context_buffer_target_count; ++i)
-      buffer_binding[i] = other.buffer_binding[i];
-
-   for (int i = 0; i < RS_UNIFORM_BINDING_POINT_COUNT; ++i)
-      uniform_buffer_binding_indexed[i] = other.uniform_buffer_binding_indexed[i];
-}
-
-
 renderer::renderer()
+:  m_cache_enabled(true)
 {
    // When vertex arrays are not used, we use this to keep track
    // of enabled attributes and set vertex attribute pointers.
@@ -87,20 +32,6 @@ void renderer::pop()
    m_requested = m_request_stack.top();
    m_request_stack.pop();
 }
-
-void texture_unit_state::trash(unsigned int unit)
-{
-   for (int i = 0; i < texture_target::count; ++i)
-   {
-      texture_target::value target = static_cast<texture_target::value>(i);
-      gl::bind_texture(texture_target::gl_texture_target(target), 0);
-      texture_binding[i].reset();
-   }
-
-   gl::bind_sampler(unit, 0);
-   sampler_binding.reset();
-}
-
 void renderer::trash()
 {
    slog_trace("renderer::trash()");
@@ -137,7 +68,7 @@ std::shared_ptr<class program> renderer::set_program(std::shared_ptr<class progr
    std::shared_ptr<class program> old = m_effective.current_program;
 
    m_requested.current_program = program;
-   if (m_effective.current_program != m_requested.current_program)
+   if (!cache_enabled() || (m_effective.current_program != m_requested.current_program))
    {
       if (m_requested.current_program)
          gl::use_program(program->gl_name());
@@ -155,6 +86,8 @@ std::shared_ptr<class texture> renderer::set_texture(
    unsigned int                     *old_unit
 )
 {
+   assert(texture);
+
    auto target = texture->target();
    if (target >= texture_target::count)
       throw runtime_error("invalid texture target");
@@ -168,39 +101,88 @@ std::shared_ptr<class texture> renderer::set_texture(
       *old_unit = m_effective.active_texture;
 
    m_requested.texture_unit[unit].texture_binding[target] = texture;
+   auto old_texture = m_effective.texture_unit[unit].texture_binding[target];
+   std::string const &old_label = old_texture ? old_texture->debug_label() : "";
+
+   slog_trace(
+      "set_texture(unit = %d, gl_name = %d %s) old_unit = %d, old_texture = %d %s",
+      unit,
+      texture->gl_name(),
+      texture->debug_label().c_str(),
+      m_effective.active_texture,
+      (old_texture ? old_texture->gl_name() : 0),
+      old_label.c_str());
 
    if (
-      m_effective.texture_unit[unit].texture_binding[target] !=
-      m_requested.texture_unit[unit].texture_binding[target]
+      !cache_enabled() ||
+      (
+         m_effective.texture_unit[unit].texture_binding[target] !=
+         m_requested.texture_unit[unit].texture_binding[target]
+      )
    )
    {
       m_requested.active_texture = unit;
-      if (m_effective.active_texture != m_requested.active_texture)
+      if (!cache_enabled() || (m_effective.active_texture != m_requested.active_texture))
       {
          gl::active_texture(gl::texture_unit::texture0 + m_requested.active_texture);
          m_effective.active_texture = m_requested.active_texture;
       }
-      unsigned int gl_name = texture ? texture->gl_name() : 0;
-      gl::bind_texture(
-         texture_target::gl_texture_target(target),
-         gl_name
-      );
+      gl::bind_texture(texture_target::gl_texture_target(target), texture->gl_name());
 
       m_effective.texture_unit[unit].texture_binding[target] = m_requested.texture_unit[unit].texture_binding[target];
 
       // TODO Do this or not?
-      if (texture)
-         texture->apply(*this, unit);
+      texture->apply(*this, unit);
    }
 
    return old;
 }
+std::shared_ptr<class texture> renderer::reset_texture(
+   unsigned int unit, texture_target::value target, unsigned int *old_unit)
+{
+   slog_trace(
+      "reset_texture(unit = %d, target = %s) old_unit = %d",
+      unit,
+      texture_target::desc(target),
+      m_effective.texture_unit[unit].texture_binding[target]);
+
+   if (target >= texture_target::count)
+      throw runtime_error("invalid texture target");
+
+   unsigned int count = std::min(RS_TEXTURE_UNIT_COUNT, configuration::max_combined_texture_image_units);
+   if (unit >= count)
+      throw runtime_error("texture unit index out of supported range");
+
+   auto old = m_effective.texture_unit[unit].texture_binding[target];
+   if (old_unit)
+      *old_unit = m_effective.active_texture;
+
+   m_requested.texture_unit[unit].texture_binding[target].reset();
+
+   if (!cache_enabled() || (m_effective.texture_unit[unit].texture_binding[target]))
+   {
+      m_requested.active_texture = unit;
+      if (!cache_enabled() || (m_effective.active_texture != m_requested.active_texture))
+      {
+         gl::active_texture(gl::texture_unit::texture0 + m_requested.active_texture);
+         m_effective.active_texture = m_requested.active_texture;
+      }
+      gl::bind_texture(texture_target::gl_texture_target(target), 0);
+
+      m_effective.texture_unit[unit].texture_binding[target].reset();
+   }
+
+   return old;
+}
+
 unsigned int renderer::set_texture_unit(unsigned int unit)
 {
    unsigned int old_unit = m_effective.active_texture;
 
+   slog_trace("set_texture_unit(unit = %d) old_unit = %d", unit, old_unit);
+
    m_requested.active_texture = unit;
-   if (m_effective.active_texture != m_requested.active_texture)
+   if (!cache_enabled() || (m_effective.active_texture != m_requested.active_texture))
    {
       gl::active_texture(gl::texture_unit::texture0 + m_requested.active_texture);
       m_effective.active_texture = m_requested.active_texture;
@@ -213,17 +195,27 @@ void renderer::restore_texture(texture_target::value target, std::shared_ptr<cla
 {
    unsigned int unit = m_effective.active_texture;
 
+   slog_trace(
+      "restore_texture(target = %s, old_texture = %d %s, old_unit = %d) unit = %d",
+      texture_target::desc(target),
+      (old_texture ? old_texture->gl_name() : 0),
+      (old_texture ? old_texture->debug_label().c_str() : ""),
+      old_unit);
+
    m_requested.texture_unit[unit].texture_binding[target] = old_texture;
    if (
-      m_effective.texture_unit[unit].texture_binding[target] !=
-      m_requested.texture_unit[unit].texture_binding[target]
+      !cache_enabled() ||
+      (
+         m_effective.texture_unit[unit].texture_binding[target] !=
+         m_requested.texture_unit[unit].texture_binding[target]
+      )
    )
    {
       unsigned int gl_name = old_texture ? old_texture->gl_name() : 0;
       gl::bind_texture(texture_target::gl_texture_target(target), gl_name);
 
       m_requested.active_texture = old_unit;
-      if (m_effective.active_texture != m_requested.active_texture)
+      if (!cache_enabled() || (m_effective.active_texture != m_requested.active_texture))
       {
          gl::active_texture(gl::texture_unit::texture0 + m_requested.active_texture);
          m_effective.active_texture = m_requested.active_texture;
@@ -242,8 +234,8 @@ std::shared_ptr<uniform_buffer_range> renderer::set_uniform_buffer_range(
    if (binding_point >= count)
       throw runtime_error("uniform buffer binding point index out of supported range");
 
-   if (!buffer_range)
-      throw runtime_error("buffer range nullptr");
+   //if (!buffer_range)
+   //   throw runtime_error("buffer range nullptr");
 
    if (!configuration::can_use.uniform_buffer_object)
       throw runtime_error("uniform buffer objects not supported by current context");
@@ -255,8 +247,11 @@ std::shared_ptr<uniform_buffer_range> renderer::set_uniform_buffer_range(
    auto buffer = buffer_range->uniform_buffer().lock();
 
    if (
-      (m_effective.uniform_buffer_binding_indexed[binding_point] != m_requested.uniform_buffer_binding_indexed[binding_point]) ||
-      (m_effective.buffer_binding[buffer_target::uniform_buffer] != buffer)
+      !cache_enabled() ||
+      (
+         (m_effective.uniform_buffer_binding_indexed[binding_point] != m_requested.uniform_buffer_binding_indexed[binding_point]) ||
+         (m_effective.buffer_binding[buffer_target::uniform_buffer] != buffer)
+      )
    )
    {
       if (m_requested.uniform_buffer_binding_indexed[binding_point])
@@ -268,6 +263,16 @@ std::shared_ptr<uniform_buffer_range> renderer::set_uniform_buffer_range(
             buffer_range->uniform_buffer().lock()->gl_name(),
             static_cast<GLsizeiptr>(buffer_range->first_byte()), 
             static_cast<GLsizeiptr>(buffer_range->byte_count())
+         );
+      }
+      else
+      {
+         gl::bind_buffer_range(
+            gl::buffer_target::uniform_buffer,
+            binding_point, 
+            0,
+            0, 
+            0
          );
       }
 
@@ -288,7 +293,7 @@ std::shared_ptr<class buffer> renderer::set_buffer(buffer_target::value target, 
    std::shared_ptr<class buffer> old = m_effective.buffer_binding[target];
 
    m_requested.buffer_binding[target] = buffer;
-   if (m_effective.buffer_binding[target] != m_requested.buffer_binding[target])
+   if (!cache_enabled() || (m_effective.buffer_binding[target] != m_requested.buffer_binding[target]))
    {
       if (m_requested.buffer_binding[target])
       {
@@ -308,7 +313,7 @@ std::shared_ptr<class vertex_array> renderer::set_vertex_array(std::shared_ptr<c
    std::shared_ptr<class vertex_array> old = m_effective.vertex_array_binding;
 
    m_requested.vertex_array_binding = vertex_array;
-   if (m_effective.vertex_array_binding != m_requested.vertex_array_binding)
+   if (!cache_enabled() || (m_effective.vertex_array_binding != m_requested.vertex_array_binding))
    {
       if (m_requested.vertex_array_binding)
       {
@@ -390,7 +395,7 @@ void renderer::setup_attribute_pointers_new(
 
    for (auto i = vertex_stream->bindings().cbegin(); i != vertex_stream->bindings().cend(); ++i)
    {
-      auto binding   = *i;
+      auto &binding  = *i;
       auto vbo       = binding.vertex_buffer().lock();
       auto attribute = binding.vertex_attribute().lock();
       auto mapping   = binding.vertex_stream_mapping().lock();

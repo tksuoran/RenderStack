@@ -11,22 +11,23 @@ namespace renderstack { namespace graphics {
 class color_mask_state
 {
 public:
-    void reset();
+   bool dirty     () const;
+   void reset     ();
 
-    bool red  () const;
-    bool green() const;
-    bool blue () const;
-    bool alpha() const;
-    void set_red  (bool value);
-    void set_green(bool value);
-    void set_blue (bool value);
-    void set_alpha(bool value);
+   bool red       () const;
+   bool green     () const;
+   bool blue      () const;
+   bool alpha     () const;
+   void set_red   (bool value);
+   void set_green (bool value);
+   void set_blue  (bool value);
+   void set_alpha (bool value);
 
 private:
-    bool m_red;
-    bool m_green;
-    bool m_blue;
-    bool m_alpha;
+   bool m_red;
+   bool m_green;
+   bool m_blue;
+   bool m_alpha;
 };
 
 

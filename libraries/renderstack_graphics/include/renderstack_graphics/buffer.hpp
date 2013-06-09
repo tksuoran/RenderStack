@@ -47,6 +47,8 @@ public:
    ~buffer();
 
    void allocate_storage(class renderer &renderer);
+   void set_debug_label(std::string const &value);
+   std::string const &debug_label() const;
 
    ::std::size_t  stride         () const;
    ::std::size_t  capacity       () const;
@@ -71,6 +73,7 @@ private:
 
 private:
    unsigned int                  m_gl_name;
+   std::string                   m_debug_label;
    buffer_target::value          m_target;
    ::std::size_t                 m_stride;
    ::std::size_t                 m_capacity;

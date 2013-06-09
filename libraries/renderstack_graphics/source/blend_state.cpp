@@ -2,6 +2,8 @@
 #include "renderstack_graphics/blend_state.hpp"
 #include "renderstack_graphics/renderer.hpp"
 
+// #define DISABLE_CACHE 1
+
 namespace renderstack { namespace graphics {
 
 using namespace glm;

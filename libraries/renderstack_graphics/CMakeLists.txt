@@ -28,6 +28,7 @@ add_library(
    include/renderstack_graphics/vertex_stream_mapping.hpp
    include/renderstack_graphics/vertex_stream_mappings.hpp
 
+   include/renderstack_graphics/state_trackers.hpp
    include/renderstack_graphics/blend_state.hpp
    include/renderstack_graphics/depth_state.hpp
    include/renderstack_graphics/face_cull_state.hpp
@@ -53,6 +54,7 @@ add_library(
    source/vertex_stream_mapping.cpp
    source/vertex_stream_mappings.cpp
 
+   source/state_trackers.cpp
    source/blend_state.cpp
    source/depth_state.cpp
    source/face_cull_state.cpp

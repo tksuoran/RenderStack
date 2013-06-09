@@ -132,12 +132,12 @@ double window::time() const
    return ::glfwGetTime();
 }
 
-void window::open(int width, int height, std::string const &title, int major, int minor)
+bool window::open(int width, int height, std::string const &title, int major, int minor)
 {
    if (!::glfwInit())
    {
       ::fprintf(stderr, "Failed to initialize GLFW\n");
-      ::exit(EXIT_FAILURE);
+      return false;
    }
 
 #if defined(RENDERSTACK_GL_API_OPENGL)
@@ -146,8 +146,10 @@ void window::open(int width, int height, std::string const &title, int major, in
    ::glfwWindowHint(GLFW_GREEN_BITS,   8);
    ::glfwWindowHint(GLFW_BLUE_BITS,    8);
    ::glfwWindowHint(GLFW_DEPTH_BITS,   24);
+
+   /*
    if (major >= 3)
-      ::glfwWindowHint(GLFW_SAMPLES,   4);
+      ::glfwWindowHint(GLFW_SAMPLES,   4);*/
 
    ::glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, major);
    ::glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, minor);
@@ -196,9 +198,9 @@ void window::open(int width, int height, std::string const &title, int major, in
    m_window = ::glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
    if (!m_window)
    {
-      ::fprintf(stderr, "Failed to open GLFW window\n");
-      ::glfwTerminate();
-      throw std::exception();
+      ::fprintf(stderr, "Failed to open GLFW window for GL %d, %d\n", major, minor);
+      ::glfwTerminate(); // TODO Move elsewhere!
+      return false;
    }
 
    m_running = true;
@@ -223,6 +225,8 @@ void window::open(int width, int height, std::string const &title, int major, in
    ::glfwShowWindow((GLFWwindow*)m_window);
    ::glfwMakeContextCurrent((GLFWwindow*)m_window);
    get_extensions();
+
+   return true;
 }
 
 window::window()

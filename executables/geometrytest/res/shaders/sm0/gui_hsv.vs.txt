@@ -9,11 +9,9 @@ varying vec3 v_normal;
 varying vec4 v_color;
 varying vec2 v_texcoord;
 
-uniform mat4 model_to_clip;
-
 void main()
 {
-   gl_Position = gui_model_to_clip * vec4(a_position.xyz, 1.0);
+   gl_Position = gui_clip_from_model * vec4(a_position.xyz, 1.0);
    v_normal    = a_normal;
    v_color     = a_color;
    v_texcoord  = a_texcoord;

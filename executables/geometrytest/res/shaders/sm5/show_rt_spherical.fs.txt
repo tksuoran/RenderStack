@@ -1,0 +1,20 @@
+in  vec2 v_texcoord;
+
+out vec4 out_color;
+
+vec3 spherical_to_cartesian(vec2 s)
+{
+   vec3 v;
+   v.x = sin(s.x) * cos(s.y);
+   v.y = sin(s.x) * sin(s.y);
+   v.z = cos(s.x);
+   return v;
+}
+
+void main(void)
+{
+   vec4 NT = texture(show_rt_texture, v_texcoord.xy);
+   vec3 N = spherical_to_cartesian(NT.xy);
+   out_color.rgb = 0.5 * N + vec3(0.5);
+   out_color.a = 1.0;
+}

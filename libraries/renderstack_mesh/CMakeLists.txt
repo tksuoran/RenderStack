@@ -19,7 +19,6 @@ add_library(
    include/renderstack_mesh/index_range.hpp
    include/renderstack_mesh/normal_style.hpp
    include/renderstack_mesh/mesh_mode.hpp
-   source/build_info.cpp
    source/geometry_mesh.cpp
    source/mesh.cpp
    source/mesh_mode.cpp

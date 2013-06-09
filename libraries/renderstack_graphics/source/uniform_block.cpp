@@ -96,7 +96,7 @@ string uniform_block::source(int glsl_version) const
       ss << "layout(std140) uniform " << m_block_name << "\n{\n";
       for (uniform_collection::const_iterator i = uniforms().cbegin(); i != uniforms().cend(); ++i)
       {
-         auto uniform = *i;
+         auto &uniform = *i;
          string const &name = uniform->name();
          ss << "    ";
 #if defined(RENDERSTACK_GL_API_OPENGL_ES_2) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
@@ -117,7 +117,7 @@ string uniform_block::source(int glsl_version) const
 
       for (uniform_collection::const_iterator i = uniforms().cbegin(); i != uniforms().cend(); ++i)
       {
-         auto uniform = *i;
+         auto &uniform = *i;
          string const &name = uniform->name();
          ss << "uniform " << gl_uniform_type_name(uniform->type()) << " " << m_name << "_" << name;
          if (uniform->is_array())

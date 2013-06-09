@@ -400,7 +400,7 @@ void geometry_mesh::build_mesh_from_geometry(
 #  if 1  // polygons
    corner_indices->clear();
    vec3 unit_y(0.0f, 1.0f, 0.0f);
-   for (auto i = m_geometry->polygons().begin(); i != m_geometry->polygons().end(); ++i)
+   for (auto i = m_geometry->polygons().cbegin(); i != m_geometry->polygons().cend(); ++i)
    {
       class polygon *polygon = *i;
 

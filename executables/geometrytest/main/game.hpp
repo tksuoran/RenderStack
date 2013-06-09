@@ -4,6 +4,8 @@
 #include "renderstack_toolkit/platform.hpp"
 #include "main/screen.hpp"
 #include "main/programs.hpp"
+#include "main/deferred_renderer.hpp"
+#include "main/forward_renderer.hpp"
 #include "renderer/model.hpp"
 #include "renderstack_ui/action.hpp"
 #include "renderstack_toolkit/window.hpp"
@@ -29,6 +31,7 @@ namespace renderstack
       class font;
       class gui_renderer;
       class layer;
+      class slider;
       class text_buffer;
    }
    namespace mesh
@@ -46,6 +49,7 @@ class menu;
 class textures;
 class application;
 
+
 struct controls
 {
    bool              mouse_locked;
@@ -54,8 +58,8 @@ struct controls
    bool              right_shift;
    double            mouse_x;
    double            mouse_y;
-   glm::mat4         view_projection;
-   glm::mat4         inverse_view_projection;
+   glm::mat4         clip_from_world;
+   glm::mat4         world_from_clip;
    glm::vec3         home;
    frame_controller  camera_controller;
    float             fov;
@@ -124,16 +128,6 @@ private:
    void update_fixed_step     ();
    void update_once_per_frame ();
 
-   bool use_uniform_buffers() const
-   {
-      // Test all conditions; can_use.uniform_buffer_object can be forced to false
-      bool use_uniform_buffers = 
-         renderstack::graphics::configuration::can_use.uniform_buffer_object &&
-         (m_programs->glsl_version() >= 140) &&
-         (renderstack::graphics::configuration::shader_model_version >= 4);
-      return use_uniform_buffers;
-   }
-
 private:
    std::shared_ptr<application>                       m_application;
 
@@ -149,9 +143,9 @@ private:
 
    std::shared_ptr<renderstack::ui::layer>            m_root_layer;
    std::shared_ptr<renderstack::ui::button>           m_menu_button;
+   std::shared_ptr<renderstack::ui::slider>           m_slider;
 
    std::shared_ptr<renderstack::graphics::buffer>                 m_uniform_buffer;
-   std::shared_ptr<renderstack::graphics::uniform_buffer_range>   m_mesh_render_uniform_buffer_range;
    std::shared_ptr<renderstack::graphics::uniform_buffer_range>   m_text_uniform_buffer_range;
 
    std::vector<std::string>                        m_debug_lines;
@@ -162,17 +156,16 @@ private:
    double                                          m_simulation_time;
 
    renderstack::graphics::render_states            m_font_render_states;
-   renderstack::graphics::render_states            m_mesh_render_states;
 
    controls                                        m_controls;
-   std::vector<
-      std::shared_ptr<
-         model
-         //renderstack::mesh::geometry_mesh
-      >
-   >                                               m_models;
+
+   std::vector<std::shared_ptr<class model>>       m_models;
+   std::shared_ptr<deferred_renderer>              m_deferred_renderer;
+   std::shared_ptr<forward_renderer>               m_forward_renderer;
    glm::mat4                                       m_projection;
 
+   // are we between on_enter() and on_exit()?
+   bool m_screen_active;
 };
 
 #endif

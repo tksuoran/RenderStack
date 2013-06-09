@@ -31,17 +31,8 @@ public:
 
    void dump_shaders() const;
 
-   std::size_t map_uniform(std::string const &name)
-   { 
-      std::size_t index = m_uniform_map.size();
-      int location = get_uniform_location(name.c_str());
-      m_uniform_map.push_back(location);
-      return index; 
-   }
-   int uniform_at(std::size_t index)
-   {
-      return m_uniform_map[index];
-   }
+   void map_uniform(size_t key, std::string const &name);
+   int uniform_at(std::size_t index) const;
 
    void                             bind_attrib_location    (int location, std::string const name);
 

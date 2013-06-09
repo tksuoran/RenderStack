@@ -509,4 +509,21 @@ vec3 linear_rgb_to_srgb(vec3 const linear_rgb)
    );
 }
 
+vec2 cartesian_to_spherical(vec3 v)
+{
+   vec2 s;
+   s.x = std::acos(v.z); // theta
+   s.y = std::atan2(v.y, v.x); // phi
+   return s;
+}
+
+vec3 spherical_to_cartesian(vec2 s)
+{
+   vec3 v;
+   v.x = std::sin(s.x) * std::cos(s.y);
+   v.y = std::sin(s.x) * std::sin(s.y);
+   v.z = std::cos(s.x);
+   return v;
+}
+
 }

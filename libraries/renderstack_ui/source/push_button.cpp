@@ -18,24 +18,23 @@ push_button::push_button(
 
 void push_button::draw_self(ui_context &context)
 {
-   auto r = renderer();
-   // Renderer.Push();
+   auto gr = renderer();
 
    //  First draw ninepatch
-   r->set_program(style()->ninepatch_style()->program());
-   r->set_texture(style()->ninepatch_style()->texture_unit(), style()->ninepatch_style()->texture());
-   r->begin_edit();
-   r->set_transform(background_frame());
-   r->set_color_scale(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+   gr->set_program(style()->ninepatch_style()->program());
+   gr->set_texture(style()->ninepatch_style()->texture_unit(), style()->ninepatch_style()->texture());
+   gr->begin_edit();
+   gr->set_transform(background_frame());
+   gr->set_color_scale(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 
    if (rect().hit(context.mouse))
    {
       if (context.mouse_buttons[0])
       {
          if (m_pressed)
-            r->set_color_add(glm::vec4(0.3f, 0.3f, 0.7f, 0.0f));
+            gr->set_color_add(glm::vec4(0.3f, 0.3f, 0.7f, 0.0f));
          else
-            r->set_color_add(glm::vec4(0.6f, 0.6f, 0.8f, 0.0f));
+            gr->set_color_add(glm::vec4(0.6f, 0.6f, 0.8f, 0.0f));
 
          set_trigger(true);
       }
@@ -53,41 +52,41 @@ void push_button::draw_self(ui_context &context)
          }
 
          if (m_pressed)
-            r->set_color_add(glm::vec4(0.0f, 0.0f, 1.0f, 0.0f));
+            gr->set_color_add(glm::vec4(0.0f, 0.0f, 1.0f, 0.0f));
          else
-            r->set_color_add(glm::vec4(0.72f, 0.72f, 0.72f, 0.0f));
+            gr->set_color_add(glm::vec4(0.72f, 0.72f, 0.72f, 0.0f));
       }
    }
    else
    {
       set_trigger(false);
       if (m_pressed)
-         r->set_color_add(glm::vec4(0.0f, 0.0f, 1.0f, 0.0f));
+         gr->set_color_add(glm::vec4(0.0f, 0.0f, 1.0f, 0.0f));
       else
-         r->set_color_add(glm::vec4(0.72f, 0.72f, 0.72f, 0.0f));
+         gr->set_color_add(glm::vec4(0.72f, 0.72f, 0.72f, 0.0f));
    }
 
-   r->end_edit();
-   ninepatch().render(r);
+   gr->end_edit();
+   ninepatch().render(gr);
 
    /*  Then draw text  */ 
    if (style()->font())
    {
-      r->blend_alpha();
-      r->begin_edit();
-      r->set_program(style()->program());
-      r->set_texture(style()->texture_unit(), style()->font()->texture());
-      r->set_color_add(glm::vec4(0.00f, 0.00f, 0.00f, 0.0f));
+      gr->blend_alpha();
+      gr->begin_edit();
+      gr->set_program(style()->program());
+      gr->set_texture(style()->texture_unit(), style()->font()->texture());
+      gr->set_color_add(glm::vec4(0.00f, 0.00f, 0.00f, 0.0f));
 
       if (m_pressed)
-         r->set_color_scale(glm::vec4(1.0f, 1.0f, 1.0f, 2.0f));
+         gr->set_color_scale(glm::vec4(1.0f, 1.0f, 1.0f, 2.0f));
       else
-         r->set_color_scale(glm::vec4(0.0f, 0.0f, 0.0f, 2.0f));
+         gr->set_color_scale(glm::vec4(0.0f, 0.0f, 0.0f, 2.0f));
 
-      r->set_transform(text_frame());
-      r->end_edit();
+      gr->set_transform(text_frame());
+      gr->end_edit();
       text_buffer().render();
-      r->blend_disable();
+      gr->blend_disable();
    }
 }
 

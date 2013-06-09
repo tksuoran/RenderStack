@@ -17,9 +17,7 @@ string read(string const &fname)
     struct stat st;
     int res = stat(fname.c_str(), &st);
     if (res != 0)
-    {
         throw runtime_error("file not found");
-    }
 
     string result(static_cast<size_t>(st.st_size), 0);
     file.read(&result[0], static_cast<streamsize>(st.st_size));

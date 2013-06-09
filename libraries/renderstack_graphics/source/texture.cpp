@@ -374,6 +374,16 @@ void texture::allocate_storage(class renderer &renderer)
    renderer.restore_texture(m_target, old_texture, old_unit);
 }
 
+void texture::set_debug_label(std::string const &value)
+{
+   m_debug_label = value;
+}
+
+std::string const &texture::debug_label() const
+{
+   return m_debug_label;
+}
+
 void texture::set_swizzle(unsigned int i, unsigned int value)
 {
    assert(i < 4);
@@ -475,13 +485,13 @@ gl::depth_function::value texture::compare_func() const
 
 void texture::apply(class renderer &renderer, unsigned int unit)
 {
-   assert(
-      renderer.texture_is_bound(
+   if (!renderer.texture_is_bound(
          unit,
          m_target,
          shared_from_this()
       )
-   );
+   )
+      throw runtime_error("texture is not bound and cannot be applied");
 
    // TODO Cache - make these immutable?
 

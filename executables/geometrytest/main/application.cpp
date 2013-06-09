@@ -101,10 +101,16 @@ int main(int argc, char *argv[])
 #  endif
    {
       g_application = make_shared<application>();
-      if (g_application->on_load() == true)
+      if (g_application->on_load())
+      {
          g_application->run();
+         return_value = EXIT_SUCCESS;
+      }
+      else
+      {
+         return_value = EXIT_FAILURE;
+      }
 
-      return_value = EXIT_SUCCESS;
    }
 #  if defined(NDEBUG)
    catch(...)

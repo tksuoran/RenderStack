@@ -44,6 +44,13 @@ vertex_array::~vertex_array()
    }
 #endif
 }
+
+void vertex_array::set_bound(bool value)
+{
+   //log_warn("set_bound(value = %s) gl_name = %d", (value ? "true" : "false"), m_gl_name);
+   m_bound = value;
+}
+
 void vertex_array::clear_enabled_attribs()
 {
    int count = std::min(RS_ATTRIBUTE_COUNT, configuration::max_vertex_attribs);

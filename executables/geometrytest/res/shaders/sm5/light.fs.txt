@@ -1,0 +1,60 @@
+in vec3 v_view_vector;
+
+layout(location = 0) out vec4 out_emission;
+
+vec3 spherical_to_cartesian(vec2 s)
+{
+   vec3 v;
+   v.x = sin(s.x) * cos(s.y);
+   v.y = sin(s.x) * sin(s.y);
+   v.z = cos(s.x);
+   return v;
+}
+
+void main(void)
+{
+   ivec2 tc                = ivec2(gl_FragCoord.xy);
+
+   vec4  g_material        = texelFetch(material_texture, tc, 0);
+
+   if (g_material.w == 0.0)
+      discard;
+
+   vec4  g_albedo          = texelFetch(albedo_texture, tc, 0);
+   vec4  g_normal_tangent  = texelFetch(normal_tangent_texture, tc, 0);
+
+   float specular_exponent = g_material.w;
+
+   vec3  N                 = spherical_to_cartesian(g_normal_tangent.xy);
+   vec3  B                 = spherical_to_cartesian(g_normal_tangent.zw);
+   vec3  T                 = cross(B, N);
+
+   vec3  L                 = vec3(0.0, 1.0, 0.0);
+
+   vec3  V                 = normalize(v_view_vector);
+   vec3  H                 = normalize(L + V);
+
+   float vn                = dot(V, N);
+   float vn_clamped        = max(vn, 0.0);
+   float hn                = dot(H, N);
+   float hn_clamped        = max(hn, 0.0);
+   float ln                = dot(L, N);
+   float ln_clamped        = max(ln, 0.0);
+
+   float blinn_phong;
+
+   if (ln > 0.0)
+      blinn_phong = pow(hn_clamped, specular_exponent);
+   else
+      blinn_phong = 0.0;
+
+   vec3  albedo            = g_albedo.rgb;
+
+   out_emission.rgb        = vec3(blinn_phong);
+   out_emission.rgb        = max(out_emission.rgb, vec3(0.0));
+   out_emission.a          = 1.0;
+
+   //out_emission.rgb += 0.5 * N + vec3(0.5, 0.5, 0.5);
+   //out_emission = vec4(1.0, 1.0, 1.0, 1.0);
+}
+

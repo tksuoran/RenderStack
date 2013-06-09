@@ -26,18 +26,18 @@ using namespace renderstack::toolkit;
 
 void programs::map(shared_ptr<renderstack::graphics::program> program)
 {
-   // Test both conditions; m_glsl_version >= 140 is strict requirement,
-   // can_use.uniform_buffer_object can be forced to false
-   bool use_uniform_buffers = renderstack::graphics::configuration::can_use.uniform_buffer_object && glsl_version() >= 140;
-
-   if (!use_uniform_buffers)
+   if (!use_uniform_buffers())
    {
       //program->dump_shaders();
-      program->map_uniform("global_model_to_clip");
-      program->map_uniform("global_viewport"     );
-      program->map_uniform("global_color"        );
-      program->map_uniform("global_line_width"   );
-      program->map_uniform("global_line_color"   );
+      program->map_uniform(uniform_keys.clip_from_model    , "global_clip_from_model"     );
+      program->map_uniform(uniform_keys.world_from_model   , "global_world_from_model"    );
+      program->map_uniform(uniform_keys.world_from_view    , "global_world_from_view"     );
+      program->map_uniform(uniform_keys.view_from_model    , "global_view_from_model"     );
+      program->map_uniform(uniform_keys.viewport           , "global_viewport"            );
+      program->map_uniform(uniform_keys.color              , "global_color"               );
+      program->map_uniform(uniform_keys.line_width         , "global_line_width"          );
+      program->map_uniform(uniform_keys.material_parameters, "global_material_parameters" );
+      program->map_uniform(uniform_keys.show_rt_transform  , "global_show_rt_transform"   );
    }
 }
 
@@ -50,13 +50,18 @@ void programs::prepare_gl_resources()
 {
    slog_trace("programs::prepare_gl_resources()");
 
-   string src_path = read("res/src_path.txt");
-   string dst_path = read("res/dst_path.txt");
-
 #if 0
-   auto monitor = context::current()->shader_monitor();
-   monitor.set_dst_path(dst_path);
-   monitor.set_src_path(src_path);
+   try
+   {
+      string src_path = read("res/src_path.txt");
+      string dst_path = read("res/dst_path.txt");
+      //auto monitor = context::current()->shader_monitor();
+      //monitor.set_dst_path(dst_path);
+      //monitor.set_src_path(src_path);
+   }
+   catch (...)
+   {
+   }
 #endif
 
    mappings = make_shared<renderstack::graphics::vertex_stream_mappings>();
@@ -85,21 +90,42 @@ void programs::prepare_gl_resources()
    m_poll_ticks = 0; 
 
    block = make_shared<uniform_block>(1, "global");
-   uniform_offsets.model_to_clip = block->add_mat4("model_to_clip")->offset();
-   uniform_offsets.viewport      = block->add_vec4("viewport"     )->offset();
-   uniform_offsets.color         = block->add_vec4("color"        )->offset();
-   uniform_offsets.line_width    = block->add_vec4("line_width"   )->offset();
+   uniform_offsets.clip_from_model     = block->add_mat4("clip_from_model"    )->offset();
+   uniform_offsets.world_from_model    = block->add_mat4("world_from_model"   )->offset();
+   uniform_offsets.world_from_view     = block->add_mat4("world_from_view"    )->offset();
+   uniform_offsets.view_from_model     = block->add_mat4("view_from_model"    )->offset();
+   uniform_offsets.color               = block->add_vec4("color"              )->offset();
+   uniform_offsets.line_width          = block->add_vec4("line_width"         )->offset();
+   uniform_offsets.viewport            = block->add_vec4("viewport"           )->offset();
+   uniform_offsets.material_parameters = block->add_vec4("material_parameters")->offset();
+   uniform_offsets.show_rt_transform   = block->add_vec4("show_rt_transform"  )->offset();
    block->seal();
 
-   uniform_keys.model_to_clip = 0;
-   uniform_keys.viewport      = 1;
-   uniform_keys.color         = 2;
-   uniform_keys.line_width    = 3;
+   uniform_keys.clip_from_model     = 0;
+   uniform_keys.world_from_model    = 1;
+   uniform_keys.world_from_view     = 2;
+   uniform_keys.view_from_model     = 3;
+   uniform_keys.viewport            = 4;
+   uniform_keys.color               = 5;
+   uniform_keys.line_width          = 6;
+   uniform_keys.material_parameters = 7;
+   uniform_keys.show_rt_transform   = 8;
 
    auto nearest_sampler = make_shared<sampler>();
+   auto show_rt_sampler = make_shared<sampler>();
+   show_rt_sampler->set_mag_filter(gl::texture_mag_filter::nearest);
+   show_rt_sampler->set_min_filter(gl::texture_min_filter::linear);
+
    samplers = make_shared<class samplers>();
-   samplers->add("font_texture",       gl::active_uniform_type::sampler_2d, nearest_sampler)->set_texture_unit_index(0);
-   samplers->add("background_texture", gl::active_uniform_type::sampler_2d, nearest_sampler)->set_texture_unit_index(1);
+   samplers->add("font_texture",             gl::active_uniform_type::sampler_2d, nearest_sampler)->set_texture_unit_index(0);
+   samplers->add("background_texture",       gl::active_uniform_type::sampler_2d, nearest_sampler)->set_texture_unit_index(1);
+
+   samplers->add("emission_texture",         gl::active_uniform_type::sampler_2d, nearest_sampler)->set_texture_unit_index(0);
+   samplers->add("albedo_texture",           gl::active_uniform_type::sampler_2d, nearest_sampler)->set_texture_unit_index(1);
+   samplers->add("normal_tangent_texture",   gl::active_uniform_type::sampler_2d, nearest_sampler)->set_texture_unit_index(2);
+   samplers->add("material_texture",         gl::active_uniform_type::sampler_2d, nearest_sampler)->set_texture_unit_index(3);
+
+   samplers->add("show_rt_texture",          gl::active_uniform_type::sampler_2d, show_rt_sampler)->set_texture_unit_index(0);
 
    try
    {
@@ -117,7 +143,7 @@ void programs::prepare_gl_resources()
          shader_path    = "res/shaders/sm5/";
          m_glsl_version = 400;
       }
-      if ((renderstack::graphics::configuration::shader_model_version >= 4)
+      else if ((renderstack::graphics::configuration::shader_model_version >= 4)
           && (renderstack::graphics::configuration::glsl_version >= 150))
       {
          log_trace("Using shader model 4, GLSL 1.50");
@@ -147,6 +173,34 @@ void programs::prepare_gl_resources()
       basic->load_fs(shader_path + "basic.fs.txt");
       basic->link();
       map(basic);
+
+      gbuffer = make_shared<program>("gbuffer", m_glsl_version, samplers, mappings);
+      gbuffer->add(block);
+      gbuffer->load_vs(shader_path + "gbuffer.vs.txt");
+      gbuffer->load_fs(shader_path + "gbuffer.fs.txt");
+      gbuffer->link();
+      map(gbuffer);
+
+      light = make_shared<program>("light", m_glsl_version, samplers, mappings);
+      light->add(block);
+      light->load_vs(shader_path + "light.vs.txt");
+      light->load_fs(shader_path + "light.fs.txt");
+      light->link();
+      map(light);
+
+      show_rt = make_shared<program>("show_rt", m_glsl_version, samplers, mappings);
+      show_rt->add(block);
+      show_rt->load_vs(shader_path + "show_rt.vs.txt");
+      show_rt->load_fs(shader_path + "show_rt.fs.txt");
+      show_rt->link();
+      map(show_rt);
+
+      show_rt_spherical = make_shared<program>("show_rt_spherical", m_glsl_version, samplers, mappings);
+      show_rt_spherical->add(block);
+      show_rt_spherical->load_vs(shader_path + "show_rt.vs.txt");
+      show_rt_spherical->load_fs(shader_path + "show_rt_spherical.fs.txt");
+      show_rt_spherical->link();
+      map(show_rt_spherical);
 
       textured = make_shared<program>("textured", m_glsl_version, samplers, mappings);
       textured->add(block);

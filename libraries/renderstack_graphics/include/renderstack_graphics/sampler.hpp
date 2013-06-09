@@ -13,6 +13,9 @@ public:
    ~sampler();
 
 public:
+   void set_min_filter(gl::texture_min_filter::value value);
+   void set_mag_filter(gl::texture_mag_filter::value value);
+
    gl::texture_min_filter::value   min_filter() const;
    gl::texture_mag_filter::value   mag_filter() const;
    gl::texture_wrap_mode::value    wrap() const;

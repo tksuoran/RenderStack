@@ -608,6 +608,7 @@ void configuration::initialize()
 #endif
 
    // can_use.map_buffer_range      = false;
+
    // can_use.uniform_buffer_object = false;
 
 #if 0 // Disable vertex array object

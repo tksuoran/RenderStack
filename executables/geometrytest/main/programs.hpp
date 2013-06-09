@@ -2,6 +2,7 @@
 #define programs_hpp
 
 #include "renderstack_toolkit/platform.hpp"
+#include "renderstack_graphics/configuration.hpp"
 #include "renderstack_graphics/program.hpp"
 #include <memory>
 
@@ -21,10 +22,15 @@ namespace renderstack
 
 struct uniform_offsets
 {
-   size_t  model_to_clip;  /* mat4 */
-   size_t  color;          /* vec4 */
-   size_t  line_width;     /* vec2 */
-   size_t  viewport;       /* vec4 */
+   size_t clip_from_model;       /* mat4 */
+   size_t world_from_model;      /* mat4 */
+   size_t world_from_view;       /* mat4 */
+   size_t view_from_model;       /* mat4 */
+   size_t color;                 /* vec4 */
+   size_t line_width;            /* vec2 */
+   size_t viewport;              /* vec4 */
+   size_t material_parameters;   /* vec4 */
+   size_t show_rt_transform;     /* mat4 */
 };
 
 class programs
@@ -47,11 +53,24 @@ public:
    std::shared_ptr<renderstack::graphics::program>                font;
    std::shared_ptr<renderstack::graphics::program>                basic;
    std::shared_ptr<renderstack::graphics::program>                textured;
+   std::shared_ptr<renderstack::graphics::program>                gbuffer;
+   std::shared_ptr<renderstack::graphics::program>                light;
+   std::shared_ptr<renderstack::graphics::program>                show_rt;
+   std::shared_ptr<renderstack::graphics::program>                show_rt_spherical;
 
 public:
    void prepare_gl_resources();
    void update_fixed_step();
    int glsl_version() const;
+   bool use_uniform_buffers() const
+   {
+      // Test all conditions; can_use.uniform_buffer_object can be forced to false
+      bool use_uniform_buffers = 
+         renderstack::graphics::configuration::can_use.uniform_buffer_object &&
+         (glsl_version() >= 140) &&
+         (renderstack::graphics::configuration::shader_model_version >= 4);
+      return use_uniform_buffers;
+   }
 };
 
 #endif

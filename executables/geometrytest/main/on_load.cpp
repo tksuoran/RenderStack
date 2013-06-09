@@ -45,7 +45,25 @@ bool application::on_load()
 {
 
 #if defined(RENDERSTACK_GL_API_OPENGL)
-   open(512, 512, "OpenGL", 3, 2);
+   int versions[] = {44, 43, 42, 41, 40, 33, 32, 31, 30, 21, 20, 15, 14, 13, 12, 11, 10, 0 };
+   int *v = versions;
+
+   bool ok = false;
+   int major = 0;
+   int minor = 0;
+
+   for (ok = false; *v && !ok; ++v)
+   {
+      int version = *v;
+      major = version / 10;
+      minor = version % 10;
+
+      ok = open(512, 512, "OpenGL", major, minor);
+   }
+
+   if (!ok)
+      return false;
+
 #endif
 #if defined(RENDERSTACK_GL_API_OPENGL_ES_3)
    open(512, 512, "OpenGL ES 3", 3, 0);

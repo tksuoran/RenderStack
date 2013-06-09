@@ -52,6 +52,12 @@ add_executable(
    main/application.hpp
    main/game.cpp
    main/game.hpp
+   main/deferred_renderer.cpp
+   main/deferred_renderer.hpp
+   main/forward_renderer.cpp
+   main/forward_renderer.hpp
+   main/quad_renderer.cpp
+   main/quad_renderer.hpp
    main/game_render.cpp
    main/input.cpp
    main/menu.cpp

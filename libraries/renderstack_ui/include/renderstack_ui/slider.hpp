@@ -11,7 +11,9 @@
 
 namespace renderstack { namespace ui {
 
-class slider : public area, public action_source
+class slider
+:  public area
+,  public action_source
 {
 public:
    std::string const &label() const;

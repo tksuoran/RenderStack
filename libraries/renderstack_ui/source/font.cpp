@@ -501,6 +501,7 @@ void font::post_process(renderstack::graphics::renderer &renderer)
       m_texture_height
    );
    m_texture->allocate_storage(renderer);
+   m_texture->set_debug_label("font");
    unsigned int old_unit;
    auto old_texture = renderer.set_texture(0, m_texture, &old_unit);
 
@@ -524,7 +525,8 @@ void font::post_process(renderstack::graphics::renderer &renderer)
    renderer.restore_texture(texture_target::texture_2d, old_texture, old_unit);
 }
 
-void font::save() const {
+void font::save() const
+{
    slog_trace("font::save()");
 
    printf("   glGenTextures(1, &m_texture_object);\n");

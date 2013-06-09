@@ -436,7 +436,7 @@ void bind_framebuffer(GLenum a, GLuint b);
 void delete_framebuffers(GLsizei a, const GLuint *b);
 void gen_framebuffers(GLsizei, GLuint *);
 GLenum check_framebuffer_status(GLenum a);
-void framebuffer_texture_2d(GLenum a, GLenum b, GLenum c, GLuint d, GLint e);
+void framebuffer_texture_2d(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level);
 void framebuffer_texture_3d(GLenum a, GLenum b, GLenum c, GLuint d, GLint e, GLint f);
 void framebuffer_renderbuffer(GLenum a, GLenum b, GLenum c, GLuint d);
 void get_framebuffer_attachment_parameter_iv(GLenum a, GLenum b, GLenum c, GLint *d);
