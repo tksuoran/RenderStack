@@ -31,18 +31,15 @@ struct uniform_offsets
    size_t viewport;              /* vec4 */
    size_t material_parameters;   /* vec4 */
    size_t show_rt_transform;     /* mat4 */
+   size_t id_offset;             /* vec3 */
 };
 
 class programs
 {
 private:
-   bool                                                     m_poll_shaders;
-   size_t                                                   m_poll_ticks;
-   std::shared_ptr<renderstack::graphics::shader_monitor>   m_monitor;
-   int                                                      m_glsl_version;
-
-private:
    void map(std::shared_ptr<renderstack::graphics::program> program);
+
+   std::shared_ptr<renderstack::graphics::program> make_program(std::string const &name);
 
 public:
    std::shared_ptr<renderstack::graphics::uniform_block>          block;
@@ -57,20 +54,20 @@ public:
    std::shared_ptr<renderstack::graphics::program>                light;
    std::shared_ptr<renderstack::graphics::program>                show_rt;
    std::shared_ptr<renderstack::graphics::program>                show_rt_spherical;
+   std::shared_ptr<renderstack::graphics::program>                id;
 
 public:
    void prepare_gl_resources();
    void update_fixed_step();
    int glsl_version() const;
-   bool use_uniform_buffers() const
-   {
-      // Test all conditions; can_use.uniform_buffer_object can be forced to false
-      bool use_uniform_buffers = 
-         renderstack::graphics::configuration::can_use.uniform_buffer_object &&
-         (glsl_version() >= 140) &&
-         (renderstack::graphics::configuration::shader_model_version >= 4);
-      return use_uniform_buffers;
-   }
+   bool use_uniform_buffers() const;
+
+private:
+   bool                                                     m_poll_shaders;
+   size_t                                                   m_poll_ticks;
+   std::shared_ptr<renderstack::graphics::shader_monitor>   m_monitor;
+   int                                                      m_glsl_version;
+   std::string                                              m_shader_path;
 };
 
 #endif

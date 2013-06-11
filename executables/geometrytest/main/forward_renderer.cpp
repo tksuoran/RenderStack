@@ -68,17 +68,8 @@ void forward_renderer::render_pass(
    auto &r = *m_renderer;
    auto &t = r.track();
    auto p = m_programs->basic;
-   //r.track.reset();
 
    t.execute(&m_mesh_render_states);
-
-#if 0
-   t.color_mask().execute(&m_mesh_render_states.color_mask);
-   t.blend().execute(&m_mesh_render_states.blend);
-   t.depth().execute(&m_mesh_render_states.depth);
-   t.face_cull().execute(&m_mesh_render_states.face_cull);
-   t.stencil().execute(&m_mesh_render_states.stencil);
-#endif
 
    r.set_program(p);
    vec4 material_parameters(4.0f, 0.0f, 0.0f, 1.0f);

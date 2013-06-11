@@ -56,6 +56,8 @@ add_executable(
    main/deferred_renderer.hpp
    main/forward_renderer.cpp
    main/forward_renderer.hpp
+   main/id_renderer.cpp
+   main/id_renderer.hpp
    main/quad_renderer.cpp
    main/quad_renderer.hpp
    main/game_render.cpp

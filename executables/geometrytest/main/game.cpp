@@ -183,6 +183,7 @@ void game::on_load()
       format_info.set_want_position(true);
       format_info.set_want_normal(true);
       format_info.set_want_color(true);
+      format_info.set_want_id(true);
       format_info.set_normal_style(normal_style::corner_normals);
       format_info.set_mappings(m_programs->mappings);
       for (auto i = g_collection.begin(); i != g_collection.end(); ++i)
