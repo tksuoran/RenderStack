@@ -66,9 +66,9 @@ void application::update()
 
    m_screen->update();
 }
-void application::on_key(int key, int action, int mods)
+void application::on_key(int key, int scancode, int action, int mods)
 {
-   m_screen->on_key(key, action, mods);
+   m_screen->on_key(key, scancode, action, mods);
 }
 void application::on_mouse_moved(double x, double y)
 {

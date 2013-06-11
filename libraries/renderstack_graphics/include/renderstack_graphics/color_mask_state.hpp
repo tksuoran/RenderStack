@@ -11,7 +11,6 @@ namespace renderstack { namespace graphics {
 class color_mask_state
 {
 public:
-   bool dirty     () const;
    void reset     ();
 
    bool red       () const;

@@ -466,34 +466,35 @@ void game::shift(bool left, bool value)
    bool any_shift_pressed = m_controls.left_shift || m_controls.right_shift;
    m_controls.camera_controller.translate_y().set_less(any_shift_pressed);
 }
-void game::on_key(int key, int action, int mods)
+void game::on_key(int key, int scancode, int action, int mods)
 {
    bool pressed = action != 0;
 
    (void)mods;
+   (void)scancode;
 
 #if defined(RENDERSTACK_USE_GLFW)
    if (pressed)
    {
       switch (key)
       {
-      case GLFW_KEY_ESC:   toggle_mouse_lock(); break;
-      case GLFW_KEY_F1:    m_min_frame_dt = 1.0; m_max_frame_dt = 0.0; break;
-      case 'B':            m_controls.fov *= 1.1f; break;
-      case 'N':            m_controls.fov /= 1.1f; break;
-      case 'M':            reset(); break;
+      case GLFW_KEY_ESCAPE:   toggle_mouse_lock(); break;
+      case GLFW_KEY_F1:       m_min_frame_dt = 1.0; m_max_frame_dt = 0.0; break;
+      case GLFW_KEY_B:        m_controls.fov *= 1.1f; break;
+      case GLFW_KEY_N:        m_controls.fov /= 1.1f; break;
+      case GLFW_KEY_M:        reset(); break;
       }
    }
 
    switch (key)
    {
    case GLFW_KEY_SPACE:  m_controls.camera_controller.translate_y().set_more(pressed); break;
-   case GLFW_KEY_LSHIFT: shift(true, pressed); break;
-   case GLFW_KEY_RSHIFT: shift(false, pressed); break;
-   case 'W': m_controls.camera_controller.translate_z().set_less(pressed); break;
-   case 'S': m_controls.camera_controller.translate_z().set_more(pressed); break;
-   case 'D': m_controls.camera_controller.translate_x().set_more(pressed); break;
-   case 'A': m_controls.camera_controller.translate_x().set_less(pressed); break;
+   case GLFW_KEY_LEFT_SHIFT: shift(true, pressed); break;
+   case GLFW_KEY_RIGHT_SHIFT: shift(false, pressed); break;
+   case GLFW_KEY_W: m_controls.camera_controller.translate_z().set_less(pressed); break;
+   case GLFW_KEY_S: m_controls.camera_controller.translate_z().set_more(pressed); break;
+   case GLFW_KEY_D: m_controls.camera_controller.translate_x().set_more(pressed); break;
+   case GLFW_KEY_A: m_controls.camera_controller.translate_x().set_less(pressed); break;
    }
 #endif
 #if defined(RENDERSTACK_USE_GLWT)

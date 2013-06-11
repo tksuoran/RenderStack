@@ -315,9 +315,10 @@ void menu::update()
    m_programs->update_fixed_step();
    render();
 }
-void menu::on_key(int key, int action, int mods)
+void menu::on_key(int key, int scancode, int action, int mods)
 {
    (void)key;
+   (void)scancode;
    (void)action;
    (void)mods;
 }

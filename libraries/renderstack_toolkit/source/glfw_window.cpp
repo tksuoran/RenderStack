@@ -77,12 +77,12 @@ void end_memory_compare()
 
 namespace renderstack { namespace toolkit {
 
-static void s_key(GLFWwindow *win, int key, int action, int mods)
+static void s_key(GLFWwindow *win, int key, int scancode, int action, int mods)
 {
    class window *window = reinterpret_cast<class window *>(::glfwGetWindowUserPointer(win));
    if (window)
    {
-      window->on_key(key, action, mods);
+      window->on_key(key, scancode, action, mods);
    }
 }
 
