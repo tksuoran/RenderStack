@@ -1,5 +1,5 @@
-#ifndef Renderstack_Geometry_corner_hpp
-#define Renderstack_Geometry_corner_hpp
+#ifndef corner_hpp_renderstack_geometry
+#define corner_hpp_renderstack_geometry
 
 #include "renderstack_toolkit/platform.hpp"
 #include <glm/glm.hpp>

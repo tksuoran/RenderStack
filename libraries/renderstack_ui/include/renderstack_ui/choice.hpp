@@ -1,5 +1,5 @@
-#ifndef renderstack_ui__choice_hpp
-#define renderstack_ui__choice_hpp
+#ifndef choice_hpp_renderstack_ui
+#define choice_hpp_renderstack_ui
 
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_toolkit/enable_shared_from_this.hpp"

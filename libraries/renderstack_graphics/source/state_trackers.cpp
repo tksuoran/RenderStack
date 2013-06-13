@@ -82,11 +82,9 @@ void texture_unit_state::trash(unsigned int unit)
 
 state_trackers::state_trackers()
 {
-   int a = 42;
 }
 state_trackers::~state_trackers()
 {
-   int a = 42;
 }
 
 void state_trackers::reset()

@@ -1,6 +1,6 @@
 // http://www.codeproject.com/Articles/286304/Solution-for-multiple-enable_shared_from_this-in-i
-#ifndef renderstack_toolkit__smart_ptr_builder_hpp
-#define renderstack_toolkit__smart_ptr_builder_hpp
+#ifndef smart_ptr_builder_hpp_renderstack_toolkit
+#define smart_ptr_builder_hpp_renderstack_toolkit
 
 #include "enable_shared_from_this.hpp"
 #include <memory>

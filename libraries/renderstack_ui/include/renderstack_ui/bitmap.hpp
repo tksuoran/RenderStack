@@ -1,5 +1,5 @@
-#ifndef renderstack_ui__bitmap_hpp
-#define renderstack_ui__bitmap_hpp
+#ifndef bitmap_hpp_renderstack_ui
+#define bitmap_hpp_renderstack_ui
 
 #include "renderstack_toolkit/platform.hpp"
 #include <cmath>

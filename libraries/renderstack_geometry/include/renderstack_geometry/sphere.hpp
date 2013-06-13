@@ -1,5 +1,5 @@
-#ifndef Renderstack_Geometry_sphere_hpp
-#define Renderstack_Geometry_sphere_hpp
+#ifndef sphere_hpp_renderstack_geometry
+#define sphere_hpp_renderstack_geometry
 
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_geometry/geometry.hpp"

@@ -1,5 +1,5 @@
-#ifndef renderstack_ui__slider_hpp
-#define renderstack_ui__slider_hpp
+#ifndef slider_hpp_renderstack_ui
+#define slider_hpp_renderstack_ui
 
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_ui/area.hpp"

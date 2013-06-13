@@ -1,5 +1,5 @@
-#ifndef renderstack_mesh__normal_style_hpp
-#define renderstack_mesh__normal_style_hpp
+#ifndef normal_style_hpp_renderstack_mesh
+#define normal_style_hpp_renderstack_mesh
 
 namespace renderstack { namespace mesh {
 

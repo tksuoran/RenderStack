@@ -1,5 +1,5 @@
-#ifndef renderstack_toolkit__gl_core_hpp
-#define renderstack_toolkit__gl_core_hpp
+#ifndef gl_core_hpp_renderstack_toolkit
+#define gl_core_hpp_renderstack_toolkit
 
 #include "platform.hpp"
 #include "renderstack_toolkit/gl.hpp"

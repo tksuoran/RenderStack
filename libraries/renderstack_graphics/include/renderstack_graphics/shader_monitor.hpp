@@ -1,5 +1,5 @@
-#ifndef renderstack_graphics__shader_monitor_hpp
-#define renderstack_graphics__shader_monitor_hpp
+#ifndef shader_monitor_hpp_renderstack_graphics
+#define shader_monitor_hpp_renderstack_graphics
 
 #include "renderstack_toolkit/platform.hpp"
 #include <string>

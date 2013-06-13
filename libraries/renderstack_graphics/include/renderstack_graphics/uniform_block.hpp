@@ -1,5 +1,5 @@
-#ifndef renderstack_graphics__uniform_block_hpp
-#define renderstack_graphics__uniform_block_hpp
+#ifndef uniform_block_hpp_renderstack_graphics
+#define uniform_block_hpp_renderstack_graphics
 
 #include "renderstack_toolkit/platform.hpp"
 #include <map>

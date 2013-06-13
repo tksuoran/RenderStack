@@ -1,5 +1,5 @@
-#ifndef renderstack_ui__ninepatch_style_hpp
-#define renderstack_ui__ninepatch_style_hpp
+#ifndef ninepatch_style_hpp_renderstack_ui
+#define ninepatch_style_hpp_renderstack_ui
 
 #include "renderstack_toolkit/platform.hpp"
 #include <glm/glm.hpp>

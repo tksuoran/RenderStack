@@ -1,5 +1,5 @@
-#ifndef renderstack_toolkit__strong_gl_enums_hpp
-#define renderstack_toolkit__strong_gl_enums_hpp
+#ifndef strong_gl_enums_hpp_renderstack_toolkit
+#define strong_gl_enums_hpp_renderstack_toolkit
 
 namespace gl {
 

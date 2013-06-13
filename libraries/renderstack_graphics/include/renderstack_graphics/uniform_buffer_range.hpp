@@ -1,5 +1,5 @@
-#ifndef renderstack_graphics__uniform_buffer_range_hpp
-#define renderstack_graphics__uniform_buffer_range_hpp
+#ifndef uniform_buffer_range_hpp_renderstack_graphics
+#define uniform_buffer_range_hpp_renderstack_graphics
 
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_graphics/buffer.hpp"

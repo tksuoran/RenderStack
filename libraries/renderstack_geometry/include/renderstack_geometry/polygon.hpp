@@ -1,5 +1,5 @@
-#ifndef Renderstack_Geometry_polygon_hpp
-#define Renderstack_Geometry_polygon_hpp
+#ifndef polygon_hpp_renderstack_geometry
+#define polygon_hpp_renderstack_geometry
 
 #include "renderstack_toolkit/platform.hpp"
 #include <glm/glm.hpp>

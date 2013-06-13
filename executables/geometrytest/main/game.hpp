@@ -166,6 +166,8 @@ private:
 
    // are we between on_enter() and on_exit()?
    bool m_screen_active;
+
+   bool m_mouse_down;
 };
 
 #endif

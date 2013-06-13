@@ -1,5 +1,5 @@
-#ifndef renderstack_ui__color_picker_hpp
-#define renderstack_ui__color_picker_hpp
+#ifndef color_picker_hpp_renderstack_ui
+#define color_picker_hpp_renderstack_ui
 
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_ui/area.hpp"

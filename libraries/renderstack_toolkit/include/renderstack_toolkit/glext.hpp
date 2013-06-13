@@ -1,5 +1,5 @@
-#ifndef renderstack_toolkit__glext_hpp
-#define renderstack_toolkit__glext_hpp
+#ifndef glext_hpp_renderstack_toolkit
+#define glext_hpp_renderstack_toolkit
 
 #if defined(_WIN32)
 #   define _CRT_SECURE_NO_WARNINGS

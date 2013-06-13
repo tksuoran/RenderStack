@@ -114,6 +114,8 @@ void deferred_renderer::resize(int width, int height)
       m_rt[i]->allocate_storage(*m_renderer);
       m_rt[i]->set_mag_filter(gl::texture_mag_filter::nearest);
       m_rt[i]->set_min_filter(gl::texture_min_filter::nearest);
+      m_rt[i]->set_wrap(0, gl::texture_wrap_mode::clamp_to_edge);
+      m_rt[i]->set_wrap(1, gl::texture_wrap_mode::clamp_to_edge);
 
       gl::framebuffer_texture_2d(
          GL_DRAW_FRAMEBUFFER,

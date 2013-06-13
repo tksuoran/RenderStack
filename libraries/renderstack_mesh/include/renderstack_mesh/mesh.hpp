@@ -1,5 +1,5 @@
-#ifndef renderstack_mesh__mesh_hpp
-#define renderstack_mesh__mesh_hpp
+#ifndef mesh_hpp_renderstack_mesh
+#define mesh_hpp_renderstack_mesh
 
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_graphics/buffer.hpp"

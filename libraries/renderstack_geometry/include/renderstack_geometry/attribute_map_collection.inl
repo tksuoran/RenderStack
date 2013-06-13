@@ -1,5 +1,5 @@
-#ifndef Renderstack_Geometry_attribute_map_collection_inl
-#define Renderstack_Geometry_attribute_map_collection_inl
+#ifndef attribute_map_collection_inl_renderstack_geometry
+#define attribute_map_collection_inl_renderstack_geometry
 
 #include "renderstack_geometry/exception.hpp"
 

@@ -1,5 +1,5 @@
-#ifndef Renderstack_Geometry_edge_hpp
-#define Renderstack_Geometry_edge_hpp
+#ifndef edge_hpp_renderstack_geometry
+#define edge_hpp_renderstack_geometry
 
 #include "renderstack_toolkit/platform.hpp"
 #include <utility>

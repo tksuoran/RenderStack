@@ -1,5 +1,5 @@
-#ifndef renderstack_scene__light_hpp
-#define renderstack_scene__light_hpp
+#ifndef light_hpp_renderstack_scene
+#define light_hpp_renderstack_scene
 
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_scene/camera.hpp"

@@ -1,5 +1,5 @@
-#ifndef renderstack_scene__stereo_parameters_hpp
-#define renderstack_scene__stereo_parameters_hpp
+#ifndef stereo_parameters_hpp_renderstack_scene
+#define stereo_parameters_hpp_renderstack_scene
 
 #include "renderstack_toolkit/platform.hpp"
 #include <glm/glm.hpp>

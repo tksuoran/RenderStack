@@ -1,5 +1,5 @@
-#ifndef renderstack_ui__ninepatch_hpp
-#define renderstack_ui__ninepatch_hpp
+#ifndef ninepatch_hpp_renderstack_ui
+#define ninepatch_hpp_renderstack_ui
 
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_mesh/mesh.hpp"

@@ -1,5 +1,5 @@
-#ifndef renderstack_graphics__stencil_state_hpp
-#define renderstack_graphics__stencil_state_hpp
+#ifndef stencil_state_hpp_renderstack_graphics
+#define stencil_state_hpp_renderstack_graphics
 
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_toolkit/gl.hpp"

@@ -1,5 +1,5 @@
-#ifndef renderstack_scene__camera_hpp
-#define renderstack_scene__camera_hpp
+#ifndef camera_hpp_renderstack_scene
+#define camera_hpp_renderstack_scene
 
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_graphics/uniform_block.hpp"

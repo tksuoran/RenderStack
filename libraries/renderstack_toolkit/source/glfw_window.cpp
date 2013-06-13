@@ -226,6 +226,8 @@ bool window::open(int width, int height, std::string const &title, int major, in
    ::glfwMakeContextCurrent((GLFWwindow*)m_window);
    get_extensions();
 
+   ::glfwSwapInterval(1);
+
    return true;
 }
 

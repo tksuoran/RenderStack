@@ -1,5 +1,5 @@
-#ifndef renderstack_mesh__build_info_hpp
-#define renderstack_mesh__build_info_hpp
+#ifndef build_info_hpp_renderstack_mesh
+#define build_info_hpp_renderstack_mesh
 
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_toolkit/gl.hpp"

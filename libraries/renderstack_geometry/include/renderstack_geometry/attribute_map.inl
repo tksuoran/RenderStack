@@ -1,5 +1,5 @@
-#ifndef Renderstack_Geometry_attribute_map_inl
-#define Renderstack_Geometry_attribute_map_inl
+#ifndef attribute_map_inl_renderstack_geometry
+#define attribute_map_inl_renderstack_geometry
 
 namespace renderstack { namespace geometry {
 

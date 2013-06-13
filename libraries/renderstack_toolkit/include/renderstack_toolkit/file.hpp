@@ -1,5 +1,5 @@
-#ifndef renderstack_toolkit__file_hpp
-#define renderstack_toolkit__file_hpp
+#ifndef file_hpp_renderstack_toolkit
+#define file_hpp_renderstack_toolkit
 
 #include "platform.hpp"
 #include <string>

@@ -1,5 +1,5 @@
-#ifndef renderstack_graphics__renderer_hpp
-#define renderstack_graphics__renderer_hpp
+#ifndef renderer_hpp_renderstack_graphics
+#define renderer_hpp_renderstack_graphics
 
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_graphics/buffer.hpp"

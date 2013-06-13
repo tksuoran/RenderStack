@@ -1,5 +1,5 @@
-#ifndef renderstack_graphics__vertex_format_hpp
-#define renderstack_graphics__vertex_format_hpp
+#ifndef vertex_format_hpp_renderstack_graphics
+#define vertex_format_hpp_renderstack_graphics
 
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_graphics/vertex_attribute.hpp"

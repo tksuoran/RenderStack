@@ -1,5 +1,5 @@
-#ifndef renderstack_graphics__state_trackers_hpp
-#define renderstack_graphics__state_trackers_hpp
+#ifndef state_trackers_hpp_renderstack_graphics
+#define state_trackers_hpp_renderstack_graphics
 
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_graphics/blend_state.hpp"

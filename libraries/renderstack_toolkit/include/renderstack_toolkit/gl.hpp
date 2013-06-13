@@ -1,5 +1,5 @@
-#ifndef renderstack_toolkit__gl_hpp
-#define renderstack_toolkit__gl_hpp
+#ifndef gl_hpp_renderstack_toolkit
+#define gl_hpp_renderstack_toolkit
 
 #if defined(_WIN32)
 #   define _CRT_SECURE_NO_WARNINGS

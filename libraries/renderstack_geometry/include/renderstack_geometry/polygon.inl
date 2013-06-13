@@ -1,5 +1,5 @@
-#ifndef Renderstack_Geometry_polygon_inl
-#define Renderstack_Geometry_polygon_inl
+#ifndef polygon_inl_renderstack_geometry
+#define polygon_inl_renderstack_geometry
 
 namespace renderstack { namespace geometry {
 

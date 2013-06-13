@@ -1,5 +1,5 @@
-#ifndef renderstack_graphics__face_cull_state_hpp
-#define renderstack_graphics__face_cull_state_hpp
+#ifndef face_cull_state_hpp_renderstack_graphics
+#define face_cull_state_hpp_renderstack_graphics
 
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_toolkit/gl.hpp"

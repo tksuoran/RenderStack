@@ -1,5 +1,5 @@
-#ifndef renderstack_graphics__sampler_hpp
-#define renderstack_graphics__sampler_hpp
+#ifndef sampler_hpp_renderstack_graphics
+#define sampler_hpp_renderstack_graphics
 
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_toolkit/strong_gl_enums.hpp"

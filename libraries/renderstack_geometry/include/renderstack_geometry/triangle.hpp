@@ -1,5 +1,5 @@
-#ifndef Renderstack_Geometry_triangle_hpp
-#define Renderstack_Geometry_triangle_hpp
+#ifndef triangle_hpp_renderstack_geometry
+#define triangle_hpp_renderstack_geometry
 
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_geometry/geometry.hpp"

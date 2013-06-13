@@ -1,5 +1,5 @@
-#ifndef renderstack_ui__menulist_hpp
-#define renderstack_ui__menulist_hpp
+#ifndef menulist_hpp_renderstack_ui
+#define menulist_hpp_renderstack_ui
 
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_ui/dock.hpp"

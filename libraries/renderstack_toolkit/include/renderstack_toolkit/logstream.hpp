@@ -1,5 +1,5 @@
-#ifndef renderstack_toolkit__logstream_hpp
-#define renderstack_toolkit__logstream_hpp
+#ifndef logstream_hpp_renderstack_toolkit
+#define logstream_hpp_renderstack_toolkit
 
 #include "platform.hpp"
 #include <ostream>

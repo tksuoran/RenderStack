@@ -1,5 +1,5 @@
-#ifndef renderstack_scene__frame_hpp
-#define renderstack_scene__frame_hpp
+#ifndef frame_hpp_renderstack_scene
+#define frame_hpp_renderstack_scene
 
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_scene/transform.hpp"

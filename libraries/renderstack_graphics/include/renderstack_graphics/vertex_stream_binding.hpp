@@ -1,5 +1,5 @@
-#ifndef renderstack_graphics__vertex_stream_binding_hpp
-#define renderstack_graphics__vertex_stream_binding_hpp
+#ifndef vertex_stream_binding_hpp_renderstack_graphics
+#define vertex_stream_binding_hpp_renderstack_graphics
 
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_toolkit/strong_gl_enums.hpp"

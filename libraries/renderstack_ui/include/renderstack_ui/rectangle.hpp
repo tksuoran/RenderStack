@@ -1,5 +1,5 @@
-#ifndef renderstack_ui__rectangle_hpp
-#define renderstack_ui__rectangle_hpp
+#ifndef rectangle_hpp_renderstack_ui
+#define rectangle_hpp_renderstack_ui
 
 #include "renderstack_toolkit/platform.hpp"
 #include <glm/glm.hpp>

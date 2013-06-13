@@ -1,5 +1,5 @@
-#ifndef renderstack_geometry__attribute_map_hpp
-#define renderstack_geometry__attribute_map_hpp
+#ifndef attribute_map_hpp_renderstack_geometry
+#define attribute_map_hpp_renderstack_geometry
 
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_geometry/exception.hpp"

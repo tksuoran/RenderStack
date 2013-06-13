@@ -1,5 +1,5 @@
-#ifndef renderstack_mesh__mesh_mode_hpp
-#define renderstack_mesh__mesh_mode_hpp
+#ifndef mesh_mode_hpp_renderstack_mesh
+#define mesh_mode_hpp_renderstack_mesh
 
 #include "renderstack_toolkit/platform.hpp"
 

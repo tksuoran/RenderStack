@@ -1,5 +1,5 @@
-#ifndef Renderstack_Geometry_point_hpp
-#define Renderstack_Geometry_point_hpp
+#ifndef point_hpp_renderstack_geometry
+#define point_hpp_renderstack_geometry
 
 #include "renderstack_toolkit/platform.hpp"
 #include <vector>

@@ -1,5 +1,5 @@
-#ifndef Renderstack_Geometry_cube_hpp
-#define Renderstack_Geometry_cube_hpp
+#ifndef cube_hpp_renderstack_geometry
+#define cube_hpp_renderstack_geometry
 
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_geometry/geometry.hpp"

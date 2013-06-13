@@ -1,5 +1,5 @@
-#ifndef renderstack_toolkit__window_hpp
-#define renderstack_toolkit__window_hpp
+#ifndef window_hpp_renderstack_toolkit
+#define window_hpp_renderstack_toolkit
 
 #include "platform.hpp"
 #include "renderstack_toolkit/gl.hpp"
@@ -76,9 +76,6 @@ private:
    void                    *m_winmm_dll;
    void                    *m_time_get_time;
 # endif
-
-   mutable
-   double m_fake_time;
 
 public:
    void glwt_callback(const GLWTWindowEvent *event);

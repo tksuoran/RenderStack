@@ -1,5 +1,5 @@
-#ifndef renderstack_toolkit__math_util_hpp
-#define renderstack_toolkit__math_util_hpp
+#ifndef math_util_hpp_renderstack_toolkit
+#define math_util_hpp_renderstack_toolkit
 
 #include "platform.hpp"
 #include <glm/glm.hpp>

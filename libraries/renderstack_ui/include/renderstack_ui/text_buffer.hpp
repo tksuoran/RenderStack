@@ -1,5 +1,5 @@
-#ifndef renderstack_ui__text_buffer_hpp
-#define renderstack_ui__text_buffer_hpp
+#ifndef text_buffer_hpp_renderstack_ui
+#define text_buffer_hpp_renderstack_ui
 
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_graphics/vertex_stream.hpp"

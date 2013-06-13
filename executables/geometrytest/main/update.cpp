@@ -12,7 +12,10 @@ using namespace glm;
 void game::update()
 {
    m_frame_dt = -m_update_time;
-   m_update_time = m_application->time();
+   double new_time = m_application->time();
+   if (new_time < m_update_time)
+      printf("new time %f < prev time %f\n", new_time, m_update_time);
+   m_update_time = new_time;
    m_frame_dt += m_update_time;
    if (m_frame_dt < m_min_frame_dt) m_min_frame_dt = m_frame_dt;
    if (m_frame_dt > m_max_frame_dt) m_max_frame_dt = m_frame_dt;

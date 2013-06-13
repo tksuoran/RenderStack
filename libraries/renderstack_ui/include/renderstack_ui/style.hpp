@@ -1,5 +1,5 @@
-#ifndef renderstack_ui__style_hpp
-#define renderstack_ui__style_hpp
+#ifndef style_hpp_renderstack_ui
+#define style_hpp_renderstack_ui
 
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_graphics/program.hpp"

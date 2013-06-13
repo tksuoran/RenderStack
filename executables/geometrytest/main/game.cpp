@@ -539,6 +539,9 @@ void game::on_mouse_moved(double x, double y)
       return;
    }
 
+   if (!m_mouse_down)
+      return;
+
    double x_delta = x - m_controls.mouse_x;
    double y_delta = y - m_controls.mouse_y;
 
@@ -558,8 +561,8 @@ void game::on_mouse_moved(double x, double y)
 }
 void game::on_mouse_button(int button, int action, int mods)
 {
+   m_mouse_down = !!action;
    (void)button;
-   (void)action;
    (void)mods;
 }
 void game::on_scroll(double x, double y)

@@ -132,10 +132,10 @@ void window::glwt_callback(const GLWTWindowEvent *event)
    case GLWT_WINDOW_FOCUS_OUT:
       break;
    case GLWT_WINDOW_KEY_UP:
-      on_key(event->key.keysym, 1, event->key.mod);
+      on_key(event->key.keysym, event->key.scancode, 0, event->key.mod);
       break;
    case GLWT_WINDOW_KEY_DOWN:
-      on_key(event->key.keysym, 0, event->key.mod);
+      on_key(event->key.keysym, event->key.scancode, 1, event->key.mod);
       break;
    case GLWT_WINDOW_BUTTON_UP:
       if (event->button.button < 10)
@@ -192,18 +192,18 @@ void window::set_time(double value)
 
 double window::time() const
 {
-#if defined(_WIN32)
+#if defined(_WIN32) && 0 
    if (m_time_get_time)
    {
       PFNTIMEGETTIME time_get_time = static_cast<PFNTIMEGETTIME>(m_time_get_time);
-      return time_get_time() * 0.001;
+      winmm_time = time_get_time() * 0.001;
+      return winmm_time;
    }
 	else
 #endif
 	{
-		double res = m_fake_time;
-		m_fake_time += (1.0 / 250.0);
-		return res;
+      double time = glwtGetTime() * 1.e-9;
+		return time;
 	}
 }
 
@@ -212,7 +212,7 @@ typedef WINGDIAPI PROC (WINAPI * PFNWGLGETPROCADDRESS) (LPCSTR);
 #endif
 
 window::window()
-#if defined(_WIN32)
+#if defined(_WIN32) && 0
 :	m_winmm_dll(0)
 ,	m_time_get_time(nullptr)
 #endif
@@ -232,7 +232,8 @@ window::window()
    }
 # endif
 #endif
-# if defined(_WIN32)
+
+# if defined(_WIN32) && 0
    HMODULE winmm_dll = LoadLibraryA("winmm.dll");
    if (winmm_dll)
    {
@@ -247,7 +248,7 @@ window::window()
 # endif
 }
 
-void window::open(int width, int height, std::string const &title, int major, int minor)
+bool window::open(int width, int height, std::string const &title, int major, int minor)
 {
    ::memset(&m_glwt_config, sizeof(::GLWTConfig), 0);
    m_glwt_config.red_bits            = 8;
@@ -289,13 +290,11 @@ void window::open(int width, int height, std::string const &title, int major, in
       m_glwt_config.api |= GLWT_PROFILE_CORE;
 
    if (::glwtInit(&m_glwt_config, &s_error_callback, NULL) != 0)
-      throw runtime_error("Failed to initialize GLWT");
+      // throw runtime_error("Failed to initialize GLWT");
+      return false;
 
    m_width = width;
    m_height = height;
-
-   void * void_this = static_cast<void*>(this);
-   window *window_this = static_cast<window*>(void_this);
 
    GLWTWindow *win = ::glwtWindowCreate(
       title.c_str(),
@@ -303,12 +302,13 @@ void window::open(int width, int height, std::string const &title, int major, in
       height,
       nullptr, 
       s_win_callback, 
-      void_this
+      static_cast<void*>(this)
    );
    if (!win)
    {
       ::glwtQuit();
-      throw runtime_error("Failed to open GLWT window");
+      return false;
+      //throw runtime_error("Failed to open GLWT window");
    }
 
    m_window = win;
@@ -318,12 +318,14 @@ void window::open(int width, int height, std::string const &title, int major, in
 
    m_cursor_x = -1;
    m_cursor_y = -1;
-   m_fake_time = 0.0f;
 
    ::glwtWindowShow(win, 1);
    ::glwtMakeCurrent(win);
+   ::glwtSwapInterval(win, 1);
 
    get_extensions();
+
+   return true;
 }
 
 void window::make_current()

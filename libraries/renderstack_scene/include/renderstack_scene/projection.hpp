@@ -1,5 +1,5 @@
-#ifndef renderstack_scene__projection_hpp
-#define renderstack_scene__projection_hpp
+#ifndef projection_hpp_renderstack_scene
+#define projection_hpp_renderstack_scene
 
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_scene/stereo_parameters.hpp"

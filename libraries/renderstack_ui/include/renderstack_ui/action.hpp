@@ -1,5 +1,5 @@
-#ifndef renderstack_ui__action_hpp
-#define renderstack_ui__action_hpp
+#ifndef action_hpp_renderstack_ui
+#define action_hpp_renderstack_ui
 
 #include "renderstack_toolkit/enable_shared_from_this.hpp"
 #include <memory>

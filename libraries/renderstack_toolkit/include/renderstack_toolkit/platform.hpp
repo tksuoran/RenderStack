@@ -1,5 +1,5 @@
-#ifndef renderstack_toolkit__platform_hpp
-#define renderstack_toolkit__platform_hpp
+#ifndef platform_hpp_renderstack_toolkit
+#define platform_hpp_renderstack_toolkit
 
 #if defined(_WIN32)
 

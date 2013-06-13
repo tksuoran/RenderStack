@@ -1,5 +1,5 @@
-#ifndef renderstack_mesh__geometry_mesh_hpp
-#define renderstack_mesh__geometry_mesh_hpp
+#ifndef geometry_mesh_hpp_renderstack_mesh
+#define geometry_mesh_hpp_renderstack_mesh
 
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_toolkit/strong_gl_enums.hpp"

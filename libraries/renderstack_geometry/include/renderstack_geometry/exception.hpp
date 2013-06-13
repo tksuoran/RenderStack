@@ -1,5 +1,5 @@
-#ifndef Renderstack_Geometry_exception_hpp
-#define Renderstack_Geometry_exception_hpp
+#ifndef exception_hpp_renderstack_geometry
+#define exception_hpp_renderstack_geometry
 
 #include "renderstack_toolkit/platform.hpp"
 #include <stdexcept>

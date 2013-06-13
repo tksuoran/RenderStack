@@ -1,5 +1,5 @@
-#ifndef renderstack_ui__glyph_hpp
-#define renderstack_ui__glyph_hpp
+#ifndef glyph_hpp_renderstack_ui
+#define glyph_hpp_renderstack_ui
 
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_ui/rectangle.hpp"

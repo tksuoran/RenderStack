@@ -1,5 +1,5 @@
-#ifndef renderstack_toolkit__debugstream_hpp
-#define renderstack_toolkit__debugstream_hpp
+#ifndef debugstream_hpp_renderstack_toolkit
+#define debugstream_hpp_renderstack_toolkit
 
 #include "platform.hpp"
 #include <ostream>

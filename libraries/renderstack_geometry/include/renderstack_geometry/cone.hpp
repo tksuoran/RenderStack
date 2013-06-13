@@ -1,5 +1,5 @@
-#ifndef Renderstack_Geometry_cone_hpp
-#define Renderstack_Geometry_cone_hpp
+#ifndef cone_hpp_renderstack_geometry
+#define cone_hpp_renderstack_geometry
 
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_geometry/geometry.hpp"

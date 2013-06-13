@@ -1,5 +1,5 @@
-#ifndef renderstack_graphics__vertex_stream_mapping_hpp
-#define renderstack_graphics__vertex_stream_mapping_hpp
+#ifndef vertex_stream_mapping_hpp_renderstack_graphics
+#define vertex_stream_mapping_hpp_renderstack_graphics
 
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_graphics/vertex_attribute.hpp"
