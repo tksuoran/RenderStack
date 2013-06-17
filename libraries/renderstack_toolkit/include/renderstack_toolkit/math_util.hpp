@@ -2,44 +2,58 @@
 #define math_util_hpp_renderstack_toolkit
 
 #include "platform.hpp"
+#include <stdint.h>
 #include <glm/glm.hpp>
 
 namespace renderstack {
 
 inline int round(float num)
 {
-    return (int)((num > 0.0f) ? std::floor(num + 0.5f) : std::ceil(num - 0.5f));
+   return (int)((num > 0.0f) ? std::floor(num + 0.5f) : std::ceil(num - 0.5f));
 }
 
 inline int dround(double num)
 {
-    return (int)((num > 0.0) ? std::floor(num + 0.5) : std::ceil(num - 0.5));
+   return (int)((num > 0.0) ? std::floor(num + 0.5) : std::ceil(num - 0.5));
 }
 
-inline unsigned int uint_from_vector3(glm::vec3 const &v)
+inline uint32_t next_power_of_two(uint32_t x)
 {
-    float  rf  = v.x * 255.0f;
-    float  gf  = v.y * 255.0f;
-    float  bf  = v.z * 255.0f;
-    int    r   = round(rf) << 16;
-    int    g   = round(gf) <<  8;
-    int    b   = round(bf) <<  0;
-    int    i   = r | g | b;
+   x--;
+   x |= x >> 1;  // handle  2 bit numbers
+   x |= x >> 2;  // handle  4 bit numbers
+   x |= x >> 4;  // handle  8 bit numbers
+   x |= x >> 8;  // handle 16 bit numbers
+   x |= x >> 16; // handle 32 bit numbers
+   x++;
 
-    return static_cast<unsigned int>(i);
+   return x;
 }
 
-inline glm::vec3 vec3_from_uint(unsigned int i)
+inline uint32_t uint_from_vector3(glm::vec3 const &v)
 {
-    unsigned int r = (i >> 16) & 0xff;
-    unsigned int g = (i >>  8) & 0xff;
-    unsigned int b = (i >>  0) & 0xff;
+   float rf = v.x * 255.0f;
+   float gf = v.y * 255.0f;
+   float bf = v.z * 255.0f;
+   int   r  = round(rf) << 16;
+   int   g  = round(gf) <<  8;
+   int   b  = round(bf) <<  0;
+   int   i  = r | g | b;
 
-    return glm::vec3(
-        r / 255.0f,
-        g / 255.0f,
-        b / 255.0f
-    );
+   return static_cast<uint32_t>(i);
+}
+
+inline glm::vec3 vec3_from_uint(uint32_t i)
+{
+   uint32_t r = (i >> 16) & 0xff;
+   uint32_t g = (i >>  8) & 0xff;
+   uint32_t b = (i >>  0) & 0xff;
+
+   return glm::vec3(
+      r / 255.0f,
+      g / 255.0f,
+      b / 255.0f
+   );
 }
 
 const glm::vec3 vec3_unit_x(1.0f, 0.0f, 0.0f);
@@ -50,23 +64,23 @@ const glm::mat4 mat4_swap_xy(0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0
 const glm::mat4 mat4_rotate_xy_cw(0.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f);
 
 glm::vec3 unproject(
-    glm::mat4 const &inverse_model_view_projection,
-    float win_x, 
-    float win_y, 
-    float win_z, 
-    float viewport_x,
-    float viewport_y,
-    float viewport_width,
-    float viewport_height
+   glm::mat4 const &inverse_model_view_projection,
+   float win_x, 
+   float win_y, 
+   float win_z, 
+   float viewport_x,
+   float viewport_y,
+   float viewport_width,
+   float viewport_height
 );
 glm::vec2 project_to_screen_space(
-    glm::mat4 const  &model_view_projection,
-    glm::vec3 const  &position_in_world, 
-    float            viewport_x,
-    float            viewport_y,
-    float            viewport_width,
-    float            viewport_height,
-    float            &depth
+   glm::mat4 const  &model_view_projection,
+   glm::vec3 const  &position_in_world, 
+   float            viewport_x,
+   float            viewport_y,
+   float            viewport_width,
+   float            viewport_height,
+   float            &depth
 );
 
 extern glm::vec3 const& max_axis(glm::vec3 const &v);

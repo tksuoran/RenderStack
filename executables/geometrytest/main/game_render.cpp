@@ -118,7 +118,7 @@ void game::render_meshes()
 {
    slog_trace("game::render_meshes()");
 
-#if 1
+#if 0
    m_deferred_renderer->geometry_pass(
       m_models,
       m_controls.clip_from_world,
@@ -129,13 +129,21 @@ void game::render_meshes()
    );
 
    m_deferred_renderer->show_rt();
-#else
+#endif
+
+#if 0
    m_forward_renderer->render_pass(
       m_models,
       m_controls.clip_from_world,
       m_controls.camera_controller.local_from_parent()
    );
 #endif
+
+   m_id_renderer->clear();
+   m_id_renderer->render_pass(
+      m_models,
+      m_controls.clip_from_world
+   );
 
 
    //r.track.reset();

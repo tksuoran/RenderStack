@@ -115,6 +115,9 @@ void game::on_load()
 #endif
 
 #if defined(USE_MESHES)
+      ++size; // forward renderer
+      ++size; // deferred renderer
+      ++size; // id renderer
       ++size;
 #endif
 
@@ -143,6 +146,7 @@ void game::on_load()
 
    m_deferred_renderer = make_shared<deferred_renderer>(m_renderer, m_programs, m_uniform_buffer);
    m_forward_renderer = make_shared<forward_renderer>(m_renderer, m_programs, m_uniform_buffer);
+   m_id_renderer = make_shared<id_renderer>(m_renderer, m_programs, m_uniform_buffer);
 
 #if defined(USE_MESHES)
    {
