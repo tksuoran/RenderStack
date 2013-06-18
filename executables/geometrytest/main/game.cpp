@@ -156,7 +156,7 @@ void game::on_load()
 #if 1
       g_collection.push_back(make_shared<renderstack::geometry::shapes::disc>(1.0, 0.8, 32, 2));
       g_collection.push_back(make_shared<renderstack::geometry::shapes::triangle>(0.8f / 0.57735027f));
-      g_collection.push_back(make_shared<renderstack::geometry::shapes::sphere>(1.0f, 12, 4));
+      g_collection.push_back(make_shared<renderstack::geometry::shapes::sphere>(1.0f, 12 * 4, 4 * 6));
       g_collection.push_back(make_shared<renderstack::geometry::shapes::cuboctahedron>(1.0));
       g_collection.push_back(make_shared<renderstack::geometry::shapes::dodecahedron>(1.0));
       g_collection.push_back(make_shared<renderstack::geometry::shapes::icosahedron>(1.0));

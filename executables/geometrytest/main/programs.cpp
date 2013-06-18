@@ -72,7 +72,7 @@ void programs::prepare_gl_resources()
    mappings->add("a_normal_smooth",       vertex_attribute_usage::normal,     2, 3);
    mappings->add("a_color",               vertex_attribute_usage::color,      0, 4);
    mappings->add("a_texcoord",            vertex_attribute_usage::tex_coord,  1, 5);
-   mappings->add("a_id",                  vertex_attribute_usage::id,         3, 6);
+   mappings->add("a_id",                  vertex_attribute_usage::id,         0, 6);
    mappings->add(
       "a_position_texcoord",
       static_cast<vertex_attribute_usage::value>(
