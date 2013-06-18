@@ -508,13 +508,13 @@ void provoking_vertex(GLenum a);
 
 // OpenGL ES 3.0
 #if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
-GLsync fence_sync(GLenum a, GLbitfield b);
+GLsync fence_sync(GLenum condition, GLbitfield flags);
 GLboolean is_sync(GLsync a);
 void delete_sync(GLsync a);
 GLenum client_wait_sync(GLsync a, GLbitfield b, GLuint64 c);
 void wait_sync(GLsync a, GLbitfield b, GLuint64 c);
 void get_integer_64v(GLenum a, GLint64 *b);
-void get_sync_iv(GLsync a, GLenum b, GLsizei c, GLsizei *d, GLint *e);
+void get_sync_iv(GLsync sync, GLenum pname, GLsizei bufSize, GLsizei *length, GLint *values);
 #endif
 /*  ARB_texture_multisample  */ 
 #if defined(RENDERSTACK_GL_API_OPENGL)

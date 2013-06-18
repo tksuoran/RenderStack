@@ -118,6 +118,27 @@ void game::render_meshes()
 {
    slog_trace("game::render_meshes()");
 
+   // ID render pass
+   {
+      double x;
+      double y;
+      m_application->get_mouse_pos(x, y);
+      int mouse_x = static_cast<int>(x);
+      int mouse_y = static_cast<int>(m_application->height() - 1 - y);
+
+      m_id_renderer->clear();
+      m_id_renderer->render_pass(
+         m_models,
+         m_controls.clip_from_world,
+         m_application->time(),
+         mouse_x,
+         mouse_y
+      );
+      uint32_t id = 0xffffffffu;
+      float depth = 1.0f;
+      /*bool got = */m_id_renderer->get(mouse_x, mouse_y, id, depth);
+   }
+
 #if 0
    m_deferred_renderer->geometry_pass(
       m_models,
@@ -131,20 +152,16 @@ void game::render_meshes()
    m_deferred_renderer->show_rt();
 #endif
 
-#if 0
+#if 1
+   glClearColor(0.05f, 0.1f, 0.15f, 1.0f);
+   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
    m_forward_renderer->render_pass(
       m_models,
       m_controls.clip_from_world,
       m_controls.camera_controller.local_from_parent()
    );
 #endif
-
-   m_id_renderer->clear();
-   m_id_renderer->render_pass(
-      m_models,
-      m_controls.clip_from_world
-   );
-
 
    //r.track.reset();
 
@@ -213,7 +230,7 @@ void game::render()
 #endif
    }
 
-#if 0
+#if 1
    if (m_text_buffer)
    {
       auto gr = m_gui_renderer;

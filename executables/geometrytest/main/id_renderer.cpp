@@ -37,6 +37,7 @@ id_renderer::id_renderer(
 )
 :  m_renderer(renderer)
 ,  m_programs(programs)
+,  m_last_render(0)
 {
    if (m_programs->use_uniform_buffers())
    {
@@ -48,8 +49,22 @@ id_renderer::id_renderer(
 
    m_id_render_states.depth.set_enabled(true);
    m_id_render_states.face_cull.set_enabled(true);
-}
 
+   for (int i = 0; i < 4; ++i)
+   {
+      id_render &r = m_renders[i];
+
+      r.pixel_pack_buffer = make_shared<buffer>(
+         renderstack::graphics::buffer_target::pixel_pack_buffer,
+         16 * 16 * 8,
+         1,
+         gl::buffer_usage_hint::stream_read
+      );
+      r.pixel_pack_buffer->allocate_storage(*m_renderer);
+      r.state = id_render_state::unused;
+  }
+
+}
 
 void id_renderer::clear()
 {
@@ -59,7 +74,10 @@ void id_renderer::clear()
 
 void id_renderer::render_pass(
    std::vector<std::shared_ptr<class model>> const &models,
-   mat4 const &clip_from_world
+   mat4 const &clip_from_world,
+   double time,
+   int x,
+   int y
 )
 {
    if (models.size() == 0)
@@ -68,6 +86,15 @@ void id_renderer::render_pass(
    auto &r = *m_renderer;
    auto &t = r.track();
    auto p = m_programs->id;
+
+   id_render &idr = m_renders[m_last_render];
+   idr.time = time;
+   idr.x_offset = std::max(x - 8, 0);
+   idr.y_offset = std::max(y - 8, 0);
+   idr.clip_from_world = clip_from_world;
+
+   gl::scissor(idr.x_offset, idr.y_offset, 16, 16);
+   gl::enable(GL_SCISSOR_TEST);
 
    t.execute(&m_id_render_states);
 
@@ -141,7 +168,74 @@ void id_renderer::render_pass(
       r.draw_elements_base_vertex(
          model->geometry_mesh()->vertex_stream(),
          begin_mode, count, index_type, index_pointer, base_vertex);
+
+      id_offset += count;
    }
 
+   gl::disable(GL_SCISSOR_TEST);
+
+   r.set_buffer(renderstack::graphics::buffer_target::pixel_pack_buffer, idr.pixel_pack_buffer);
+   gl::read_pixels(idr.x_offset, idr.y_offset, 16, 16, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+   gl::read_pixels(idr.x_offset, idr.y_offset, 16, 16, GL_DEPTH_COMPONENT, GL_FLOAT, reinterpret_cast<void*>(16 * 16 * 4));
+   idr.sync = gl::fence_sync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+   idr.state = id_render_state::waiting_for_read;
+
+   ++m_last_render;
+   if (m_last_render == 4)
+      m_last_render = 0;
 }
+
+bool id_renderer::get(int x, int y, uint32_t &id, float &depth)
+{
+   int try_render = m_last_render;
+
+   // TODO: Testing for sync done is not free. Start testing only older syncs?
+   for (int i = 0; i < 4; ++i)
+   {
+      try_render = --try_render;
+      if (try_render < 0)
+         try_render = 3;
+
+      id_render &idr = m_renders[try_render];
+
+      if (idr.state == id_render_state::waiting_for_read)
+      {
+         GLint sync_status = GL_UNSIGNALED;
+         gl::get_sync_iv(idr.sync, GL_SYNC_STATUS, 4, nullptr, &sync_status);
+
+         if (sync_status == GL_SIGNALED)
+         {
+            void *src = idr.pixel_pack_buffer->map(
+               *m_renderer,
+               0,
+               16 * 16 * 8,
+               gl::buffer_access_mask::map_read_bit
+            );
+            ::memcpy(&idr.data[0], src, 16 * 16 * 8);
+            idr.pixel_pack_buffer->unmap(*m_renderer);
+            idr.state = id_render_state::read_complete;
+         }         
+      }
+
+      if (idr.state == id_render_state::read_complete)
+      {
+         int x_ = x - idr.x_offset;
+         int y_ = y - idr.y_offset;
+         if ((x_ >= 0) && (y_ >= 0) && (x_ < 16) && (y_ < 16))
+         {
+            uint32_t stride = 16 * 4;
+            uint8_t r = idr.data[x_ * 4 + y_ * stride + 0];
+            uint8_t g = idr.data[x_ * 4 + y_ * stride + 1];
+            uint8_t b = idr.data[x_ * 4 + y_ * stride + 2];
+            id = (r << 16) | (g << 8) | b;
+            uint8_t *depth_ptr = &idr.data[16 * 16 * 4 + x_ * 4 + y_ * stride];
+            float *depth_f_ptr = reinterpret_cast<float*>(depth_ptr);
+            depth = *depth_f_ptr;
+            return true;
+         }
+      }
+   }
+   return false;
+}
+
 

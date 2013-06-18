@@ -3525,13 +3525,13 @@ void primitive_restart_index(GLuint a)
 
 //  OpenGL ES 3.0
 #if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
-GLsync fence_sync(GLenum a, GLbitfield b)
+GLsync fence_sync(GLenum condition, GLbitfield flags)
 {  LOG_GL_FUNCTION(__FUNCTION__);
 #if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glFenceSync != nullptr);
-   GLsync res = gl::detail::glFenceSync(a, b);
+   GLsync res = gl::detail::glFenceSync(condition, flags);
 #else
-   GLsync res = ::glFenceSync(a, b);
+   GLsync res = ::glFenceSync(condition, flags);
 #endif
    check_error();
    return res;
@@ -3588,13 +3588,13 @@ void get_integer_64v(GLenum a, GLint64 *b)
 #endif
    check_error();
 }
-void get_sync_iv(GLsync a, GLenum b, GLsizei c, GLsizei *d, GLint *e)
+void get_sync_iv(GLsync sync, GLenum pname, GLsizei bufSize, GLsizei *length, GLint *values)
 {  LOG_GL_FUNCTION(__FUNCTION__);
 #if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glGetSynciv != nullptr);
-   gl::detail::glGetSynciv(a, b, c, d, e);
+   gl::detail::glGetSynciv(sync, pname, bufSize, length, values);
 #else
-   ::glGetSynciv(a, b, c, d, e);
+   ::glGetSynciv(sync, pname, bufSize, length, values);
 #endif
    check_error();
 }
