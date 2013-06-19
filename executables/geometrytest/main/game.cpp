@@ -62,6 +62,7 @@ game::game()
 ,  m_text_uniform_buffer_range(nullptr)
 ,  m_frame_dt                 (0.0)
 ,  m_screen_active            (false)
+,  m_mouse_down               (false)
 {
 }
 
@@ -544,10 +545,14 @@ void game::on_mouse_moved(double x, double y)
    }
 
    if (!m_mouse_down)
+   {
+      m_controls.mouse_x = x;
+      m_controls.mouse_y = y;
       return;
+   }
 
-   double x_delta = x - m_controls.mouse_x;
-   double y_delta = y - m_controls.mouse_y;
+   double x_delta = m_controls.mouse_x - x;
+   double y_delta = m_controls.mouse_y - y;
 
    if (x_delta != 0)
    {
@@ -566,6 +571,12 @@ void game::on_mouse_moved(double x, double y)
 void game::on_mouse_button(int button, int action, int mods)
 {
    m_mouse_down = !!action;
+
+   if (m_mouse_down)
+   {
+
+   }
+
    (void)button;
    (void)mods;
 }
