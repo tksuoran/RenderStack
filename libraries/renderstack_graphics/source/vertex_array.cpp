@@ -106,6 +106,11 @@ shared_ptr<class buffer> vertex_array::set_index_buffer(std::shared_ptr<class bu
    return old;
 }
 
+std::shared_ptr<class buffer> vertex_array::index_buffer() const
+{
+   return m_effective.element_array_buffer_binding;
+}
+
 void vertex_array::enable_attrib(
    uint32_t index,
    uint32_t dimension,

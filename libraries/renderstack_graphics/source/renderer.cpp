@@ -482,9 +482,20 @@ void renderer::draw_elements_base_vertex(
 bool renderer::map_buffer(buffer_target::value target, std::shared_ptr<class buffer> buffer)
 {
    assert(target < buffer_target::all_buffer_target_count);
-   bool ok = (m_mapped_buffer[target] == nullptr) && (buffer->target() == target);
-   m_mapped_buffer[target] = buffer;
-   return ok;
+   bool binding_ok = false;
+
+   if (target == buffer_target::element_array_buffer)
+      binding_ok = m_effective.vertex_array_binding->index_buffer() == buffer;
+   else
+      binding_ok = m_effective.buffer_binding[target] == buffer;
+
+   bool map_ok = (m_mapped_buffer[target] == nullptr) && (buffer->target() == target);
+   bool all_ok = binding_ok && map_ok;
+
+   if (all_ok)
+      m_mapped_buffer[target] = buffer;
+
+   return all_ok;
 }
 bool renderer::buffer_is_bound(buffer_target::value target, std::shared_ptr<class buffer> buffer)
 {

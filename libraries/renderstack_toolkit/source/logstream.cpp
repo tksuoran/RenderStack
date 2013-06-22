@@ -168,7 +168,7 @@ log_category log_graphics_buffer                (C_YELLOW,  C_GRAY, LOG_INFO);
 log_category log_graphics_configuration         (C_GREEN,   C_GRAY, LOG_INFO);
 log_category log_graphics_program               (C_YELLOW,  C_GRAY, LOG_INFO);
 log_category log_graphics_vertex_stream         (C_GREEN,   C_GRAY, LOG_WARN);
-log_category log_graphics_vertex_stream_mappings(C_GREEN,   C_GRAY, LOG_WARN);
+log_category log_graphics_vertex_stream_mappings(C_GREEN,   C_GRAY, LOG_INFO);
 log_category log_mesh_geometry_mesh             (C_RED,     C_GRAY, LOG_WARN);
 log_category log_mesh_mesh                      (C_MAGENTA, C_GRAY, LOG_WARN);
 log_category log_graphics_renderer              (C_YELLOW,  C_GRAY, LOG_INFO);

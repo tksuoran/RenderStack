@@ -40,6 +40,9 @@ public:
       geometry_mesh_buffer_info const &buffer_info
    );
 
+   glm::vec3 min() const { return m_min; }
+   glm::vec3 max() const { return m_max; }
+
 public:
    std::shared_ptr<mesh> get_mesh();
 
@@ -72,6 +75,8 @@ private:
    std::shared_ptr<renderstack::geometry::geometry>      m_geometry;
    std::shared_ptr<renderstack::graphics::vertex_format> m_vertex_format;
    std::shared_ptr<renderstack::graphics::vertex_stream> m_vertex_stream;
+   glm::vec3                                             m_min; // bounding box
+   glm::vec3                                             m_max;
    std::shared_ptr<mesh>                                 m_mesh;
    index_range                                           m_fill_indices;
    index_range                                           m_edge_line_indices;

@@ -119,6 +119,7 @@ void game::on_load()
       ++size; // forward renderer
       ++size; // deferred renderer
       ++size; // id renderer
+      ++size; // debug renderer
       ++size;
 #endif
 
@@ -148,6 +149,7 @@ void game::on_load()
    m_deferred_renderer = make_shared<deferred_renderer>(m_renderer, m_programs, m_uniform_buffer);
    m_forward_renderer = make_shared<forward_renderer>(m_renderer, m_programs, m_uniform_buffer);
    m_id_renderer = make_shared<id_renderer>(m_renderer, m_programs, m_uniform_buffer);
+   m_debug_renderer = make_shared<debug_renderer>(m_renderer, m_programs, m_uniform_buffer);
 
 #if defined(USE_MESHES)
    {
@@ -431,6 +433,8 @@ void controls::reset()
 void game::lock_mouse(bool lock)
 {
    m_controls.mouse_locked = lock;
+
+#if 0
    if (m_controls.mouse_locked)
    {
       int mouse_x = m_application->width() / 2;
@@ -455,6 +459,7 @@ void game::lock_mouse(bool lock)
       //m_application->set_input_mode(GLFW_CURSOR_MODE, GLFW_CURSOR_NORMAL);
       m_application->capture_mouse(false);
    }
+#endif
 }
 void game::toggle_mouse_lock()
 {

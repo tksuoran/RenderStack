@@ -79,15 +79,13 @@ buffer::buffer(
    size_t                        stride,
    gl::buffer_usage_hint::value  usage
 )
-:  m_gl_name   (~0u)
+:  m_gl_name   (0)
 ,  m_target    (target)
 ,  m_stride    (stride)
 ,  m_capacity  (capacity)
 ,  m_next_free (0)
 ,  m_usage     (usage)
 {
-   gl::gen_buffers(1, &m_gl_name);
-
    log_trace(
       "buffer::buffer(target = %s, capacity = %u, stride = %u, usage = %s) name = %u",
       buffer_target::desc(target),
@@ -101,6 +99,8 @@ buffer::buffer(
 void buffer::allocate_storage(class renderer &renderer)
 {
    shared_ptr<class buffer> old;
+
+   gl::gen_buffers(1, &m_gl_name);
 
    if (m_target == buffer_target::element_array_buffer)
    {
@@ -133,7 +133,7 @@ void buffer::allocate_storage(class renderer &renderer)
       {
          m_data_copy.resize(new_size);
       }
-      catch(...)
+      catch (...)
       {
          // Most likely we run out of memory :(
          throw runtime_error("memory error in buffer::buffer()");
@@ -204,10 +204,14 @@ void *buffer::map(class renderer &renderer, size_t first, size_t count, gl::buff
       access,
       m_gl_name);
 
+   if (!m_gl_name)
+      throw runtime_error("storage not allocated");
+
    // Note, this is in multiples of stride
    if (first + count > m_capacity)
       throw runtime_error("first + count > m_capacity");
 
+   assert(m_gl_name);
    assert(renderer.map_buffer(m_target, shared_from_this()));
 
    m_mapped_offset = static_cast<GLsizeiptr>(first * m_stride);
@@ -266,6 +270,7 @@ void buffer::unmap(class renderer &renderer)
       m_gl_name);
    set_text_color(C_GREY);
 
+   assert(m_gl_name);
    assert(renderer.unmap_buffer(m_target, shared_from_this()));
 
 #if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
@@ -311,6 +316,10 @@ void buffer::flush(class renderer &renderer, size_t first, size_t count)
    size_t offset  = first * m_stride;
    size_t size    = count * m_stride;
 
+   if (first + count > m_capacity)
+      throw runtime_error("first + count > m_capacity");
+
+   assert(m_gl_name);
    assert(renderer.buffer_is_mapped(m_target, shared_from_this()));
 
 #if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
@@ -417,6 +426,7 @@ void buffer::flush_and_unmap(class renderer &renderer, size_t count)
 {
    bool flush_explicit = (m_mapped_access & gl::buffer_access_mask::map_flush_explicit_bit) == gl::buffer_access_mask::map_flush_explicit_bit;
 
+   assert(m_gl_name);
    assert(renderer.buffer_is_mapped(m_target, shared_from_this()));
 
 #if defined(_DEBUG)

@@ -168,6 +168,7 @@ void programs::prepare_gl_resources()
       show_rt_spherical = make_program("show_rt_spherical");
       textured          = make_program("textured");
       id                = make_program("id");
+      debug_line        = make_program("debug_line");
    }
    catch (...)
    {

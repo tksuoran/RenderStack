@@ -38,7 +38,7 @@ struct id_render
    int                     x_offset;
    int                     y_offset;
    id_render_state::value  state;
-   uint8_t                 data[16 * 16 * 8];
+   std::vector<uint8_t>    data;
 };
 
 class id_renderer
@@ -61,6 +61,8 @@ public:
 
    bool get(int x, int y, uint32_t &id, float &depth);
 
+   std::shared_ptr<class model> get(int x, int y);
+
 private:
    std::shared_ptr<renderstack::graphics::renderer>               m_renderer;
    std::shared_ptr<programs>                                      m_programs;
@@ -69,7 +71,17 @@ private:
 
    // pixel pack buffers
    int         m_last_render;
+   int         m_radius;
    id_render   m_renders[4];
+
+   struct id_range
+   {
+      uint32_t                      offset;
+      uint32_t                      length;
+      std::shared_ptr<class model>  model;
+   };
+
+   std::vector<id_range>   m_ranges;
 };
 
 

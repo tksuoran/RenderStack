@@ -58,6 +58,7 @@ public:
 
    // returns previous index buffer
    std::shared_ptr<class buffer> set_index_buffer(std::shared_ptr<class buffer> buffer);
+   std::shared_ptr<class buffer> index_buffer() const;
 
 friend class renderer;
 private:

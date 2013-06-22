@@ -118,26 +118,45 @@ void game::render_meshes()
 {
    slog_trace("game::render_meshes()");
 
+#if 1
    // ID render pass
+   shared_ptr<model> hover_model;
    {
-      double x;
-      double y;
-      m_application->get_mouse_pos(x, y);
-      int mouse_x = static_cast<int>(x);
-      int mouse_y = static_cast<int>(m_application->height() - 1 - y);
+      double dx;
+      double dy;
+
+      int iw = m_application->width();
+      int ih = m_application->height();
+
+      m_application->get_mouse_pos(dx, dy);
+      int mouse_x = static_cast<int>(dx);
+      int mouse_y = static_cast<int>(ih - 1 - dy);
+
+      int center_x = iw / 2;
+      int center_y = ih / 2;
+
+#if 1
+      int x = mouse_x;
+      int y = mouse_y;
+#else
+      int x = center_x;
+      int y = center_y;
+#endif
 
       m_id_renderer->clear();
       m_id_renderer->render_pass(
          m_models,
          m_controls.clip_from_world,
          m_application->time(),
-         mouse_x,
-         mouse_y
+         x,
+         y
       );
-      uint32_t id = 0xffffffffu;
-      float depth = 1.0f;
-      /*bool got = */m_id_renderer->get(mouse_x, mouse_y, id, depth);
+      // uint32_t id = 0xffffffffu;
+      // float depth = 1.0f;
+      // bool got = m_id_renderer->get(x, y, id, depth);
+      hover_model = m_id_renderer->get(x, y);
    }
+#endif
 
 #if 0
    m_deferred_renderer->geometry_pass(
@@ -152,15 +171,41 @@ void game::render_meshes()
    m_deferred_renderer->show_rt();
 #endif
 
-#if 1
    glClearColor(0.05f, 0.1f, 0.15f, 1.0f);
    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+#if 1
 
    m_forward_renderer->render_pass(
       m_models,
       m_controls.clip_from_world,
       m_controls.camera_controller.local_from_parent()
    );
+#endif
+
+#if 1
+   if (hover_model)
+   {
+      m_debug_renderer->set_camera(
+         m_controls.clip_from_world,
+         m_controls.camera_controller.local_from_parent()
+      );
+      m_debug_renderer->begin_edit();
+      m_debug_renderer->set_color(vec4(0.0f, 1.0f, 0.0f, 1.0f));
+      //for (auto i = m_models.cbegin(); i != m_models.cend(); ++i)
+      {
+         //auto model = *i;
+         auto model = hover_model;
+         auto geometry_mesh = model->geometry_mesh();
+         mat4 world_from_model = model->frame()->world_from_local().matrix();
+
+         m_debug_renderer->set_model(world_from_model);
+         m_debug_renderer->add_box(geometry_mesh->min(), geometry_mesh->max());
+      }
+      m_debug_renderer->end_edit();
+      m_debug_renderer->render();
+   }
+
 #endif
 
    //r.track.reset();
@@ -215,7 +260,6 @@ void game::render()
 
    render_meshes();
 
-#if 1
    {
       gl::bind_framebuffer(GL_DRAW_FRAMEBUFFER, 0);
       gl::bind_framebuffer(GL_READ_FRAMEBUFFER, 0);
@@ -258,7 +302,6 @@ void game::render()
       
       m_root_layer->draw(c);
    }
-#endif
 
    m_application->swap_buffers();
 }

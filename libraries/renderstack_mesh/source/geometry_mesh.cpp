@@ -397,6 +397,23 @@ void geometry_mesh::build_mesh_from_geometry(
    //unsigned int corner_indices_written             = 0;
    unsigned int polygon_centroid_indices_written   = 0;
 
+   m_min = vec3(numeric_limits<float>::max(), numeric_limits<float>::max(), numeric_limits<float>::max());
+   m_max = vec3(numeric_limits<float>::lowest(), numeric_limits<float>::lowest(), numeric_limits<float>::lowest());
+   if (m_geometry->points().size() == 0)
+   {
+      m_min = m_max = vec3(0.0f, 0.0f, 0.0f);
+   }
+   else
+   {
+      for (auto i = m_geometry->points().cbegin(); i != m_geometry->points().cend(); ++i)
+      {
+         auto point = *i;
+         vec3 position = point_locations->value(point);
+         m_min = glm::min(m_min, position);
+         m_max = glm::max(m_max, position);
+      }
+   }
+
 #  if 1  // polygons
    corner_indices->clear();
    vec3 unit_y(0.0f, 1.0f, 0.0f);

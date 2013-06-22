@@ -237,7 +237,7 @@ void delete_shader(GLuint a);
 void detach_shader(GLuint a, GLuint b);
 void disable_vertex_attrib_array(GLuint a);
 void enable_vertex_attrib_array(GLuint a);
-void get_active_attrib(GLuint a, GLuint b, GLsizei c, GLsizei *d, GLint *e, GLenum *f, GLchar *g);
+void get_active_attrib(GLuint program, GLuint index, GLsizei bufSize, GLsizei *length, GLint *size, GLenum *type, GLchar *name);
 void get_active_uniform(GLuint a, GLuint b , GLsizei c, GLsizei *d, GLint *e, GLenum *f, GLchar *g);
 void get_attached_shaders(GLuint a, GLsizei b, GLsizei *c, GLuint *d);
 GLint get_attrib_location(GLuint a, const GLchar *b);
@@ -415,7 +415,7 @@ void primitive_restart_index(GLuint a);
 // OpenGL ES 3.0
 #if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
 void get_integer_64i_v(GLenum a, GLuint b, GLint64 *c);
-void get_buffer_parameter_i64v(GLenum a, GLenum b, GLint64 *c);
+void get_buffer_parameter_i64v(GLenum target, GLenum pname, GLint64 *params);
 #endif
 #if defined(RENDERSTACK_GL_API_OPENGL)
 void program_parameter_i(GLuint a, GLenum b, GLint c);

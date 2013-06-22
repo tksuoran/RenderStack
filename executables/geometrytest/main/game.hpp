@@ -7,6 +7,7 @@
 #include "main/deferred_renderer.hpp"
 #include "main/forward_renderer.hpp"
 #include "main/id_renderer.hpp"
+#include "main/debug_renderer.hpp"
 #include "renderer/model.hpp"
 #include "renderstack_ui/action.hpp"
 #include "renderstack_toolkit/window.hpp"
@@ -164,6 +165,7 @@ private:
    std::shared_ptr<deferred_renderer>              m_deferred_renderer;
    std::shared_ptr<forward_renderer>               m_forward_renderer;
    std::shared_ptr<id_renderer>                    m_id_renderer;
+   std::shared_ptr<debug_renderer>                 m_debug_renderer;
    glm::mat4                                       m_projection;
 
    // are we between on_enter() and on_exit()?

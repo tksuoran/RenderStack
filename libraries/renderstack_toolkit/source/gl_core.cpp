@@ -1539,7 +1539,7 @@ GLboolean unmap_buffer(GLenum target)
 void get_buffer_sub_data(GLenum target, GLintptr offset, GLsizeiptr size, GLvoid *data)
 {
 #if defined(LOG_GL) || defined(LOG_GL_BUFFER)
-   log_trace("get_buffer_data(target = %s, offset = %u, size = %u, data = %p)",
+   log_trace("get_buffer_sub_data(target = %s, offset = %u, size = %u, data = %p)",
       enum_string(target),
       static_cast<unsigned int>(offset),
       static_cast<unsigned int>(size),
@@ -1739,13 +1739,13 @@ void enable_vertex_attrib_array(GLuint a)
 #endif
    check_error();
 }
-void get_active_attrib(GLuint a, GLuint b, GLsizei c, GLsizei *d, GLint *e, GLenum *f, GLchar *g)
+void get_active_attrib(GLuint program, GLuint index, GLsizei bufSize, GLsizei *length, GLint *size, GLenum *type, GLchar *name)
 {  LOG_GL_FUNCTION(__FUNCTION__);
 #if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glGetActiveAttrib != nullptr);
-   gl::detail::glGetActiveAttrib(a, b, c, d, e, f, g);
+   gl::detail::glGetActiveAttrib(program, index, bufSize, length, size, type, name);
 #else
-   ::glGetActiveAttrib(a, b, c, d, e, f, g);
+   ::glGetActiveAttrib(program, index, bufSize, length, size, type, name);
 #endif
    check_error();
 }
@@ -2819,7 +2819,7 @@ void bind_vertex_array(GLuint array_)
 #else
    ::glBindVertexArray(array_);
 #endif
-   check_error();
+    check_error();
 }
 void delete_vertex_arrays(GLsizei n, const GLuint *arrays)
 {
@@ -3608,13 +3608,13 @@ void get_integer_64i_v(GLenum a, GLuint b, GLint64 *c)
 #endif
    check_error();
 }
-void get_buffer_parameter_i64v(GLenum a, GLenum b, GLint64 *c)
+void get_buffer_parameter_i64v(GLenum target, GLenum pname, GLint64 *params)
 {  LOG_GL_FUNCTION(__FUNCTION__);
 #if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glGetBufferParameteri64v != nullptr);
-   gl::detail::glGetBufferParameteri64v(a, b, c);
+   gl::detail::glGetBufferParameteri64v(target, pname, params);
 #else
-   ::glGetBufferParameteri64v(a, b, c);
+   ::glGetBufferParameteri64v(target, pname, params);
 #endif
    check_error();
 }

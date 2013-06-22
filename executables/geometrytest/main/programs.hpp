@@ -49,6 +49,7 @@ public:
    struct uniform_offsets                                         uniform_keys;
    std::shared_ptr<renderstack::graphics::program>                font;
    std::shared_ptr<renderstack::graphics::program>                basic;
+   std::shared_ptr<renderstack::graphics::program>                debug_line;
    std::shared_ptr<renderstack::graphics::program>                textured;
    std::shared_ptr<renderstack::graphics::program>                gbuffer;
    std::shared_ptr<renderstack::graphics::program>                light;

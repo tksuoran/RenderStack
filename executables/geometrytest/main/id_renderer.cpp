@@ -38,6 +38,7 @@ id_renderer::id_renderer(
 :  m_renderer(renderer)
 ,  m_programs(programs)
 ,  m_last_render(0)
+,  m_radius(64)
 {
    if (m_programs->use_uniform_buffers())
    {
@@ -52,16 +53,17 @@ id_renderer::id_renderer(
 
    for (int i = 0; i < 4; ++i)
    {
-      id_render &r = m_renders[i];
+      id_render &idr = m_renders[i];
 
-      r.pixel_pack_buffer = make_shared<buffer>(
+      idr.pixel_pack_buffer = make_shared<buffer>(
          renderstack::graphics::buffer_target::pixel_pack_buffer,
-         16 * 16 * 8,
+         m_radius * m_radius * 8,
          1,
          gl::buffer_usage_hint::stream_read
       );
-      r.pixel_pack_buffer->allocate_storage(*m_renderer);
-      r.state = id_render_state::unused;
+      idr.pixel_pack_buffer->allocate_storage(*m_renderer);
+      idr.state = id_render_state::unused;
+      idr.data.resize(m_radius * m_radius * 8);
   }
 
 }
@@ -70,6 +72,8 @@ void id_renderer::clear()
 {
    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+   m_ranges.clear();
 }
 
 void id_renderer::render_pass(
@@ -89,11 +93,11 @@ void id_renderer::render_pass(
 
    id_render &idr = m_renders[m_last_render];
    idr.time = time;
-   idr.x_offset = std::max(x - 8, 0);
-   idr.y_offset = std::max(y - 8, 0);
+   idr.x_offset = std::max(x - (m_radius / 2), 0);
+   idr.y_offset = std::max(y - (m_radius / 2), 0);
    idr.clip_from_world = clip_from_world;
 
-   gl::scissor(idr.x_offset, idr.y_offset, 16, 16);
+   gl::scissor(idr.x_offset, idr.y_offset, m_radius, m_radius);
    gl::enable(GL_SCISSOR_TEST);
 
    t.execute(&m_id_render_states);
@@ -169,14 +173,20 @@ void id_renderer::render_pass(
          model->geometry_mesh()->vertex_stream(),
          begin_mode, count, index_type, index_pointer, base_vertex);
 
+      id_range r;
+      r.offset = id_offset;
+      r.length = count;
+      r.model = model;
+      m_ranges.push_back(r);
+
       id_offset += count;
    }
 
    gl::disable(GL_SCISSOR_TEST);
 
    r.set_buffer(renderstack::graphics::buffer_target::pixel_pack_buffer, idr.pixel_pack_buffer);
-   gl::read_pixels(idr.x_offset, idr.y_offset, 16, 16, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-   gl::read_pixels(idr.x_offset, idr.y_offset, 16, 16, GL_DEPTH_COMPONENT, GL_FLOAT, reinterpret_cast<void*>(16 * 16 * 4));
+   gl::read_pixels(idr.x_offset, idr.y_offset, m_radius, m_radius, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+   gl::read_pixels(idr.x_offset, idr.y_offset, m_radius, m_radius, GL_DEPTH_COMPONENT, GL_FLOAT, reinterpret_cast<void*>(m_radius * m_radius * 4));
    idr.sync = gl::fence_sync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
    idr.state = id_render_state::waiting_for_read;
 
@@ -205,13 +215,16 @@ bool id_renderer::get(int x, int y, uint32_t &id, float &depth)
 
          if (sync_status == GL_SIGNALED)
          {
+            auto &r = *m_renderer;
+            r.set_buffer(renderstack::graphics::buffer_target::pixel_pack_buffer, idr.pixel_pack_buffer);
+
             void *src = idr.pixel_pack_buffer->map(
                *m_renderer,
                0,
-               16 * 16 * 8,
+               m_radius * m_radius * 8,
                gl::buffer_access_mask::map_read_bit
             );
-            ::memcpy(&idr.data[0], src, 16 * 16 * 8);
+            ::memcpy(&idr.data[0], src, m_radius * m_radius * 8);
             idr.pixel_pack_buffer->unmap(*m_renderer);
             idr.state = id_render_state::read_complete;
          }         
@@ -221,14 +234,14 @@ bool id_renderer::get(int x, int y, uint32_t &id, float &depth)
       {
          int x_ = x - idr.x_offset;
          int y_ = y - idr.y_offset;
-         if ((x_ >= 0) && (y_ >= 0) && (x_ < 16) && (y_ < 16))
+         if ((x_ >= 0) && (y_ >= 0) && (x_ < m_radius) && (y_ < m_radius))
          {
-            uint32_t stride = 16 * 4;
+            uint32_t stride = m_radius * 4;
             uint8_t r = idr.data[x_ * 4 + y_ * stride + 0];
             uint8_t g = idr.data[x_ * 4 + y_ * stride + 1];
             uint8_t b = idr.data[x_ * 4 + y_ * stride + 2];
             id = (r << 16) | (g << 8) | b;
-            uint8_t *depth_ptr = &idr.data[16 * 16 * 4 + x_ * 4 + y_ * stride];
+            uint8_t *depth_ptr = &idr.data[m_radius * m_radius * 4 + x_ * 4 + y_ * stride];
             float *depth_f_ptr = reinterpret_cast<float*>(depth_ptr);
             depth = *depth_f_ptr;
             return true;
@@ -237,5 +250,27 @@ bool id_renderer::get(int x, int y, uint32_t &id, float &depth)
    }
    return false;
 }
+
+std::shared_ptr<class model> id_renderer::get(int x, int y)
+{
+   uint32_t id;
+   float depth;
+
+   bool ok = get(x, y, id, depth);
+
+   if (!ok)
+      return nullptr;
+
+   for (auto i = m_ranges.cbegin(); i != m_ranges.cend(); ++i)
+   {
+      auto r = *i;
+
+      if (id >= r.offset && id < (r.offset + r.length))
+         return r.model;
+   }
+
+   return nullptr;
+}
+
 
 
