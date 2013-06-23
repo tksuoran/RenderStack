@@ -70,7 +70,7 @@ const char * const desc(value target)
    case texture_2d_multisample      : return "texture_2d_multisample";
    case texture_2d_multisample_array: return "texture_2d_multisample_array";
    default:
-      throw std::runtime_error("invalid texture target");
+      throw runtime_error("invalid texture target");
    }
 }
 
@@ -260,7 +260,7 @@ texture::texture(
 }
 
 texture::texture(
-   std::shared_ptr<class buffer> buffer,
+   shared_ptr<class buffer> buffer,
    unsigned int internal_format
 )
 :  m_gl_name         (0)
@@ -374,12 +374,12 @@ void texture::allocate_storage(class renderer &renderer)
    renderer.restore_texture(m_target, old_texture, old_unit);
 }
 
-void texture::set_debug_label(std::string const &value)
+void texture::set_debug_label(string const &value)
 {
    m_debug_label = value;
 }
 
-std::string const &texture::debug_label() const
+string const &texture::debug_label() const
 {
    return m_debug_label;
 }

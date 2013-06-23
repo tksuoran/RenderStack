@@ -72,7 +72,8 @@ static char const * const c_str(gl::active_uniform_type::value type)
    case gl::active_uniform_type::sampler_2d_multisample_array:              return "sampler2DMultisampleArray";
    case gl::active_uniform_type::int_sampler_2d_multisample_array:          return "intSampler2DMultisampleArray";
    case gl::active_uniform_type::unsigned_int_sampler_2d_multisample_array: return "unsignedIntSampler2DMultisampleArray";
-   default: throw std::runtime_error("unknown sampler type");
+   default:
+      throw runtime_error("unknown sampler type");
    }
 }
 

@@ -7,6 +7,7 @@
 
 using namespace renderstack;
 using namespace renderstack::toolkit;
+using namespace std;
 using namespace glm;
 
 void game::update()
@@ -38,9 +39,10 @@ void game::update_fixed_steps()
       m_simulation_time += dt;
       ++updates;
       if (updates > 100000)
-         throw std::runtime_error("oh no!");
+         throw runtime_error("oh no!");
    }
 }
+
 void game::update_fixed_step()
 {
    m_programs->update_fixed_step();
@@ -51,6 +53,7 @@ void controls::update_fixed_step()
 {
    camera_controller.update_fixed_step();
 }
+
 void game::update_once_per_frame()
 {
    m_controls.camera_controller.update();

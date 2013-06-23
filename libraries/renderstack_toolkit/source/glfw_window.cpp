@@ -45,7 +45,7 @@ void check_memory_system()
 {
 #if defined(_WIN32)
    if (_CrtCheckMemory() == FALSE)
-      throw std::runtime_error("memory corruption");
+      throw runtime_error("memory corruption");
 #endif
 }
 
@@ -132,7 +132,7 @@ double window::time() const
    return ::glfwGetTime();
 }
 
-bool window::open(int width, int height, std::string const &title, int major, int minor)
+bool window::open(int width, int height, string const &title, int major, int minor)
 {
    if (!::glfwInit())
    {

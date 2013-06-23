@@ -1,6 +1,6 @@
 #include "renderstack_toolkit/platform.hpp"
 #include "main/id_renderer.hpp"
-#include "main/model.hpp"
+#include "renderer/model.hpp"
 #include "renderstack_graphics/buffer.hpp"
 #include "renderstack_graphics/configuration.hpp"
 #include "renderstack_graphics/program.hpp"
@@ -31,9 +31,9 @@ using namespace std;
 
 
 id_renderer::id_renderer(
-   shared_ptr<renderstack::graphics::renderer>  renderer,
-   shared_ptr<programs>                         programs,
-   shared_ptr<renderstack::graphics::buffer>    uniform_buffer
+   std::shared_ptr<renderstack::graphics::renderer>   renderer,
+   std::shared_ptr<programs>                          programs,
+   std::shared_ptr<renderstack::graphics::buffer>     uniform_buffer
 )
 :  m_renderer(renderer)
 ,  m_programs(programs)
@@ -42,7 +42,7 @@ id_renderer::id_renderer(
 {
    if (m_programs->use_uniform_buffers())
    {
-      m_id_render_uniform_buffer_range = make_shared<uniform_buffer_range>(
+      m_id_render_uniform_buffer_range = std::make_shared<uniform_buffer_range>(
          m_programs->block,
          uniform_buffer
       );
@@ -77,15 +77,13 @@ void id_renderer::clear()
 }
 
 void id_renderer::render_pass(
-   shared_ptr<class group> group,
+   std::vector<std::shared_ptr<class model>> const &models,
    mat4 const &clip_from_world,
    double time,
    int x,
    int y
 )
 {
-   auto const &models = group->models();
-
    if (models.size() == 0)
       return;
 
@@ -103,23 +101,26 @@ void id_renderer::render_pass(
    gl::enable(GL_SCISSOR_TEST);
 
    t.execute(&m_id_render_states);
+
    r.set_program(p);
    
    uniform_offsets &o = m_programs->uniform_offsets;
 
-   vec4 white(1.0f, 1.0f, 1.0f, 1.0f);
-   if (m_programs->use_uniform_buffers())
    {
-      assert(m_id_render_uniform_buffer_range);
-      r.set_uniform_buffer_range(m_programs->block->binding_point(), m_id_render_uniform_buffer_range);
+      vec4 white(1.0f, 1.0f, 1.0f, 1.0f);
+      if (m_programs->use_uniform_buffers())
+      {
+         assert(m_id_render_uniform_buffer_range);
+         r.set_uniform_buffer_range(m_programs->block->binding_point(), m_id_render_uniform_buffer_range);
 
-      unsigned char *start = m_id_render_uniform_buffer_range->begin_edit(r);
-      ::memcpy(&start[o.color], value_ptr(white), 4 * sizeof(float));
-      m_id_render_uniform_buffer_range->end_edit(r);
-   }
-   else
-   {
-      gl::uniform_4fv(p->uniform_at(m_programs->uniform_keys.color), 1, value_ptr(white));
+         unsigned char *start = m_id_render_uniform_buffer_range->begin_edit(r);
+         ::memcpy(&start[o.color], value_ptr(white), 4 * sizeof(float));
+         m_id_render_uniform_buffer_range->end_edit(r);
+      }
+      else
+      {
+         gl::uniform_4fv(p->uniform_at(m_programs->uniform_keys.color), 1, value_ptr(white));
+      }
    }
 
    uint32_t id_offset = 0;
@@ -250,7 +251,7 @@ bool id_renderer::get(int x, int y, uint32_t &id, float &depth)
    return false;
 }
 
-shared_ptr<class model> id_renderer::get(int x, int y)
+std::shared_ptr<class model> id_renderer::get(int x, int y)
 {
    uint32_t id;
    float depth;

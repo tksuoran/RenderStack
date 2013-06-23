@@ -30,7 +30,7 @@ static char const * const gl_uniform_type_name(gl::active_uniform_type::value ty
    case gl::active_uniform_type::float_vec4:          return "vec4  ";
    case gl::active_uniform_type::float_mat4:          return "mat4  ";
    default:
-      throw std::runtime_error("unknown uniform type");
+      throw runtime_error("unknown uniform type");
    }
 }
 
@@ -44,12 +44,12 @@ uniform_block::uniform_collection &uniform_block::uniforms()
    return m_uniforms;
 }
 
-std::string const &uniform_block::name() const
+string const &uniform_block::name() const
 { 
    return m_name; 
 }
 
-std::string const &uniform_block::block_name() const
+string const &uniform_block::block_name() const
 { 
    return m_block_name; 
 }

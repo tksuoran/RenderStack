@@ -16,7 +16,7 @@ renderer::renderer()
 {
    // When vertex arrays are not used, we use this to keep track
    // of enabled attributes and set vertex attribute pointers.
-   m_default_vertex_array = std::make_shared<class vertex_array>(true);
+   m_default_vertex_array = make_shared<class vertex_array>(true);
 
    for (int i = 0; i < buffer_target::all_buffer_target_count; ++i)
       m_mapped_buffer[i].reset();
@@ -63,9 +63,9 @@ void renderer::trash()
       m_effective.uniform_buffer_binding_indexed[i].reset();
    }
 }
-std::shared_ptr<class program> renderer::set_program(std::shared_ptr<class program> program)
+shared_ptr<class program> renderer::set_program(shared_ptr<class program> program)
 {
-   std::shared_ptr<class program> old = m_effective.current_program;
+   shared_ptr<class program> old = m_effective.current_program;
 
    m_requested.current_program = program;
    if (!cache_enabled() || (m_effective.current_program != m_requested.current_program))
@@ -80,10 +80,10 @@ std::shared_ptr<class program> renderer::set_program(std::shared_ptr<class progr
 
    return old;
 }
-std::shared_ptr<class texture> renderer::set_texture(
-   unsigned int                     unit,
-   std::shared_ptr<class texture>   texture,
-   unsigned int                     *old_unit
+shared_ptr<class texture> renderer::set_texture(
+   unsigned int               unit,
+   shared_ptr<class texture>  texture,
+   unsigned int               *old_unit
 )
 {
    assert(texture);
@@ -102,7 +102,7 @@ std::shared_ptr<class texture> renderer::set_texture(
 
    m_requested.texture_unit[unit].texture_binding[target] = texture;
    auto old_texture = m_effective.texture_unit[unit].texture_binding[target];
-   std::string const &old_label = old_texture ? old_texture->debug_label() : "";
+   string const &old_label = old_texture ? old_texture->debug_label() : "";
 
    slog_trace(
       "set_texture(unit = %d, gl_name = %d %s) old_unit = %d, old_texture = %d %s",
@@ -137,7 +137,7 @@ std::shared_ptr<class texture> renderer::set_texture(
 
    return old;
 }
-std::shared_ptr<class texture> renderer::reset_texture(
+shared_ptr<class texture> renderer::reset_texture(
    unsigned int unit, texture_target::value target, unsigned int *old_unit)
 {
    slog_trace(
@@ -191,7 +191,7 @@ unsigned int renderer::set_texture_unit(unsigned int unit)
 }
 
 // Restores old texture to effective texture unit and then restores effective texture unit to old_unit
-void renderer::restore_texture(texture_target::value target, std::shared_ptr<class texture> old_texture, unsigned int old_unit)
+void renderer::restore_texture(texture_target::value target, shared_ptr<class texture> old_texture, unsigned int old_unit)
 {
    unsigned int unit = m_effective.active_texture;
 
@@ -225,7 +225,7 @@ void renderer::restore_texture(texture_target::value target, std::shared_ptr<cla
 }
 
 #if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
-std::shared_ptr<uniform_buffer_range> renderer::set_uniform_buffer_range(
+shared_ptr<uniform_buffer_range> renderer::set_uniform_buffer_range(
    unsigned int binding_point,
    shared_ptr<uniform_buffer_range> buffer_range)
 {
@@ -240,7 +240,7 @@ std::shared_ptr<uniform_buffer_range> renderer::set_uniform_buffer_range(
    if (!configuration::can_use.uniform_buffer_object)
       throw runtime_error("uniform buffer objects not supported by current context");
 
-   std::shared_ptr<uniform_buffer_range> old = m_requested.uniform_buffer_binding_indexed[binding_point];
+   shared_ptr<uniform_buffer_range> old = m_requested.uniform_buffer_binding_indexed[binding_point];
 
    m_requested.uniform_buffer_binding_indexed[binding_point] = buffer_range;
 
@@ -285,12 +285,12 @@ std::shared_ptr<uniform_buffer_range> renderer::set_uniform_buffer_range(
 }
 #endif
 
-std::shared_ptr<class buffer> renderer::set_buffer(buffer_target::value target, std::shared_ptr<class buffer> buffer)
+shared_ptr<class buffer> renderer::set_buffer(buffer_target::value target, shared_ptr<class buffer> buffer)
 {
    if (target >= buffer_target::non_indexed_context_buffer_target_count)
       throw runtime_error("invalid buffer target");
 
-   std::shared_ptr<class buffer> old = m_effective.buffer_binding[target];
+   shared_ptr<class buffer> old = m_effective.buffer_binding[target];
 
    m_requested.buffer_binding[target] = buffer;
    if (!cache_enabled() || (m_effective.buffer_binding[target] != m_requested.buffer_binding[target]))
@@ -308,9 +308,9 @@ std::shared_ptr<class buffer> renderer::set_buffer(buffer_target::value target, 
 
    return old;
 }
-std::shared_ptr<class vertex_array> renderer::set_vertex_array(std::shared_ptr<class vertex_array> vertex_array)
+shared_ptr<class vertex_array> renderer::set_vertex_array(shared_ptr<class vertex_array> vertex_array)
 {
-   std::shared_ptr<class vertex_array> old = m_effective.vertex_array_binding;
+   shared_ptr<class vertex_array> old = m_effective.vertex_array_binding;
 
    m_requested.vertex_array_binding = vertex_array;
    if (!cache_enabled() || (m_effective.vertex_array_binding != m_requested.vertex_array_binding))
@@ -349,7 +349,7 @@ void renderer::reset_vertex_array()
    set_vertex_array(m_default_vertex_array);
 }
 
-void renderer::setup_attribute_pointers(std::shared_ptr<class vertex_stream> vertex_stream, GLint base_vertex)
+void renderer::setup_attribute_pointers(shared_ptr<class vertex_stream> vertex_stream, GLint base_vertex)
 {
    if (configuration::use_gl1)
    {
@@ -359,7 +359,7 @@ void renderer::setup_attribute_pointers(std::shared_ptr<class vertex_stream> ver
       }
 #     else
       {
-         throw std::exception();
+         throw runtime_error("GL1 path not supported");
       }
 #     endif
    }
@@ -369,7 +369,7 @@ void renderer::setup_attribute_pointers(std::shared_ptr<class vertex_stream> ver
    }
 }
 void renderer::setup_attribute_pointers_new(
-   std::shared_ptr<class vertex_stream> vertex_stream, GLint base_vertex)
+   shared_ptr<class vertex_stream> vertex_stream, GLint base_vertex)
 {
    assert(vertex_stream);
 
@@ -424,7 +424,7 @@ void renderer::setup_attribute_pointers_new(
    va->apply_attrib_enables();
 }
 
-void renderer::use_vertex_stream(std::shared_ptr<class vertex_stream> vertex_stream)
+void renderer::use_vertex_stream(shared_ptr<class vertex_stream> vertex_stream)
 {
    assert(vertex_stream);
 
@@ -440,7 +440,7 @@ void renderer::use_vertex_stream(std::shared_ptr<class vertex_stream> vertex_str
 }
 
 void renderer::draw_elements_base_vertex(
-   std::shared_ptr<class vertex_stream> vertex_stream, 
+   shared_ptr<class vertex_stream> vertex_stream, 
    GLenum begin_mode, GLsizei count, GLenum index_type, const GLvoid *indices,
    GLint base_vertex)
 {
@@ -479,7 +479,7 @@ void renderer::draw_elements_base_vertex(
 }
 
 
-bool renderer::map_buffer(buffer_target::value target, std::shared_ptr<class buffer> buffer)
+bool renderer::map_buffer(buffer_target::value target, shared_ptr<class buffer> buffer)
 {
    assert(target < buffer_target::all_buffer_target_count);
    bool binding_ok = false;
@@ -497,26 +497,26 @@ bool renderer::map_buffer(buffer_target::value target, std::shared_ptr<class buf
 
    return all_ok;
 }
-bool renderer::buffer_is_bound(buffer_target::value target, std::shared_ptr<class buffer> buffer)
+bool renderer::buffer_is_bound(buffer_target::value target, shared_ptr<class buffer> buffer)
 {
    assert(target < buffer_target::non_indexed_context_buffer_target_count);
    bool ok = (m_effective.buffer_binding[target] == buffer) && (buffer->target() == target);
    return ok;
 }
-bool renderer::buffer_is_mapped(buffer_target::value target, std::shared_ptr<class buffer> buffer)
+bool renderer::buffer_is_mapped(buffer_target::value target, shared_ptr<class buffer> buffer)
 {
    assert(target < buffer_target::all_buffer_target_count);
    bool ok = (m_mapped_buffer[target] == buffer) && (buffer->target() == target);
    return ok;
 }
-bool renderer::unmap_buffer(buffer_target::value target, std::shared_ptr<class buffer> buffer)
+bool renderer::unmap_buffer(buffer_target::value target, shared_ptr<class buffer> buffer)
 {
    assert(target < buffer_target::all_buffer_target_count);
    bool ok = (m_mapped_buffer[target] == buffer) && (buffer->target() == target);
    m_mapped_buffer[target].reset();
    return ok;
 }
-bool renderer::texture_is_bound(unsigned int unit, texture_target::value target, std::shared_ptr<class texture> texture)
+bool renderer::texture_is_bound(unsigned int unit, texture_target::value target, shared_ptr<class texture> texture)
 {
    unsigned int count = std::min(RS_TEXTURE_UNIT_COUNT, configuration::max_combined_texture_image_units);
    if (unit >= count)

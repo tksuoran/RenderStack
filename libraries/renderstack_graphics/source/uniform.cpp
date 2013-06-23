@@ -6,7 +6,7 @@ namespace renderstack { namespace graphics {
 
 using namespace std;
 
-uniform::uniform(std::string const &name, GLint index, size_t count, gl::active_uniform_type::value type, size_t offset)
+uniform::uniform(string const &name, GLint index, size_t count, gl::active_uniform_type::value type, size_t offset)
 :  m_name      (name)
 ,  m_count     (count)
 ,  m_type      (type)
@@ -20,7 +20,7 @@ uniform::uniform(std::string const &name, GLint index, size_t count, gl::active_
 {
 }
 
-uniform::uniform(std::string const &name, GLint index, size_t count, gl::active_uniform_type::value type)
+uniform::uniform(string const &name, GLint index, size_t count, gl::active_uniform_type::value type)
 :  m_name      (name)
 ,  m_count     (count)
 ,  m_type      (type)
@@ -79,7 +79,7 @@ void uniform::set_precision_qualifier(precision::value value)
    m_precision = value;
 }
 
-std::string const &uniform::name() const
+string const &uniform::name() const
 { 
    return m_name; 
 }

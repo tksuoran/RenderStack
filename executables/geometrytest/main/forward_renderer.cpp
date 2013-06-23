@@ -32,9 +32,9 @@ using namespace std;
 
 
 forward_renderer::forward_renderer(
-   std::shared_ptr<renderstack::graphics::renderer>   renderer,
-   std::shared_ptr<programs>                          programs,
-   std::shared_ptr<renderstack::graphics::buffer>     uniform_buffer
+   shared_ptr<renderstack::graphics::renderer>  renderer,
+   shared_ptr<programs>                         programs,
+   shared_ptr<renderstack::graphics::buffer>    uniform_buffer
 )
 :  m_renderer(renderer)
 ,  m_programs(programs)
@@ -53,14 +53,12 @@ forward_renderer::forward_renderer(
 
 
 void forward_renderer::render_pass(
-   std::vector<std::shared_ptr<class model>> const &models,
+   shared_ptr<group> group,
    mat4 const &clip_from_world,
    mat4 const &view_from_world
 )
 {
-   (void)models;
-   (void)clip_from_world;
-   (void)view_from_world;
+   auto const &models = group->models();
 
    if (models.size() == 0)
       return;

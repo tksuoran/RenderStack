@@ -1,5 +1,5 @@
-#ifndef quad_renderer__hpp
-#define quad_renderer__hpp
+#ifndef quad_renderer_hpp
+#define quad_renderer_hpp
 
 #include "renderstack_toolkit/platform.hpp"
 #include <memory>

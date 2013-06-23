@@ -29,6 +29,40 @@ private:
    std::string                                              m_name;
 };
 
+class group
+{
+public:
+   void clear()
+   {
+      m_models.clear();
+   }
+
+   void add(std::shared_ptr<model> model)
+   {
+      m_models.push_back(model);
+   }
+
+   std::vector<std::shared_ptr<model> >         &models() { return m_models; }
+   std::vector<std::shared_ptr<model> > const   &models() const { return m_models; }
+
+private:
+   std::vector<std::shared_ptr<model> > m_models;
+};
+
+class scene
+{
+private:
+   void add(std::shared_ptr<group> group);
+
+   std::vector<std::shared_ptr<group> >         &groups() { return m_groups; }
+   std::vector<std::shared_ptr<group> > const   &groups() const { return m_groups; }
+
+private:
+   std::vector<std::shared_ptr<group> >   m_groups;
+
+};
+
+
 #endif
 
 

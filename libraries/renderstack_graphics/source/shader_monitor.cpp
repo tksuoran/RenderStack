@@ -19,7 +19,7 @@ void shader_monitor::set_dst_path(string const &dst_path)
    m_dst_path = dst_path;
 }
 
-void shader_monitor::add(std::string const &path, class program *program)
+void shader_monitor::add(string const &path, class program *program)
 {
    // bool is_src_path = path.find_first_of(m_src_path) == 0;
    // bool is_dst_path = path.find_first_of(m_dst_path) == 0;
@@ -27,7 +27,7 @@ void shader_monitor::add(std::string const &path, class program *program)
    struct stat st;
    int res = ::stat(path.c_str(), &st);
    if (res != 0)
-      throw std::runtime_error("file not found");
+      throw runtime_error("file not found");
 
    file f;
    f.last_time = st.st_mtime;

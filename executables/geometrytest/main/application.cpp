@@ -38,7 +38,7 @@ application::~application()
    on_exit(); // TODO figure out how to get ~window call to on_exit() to call derived on_exit?
 }
 
-void application::set_screen(std::shared_ptr<screen> screen)
+void application::set_screen(shared_ptr<screen> screen)
 {
    m_screen = screen;
 }
@@ -93,7 +93,7 @@ int main(int argc, char *argv[])
 
    (void)argc;
    (void)argv;
-   std::shared_ptr<renderstack::toolkit::window> g_application;
+   shared_ptr<renderstack::toolkit::window> g_application;
    int return_value = EXIT_FAILURE;
 
 #  if defined(NDEBUG)

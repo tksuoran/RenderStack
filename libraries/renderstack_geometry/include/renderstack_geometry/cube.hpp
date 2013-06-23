@@ -20,9 +20,8 @@ class cube : public geometry
 {
 public:
    cube(double x_size, double y_size, double z_size);
-
-private:
-   float spow(float x, float p) const;
+   cube(glm::vec3 const &size, glm::ivec3 const &div, float p = 1.0f);
+   cube(double r);
 
 protected:
    struct make_info;
@@ -30,13 +29,10 @@ protected:
    point *make_point(make_info &info, int x, int y, int z, glm::vec3 const &n, float s, float t);
 
 private:
+   float spow(float x, float p) const;
+
+private:
    corner *make_corner(make_info &info, polygon *polygon, int x, int y, int z, glm::vec3 const &n, float s, float t);
-
-public:
-   cube(glm::vec3 const &size, glm::ivec3 const &div, float p = 1.0f);
-
-public:
-   cube(double r);
 };
 
 } } }

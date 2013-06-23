@@ -87,10 +87,10 @@ string program::format(string const &source)
    return sb.str();
 }
 
-static std::string string_replace_all(
-   std::string s,
-   std::string old,
-   std::string new_
+static string string_replace_all(
+   string s,
+   string old,
+   string new_
 )
 {
    for (;;)
@@ -246,7 +246,7 @@ void program::dump_shaders() const
    }
 }
 
-void program::map_uniform(size_t key, std::string const &name)
+void program::map_uniform(size_t key, string const &name)
 { 
    if (m_uniform_map.size() < (key + 1))
       m_uniform_map.resize(key + 1);
@@ -255,7 +255,7 @@ void program::map_uniform(size_t key, std::string const &name)
    m_uniform_map[key] = location;
 }
 
-int program::uniform_at(std::size_t index) const
+int program::uniform_at(size_t index) const
 {
    if (index >= m_uniform_map.size())
       throw runtime_error("uniform index out of range");

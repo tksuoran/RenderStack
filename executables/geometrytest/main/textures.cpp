@@ -26,7 +26,7 @@ void textures::on_load(renderstack::graphics::renderer &renderer)
    background_texture = load(renderer, 1, "res/images/background.png");
 }
 
-std::shared_ptr<renderstack::graphics::texture> textures::load(
+shared_ptr<renderstack::graphics::texture> textures::load(
    renderstack::graphics::renderer &renderer,
    unsigned int texture_unit,
    string const &path

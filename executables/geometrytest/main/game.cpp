@@ -36,6 +36,8 @@
 # include <GLWT/glwt.h>
 #endif
 
+// #define SHARED_BUFFERS 1
+
 #define LOG_CATEGORY &log_game
 
 #define USE_MESHES      1
@@ -69,10 +71,10 @@ game::game()
 void game::connect(
    shared_ptr<renderstack::graphics::renderer>   renderer,
    shared_ptr<renderstack::ui::gui_renderer>     gui_renderer,
-   std::shared_ptr<application>  application,
-   std::shared_ptr<menu>         menu,
-   std::shared_ptr<programs>     programs,
-   std::shared_ptr<textures>     textures
+   shared_ptr<application>  application,
+   shared_ptr<menu>         menu,
+   shared_ptr<programs>     programs,
+   shared_ptr<textures>     textures
 )
 {
    m_renderer     = renderer;
@@ -146,6 +148,7 @@ void game::on_load()
 #endif
    }
 
+   m_models = make_shared<group>();
    m_deferred_renderer = make_shared<deferred_renderer>(m_renderer, m_programs, m_uniform_buffer);
    m_forward_renderer = make_shared<forward_renderer>(m_renderer, m_programs, m_uniform_buffer);
    m_id_renderer = make_shared<id_renderer>(m_renderer, m_programs, m_uniform_buffer);
@@ -153,7 +156,7 @@ void game::on_load()
 
 #if defined(USE_MESHES)
    {
-      vector<std::shared_ptr<renderstack::geometry::geometry>> g_collection;
+      vector<shared_ptr<renderstack::geometry::geometry>> g_collection;
 
       //g_collection.push_back(make_shared<renderstack::geometry::shapes::sphere>(1.0f, 12, 4));
 #if 1
@@ -181,7 +184,9 @@ void game::on_load()
       // and which vertex attributes are needed.
       // Edges need to be built here in order for buffer size
       // computations to be able to include line indices.
+#if SHARED_BUFFERS
       renderstack::geometry::geometry::mesh_info total_info;
+#endif
       renderstack::geometry::geometry::mesh_info info;
       geometry_mesh_format_info format_info;
       geometry_mesh_buffer_info buffer_info;
@@ -197,10 +202,13 @@ void game::on_load()
       {
          (*i)->build_edges();
          (*i)->info(info);
+#if SHARED_BUFFERS
          total_info += info;
+#endif
          geometry_mesh::prepare_vertex_format(*i, format_info, buffer_info);
       }
 
+#if SHARED_BUFFERS
       size_t total_vertex_count = 0;
       size_t total_index_count = 0;
       total_vertex_count += total_info.vertex_count_corners;
@@ -239,6 +247,7 @@ void game::on_load()
       ibo->allocate_storage(*m_renderer);
 
       buffer_info.set_index_buffer(ibo);
+#endif
       
       size_t count = g_collection.size();
       float x = -float(count - 1);
@@ -254,11 +263,46 @@ void game::on_load()
          m->frame()->parent_from_local().set(position);
          m->frame()->update_hierarchical_no_cache();
 
-         m_models.push_back(m);
+         m_models->add(m);
 
          ++pos;
          x += 2.0f;
       }
+
+# if 0
+      {
+         geometry_mesh_format_info format_info;
+         geometry_mesh_buffer_info buffer_info;
+         format_info.set_want_fill_triangles(true);
+         format_info.set_want_edge_lines(false);
+         format_info.set_want_position(true);
+         format_info.set_want_normal(true);
+         format_info.set_want_color(false);
+         format_info.set_want_id(true);
+         format_info.set_normal_style(normal_style::corner_normals);
+         format_info.set_mappings(m_programs->mappings);
+
+         m_manipulator_frame = make_shared<renderstack::scene::frame>();
+
+         auto tip_cone = make_shared<renderstack::geometry::shapes::cone      >(0.8f, 1.0f, 0.5f, true, 10, 10);
+         auto stick    = make_shared<renderstack::geometry::shapes::cylinder  >(0.0f, 0.8f, 0.1f, true, false, 10, 10);
+         geometry_mesh::prepare_vertex_format(tip_cone, format_info, buffer_info);
+
+         auto gm = make_shared<renderstack::mesh::geometry_mesh>(
+            *m_renderer,
+            *i,
+            format_info,
+            buffer_info);
+         auto m = make_shared<model>();
+         m->set_geometry_mesh(gm);
+         m->frame()->set_parent(m_manipulator_frame);
+         m->frame()->parent_from_local().set(mat4(1.0f));
+         m->frame()->update_hierarchical_no_cache();
+         }
+
+         m_manipulator->add();
+      }
+# endif
    }
 #endif
 
@@ -323,7 +367,7 @@ void game::setup_gui()
    d->add(m_menu_button);
 
 #if 1
-   std::shared_ptr<renderstack::ui::choice> c = renderstack::toolkit::smart_ptr_builder::create_shared_ptr<
+   shared_ptr<renderstack::ui::choice> c = renderstack::toolkit::smart_ptr_builder::create_shared_ptr<
       renderstack::ui::action_source, 
       renderstack::ui::choice,
       renderstack::ui::area>(

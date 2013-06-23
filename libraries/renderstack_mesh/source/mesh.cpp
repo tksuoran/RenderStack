@@ -45,7 +45,7 @@ void mesh::allocate_vertex_buffer(
       gl::enum_string(usage)
    );
 
-   m_vertex_buffer = std::make_shared<renderstack::graphics::buffer>(
+   m_vertex_buffer = make_shared<renderstack::graphics::buffer>(
       buffer_target::array_buffer,
       vertex_count,
       vertex_stride, 
@@ -81,7 +81,7 @@ void mesh::allocate_index_buffer(
       gl::enum_string(usage)
    );
 
-   m_index_buffer = std::make_shared<renderstack::graphics::buffer>(
+   m_index_buffer = make_shared<renderstack::graphics::buffer>(
       buffer_target::element_array_buffer,
       index_count,
       index_stride, 
@@ -125,7 +125,7 @@ void mesh::allocate_index_range(
    range.index_count = index_count;
    m_next_index_range_start += index_count;
    if (m_next_index_range_start > m_index_count)
-      throw std::runtime_error("out of memory");
+      throw runtime_error("out of memory");
 }
 void mesh::set_first_vertex(size_t value) { m_first_vertex = value; }
 void mesh::set_first_index (size_t value) { m_first_index = value; }

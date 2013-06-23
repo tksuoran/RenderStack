@@ -84,7 +84,7 @@ void vertex_array::apply_attrib_enables()
    }
 }
 
-shared_ptr<class buffer> vertex_array::set_index_buffer(std::shared_ptr<class buffer> buffer)
+shared_ptr<class buffer> vertex_array::set_index_buffer(shared_ptr<class buffer> buffer)
 {
    shared_ptr<class buffer> old = m_effective.element_array_buffer_binding;
 
@@ -106,7 +106,7 @@ shared_ptr<class buffer> vertex_array::set_index_buffer(std::shared_ptr<class bu
    return old;
 }
 
-std::shared_ptr<class buffer> vertex_array::index_buffer() const
+shared_ptr<class buffer> vertex_array::index_buffer() const
 {
    return m_effective.element_array_buffer_binding;
 }
@@ -165,7 +165,7 @@ void vertex_array::enable_attrib(
       break;
 
    default:
-      throw std::runtime_error("Bad vertex attrib pointer type");
+      throw runtime_error("Bad vertex attrib pointer type");
       break;
    }
 #else

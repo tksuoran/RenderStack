@@ -3,8 +3,10 @@
 
 namespace renderstack { namespace graphics {
 
+using namespace std;
+
 vertex_stream_mapping::vertex_stream_mapping(
-   std::string const             &name,
+   string const                  &name,
    vertex_attribute_usage::value usage,
    unsigned int                  index
 )
@@ -17,7 +19,7 @@ vertex_stream_mapping::vertex_stream_mapping(
 }
 
 vertex_stream_mapping::vertex_stream_mapping(
-   std::string const             &name,
+   string const                  &name,
    vertex_attribute_usage::value src_usage,
    unsigned int                  src_index,
    vertex_attribute_usage::value dst_usage,
@@ -31,7 +33,7 @@ vertex_stream_mapping::vertex_stream_mapping(
 {
 }
 
-std::string const &vertex_stream_mapping::name() const
+string const &vertex_stream_mapping::name() const
 {
    return m_name;
 }

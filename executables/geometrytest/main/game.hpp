@@ -8,7 +8,7 @@
 #include "main/forward_renderer.hpp"
 #include "main/id_renderer.hpp"
 #include "main/debug_renderer.hpp"
-#include "renderer/model.hpp"
+#include "main/model.hpp"
 #include "renderstack_ui/action.hpp"
 #include "renderstack_toolkit/window.hpp"
 #include "renderstack_toolkit/logstream.hpp"
@@ -161,7 +161,11 @@ private:
 
    controls                                        m_controls;
 
-   std::vector<std::shared_ptr<class model>>       m_models;
+   std::shared_ptr<class group>                    m_models;
+
+   std::shared_ptr<renderstack::scene::frame>      m_manipulator_frame;
+   std::shared_ptr<class group>                    m_manipulator;
+
    std::shared_ptr<deferred_renderer>              m_deferred_renderer;
    std::shared_ptr<forward_renderer>               m_forward_renderer;
    std::shared_ptr<id_renderer>                    m_id_renderer;

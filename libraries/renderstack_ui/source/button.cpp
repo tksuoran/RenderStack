@@ -25,11 +25,11 @@ button::button(
    set_label(label);
 }
 
-std::string const &button::label() const
+string const &button::label() const
 {
    return m_label;
 }
-void button::set_label(std::string const &value)
+void button::set_label(string const &value)
 {
    if (value != m_label)
    {

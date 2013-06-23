@@ -28,7 +28,7 @@ void vertex_stream_mappings::clear()
 }
 
 void vertex_stream_mappings::add(
-   std::string const             &name,
+   string const                  &name,
    vertex_attribute_usage::value usage,
    unsigned int                  index
 )
@@ -43,7 +43,7 @@ void vertex_stream_mappings::add(
 }
 
 void vertex_stream_mappings::add(
-   std::string const             &name,
+   string const                  &name,
    vertex_attribute_usage::value usage,
    unsigned int                  src_index,
    unsigned int                  dst_index
@@ -61,7 +61,7 @@ void vertex_stream_mappings::add(
 }
 
 void vertex_stream_mappings::add(
-   std::string const             &name,
+   string const                  &name,
    vertex_attribute_usage::value src_usage,
    unsigned int                  src_index,
    vertex_attribute_usage::value dst_usage,
@@ -86,12 +86,12 @@ void vertex_stream_mappings::bind_attrib_locations(program &program)
 }
 
 void vertex_stream_mappings::add_to_vertex_stream(
-   std::shared_ptr<class vertex_stream>   vertex_stream,
-   std::shared_ptr<class buffer>          vertex_buffer,
-   std::shared_ptr<class vertex_format>   vertex_format
+   shared_ptr<class vertex_stream>  vertex_stream,
+   shared_ptr<class buffer>         vertex_buffer,
+   shared_ptr<class vertex_format>  vertex_format
 ) const
 {
-   //std::shared_ptr<vertex_stream> vertex_stream = std::make_shared<class vertex_stream>();
+   //shared_ptr<vertex_stream> vertex_stream = make_shared<class vertex_stream>();
    slog_trace("vertex_stream_mappings::bind_attributes()");
 
    if (vertex_stream->count() != 0)

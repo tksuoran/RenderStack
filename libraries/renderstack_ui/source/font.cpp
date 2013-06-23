@@ -52,7 +52,7 @@ font::font()
    m_texture_width     = 0;
    m_texture_height    = 0;
    m_line_height       = 0.0f;
-   m_bitmap = std::make_shared<bitmap>(m_texture_width, m_texture_height, 2);
+   m_bitmap = make_shared<bitmap>(m_texture_width, m_texture_height, 2);
    //m_bitmap->load_data(nullptr);
    post_process();
 }*/
@@ -64,7 +64,7 @@ font::~font()
 #if defined(RENDERSTACK_USE_FREETYPE)
 font::font(
    renderstack::graphics::renderer  &renderer,
-   std::string const                &path,
+   string const                     &path,
    unsigned int                     size,
    float                            outline_thickness
 )
@@ -110,7 +110,7 @@ void font::validate(FT_Error error)
       log() << "FT_Err_Unknown_File_Format\n";
 
    if (error)
-      throw std::runtime_error("freetype error");
+      throw runtime_error("freetype error");
 }
 void font::render(renderstack::graphics::renderer &renderer)
 {
@@ -205,8 +205,8 @@ void font::render(renderstack::graphics::renderer &renderer)
 
       m_line_height = std::ceil(static_cast<float>(face->size->metrics.height) / 64.0f);
 
-      std::map<char, shared_ptr<glyph> > glyphs;
-      std::map<char, shared_ptr<glyph> > outline_glyphs;
+      map<char, shared_ptr<glyph> > glyphs;
+      map<char, shared_ptr<glyph> > outline_glyphs;
 
       int max_bm_size = 0;
 
@@ -289,7 +289,7 @@ void font::render(renderstack::graphics::renderer &renderer)
                m_texture_height *= 2;
 
             if (m_texture_width >= 16384)
-               throw std::runtime_error("unable to pack glyphs to texture");
+               throw runtime_error("unable to pack glyphs to texture");
          }
          else
          {
@@ -573,7 +573,7 @@ void font::save() const
          }
       }
    }
-   printf("   m_bitmap = std::make_shared<bitmap>(%d, %d, %d);\n", 
+   printf("   m_bitmap = make_shared<bitmap>(%d, %d, %d);\n", 
       m_bitmap->width(), m_bitmap->height(), m_bitmap->components());
    printf("   static const unsigned char data[] = {\n");
    m_bitmap->dump_data();
@@ -581,7 +581,7 @@ void font::save() const
    printf("   m_bitmap->load_data(&data[0]);\n");
    printf("   post_process();\n");
 }
-size_t font::print(std::string const &text, rectangle &bounds, float *&ptr, float x, float y) const
+size_t font::print(string const &text, rectangle &bounds, float *&ptr, float x, float y) const
 {
    slog_trace("font::print(ptr = %p, text = %s, x = % 7.2, y = % 7.2)",
       ptr,
@@ -652,7 +652,7 @@ size_t font::print(std::string const &text, rectangle &bounds, float *&ptr, floa
          kerning search_key(static_cast<unsigned short>(next));
          compare_kerning cmp;
 
-         std::vector<kerning>::const_iterator j = std::lower_bound(
+         vector<kerning>::const_iterator j = std::lower_bound(
             font_char.kernings.cbegin(),
             font_char.kernings.cend(),
             search_key,
@@ -667,7 +667,7 @@ size_t font::print(std::string const &text, rectangle &bounds, float *&ptr, floa
    }
    return chars_printed;
 }
-void font::measure(std::string const &text, rectangle &bounds) const
+void font::measure(string const &text, rectangle &bounds) const
 {
    float x = 0.0f;
    float y = 0.0f;

@@ -46,8 +46,8 @@ add_executable(
    util/controller.cpp
    util/frame_controller.cpp
    util/frame_controller.hpp
-   renderer/model.cpp
-   renderer/model.hpp
+   main/model.cpp
+   main/model.hpp
    main/application.cpp
    main/application.hpp
    main/game.cpp

@@ -28,9 +28,9 @@ using namespace std;
 
 
 debug_renderer::debug_renderer(
-   std::shared_ptr<renderstack::graphics::renderer>   renderer,
-   std::shared_ptr<programs>                          programs,
-   std::shared_ptr<renderstack::graphics::buffer>     uniform_buffer
+   shared_ptr<renderstack::graphics::renderer>  renderer,
+   shared_ptr<programs>                         programs,
+   shared_ptr<renderstack::graphics::buffer>    uniform_buffer
 )
 :  m_renderer(renderer)
 ,  m_programs(programs)

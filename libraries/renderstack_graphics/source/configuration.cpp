@@ -274,7 +274,7 @@ void configuration::initialize()
 #if defined(RENDERSTACK_GL_API_OPENGL_ES_2) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
    string opengl_es = gl_version_str.substr(0, 10);
    if (opengl_es != "OpenGL ES ")
-      throw std::runtime_error("Unexpected GL_VERSION (should have started with OpenGL ES ");
+      throw runtime_error("Unexpected GL_VERSION (should have started with OpenGL ES ");
    gl_version_str = gl_version_str.substr(10);
 #endif
    vector<string> versions = split(gl_version_str, '.');

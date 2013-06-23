@@ -29,7 +29,7 @@ vertex_stream::vertex_stream()
       )
    )
    {
-      m_vertex_array = std::make_shared<class vertex_array>();
+      m_vertex_array = make_shared<class vertex_array>();
    }
 #endif
 }

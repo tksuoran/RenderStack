@@ -81,7 +81,7 @@ text_buffer::~text_buffer()
 }
 
 
-std::shared_ptr<class font> text_buffer::font()
+shared_ptr<class font> text_buffer::font()
 {
    return m_font;
 }
@@ -145,13 +145,13 @@ size_t text_buffer::end_print()
    m_mesh.vertex_buffer()->flush_and_unmap(r, 4 * m_chars_printed);
    return m_chars_printed;
 }
-void text_buffer::print(std::string const &text, float x, float y)
+void text_buffer::print(string const &text, float x, float y)
 {
    int a = 0;
    m_chars_printed += m_font->print(text, m_bounding_box, m_vertex_ptr, x, y);
    ++a;
 }
-void text_buffer::measure(std::string const &text)
+void text_buffer::measure(string const &text)
 {
    m_bounding_box.reset_for_grow();
    if (text.size() == 0)
@@ -159,7 +159,7 @@ void text_buffer::measure(std::string const &text)
 
    m_font->measure(text, m_bounding_box);
 }
-void text_buffer::print_center(std::string const &text, float x, float y)
+void text_buffer::print_center(string const &text, float x, float y)
 {
    measure(text);
    glm::vec2 p(x, y);

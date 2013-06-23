@@ -31,7 +31,7 @@ void choice_item::action(weak_ptr<action_source> source)
    }
    else
    {
-      throw std::runtime_error("choice item is not connected");
+      throw runtime_error("choice item is not connected");
    }
 }
 
@@ -96,8 +96,8 @@ void choice::set_selected(weak_ptr<choice_item> value)
 }
 
 shared_ptr<choice_item> choice::add_choice_item(string const &label, bool select)
-{
-   std::shared_ptr<choice_item> item = smart_ptr_builder::create_shared_ptr<action_source, choice_item, area>(
+{   
+   shared_ptr<choice_item> item = smart_ptr_builder::create_shared_ptr<action_source, choice_item, area>(
       new choice_item(renderer(), label, m_choice_item_style)
    );
    // choice_item handles actions itself

@@ -40,7 +40,7 @@ void gui_renderer::map(shared_ptr<renderstack::graphics::program> program)
    }
 }
 
-gui_renderer::gui_renderer(std::shared_ptr<class renderstack::graphics::renderer> renderer)
+gui_renderer::gui_renderer(shared_ptr<class renderstack::graphics::renderer> renderer)
 :  m_start(nullptr)
 {
    slog_trace("gui_renderer::gui_renderer()");
@@ -131,7 +131,7 @@ gui_renderer::gui_renderer(std::shared_ptr<class renderstack::graphics::renderer
 
    try
    {
-      std::string shader_path;
+      string shader_path;
 
 #if defined(RENDERSTACK_GL_API_OPENGL_ES_3)
       shader_path    = "res/shaders/sm4/";
@@ -209,7 +209,7 @@ gui_renderer::gui_renderer(std::shared_ptr<class renderstack::graphics::renderer
    catch (...)
    {
       log_error("shaders are broken");
-      throw std::runtime_error("gui_renderer() shaders are broken");
+      throw runtime_error("gui_renderer() shaders are broken");
    }
 
    m_font = make_shared<font>(
@@ -243,24 +243,24 @@ gui_renderer::gui_renderer(std::shared_ptr<class renderstack::graphics::renderer
    glm::vec2 menulist_padding(16.0f, 16.0f);
    glm::vec2 inner_padding(6.0f, 6.0f);
 
-   m_default_style = std::make_shared<style>(
+   m_default_style = make_shared<style>(
       glm::vec2(6.0f, 6.0f), 
       glm::vec2(6.0f, 6.0f)
    );
-   m_null_padding_style = std::make_shared<style>(
+   m_null_padding_style = make_shared<style>(
       glm::vec2(0.0f, 0.0f), 
       glm::vec2(0.0f, 0.0f)
    );
 
    // With MSVC this needs _VARIADIC_MAX defined to 6 or more
-   m_button_style = std::make_shared<renderstack::ui::style>(
+   m_button_style = make_shared<renderstack::ui::style>(
       button_padding, 
       inner_padding, 
       m_font, 
       m_button_ninepatch_style,
       m_font_program
    );
-   m_slider_style = std::make_shared<style>(
+   m_slider_style = make_shared<style>(
       button_padding, 
       inner_padding, 
       m_font, 
@@ -388,7 +388,7 @@ void gui_renderer::set_program(shared_ptr<program> value)
    m_renderer->set_program(value);
    m_program = value;
 }
-void gui_renderer::set_texture(unsigned int unit, std::shared_ptr<class texture> texture)
+void gui_renderer::set_texture(unsigned int unit, shared_ptr<class texture> texture)
 {
    slog_trace("gui_renderer::set_texture(unit = %u, texture = %u)", unit, texture);
 

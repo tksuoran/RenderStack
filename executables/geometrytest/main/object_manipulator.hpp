@@ -1,5 +1,5 @@
-#ifndef id_renderer_hpp
-#define id_renderer_hpp
+#ifndef object_manipulator_hpp
+#define object_manipulator_hpp
 
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_graphics/renderer.hpp"
@@ -8,43 +8,10 @@
 #include <vector>
 #include <memory>
 
-namespace renderstack
-{
-   namespace graphics
-   {
-      class uniform_buffer;
-      class uniform_buffer_range;
-   }
-}
-
-class model;
-
-namespace id_render_state
-{
-   enum value
-   {
-      unused = 0,
-      waiting_for_read = 1,
-      read_complete = 2
-   };
-};
-
-struct id_render
-{
-   std::shared_ptr<renderstack::graphics::buffer> pixel_pack_buffer;
-   double                  time;
-   GLsync                  sync;
-   glm::mat4               clip_from_world;
-   int                     x_offset;
-   int                     y_offset;
-   id_render_state::value  state;
-   std::vector<uint8_t>    data;
-};
-
-class id_renderer
+class object_manipulator
 {
 public:
-   id_renderer(
+   object_manipulator(
       std::shared_ptr<renderstack::graphics::renderer>   renderer,
       std::shared_ptr<programs>                          programs,
       std::shared_ptr<renderstack::graphics::buffer>     uniform_buffer
@@ -52,7 +19,7 @@ public:
 
    void clear();
    void render_pass(
-      std::shared_ptr<class group> group,
+      std::vector<std::shared_ptr<class model>> const &models,
       glm::mat4 const &clip_from_world,
       double time,
       int x,

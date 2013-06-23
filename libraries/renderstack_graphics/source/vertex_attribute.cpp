@@ -4,6 +4,8 @@
 
 namespace renderstack { namespace graphics {
 
+using namespace std;
+
 const char *vertex_attribute_usage::desc(enum value a)
 {
    switch (static_cast<int>(a))
@@ -151,7 +153,8 @@ size_t size_of_type(gl::vertex_attrib_pointer_type::value type)
    case gl::vertex_attrib_pointer_type::unsigned_byte:     return 1;
    case gl::vertex_attrib_pointer_type::unsigned_int:      return 4;
    case gl::vertex_attrib_pointer_type::unsigned_short:    return 2;
-   default: throw std::runtime_error("unknown attribute type");
+   default:
+      throw runtime_error("unknown attribute type");
    }
 }
 

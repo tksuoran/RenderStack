@@ -347,8 +347,8 @@ void geometry_mesh::build_mesh_from_geometry(
 
    format_info.mappings()->add_to_vertex_stream(
       m_vertex_stream,
-      buffer_info.vertex_buffer(),
-      buffer_info.vertex_format());
+      m_mesh->vertex_buffer(),
+      m_vertex_format);
 
    // Setup vertex attribute pointers to VAO. This is not necessary if VAO is not used
    renderer.set_vertex_array(va);
@@ -397,11 +397,11 @@ void geometry_mesh::build_mesh_from_geometry(
    //unsigned int corner_indices_written             = 0;
    unsigned int polygon_centroid_indices_written   = 0;
 
-   m_min = vec3(numeric_limits<float>::max(), numeric_limits<float>::max(), numeric_limits<float>::max());
-   m_max = vec3(numeric_limits<float>::lowest(), numeric_limits<float>::lowest(), numeric_limits<float>::lowest());
+   m_min = vec3(numeric_limits<float>::max());
+   m_max = vec3(numeric_limits<float>::lowest());
    if (m_geometry->points().size() == 0)
    {
-      m_min = m_max = vec3(0.0f, 0.0f, 0.0f);
+      m_min = m_max = vec3(0.0f);
    }
    else
    {
@@ -509,7 +509,7 @@ void geometry_mesh::build_mesh_from_geometry(
             else if (point_colors && point_colors->has(corner->point()))
                write(&vertex_data[o_color], t_color, point_colors->value(corner->point()));
             else
-               write(&vertex_data[o_color], t_color, vec4(1.0f, 1.0f, 1.0f, 1.0f));
+               write(&vertex_data[o_color], t_color, vec4(1.0f));
          }
 
          //  PolygonId
@@ -666,7 +666,7 @@ static inline void write(
       }
       break;
    default:
-      throw std::runtime_error("bad index type");
+      throw runtime_error("bad index type");
    }
 }
 static inline void write(
@@ -692,7 +692,7 @@ static inline void write(
       }
       break;
    default:
-      throw std::runtime_error("unsupported attribute type");
+      throw runtime_error("unsupported attribute type");
    }
 }
 static inline void write(
@@ -720,7 +720,7 @@ static inline void write(
       }
       break;
    default:
-      throw std::runtime_error("unsupported attribute type");
+      throw runtime_error("unsupported attribute type");
    }
 }
 static void write(
@@ -755,7 +755,7 @@ static void write(
       }
       break;
    default:
-      throw std::runtime_error("unsupported attribute type");
+      throw runtime_error("unsupported attribute type");
    }
 }
 

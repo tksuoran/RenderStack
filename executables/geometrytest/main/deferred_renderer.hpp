@@ -1,10 +1,10 @@
-#ifndef deferred_renderer__hpp
-#define deferred_renderer__hpp
+#ifndef deferred_renderer_hpp
+#define deferred_renderer_hpp
 
 #include "renderstack_toolkit/platform.hpp"
 #include "main/programs.hpp"
 #include "main/quad_renderer.hpp"
-#include "renderer/model.hpp"
+#include "main/model.hpp"
 #include <glm/glm.hpp>
 #include <vector>
 #include <memory>
@@ -34,7 +34,7 @@ public:
    );
 
    void geometry_pass(
-      std::vector<std::shared_ptr<class model>> const &models,
+      std::shared_ptr<class group> group,
       glm::mat4 const &clip_from_world,
       glm::mat4 const &view_from_world
    );

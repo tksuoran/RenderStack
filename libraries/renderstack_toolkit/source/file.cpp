@@ -13,7 +13,7 @@ using namespace std;
 
 string read(string const &fname)
 {
-    ifstream file(fname, std::ios::binary);
+    ifstream file(fname, ios::binary);
     struct stat st;
     int res = stat(fname.c_str(), &st);
     if (res != 0)

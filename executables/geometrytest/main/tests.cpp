@@ -43,8 +43,8 @@ void application::execute_tests()
 
    begin_memory_compare();
 
-   m_renderer = std::make_shared<renderstack::graphics::renderer>();
-   m_gui_renderer = std::make_shared<renderstack::ui::gui_renderer>(m_renderer);
+   m_renderer = make_shared<renderstack::graphics::renderer>();
+   m_gui_renderer = make_shared<renderstack::ui::gui_renderer>(m_renderer);
 
    /*auto cone = make_shared<renderstack::geometry::shapes::cone>(
    0.0f, 1.0f, 1.0f, 0.1f, true, true, 24, 8

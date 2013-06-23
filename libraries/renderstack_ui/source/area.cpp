@@ -35,7 +35,7 @@ area::area(shared_ptr<class gui_renderer> renderer)
 ,  m_in_draw                  (false)
 {
 }
-area::area(std::shared_ptr<class gui_renderer> renderer, shared_ptr<class style> style)
+area::area(shared_ptr<class gui_renderer> renderer, shared_ptr<class style> style)
 :  m_renderer                 (renderer)
 ,  m_style                    (style)
 ,  m_hidden                   (false)
@@ -60,10 +60,10 @@ area::area(std::shared_ptr<class gui_renderer> renderer, shared_ptr<class style>
 }
 
 area::area(
-   std::shared_ptr<class gui_renderer> renderer,
-   shared_ptr<class style>             style,
-   area_layout_order::value            layout_x_order, 
-   area_layout_order::value            layout_y_order
+   shared_ptr<class gui_renderer>   renderer,
+   shared_ptr<class style>          style,
+   area_layout_order::value         layout_x_order, 
+   area_layout_order::value         layout_y_order
 )
 :  m_renderer                 (renderer)
 ,  m_style                    (style)

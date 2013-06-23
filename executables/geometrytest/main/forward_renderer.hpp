@@ -1,21 +1,20 @@
-#ifndef forward_renderer__hpp
-#define forward_renderer__hpp
+#ifndef forward_renderer_hpp
+#define forward_renderer_hpp
 
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_graphics/renderer.hpp"
 #include "main/programs.hpp"
+#include "main/model.hpp"
 #include <glm/glm.hpp>
 #include <vector>
 #include <memory>
 
-namespace renderstack
-{
-   namespace graphics
-   {
-      class uniform_buffer;
-      class uniform_buffer_range;
-   }
-}
+namespace renderstack { namespace graphics {
+
+class uniform_buffer;
+class uniform_buffer_range;
+
+} }
 
 class model;
 
@@ -29,7 +28,7 @@ public:
    );
 
    void render_pass(
-      std::vector<std::shared_ptr<class model>> const &models,
+      std::shared_ptr<class group> group,
       glm::mat4 const &clip_from_world,
       glm::mat4 const &view_from_world
    );

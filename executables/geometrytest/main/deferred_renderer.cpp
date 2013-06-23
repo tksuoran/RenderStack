@@ -31,9 +31,9 @@ using namespace std;
 
 
 deferred_renderer::deferred_renderer(
-   std::shared_ptr<renderstack::graphics::renderer>   renderer,
-   std::shared_ptr<programs>                          programs,
-   std::shared_ptr<renderstack::graphics::buffer>     uniform_buffer
+   shared_ptr<renderstack::graphics::renderer>  renderer,
+   shared_ptr<programs>                         programs,
+   shared_ptr<renderstack::graphics::buffer>    uniform_buffer
 )
 :  m_renderer     (renderer)
 ,  m_programs     (programs)
@@ -42,7 +42,7 @@ deferred_renderer::deferred_renderer(
 {
    if (m_programs->use_uniform_buffers())
    {
-      m_mesh_render_uniform_buffer_range = std::make_shared<uniform_buffer_range>(
+      m_mesh_render_uniform_buffer_range = make_shared<uniform_buffer_range>(
          m_programs->block,
          uniform_buffer
       );
@@ -165,7 +165,7 @@ void deferred_renderer::fbo_clear()
 }
 
 void deferred_renderer::geometry_pass(
-   std::vector<std::shared_ptr<class model>> const &models,
+   shared_ptr<group> group,
    mat4 const &clip_from_world,
    mat4 const &view_from_world
 )
@@ -173,6 +173,8 @@ void deferred_renderer::geometry_pass(
    bind_fbo();
 
    fbo_clear();
+
+   auto const &models = group->models();
 
    if (models.size() == 0)
       return;
@@ -304,7 +306,7 @@ void deferred_renderer::show_rt()
    t.execute(&m_show_rt_render_states);
    for (int i = 0; i < 4; ++i)
    {
-      std::shared_ptr<renderstack::graphics::program> p = (i == 2)
+      shared_ptr<renderstack::graphics::program> p = (i == 2)
             ? m_programs->show_rt_spherical
             : m_programs->show_rt;
       r.set_program(p);

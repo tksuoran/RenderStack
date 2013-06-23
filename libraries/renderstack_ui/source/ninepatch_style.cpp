@@ -20,8 +20,8 @@ using namespace renderstack::graphics;
 //mesh *ninepatch::s_shared_indices = nullptr;
 ninepatch_style::ninepatch_style(
    renderstack::graphics::renderer &renderer,
-   std::string const &path,
-   std::shared_ptr<renderstack::graphics::program> program,
+   string const &path,
+   shared_ptr<renderstack::graphics::program> program,
    int texture_unit
 )
 :  m_border_uv    (0.25f, 0.25f)
@@ -37,7 +37,7 @@ ninepatch_style::ninepatch_style(
       unsigned int h;
       unsigned int res = ::lodepng_decode32_file(&data, &w, &h, path.c_str());
       if (res != 0)
-         throw std::runtime_error("texture image not found: " + path);
+         throw runtime_error("texture image not found: " + path);
 
       m_texture = make_shared<renderstack::graphics::texture>(
          renderstack::graphics::texture_target::texture_2d,
@@ -75,12 +75,12 @@ ninepatch_style::ninepatch_style(
    }
 }
 
-std::shared_ptr<renderstack::graphics::texture> ninepatch_style::texture() const
+shared_ptr<renderstack::graphics::texture> ninepatch_style::texture() const
 {
    return m_texture;
 }
 
-std::shared_ptr<renderstack::graphics::program> ninepatch_style::program() const
+shared_ptr<renderstack::graphics::program> ninepatch_style::program() const
 {
    return m_program;
 }
