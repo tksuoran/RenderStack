@@ -33,6 +33,7 @@ protected:
 // Cone is special of conical frustum which is not cut from top
 class cone : public conical_frustum
 {
+public:
    cone(
       double   min_x,
       double   max_x,
@@ -58,6 +59,7 @@ class cone : public conical_frustum
 // Cylinder is special of conical frustum which has top radius equal to bottom radius
 class cylinder : public conical_frustum
 {
+public:
    cylinder(
       double   min_x,
       double   max_x,

@@ -120,15 +120,21 @@ private:
    void lock_mouse(bool lock);
    void toggle_mouse_lock();
 
-private: 
    void render       ();
    void render_ui    ();
    void render_meshes();
 
-private: 
    void update_fixed_steps    ();
    void update_fixed_step     ();
    void update_once_per_frame ();
+
+   renderstack::mesh::geometry_mesh_format_info m_format_info;
+   renderstack::mesh::geometry_mesh_buffer_info m_buffer_info;
+   void reset_build_info();
+   std::shared_ptr<model> make_model(
+      std::shared_ptr<renderstack::scene::frame> parent,
+      std::shared_ptr<renderstack::geometry::geometry> geometry,
+      glm::vec3 position = glm::vec3(0.0f));
 
 private:
    std::shared_ptr<application>                       m_application;

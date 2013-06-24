@@ -103,6 +103,34 @@ void game::reset()
    m_update_time     = m_application->time();
    m_simulation_time = m_update_time;
 }
+
+
+void game::reset_build_info()
+{
+   m_format_info = geometry_mesh_format_info();
+   m_buffer_info = geometry_mesh_buffer_info();
+}
+
+std::shared_ptr<model> game::make_model(
+   std::shared_ptr<renderstack::scene::frame> parent,
+   std::shared_ptr<renderstack::geometry::geometry> g,
+   glm::vec3 position
+)
+{
+   geometry_mesh::prepare_vertex_format(g, m_format_info, m_buffer_info);
+   mat4 transform;
+   renderstack::create_translation(position, transform);
+
+   auto gm = make_shared<renderstack::mesh::geometry_mesh>(*m_renderer, g, m_format_info, m_buffer_info);
+   auto m = make_shared<model>();
+   m->set_geometry_mesh(gm);
+   m->frame()->set_parent(parent);
+   m->frame()->parent_from_local().set(transform);
+   m->frame()->update_hierarchical_no_cache();
+
+   return m;
+}
+
 void game::on_load()
 {
    assert(m_application);
@@ -188,16 +216,15 @@ void game::on_load()
       renderstack::geometry::geometry::mesh_info total_info;
 #endif
       renderstack::geometry::geometry::mesh_info info;
-      geometry_mesh_format_info format_info;
-      geometry_mesh_buffer_info buffer_info;
-      format_info.set_want_fill_triangles(true);
-      format_info.set_want_edge_lines(true);
-      format_info.set_want_position(true);
-      format_info.set_want_normal(true);
-      format_info.set_want_color(true);
-      format_info.set_want_id(true);
-      format_info.set_normal_style(normal_style::corner_normals);
-      format_info.set_mappings(m_programs->mappings);
+      reset_build_info();
+      m_format_info.set_want_fill_triangles(true);
+      m_format_info.set_want_edge_lines(true);
+      m_format_info.set_want_position(true);
+      m_format_info.set_want_normal(true);
+      m_format_info.set_want_color(true);
+      m_format_info.set_want_id(true);
+      m_format_info.set_normal_style(normal_style::corner_normals);
+      m_format_info.set_mappings(m_programs->mappings);
       for (auto i = g_collection.begin(); i != g_collection.end(); ++i)
       {
          (*i)->build_edges();
@@ -205,7 +232,7 @@ void game::on_load()
 #if SHARED_BUFFERS
          total_info += info;
 #endif
-         geometry_mesh::prepare_vertex_format(*i, format_info, buffer_info);
+         geometry_mesh::prepare_vertex_format(*i, m_format_info, m_buffer_info);
       }
 
 #if SHARED_BUFFERS
@@ -235,7 +262,7 @@ void game::on_load()
          gl::buffer_usage_hint::static_draw
       );
       vbo->allocate_storage(*m_renderer);
-      buffer_info.set_vertex_buffer(vbo);
+      m_buffer_info.set_vertex_buffer(vbo);
 
       // Allocate a single IBO big enough to hold all indices
       auto ibo = make_shared<renderstack::graphics::buffer>(
@@ -246,7 +273,7 @@ void game::on_load()
       );
       ibo->allocate_storage(*m_renderer);
 
-      buffer_info.set_index_buffer(ibo);
+      m_buffer_info.set_index_buffer(ibo);
 #endif
       
       size_t count = g_collection.size();
@@ -255,52 +282,32 @@ void game::on_load()
       int pos = 0;
       for (auto i = g_collection.begin(); i != g_collection.end(); ++i)
       {
-         mat4 position;
-         renderstack::create_translation(x, 0.0f, 0.0f, position);
-         auto gm = make_shared<renderstack::mesh::geometry_mesh>(*m_renderer, *i, format_info, buffer_info);
-         auto m = make_shared<model>();
-         m->set_geometry_mesh(gm);
-         m->frame()->parent_from_local().set(position);
-         m->frame()->update_hierarchical_no_cache();
-
+         auto m = make_model(nullptr, *i, vec3(x, 0.0f, 0.0f));
          m_models->add(m);
 
          ++pos;
          x += 2.0f;
       }
 
-# if 0
+# if 1
       {
-         geometry_mesh_format_info format_info;
-         geometry_mesh_buffer_info buffer_info;
-         format_info.set_want_fill_triangles(true);
-         format_info.set_want_edge_lines(false);
-         format_info.set_want_position(true);
-         format_info.set_want_normal(true);
-         format_info.set_want_color(false);
-         format_info.set_want_id(true);
-         format_info.set_normal_style(normal_style::corner_normals);
-         format_info.set_mappings(m_programs->mappings);
-
+         reset_build_info();
+         m_format_info.set_want_fill_triangles(true);
+         m_format_info.set_want_position(true);
+         m_format_info.set_want_normal(true);
+         m_format_info.set_want_color(true);
+         m_format_info.set_want_id(true);
+         m_format_info.set_normal_style(normal_style::corner_normals);
+         m_format_info.set_mappings(m_programs->mappings);
          m_manipulator_frame = make_shared<renderstack::scene::frame>();
-
-         auto tip_cone = make_shared<renderstack::geometry::shapes::cone      >(0.8f, 1.0f, 0.5f, true, 10, 10);
-         auto stick    = make_shared<renderstack::geometry::shapes::cylinder  >(0.0f, 0.8f, 0.1f, true, false, 10, 10);
-         geometry_mesh::prepare_vertex_format(tip_cone, format_info, buffer_info);
-
-         auto gm = make_shared<renderstack::mesh::geometry_mesh>(
-            *m_renderer,
-            *i,
-            format_info,
-            buffer_info);
-         auto m = make_shared<model>();
-         m->set_geometry_mesh(gm);
-         m->frame()->set_parent(m_manipulator_frame);
-         m->frame()->parent_from_local().set(mat4(1.0f));
-         m->frame()->update_hierarchical_no_cache();
-         }
-
-         m_manipulator->add();
+         m_format_info.set_constant_color(vec4(1.0f, 0.0f, 0.0f, 1.0f));
+         auto x_tip_g  = make_shared<renderstack::geometry::shapes::cone      >(0.75f, 1.00f, 0.15f, true, 18, 2);
+         auto x_tail_g = make_shared<renderstack::geometry::shapes::cylinder  >(0.00f, 0.75f, 0.03f, true, false, 12, 2);
+         auto x_tip_m  = make_model(m_manipulator_frame, x_tip_g);
+         auto x_tail_m = make_model(m_manipulator_frame, x_tail_g);
+         m_manipulator = make_shared<group>();
+         m_manipulator->add(x_tip_m);
+         m_manipulator->add(x_tail_m);
       }
 # endif
    }

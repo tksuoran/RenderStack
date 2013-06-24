@@ -101,6 +101,8 @@ void forward_renderer::render_pass(
       auto  vertex_stream     = geometry_mesh->vertex_stream();
       auto  mesh              = geometry_mesh->get_mesh();
 
+      model->frame()->update_hierarchical_no_cache(); // TODO
+
       if (m_programs->use_uniform_buffers())
       {
          assert(m_mesh_render_uniform_buffer_range);

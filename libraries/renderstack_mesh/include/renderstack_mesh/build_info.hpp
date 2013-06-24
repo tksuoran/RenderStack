@@ -9,6 +9,7 @@
 #include "renderstack_graphics/vertex_stream.hpp"
 #include "renderstack_graphics/vertex_stream_mappings.hpp"
 #include "renderstack_mesh/normal_style.hpp"
+#include <glm/glm.hpp>
 #include <cstddef>
 #include <memory>
 
@@ -36,41 +37,43 @@ public:
    ,  m_normal_smooth_type    (gl::vertex_attrib_pointer_type::float_)
    ,  m_color_type            (gl::vertex_attrib_pointer_type::float_)
    ,  m_texcoord_type         (gl::vertex_attrib_pointer_type::float_)
-   ,  m_id_vec3_type          (gl::vertex_attrib_pointer_type::float_) // TODO: Check
-   ,  m_id_uint_type          (gl::vertex_attrib_pointer_type::float_)     // TODO: Check
+   ,  m_id_vec3_type          (gl::vertex_attrib_pointer_type::float_)  // TODO: Check
+   ,  m_id_uint_type          (gl::vertex_attrib_pointer_type::float_)  // TODO: Check
+   ,  m_constant_color        (1.0f)
    ,  m_keep_geometry         (false)
    ,  m_normal_style          (normal_style::corner_normals)
    ,  m_mappings              (nullptr)
    {
    }
 
-   bool want_fill_triangles   () const { return m_want_fill_triangles;   }
-   bool want_edge_lines       () const { return m_want_edge_lines;       }
-   bool want_corner_points    () const { return m_want_corner_points;    }
-   bool want_centroid_points  () const { return m_want_centroid_points;  }
-   bool want_position         () const { return m_want_position;         }
-   bool want_normal           () const { return m_want_normal;           }
-   bool want_normal_flat      () const { return m_want_normal_flat;      }
-   bool want_normal_smooth    () const { return m_want_normal_smooth;    }
-   bool want_color            () const { return m_want_color;            }
-   bool want_texcoord         () const { return m_want_texcoord;         }
-   bool want_id               () const { return m_want_id;               }
+   bool want_fill_triangles   () const { return m_want_fill_triangles;  }
+   bool want_edge_lines       () const { return m_want_edge_lines;      }
+   bool want_corner_points    () const { return m_want_corner_points;   }
+   bool want_centroid_points  () const { return m_want_centroid_points; }
+   bool want_position         () const { return m_want_position;        }
+   bool want_normal           () const { return m_want_normal;          }
+   bool want_normal_flat      () const { return m_want_normal_flat;     }
+   bool want_normal_smooth    () const { return m_want_normal_smooth;   }
+   bool want_color            () const { return m_want_color;           }
+   bool want_texcoord         () const { return m_want_texcoord;        }
+   bool want_id               () const { return m_want_id;              }
+   glm::vec4 constant_color   () const { return m_constant_color;       }      
 
-   void set_want_fill_triangles   (bool value) { m_want_fill_triangles  = value; }
-   void set_want_edge_lines       (bool value) { m_want_edge_lines      = value; }
-   void set_want_corner_points    (bool value) { m_want_corner_points   = value; }
-   void set_want_centroid_points  (bool value) { m_want_centroid_points = value; }
-   void set_want_position         (bool value) { m_want_position        = value; }
-   void set_want_normal           (bool value) { m_want_normal          = value; }
-   void set_want_normal_flat      (bool value) { m_want_normal_flat     = value; }
-   void set_want_normal_smooth    (bool value) { m_want_normal_smooth   = value; }
-   void set_want_color            (bool value) { m_want_color           = value; }
-   void set_want_texcoord         (bool value) { m_want_texcoord        = value; }
-   void set_want_id               (bool value) { m_want_id              = value; }
-
-   void set_keep_geometry         (bool value) { m_keep_geometry        = value; }
-   void set_normal_style(normal_style::value value) { m_normal_style = value; }
-   void set_mappings(std::shared_ptr<renderstack::graphics::vertex_stream_mappings> value) { m_mappings = value; }
+   void set_want_fill_triangles  (bool value) { m_want_fill_triangles  = value; }
+   void set_want_edge_lines      (bool value) { m_want_edge_lines      = value; }
+   void set_want_corner_points   (bool value) { m_want_corner_points   = value; }
+   void set_want_centroid_points (bool value) { m_want_centroid_points = value; }
+   void set_want_position        (bool value) { m_want_position        = value; }
+   void set_want_normal          (bool value) { m_want_normal          = value; }
+   void set_want_normal_flat     (bool value) { m_want_normal_flat     = value; }
+   void set_want_normal_smooth   (bool value) { m_want_normal_smooth   = value; }
+   void set_want_color           (bool value) { m_want_color           = value; }
+   void set_want_texcoord        (bool value) { m_want_texcoord        = value; }
+   void set_want_id              (bool value) { m_want_id              = value; }
+   void set_constant_color       (glm::vec4 value)             { m_constant_color   = value; }
+   void set_keep_geometry        (bool value)                  { m_keep_geometry    = value; }
+   void set_normal_style         (normal_style::value value)   { m_normal_style     = value; }
+   void set_mappings             (std::shared_ptr<renderstack::graphics::vertex_stream_mappings> value) { m_mappings = value; }
 
    gl::vertex_attrib_pointer_type::value position_type      () const { return m_position_type;      }
    gl::vertex_attrib_pointer_type::value normal_type        () const { return m_normal_type;        }
@@ -106,6 +109,8 @@ private:
    gl::vertex_attrib_pointer_type::value  m_texcoord_type;
    gl::vertex_attrib_pointer_type::value  m_id_vec3_type;
    gl::vertex_attrib_pointer_type::value  m_id_uint_type;
+
+   glm::vec4                              m_constant_color;
 
    bool                                                           m_keep_geometry;
    normal_style::value                                            m_normal_style;

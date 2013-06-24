@@ -509,7 +509,7 @@ void geometry_mesh::build_mesh_from_geometry(
             else if (point_colors && point_colors->has(corner->point()))
                write(&vertex_data[o_color], t_color, point_colors->value(corner->point()));
             else
-               write(&vertex_data[o_color], t_color, vec4(1.0f));
+               write(&vertex_data[o_color], t_color, format_info.constant_color());
          }
 
          //  PolygonId

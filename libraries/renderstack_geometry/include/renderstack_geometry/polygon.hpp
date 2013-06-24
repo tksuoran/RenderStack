@@ -2,8 +2,8 @@
 #define polygon_hpp_renderstack_geometry
 
 #include "renderstack_toolkit/platform.hpp"
-#include <glm/glm.hpp>
 #include "renderstack_geometry/attribute_map.hpp"
+#include <glm/glm.hpp>
 #include <vector>
 #include <memory>
 #include <algorithm>

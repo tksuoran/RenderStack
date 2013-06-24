@@ -155,6 +155,8 @@ void game::render_meshes()
       // float depth = 1.0f;
       // bool got = m_id_renderer->get(x, y, id, depth);
       hover_model = m_id_renderer->get(x, y);
+      if (hover_model)
+         m_manipulator_frame->set_parent(hover_model->frame());
    }
 #endif
 
@@ -178,6 +180,11 @@ void game::render_meshes()
 
    m_forward_renderer->render_pass(
       m_models,
+      m_controls.clip_from_world,
+      m_controls.camera_controller.local_from_parent()
+   );
+   m_forward_renderer->render_pass(
+      m_manipulator,
       m_controls.clip_from_world,
       m_controls.camera_controller.local_from_parent()
    );
