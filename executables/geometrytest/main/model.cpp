@@ -1,4 +1,4 @@
-#include "renderer/model.hpp"
+#include "main/model.hpp"
 
 using namespace renderstack::mesh;
 using namespace std;

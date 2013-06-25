@@ -9,6 +9,7 @@
 #include "renderstack_graphics/depth_state.hpp"
 #include "renderstack_graphics/face_cull_state.hpp"
 #include "renderstack_graphics/stencil_state.hpp"
+#include "renderstack_graphics/vertex_array.hpp"
 
 #include "renderstack_graphics/texture.hpp"
 #include "renderstack_graphics/uniform_buffer_range.hpp"

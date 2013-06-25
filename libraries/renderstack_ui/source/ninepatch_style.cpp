@@ -24,9 +24,9 @@ ninepatch_style::ninepatch_style(
    shared_ptr<renderstack::graphics::program> program,
    int texture_unit
 )
-:  m_border_uv    (0.25f, 0.25f)
-,  m_program      (program)
+:  m_program      (program)
 ,  m_texture_unit (texture_unit)
+,  m_border_uv    (0.25f, 0.25f)
 {
    slog_trace("ninepatch_style::ninepatch_style(path = %s)", path.c_str());
 

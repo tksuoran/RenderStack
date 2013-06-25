@@ -298,6 +298,7 @@ void texture::allocate_storage(class renderer &renderer)
    auto old_texture = renderer.set_texture(unit, shared_from_this(), &old_unit);
    assert(unit == old_unit);
 
+#if !defined(__APPLE__)
    if (configuration::can_use.tex_storage)
    {
       switch (dimensions)
@@ -326,6 +327,7 @@ void texture::allocate_storage(class renderer &renderer)
       }
    }
    else
+#endif
    {
       unsigned int format;
       unsigned int type;

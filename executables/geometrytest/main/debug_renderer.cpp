@@ -189,11 +189,11 @@ static void debug_buffer(GLenum target, GLint buffer, GLenum index_type)
    gl::get_buffer_parameter_iv(target,    GL_BUFFER_MAP_LENGTH,   &map_length);
 
    printf("Buffer %d\n", buffer);
-   printf("Size:           %d\n", static_cast<unsigned long>(size));
+   printf("Size:           %lu\n", static_cast<unsigned long>(size));
    printf("Usage:          %d\n", usage);
    printf("Access flags:   %d\n", access_flags);
    printf("Mapped:         %d\n", mapped);
-   printf("Map pointer:    %x\n", map_pointer);
+   printf("Map pointer:    %p\n", map_pointer);
    printf("Map offset:     %d\n", map_offset);
    printf("Map length:     %d\n", map_length);
 
@@ -318,7 +318,9 @@ static void debug_vao()
             normalized,
             integer,
             divisor,
-            reinterpret_cast<unsigned int>(pointer)
+            static_cast<unsigned int>(
+               reinterpret_cast<uintptr_t>(pointer) & 0xffffffff
+            )		
          );
 
          debug_buffer(GL_ARRAY_BUFFER, buffer_binding, GL_NONE);

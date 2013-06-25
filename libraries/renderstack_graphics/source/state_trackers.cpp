@@ -28,8 +28,8 @@ texture_unit_state::texture_unit_state(texture_unit_state const &other)
 
 
 state::state()
-:  current_program            (nullptr)
-,  vertex_array_binding       (nullptr)
+:  vertex_array_binding       (nullptr)
+,  current_program            (nullptr)
 ,  transform_feedback_binding (0)
 ,  active_texture             (0)
 ,  draw_framebuffer_binding   (0)
@@ -47,8 +47,8 @@ state::state()
       uniform_buffer_binding_indexed[i].reset();
 }
 state::state(state const &other)
-:  current_program            (other.current_program)
-,  vertex_array_binding       (other.vertex_array_binding)
+:  vertex_array_binding       (other.vertex_array_binding)
+,  current_program            (other.current_program)
 ,  transform_feedback_binding (other.transform_feedback_binding)
 ,  active_texture             (other.active_texture)
 ,  draw_framebuffer_binding   (other.draw_framebuffer_binding)

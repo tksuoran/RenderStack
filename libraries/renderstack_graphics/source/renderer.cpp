@@ -144,7 +144,7 @@ shared_ptr<class texture> renderer::reset_texture(
       "reset_texture(unit = %d, target = %s) old_unit = %d",
       unit,
       texture_target::desc(target),
-      m_effective.texture_unit[unit].texture_binding[target]);
+      m_effective.texture_unit[unit].texture_binding[target].get());
 
    if (target >= texture_target::count)
       throw runtime_error("invalid texture target");

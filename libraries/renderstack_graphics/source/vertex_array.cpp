@@ -76,11 +76,13 @@ void vertex_array::apply_attrib_enables()
 
          m_effective.attrib_enabled[i] = m_requested.attrib_enabled[i];
       }
+#if !defined(__APPLE__)
       if (m_effective.attrib_divisor[i] != m_requested.attrib_divisor[i])
       {
          gl::vertex_attrib_divisor(i, m_requested.attrib_divisor[i]);
          m_effective.attrib_divisor[i] = m_requested.attrib_divisor[i];
       }
+#endif
    }
 }
 

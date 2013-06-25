@@ -50,7 +50,9 @@ public:
          m_effective.attrib_enabled[i] = false;
          m_effective.attrib_divisor[i] = 0;
          gl::disable_vertex_attrib_array(i);
+#if !defined(__APPLE__)
          gl::vertex_attrib_divisor(i, 0);
+#endif
       }
       m_effective.element_array_buffer_binding.reset();
       gl::bind_buffer(gl::buffer_target::element_array_buffer, 0);

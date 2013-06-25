@@ -390,7 +390,7 @@ void gui_renderer::set_program(shared_ptr<program> value)
 }
 void gui_renderer::set_texture(unsigned int unit, shared_ptr<class texture> texture)
 {
-   slog_trace("gui_renderer::set_texture(unit = %u, texture = %u)", unit, texture);
+   slog_trace("gui_renderer::set_texture(unit = %u, texture = %u)", unit, texture.get());
 
    (void)m_renderer->set_texture(unit, texture);
 }

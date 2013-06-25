@@ -2928,6 +2928,7 @@ void bind_buffer_base(GLenum target, GLuint index, GLuint buffer)
 #endif
    check_error();
 }
+
 void transform_feedback_varyings(GLuint a, GLsizei b, const GLchar* *c, GLenum d)
 {  LOG_GL_FUNCTION(__FUNCTION__);
 #if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
@@ -3887,6 +3888,7 @@ void patch_parameter_fv(GLenum pname, const GLfloat *values)
 #endif
 
 /*  GL_ARB_get_program_binary  */
+#if !defined(__APPLE__)
 #if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
 void get_program_binary(GLuint program, GLsizei bufSize, GLsizei *length, GLenum *binaryFormat, GLvoid *binary)
 {  LOG_GL_FUNCTION(__FUNCTION__);
@@ -3917,6 +3919,7 @@ void program_parameter_i(GLuint program, GLenum pname, GLint value)
    check_error();
 }
 #endif
+#endif
 
 /*  GL_ARB_base_instance  */
 #if defined(RENDERSTACK_GL_API_OPENGL)
@@ -3941,6 +3944,7 @@ void draw_elements_instanced_base_vertex_base_instance(GLenum mode, GLsizei coun
 #endif
 
 /*  GL_ARB_transform_feedback2  */
+#if !defined(__APPLE__)
 #if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
 void bind_transform_feedback(GLenum target, GLuint id)
 {  LOG_GL_FUNCTION(__FUNCTION__);
@@ -4013,7 +4017,6 @@ void draw_transform_feedback(GLenum mode, GLuint id)
 }
 #endif
 
-
 /*  GL_ARB_transform_feedback3  */
 #if defined(RENDERSTACK_GL_API_OPENGL)
 void draw_transform_feedback_stream(GLenum mode, GLuint id, GLuint stream)
@@ -4058,8 +4061,10 @@ void draw_transform_feedback_stream_instanced(GLenum mode, GLuint id, GLuint str
    check_error();
 }
 #endif
+#endif
 
 /*  GL_VERSION_3_3 */
+#if !defined(__APPLE__)
 #if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
 void vertex_attrib_divisor(GLuint index, GLuint divisor)
 {  LOG_GL_FUNCTION(__FUNCTION__);
@@ -4072,8 +4077,10 @@ void vertex_attrib_divisor(GLuint index, GLuint divisor)
    check_error();
 }
 #endif
+#endif
 
 /*  GL_ARB_texture_storage  */
+#if !defined(__APPLE__)
 #if defined(RENDERSTACK_GL_API_OPENGL)
 void tex_storage_1d(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width)
 {  LOG_GL_FUNCTION(__FUNCTION__);
@@ -4093,7 +4100,7 @@ void tex_storage_2d(GLenum target, GLsizei levels, GLenum internalformat, GLsize
    assert(gl::detail::glTexStorage1D != nullptr);
    gl::detail::glTexStorage2D(target, levels, internalformat, width, height);
 #else
-   ::glTexStorage1D(target, levels, internalformat, width);
+   ::glTexStorage2D(target, levels, internalformat, width, height);
 #endif
    check_error();
 }
@@ -4103,12 +4110,12 @@ void tex_storage_3d(GLenum target, GLsizei levels, GLenum internalformat, GLsize
    assert(gl::detail::glTexStorage1D != nullptr);
    gl::detail::glTexStorage3D(target, levels, internalformat, width, height, depth);
 #else
-   ::glTexStorage1D(target, levels, internalformat, width, height, depth);
+   ::glTexStorage3D(target, levels, internalformat, width, height, depth);
 #endif
    check_error();
 }
 #endif
-
+#endif
 
 }
 

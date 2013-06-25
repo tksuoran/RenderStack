@@ -332,7 +332,7 @@ void uniform_matrix_3x4fv(GLint a, GLsizei b, GLboolean c, const GLfloat *d);
 void uniform_matrix_4x3fv(GLint a, GLsizei b, GLboolean c, const GLfloat *d);
 #endif
 
-/*  GL_VERSION_3_0  */ 
+/*  GL_VERSION_3_0  */
 
 // OpenGL ES 3.0
 #if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
@@ -565,10 +565,12 @@ void patch_parameter_fv(GLenum pname, const GLfloat *values);
 /*  GL_ARB_get_program_binary  */
 
 // OpenGL ES 3.0
+#if !defined(__APPLE__)
 #if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
 void get_program_binary(GLuint program, GLsizei bufSize, GLsizei *length, GLenum *binaryFormat, GLvoid *binary);
 void program_binary(GLuint program, GLenum binaryFormat, const GLvoid *binary, GLsizei length);
 void program_parameter_i(GLuint program, GLenum pname, GLint value);
+#endif
 #endif
 
 /*  GL_ARB_base_instance  */
@@ -579,6 +581,7 @@ void draw_elements_instanced_base_vertex_base_instance(GLenum mode, GLsizei coun
 #endif
 
 /*  GL_ARB_transform_feedback2  */
+#if !defined(__APPLE__)
 #if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
 void bind_transform_feedback(GLenum target, GLuint id);
 void delete_transform_feedbacks(GLsizei n, const GLuint *ids);
@@ -589,6 +592,7 @@ void resume_transform_feedback(void);
 #endif
 #if defined(RENDERSTACK_GL_API_OPENGL)
 void draw_transform_feedback(GLenum mode, GLuint id);
+#endif
 #endif
 
 /*  GL_ARB_transform_feedback3  */
@@ -606,17 +610,21 @@ void draw_transform_feedback_stream_instanced(GLenum mode, GLuint id, GLuint str
 #endif
 
 /*  GL_VERSION_3_3 */
+#if !defined(__APPLE__)
 #if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
 void vertex_attrib_divisor(GLuint index, GLuint divisor);
 #endif
+#endif
 
 /*  GL_ARB_texture_storage  */
+#if !defined(__APPLE__)
 #if defined(RENDERSTACK_GL_API_OPENGL)
 void tex_storage_1d(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width);
 #endif
 #if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
 void tex_storage_2d(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height);
 void tex_storage_3d(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth);
+#endif
 #endif
 
 } /* namespace gl */
