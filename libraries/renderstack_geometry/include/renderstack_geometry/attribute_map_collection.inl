@@ -5,80 +5,83 @@
 
 namespace renderstack { namespace geometry {
 
-namespace detail {
-   void throw_incompatible_attribute_type(
-      std::string const   &name,
-      char const          *type_name, 
-      char const          *expected_type_name
-   );
+namespace detail
+{
+
+void throw_incompatible_attribute_type(
+   std::string const   &name,
+   char const          *type_name, 
+   char const          *expected_type_name
+);
+
 }
 
-template<typename Key>
-inline attribute_map_collection<Key>::attribute_map_collection()
+template<typename key_type>
+inline attribute_map_collection<key_type>::attribute_map_collection()
 {
 }
 
-template<typename Key>
-inline void attribute_map_collection<Key>::clear()
+template<typename key_type>
+inline void attribute_map_collection<key_type>::clear()
 {
    m_maps.clear();
 }
 
 
-template<typename Key>
-inline size_t attribute_map_collection<Key>::size() const
+template<typename key_type>
+inline size_t attribute_map_collection<key_type>::size() const
 {
    return m_maps.size();
 }
 
-template<typename Key>
-inline void attribute_map_collection<Key>::insert(
+template<typename key_type>
+inline void attribute_map_collection<key_type>::insert(
    std::string const &name,
-   std::shared_ptr< attribute_map_base<Key> > const &map_
+   std::shared_ptr< attribute_map_base<key_type> > const &map_
 )
 {
    assert(m_maps.find(name) == m_maps.end());
 
    m_maps.insert(
       // This works:
-      //std::map<std::string, std::shared_ptr<attribute_map_base<Key> > >::value_type(name, map_)
+      //std::map<std::string, std::shared_ptr<attribute_map_base<key_type> > >::value_type(name, map_)
 
       // I have this:
-      // private: typedef std::map<std::string, std::shared_ptr<attribute_map_base<Key> > > map_map;
+      // private: typedef std::map<std::string, std::shared_ptr<attribute_map_base<key_type> > > map_map;
       // so this should work, right?
       typename map_map::value_type(name, map_)
    );
 }
 
-template<typename Key>
-inline void attribute_map_collection<Key>::remove(std::string const &name)
+template<typename key_type>
+inline void attribute_map_collection<key_type>::remove(std::string const &name)
 {
    m_maps.erase(name);
 }
 
-template<typename Key>
-template<typename Value>
-inline bool attribute_map_collection<Key>::contains(std::string const &name) const
+template<typename key_type>
+template<typename value_type>
+inline bool attribute_map_collection<key_type>::contains(std::string const &name) const
 {
    const_iterator i = m_maps.find(name);
 
    if (i == m_maps.end())
       return false;
 
-   std::shared_ptr<attribute_map_base<Key> > p = i->second;
+   std::shared_ptr<attribute_map_base<key_type> > p = i->second;
 
    if (
-      std::shared_ptr<attribute_map<Key, Value> > 
-      t = std::dynamic_pointer_cast<attribute_map<Key, Value> >(p)
+      std::shared_ptr<attribute_map<key_type, value_type> > 
+      t = std::dynamic_pointer_cast<attribute_map<key_type, value_type> >(p)
    )
       return true;
    else
       return false;
 }
 
-template<typename Key>
-inline std::shared_ptr<attribute_map_base<Key> >
-   attribute_map_collection<Key>::find_any(std::string const &name) const
+template<typename key_type>
+inline std::shared_ptr<attribute_map_base<key_type> >
+   attribute_map_collection<key_type>::find_any(std::string const &name) const
 {
    const_iterator i = m_maps.find(name);
 
@@ -89,78 +92,103 @@ inline std::shared_ptr<attribute_map_base<Key> >
    return i->second;
 }
 
-template<typename Key>
-inline typename attribute_map_collection<Key>::const_iterator
-   attribute_map_collection<Key>::begin() const
+template<typename key_type>
+inline typename attribute_map_collection<key_type>::const_iterator
+   attribute_map_collection<key_type>::begin() const
 {
    return m_maps.begin();
 }
 
-template<typename Key>
-inline typename attribute_map_collection<Key>::const_iterator
-   attribute_map_collection<Key>::end() const
+template<typename key_type>
+inline typename attribute_map_collection<key_type>::const_iterator
+   attribute_map_collection<key_type>::end() const
 {
    return m_maps.end();
 }
 
-template<typename Key>
-template<typename Value>
-inline std::shared_ptr<attribute_map<Key, Value> > attribute_map_collection<Key>::create(std::string const &name)
+template<typename key_type>
+template<typename value_type>
+inline std::shared_ptr<attribute_map<key_type, value_type> >
+   attribute_map_collection<key_type>::create(std::string const &name)
 {
-   std::shared_ptr<attribute_map<Key, Value> > p(new attribute_map<Key, Value>());
+   std::shared_ptr<attribute_map<key_type, value_type> > p(new attribute_map<key_type, value_type>());
    insert(name, p);
-   //insert(name, std::make_shared<attribute_map<Key, Value> >(Key, Value));
+   //insert(name, std::make_shared<attribute_map<key_type, value_type> >(key_type, value_type));
    return p;
 }
 
-template<typename Key>
-template<typename Value>
-inline std::shared_ptr<attribute_map<Key, Value> >
-   attribute_map_collection<Key>::find(std::string const &name) const
+template<typename key_type>
+template<typename value_type>
+inline std::shared_ptr<attribute_map<key_type, value_type> >
+   attribute_map_collection<key_type>::find(std::string const &name) const
 {
-   std::shared_ptr<attribute_map_base<Key> > p = find_any(name);
+   std::shared_ptr<attribute_map_base<key_type> > p = find_any(name);
 
    if (
-      std::shared_ptr<attribute_map<Key, Value> > 
-      t = std::dynamic_pointer_cast<attribute_map<Key, Value> >(p)
+      std::shared_ptr<attribute_map<key_type, value_type> > 
+      t = std::dynamic_pointer_cast<attribute_map<key_type, value_type> >(p)
    )
       return t;
    else
       throw incompatible_attribute_type_exception(
          name, 
          p->value_type_id().name(),
-         typeid(Value).name()
+         typeid(value_type).name()
       );
 
-      //return std::shared_ptr<attribute_map<Key, Value> >();
+      //return std::shared_ptr<attribute_map<key_type, value_type> >();
 }
 
-template<typename Key>
-template<typename Value>
-inline std::shared_ptr<attribute_map<Key, Value> >
-   attribute_map_collection<Key>::find_or_create(std::string const &name)
+template<typename key_type>
+template<typename value_type>
+inline std::shared_ptr<attribute_map<key_type, value_type> >
+   attribute_map_collection<key_type>::maybe_find(std::string const &name) const
+{
+   std::shared_ptr<attribute_map_base<key_type> > p = find_any(name);
+
+   if (
+      std::shared_ptr<attribute_map<key_type, value_type> > 
+      t = std::dynamic_pointer_cast<attribute_map<key_type, value_type> >(p)
+   )
+      return t;
+   else
+      return nullptr;
+}
+
+template<typename key_type>
+template<typename value_type>
+inline std::shared_ptr<attribute_map<key_type, value_type> >
+   attribute_map_collection<key_type>::find_or_create(std::string const &name, usage::value u)
 {
    typename map_map::iterator i = m_maps.find(name);
+
    if (i != m_maps.end())
+   {
       if (
-         std::shared_ptr<attribute_map<Key, Value> > 
-         t = std::dynamic_pointer_cast<attribute_map<Key, Value> >(i->second)
+         std::shared_ptr<attribute_map<key_type, value_type> > 
+         t = std::dynamic_pointer_cast<attribute_map<key_type, value_type> >(i->second)
       )
          return t;
       else
          throw incompatible_attribute_type_exception(
             name, 
             t->value_type_id().name(),
-            typeid(Value).name()
+            typeid(value_type).name()
          );
 
-         //return std::shared_ptr<attribute_map<Key, Value> >();
+         //return std::shared_ptr<attribute_map<key_type, value_type> >();
+   }
    else
-      return create<Value>(name);
+   {
+      //shared_ptr<attribute_map<key_type, value_type> > res = create<value_type>(name);
+      auto res = create<value_type>(name);
+      res->set_usage(u);
+      return res;
+   }
 }
 
-template<typename Key>
-inline void attribute_map_collection<Key>::replace(std::string const &name, std::string const &temp)
+template<typename key_type>
+inline void attribute_map_collection<key_type>::replace(std::string const &name, std::string const &temp)
 {
    typename map_map::iterator i = m_maps.find(name);
    typename map_map::iterator j = m_maps.find(temp);

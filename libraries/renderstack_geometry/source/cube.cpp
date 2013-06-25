@@ -140,14 +140,14 @@ cube::cube(glm::vec3 const &size, glm::ivec3 const &div, float p)
 
    make_info info(0.5f * size, div, p);
 
-   info.point_locations    = point_attributes().find_or_create<vec3>("point_locations");
-   info.point_normals      = point_attributes().find_or_create<vec3>("point_normals");
-   info.point_texcoords    = point_attributes().find_or_create<vec2>("point_texcoords");
-   info.corner_normals     = corner_attributes().find_or_create<vec3>("corner_normals");
-   info.corner_texcoords   = corner_attributes().find_or_create<vec2>("corner_texcoords");
-   info.polygon_centroids  = polygon_attributes().find_or_create<vec3>("polygon_centroids");
-   info.polygon_normals    = polygon_attributes().find_or_create<vec3>("polygon_normals");
-
+   info.point_locations    = point_attributes().find_or_create<vec3>("point_locations", usage::position);
+   info.point_normals      = point_attributes().find_or_create<vec3>("point_normals", usage::direction);
+   info.point_texcoords    = point_attributes().find_or_create<vec2>("point_texcoords", usage::none);
+   info.corner_normals     = corner_attributes().find_or_create<vec3>("corner_normals", usage::direction);
+   info.corner_texcoords   = corner_attributes().find_or_create<vec2>("corner_texcoords", usage::none);
+   info.polygon_centroids  = polygon_attributes().find_or_create<vec3>("polygon_centroids", usage::position);
+   info.polygon_normals    = polygon_attributes().find_or_create<vec3>("polygon_normals", usage::direction);
+   
    //  Generate vertices
    //  Top and bottom
    vec3 unit_x(1.0f, 0.0f, 0.0f);

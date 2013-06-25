@@ -120,7 +120,7 @@ geometry::edge_collection    const  &geometry::edges   () const { return m_edges
 
 void geometry::compute_polygon_normals()
 {
-   shared_ptr<attribute_map<polygon*, vec3> > polygon_normals = polygon_attributes().find_or_create<vec3>("polygon_normals");
+   shared_ptr<attribute_map<polygon*, vec3> > polygon_normals = polygon_attributes().find_or_create<vec3>("polygon_normals", usage::direction);
    shared_ptr<attribute_map<point*,   vec3> > point_locations = point_attributes().find<vec3>("point_locations");
    for (auto i = polygons().begin(); i != polygons().end(); ++i)
    {
@@ -133,7 +133,7 @@ void geometry::compute_polygon_normals()
 }
 void geometry::compute_polygon_centroids()
 {
-   shared_ptr<attribute_map<polygon*, vec3> > polygon_centroids = polygon_attributes().find_or_create<vec3>("polygon_centroids");
+   shared_ptr<attribute_map<polygon*, vec3> > polygon_centroids = polygon_attributes().find_or_create<vec3>("polygon_centroids", usage::position);
    shared_ptr<attribute_map<point*,   vec3> > point_locations = point_attributes().find<vec3>("point_locations");
 
    for (auto i = polygons().begin(); i != polygons().end(); ++i)
@@ -152,7 +152,7 @@ void geometry::smooth_normalize(
    float          max_smoothing_angle_radians
 )
 {
-   auto corner_attributes2 = corner_attributes().find_or_create<vec3>(corner_attribute/*"corner_normals"*/);
+   auto corner_attributes2 = corner_attributes().find_or_create<vec3>(corner_attribute/*"corner_normals"*/, usage::direction);
    auto polygon_attributes2 = polygon_attributes().find<vec3>(polygon_attribute/*"polygon_normals"*/);
    auto polygon_normals = polygon_attributes().find<vec3>("polygon_normals");
 
@@ -179,15 +179,15 @@ void geometry::smooth_normalize(
 }
 
 void geometry::smooth_average(
-   string const   &corner_attribute,
-   string const   &point_normal_name
+   string const &corner_attribute,
+   string const &point_normal_name
 )
 {
-   auto corner_attributes2 = corner_attributes().find_or_create<vec4>(corner_attribute);
-   auto corner_normals = corner_attributes().find_or_create<vec3>("corner_normals");
+   auto corner_attributes2 = corner_attributes().find_or_create<vec4>(corner_attribute, usage::none);
+   auto corner_normals = corner_attributes().find_or_create<vec3>("corner_normals", usage::direction);
    auto point_normals = point_attributes().find<vec3>(point_normal_name);
 
-   auto new_corner_attributes = corner_attributes().find_or_create<vec4>("temp");
+   auto new_corner_attributes = corner_attributes().find_or_create<vec4>("temp", usage::none);
    for (auto i = polygons().begin(); i != polygons().end(); ++i)
    {
       polygon *polygon = *i;
@@ -249,7 +249,7 @@ void geometry::build_edges()
 }
 vec3 geometry::compute_point_normal(point* point)
 {
-   auto polygon_normals = polygon_attributes ().find_or_create<vec3>("polygon_normals");
+   auto polygon_normals = polygon_attributes ().find_or_create<vec3>("polygon_normals", usage::direction);
 
    vec3 normal_sum(0.0f, 0.0f, 0.0f);
 
@@ -262,7 +262,7 @@ vec3 geometry::compute_point_normal(point* point)
 }
 void geometry::compute_point_normals(string const &map_name)
 {
-   auto point_normals    = point_attributes().find_or_create<vec3>(map_name);
+   auto point_normals    = point_attributes().find_or_create<vec3>(map_name, usage::direction);
    auto polygon_normals  = polygon_attributes().find<vec3>("polygon_normals");
 
    point_normals->clear();
@@ -281,7 +281,7 @@ void geometry::compute_point_normals(string const &map_name)
 point *geometry::make_point(float x, float y, float z)
 {
    point *pnt = make_point();
-   auto point_positions = point_attributes().find_or_create<vec3>("point_locations");
+   auto point_positions = point_attributes().find_or_create<vec3>("point_locations", usage::position);
 
    point_positions->set_value(pnt, vec3(x, y, z));
 
@@ -290,8 +290,8 @@ point *geometry::make_point(float x, float y, float z)
 point *geometry::make_point(float x, float y, float z, float s, float t)
 {
    point *pnt = make_point();
-   auto point_positions = point_attributes().find_or_create<vec3>("point_locations");
-   auto point_texcoords = point_attributes().find_or_create<vec2>("point_texcoords");
+   auto point_positions = point_attributes().find_or_create<vec3>("point_locations", usage::direction);
+   auto point_texcoords = point_attributes().find_or_create<vec2>("point_texcoords", usage::none);
 
    point_positions->set_value(pnt, vec3(x, y, z));
    point_texcoords->set_value(pnt, vec2(s, t));
@@ -515,6 +515,53 @@ polygon *geometry::make_polygon(size_t p0, size_t p1, size_t p2, size_t p3, size
    p->make_corner(m_points[p8]);
    p->make_corner(m_points[p9]);
    return p;
+}
+
+void geometry::transform(mat4 m)
+{
+   mat4 it = glm::transpose(glm::inverse(m));
+
+   //  Check.. Did I forget something?
+   //  \todo Mark each attributemap how they should be transformed
+
+   auto polygon_centroids  = polygon_attributes().maybe_find<vec3>("polygon_centroids");
+   auto polygon_normals    = polygon_attributes().maybe_find<vec3>("polygon_normals");
+   auto point_locations    = point_attributes().maybe_find<vec3>("point_locations");
+   auto point_normals      = point_attributes().maybe_find<vec3>("point_normals");
+   auto corner_normals     = corner_attributes().maybe_find<vec3>("corner_normals");
+
+   for (auto i = points().cbegin(); i != points().cend(); ++i)
+   {
+      auto point = *i;
+
+      if (point_locations && point_locations->has(point))
+         point_locations->set_value(point, vec3(m * vec4(point_locations->value(point), 1.0f)));
+
+      if (point_normals && point_normals  ->has(point))
+         point_normals->set_value(point, vec3(it * vec4(point_normals->value(point), 0.0f)));
+   }
+
+   for (auto i = polygons().cbegin(); i != polygons().cend(); ++i)
+   {
+      auto *polygon = *i;
+
+      if (polygon_centroids && polygon_centroids->has(polygon))
+         polygon_centroids->set_value(polygon, vec3(m  * vec4(polygon_centroids->value(polygon), 1.0f)));
+
+      if (polygon_normals && polygon_normals->has(polygon))
+         polygon_normals->set_value(polygon, vec3(it * vec4(polygon_normals->value(polygon), 0.0f)));
+
+      if (corner_normals)
+      {
+         for (auto j = polygon->corners().cbegin(); j != polygon->corners().cend(); ++j)
+         {
+            auto corner = *j;
+
+            if (corner_normals && corner_normals->has(corner))
+               corner_normals->set_value(corner, vec3(it * vec4(corner_normals->value(corner), 0.0f)));
+         }
+      }
+   }
 }
 
 } }

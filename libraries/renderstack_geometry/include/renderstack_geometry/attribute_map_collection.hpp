@@ -9,11 +9,12 @@
 
 namespace renderstack { namespace geometry {
 
-template<typename Key>
+
+template<typename key_type>
 class attribute_map_collection
 {
 private: 
-   typedef std::map<std::string, std::shared_ptr<attribute_map_base<Key> > > map_map;
+   typedef std::map<std::string, std::shared_ptr<attribute_map_base<key_type> > > map_map;
 
 public:
    typedef typename map_map::const_iterator const_iterator;
@@ -24,17 +25,18 @@ public:
 
    size_t size() const;
 
-   template<typename Value>
-   std::shared_ptr<attribute_map<Key, Value> > create(std::string const &name);
+   template<typename value_type>
+   std::shared_ptr<attribute_map<key_type, value_type> > create(std::string const &name);
 
-   void insert(std::string const &name, std::shared_ptr<attribute_map_base<Key> > const &map);
+   void insert(std::string const &name, std::shared_ptr<attribute_map_base<key_type> > const &map);
    void remove(std::string const &name);
-   template<typename Value> bool contains(std::string const &name) const;
+   template<typename value_type> bool contains(std::string const &name) const;
 
-   std::shared_ptr<attribute_map_base<Key> > find_any(std::string const &name) const;
+   std::shared_ptr<attribute_map_base<key_type> > find_any(std::string const &name) const;
 
-   template<typename Value> std::shared_ptr<attribute_map<Key, Value> > find(std::string const &name) const;
-   template<typename Value> std::shared_ptr<attribute_map<Key, Value> > find_or_create(std::string const &name);
+   template<typename value_type> std::shared_ptr<attribute_map<key_type, value_type> > find(std::string const &name) const;
+   template<typename value_type> std::shared_ptr<attribute_map<key_type, value_type> > maybe_find(std::string const &name) const;
+   template<typename value_type> std::shared_ptr<attribute_map<key_type, value_type> > find_or_create(std::string const &name, usage::value top = usage::none);
    void replace(std::string const &name, std::string const &temp);
 
    const_iterator begin() const;

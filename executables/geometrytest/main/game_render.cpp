@@ -125,20 +125,20 @@ void game::render_meshes()
       double dx;
       double dy;
 
-      int iw = m_application->width();
+      // int iw = m_application->width();
       int ih = m_application->height();
 
       m_application->get_mouse_pos(dx, dy);
+#if 1
       int mouse_x = static_cast<int>(dx);
       int mouse_y = static_cast<int>(ih - 1 - dy);
 
-      int center_x = iw / 2;
-      int center_y = ih / 2;
-
-#if 1
       int x = mouse_x;
       int y = mouse_y;
 #else
+      int center_x = iw / 2;
+      int center_y = ih / 2;
+
       int x = center_x;
       int y = center_y;
 #endif

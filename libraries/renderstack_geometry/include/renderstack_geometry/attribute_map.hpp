@@ -14,70 +14,82 @@ namespace renderstack { namespace geometry {
 
 typedef size_t  index_type;
 
-template<typename Key>
+template<typename key_type>
 class attribute_map_base
 {
 public:
-   typedef std::vector<Key>            key_array;
-   typedef std::map<Key,index_type>    key_index_map;
+   typedef std::vector<key_type>          key_array;
+   typedef std::map<key_type, index_type> key_index_map;
 
    virtual ~attribute_map_base();
 
 public:
-   virtual std::type_info const& value_type_id() const = 0;
+   virtual std::type_info const &value_type_id() const = 0;
 
 protected:
    attribute_map_base();
 };
 
+namespace usage
+{
+   enum value
+   {
+      direction,
+      position,
+      none
+   };
+};
+
 /**  \brief contains attributes (like positions, normals, texcoords) for keys (polygon, point, corner)  */ 
-template<typename Key, typename Value>
+template<typename key_type, typename value_type>
 class attribute_map 
-:  public attribute_map_base<Key>
+:  public attribute_map_base<key_type>
 {
 public:
-   typedef Key   key_type;
-   typedef Value value_type;
-
    attribute_map();
 
    void        clear          ();
    bool        empty          () const;
    index_type  size           () const;
    void        begin_insertion(index_type estimated_count = 0);
-   void        insert         (Key const &key, Value const &value);
+   void        insert         (key_type const &key, value_type const &value);
    void        end_insertion  ();
    bool        is_inserting   () const;
-   void        set_value      (Key const &key, Value const &value);
-   Value       value          (Key const &key) const;
-   bool        has            (Key const &key) const;
+   void        set_value      (key_type const &key, value_type const &value);
+   value_type  value          (key_type const &key) const;
+   bool        has            (key_type const &key) const;
    void        optimize       ();
    bool        is_optimized   () const;
+
+   usage::value usage() const { return m_usage; }
+   void                 set_usage(usage::value value) { m_usage = value; }
 
 public:
    std::type_info const &value_type_id() const;
 
 private:
-   struct entry {
+   struct entry
+   {
       bool operator==(entry const &other) const;
       bool operator< (entry const &other) const;
 
-      Key   key;
-      Value value;
+      key_type   key;
+      value_type value;
    };
 
    typedef std::vector<entry> entry_container;
 
 private:
-   typename entry_container::const_iterator find(Key const &key) const;
-   typename entry_container::iterator       find(Key const &key);
+   typename entry_container::const_iterator find(key_type const &key) const;
+   typename entry_container::iterator       find(key_type const &key);
 
-   void insert_entry(Key const &key, Value const &value);
+   void insert_entry(key_type const &key, value_type const &value);
 
 private:
    entry_container   m_entries;
    bool              m_is_optimized;
    bool              m_is_inserting;
+   usage::value      m_usage;
 };
 
 } }

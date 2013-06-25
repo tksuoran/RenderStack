@@ -60,8 +60,16 @@ const glm::vec3 vec3_unit_x(1.0f, 0.0f, 0.0f);
 const glm::vec3 vec3_unit_y(0.0f, 1.0f, 0.0f);
 const glm::vec3 vec3_unit_z(0.0f, 0.0f, 1.0f);
 const glm::mat4 mat4_identity(1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f);
-const glm::mat4 mat4_swap_xy(0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f);
-const glm::mat4 mat4_rotate_xy_cw(0.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f);
+const glm::mat4 mat4_swap_xy(
+   0.0f, 1.0f, 0.0f, 0.0f,
+   1.0f, 0.0f, 0.0f, 0.0f,
+   0.0f, 0.0f, 1.0f, 0.0f,
+   0.0f, 0.0f, 0.0f, 1.0f);
+const glm::mat4 mat4_rotate_xy_cw(
+   0.0f, -1.0f,  0.0f,  0.0f,
+   1.0f,  0.0f,  0.0f,  0.0f,
+   0.0f,  0.0f,  1.0f,  0.0f,
+   0.0f,  0.0f,  0.0f,  1.0f);
 
 glm::vec3 unproject(
    glm::mat4 const &inverse_model_view_projection,

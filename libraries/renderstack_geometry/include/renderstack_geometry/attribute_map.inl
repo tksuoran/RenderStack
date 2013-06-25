@@ -3,44 +3,45 @@
 
 namespace renderstack { namespace geometry {
 
-template<typename Key>
-inline attribute_map_base<Key>::attribute_map_base()
+template<typename key_type>
+inline attribute_map_base<key_type>::attribute_map_base()
 {
 }
 
-template<typename Key>
-inline attribute_map_base<Key>::~attribute_map_base()
+template<typename key_type>
+inline attribute_map_base<key_type>::~attribute_map_base()
 {
 }
 
-template<typename Key, typename Value>
-inline attribute_map<Key, Value>::attribute_map()
+template<typename key_type, typename value_type>
+inline attribute_map<key_type, value_type>::attribute_map()
 :  m_is_optimized(true)
 ,  m_is_inserting(false)
+,  m_usage(usage::none)
 {
 }
 
-template<typename Key, typename Value>
-inline void attribute_map<Key, Value>::clear()
+template<typename key_type, typename value_type>
+inline void attribute_map<key_type, value_type>::clear()
 {
    m_entries.clear();
 }
 
-template<typename Key, typename Value>
-inline bool attribute_map<Key, Value>::empty() const
+template<typename key_type, typename value_type>
+inline bool attribute_map<key_type, value_type>::empty() const
 {
    return m_entries.empty();
 }
 
-template<typename Key, typename Value>
-inline index_type attribute_map<Key, Value>::size() const
+template<typename key_type, typename value_type>
+inline index_type attribute_map<key_type, value_type>::size() const
 {
    assert(m_entries.size() < std::numeric_limits<index_type>::max());
    return static_cast<index_type>(m_entries.size());
 }
 
-template<typename Key, typename Value>
-inline void attribute_map<Key, Value>::begin_insertion(
+template<typename key_type, typename value_type>
+inline void attribute_map<key_type, value_type>::begin_insertion(
    index_type estimated_count)
 {
    assert(!is_inserting());
@@ -52,10 +53,10 @@ inline void attribute_map<Key, Value>::begin_insertion(
    m_is_inserting = true;
 }
 
-template<typename Key, typename Value>
-inline void attribute_map<Key, Value>::insert(
-   Key const   &key,
-   Value const &value
+template<typename key_type, typename value_type>
+inline void attribute_map<key_type, value_type>::insert(
+   key_type const   &key,
+   value_type const &value
 )
 {
    assert(is_inserting());
@@ -74,8 +75,8 @@ inline void attribute_map<Key, Value>::insert(
    m_entries.push_back(e);
 }
 
-template<typename Key, typename Value>
-inline void attribute_map<Key, Value>::end_insertion()
+template<typename key_type, typename value_type>
+inline void attribute_map<key_type, value_type>::end_insertion()
 {
    assert(is_inserting());
 
@@ -84,16 +85,16 @@ inline void attribute_map<Key, Value>::end_insertion()
    optimize();
 }
 
-template<typename Key, typename Value>
-inline bool attribute_map<Key, Value>::is_inserting() const
+template<typename key_type, typename value_type>
+inline bool attribute_map<key_type, value_type>::is_inserting() const
 {
    return m_is_inserting;
 }
 
-template<typename Key, typename Value>
-inline void attribute_map<Key, Value>::set_value(
-   Key const   &key,
-   Value const &value
+template<typename key_type, typename value_type>
+inline void attribute_map<key_type, value_type>::set_value(
+   key_type const   &key,
+   value_type const &value
 )
 {
    assert(!is_inserting());
@@ -105,8 +106,8 @@ inline void attribute_map<Key, Value>::set_value(
       i->value = value;
 }
 
-template<typename Key, typename Value>
-inline Value attribute_map<Key, Value>::value(Key const &key) const
+template<typename key_type, typename value_type>
+inline value_type attribute_map<key_type, value_type>::value(key_type const &key) const
 {
    assert(!is_inserting());
 
@@ -114,19 +115,19 @@ inline Value attribute_map<Key, Value>::value(Key const &key) const
    if (i != m_entries.end())
       return i->value;
    else
-      throw key_not_found_exception<Key>(key);
+      throw key_not_found_exception<key_type>(key);
 }
 
-template<typename Key, typename Value>
-inline bool attribute_map<Key, Value>::has(Key const& key) const
+template<typename key_type, typename value_type>
+inline bool attribute_map<key_type, value_type>::has(key_type const& key) const
 {
    assert(!is_inserting());
 
    return find(key) != m_entries.end();
 }
 
-template<typename Key, typename Value>
-inline void attribute_map<Key, Value>::optimize()
+template<typename key_type, typename value_type>
+inline void attribute_map<key_type, value_type>::optimize()
 {
    assert(!is_inserting());
 
@@ -135,21 +136,21 @@ inline void attribute_map<Key, Value>::optimize()
    m_is_optimized = true;
 }
 
-template<typename Key, typename Value>
-inline bool attribute_map<Key, Value>::is_optimized() const
+template<typename key_type, typename value_type>
+inline bool attribute_map<key_type, value_type>::is_optimized() const
 {
    return m_is_optimized;
 }
 
-template<typename Key, typename Value>
-inline std::type_info const &attribute_map<Key, Value>::value_type_id() const
+template<typename key_type, typename value_type>
+inline std::type_info const &attribute_map<key_type, value_type>::value_type_id() const
 {
-   return typeid(Value);
+   return typeid(value_type);
 }
 
-template<typename Key, typename Value>
-inline typename attribute_map<Key, Value>::entry_container::const_iterator
-   attribute_map<Key, Value>::find(Key const &key) const
+template<typename key_type, typename value_type>
+inline typename attribute_map<key_type, value_type>::entry_container::const_iterator
+   attribute_map<key_type, value_type>::find(key_type const &key) const
 {
    entry e;
    e.key = key;
@@ -166,9 +167,9 @@ inline typename attribute_map<Key, Value>::entry_container::const_iterator
       return std::find(m_entries.begin(), m_entries.end(), e);
 }
 
-template<typename Key, typename Value>
-inline typename attribute_map<Key, Value>::entry_container::iterator
-   attribute_map<Key, Value>::find(Key const &key)
+template<typename key_type, typename value_type>
+inline typename attribute_map<key_type, value_type>::entry_container::iterator
+   attribute_map<key_type, value_type>::find(key_type const &key)
 {
    entry e;
    e.key = key;
@@ -184,10 +185,10 @@ inline typename attribute_map<Key, Value>::entry_container::iterator
       return std::find(m_entries.begin(), m_entries.end(), e);
 }
 
-template<typename Key, typename Value>
-inline void attribute_map<Key, Value>::insert_entry(
-   Key const   &key,
-   Value const &value
+template<typename key_type, typename value_type>
+inline void attribute_map<key_type, value_type>::insert_entry(
+   key_type const   &key,
+   value_type const &value
 )
 {
    if (
@@ -202,14 +203,14 @@ inline void attribute_map<Key, Value>::insert_entry(
    m_entries.push_back(e);
 }
 
-template<typename Key, typename Value>
-inline bool attribute_map<Key, Value>::entry::operator==(entry const &other) const
+template<typename key_type, typename value_type>
+inline bool attribute_map<key_type, value_type>::entry::operator==(entry const &other) const
 {
    return key == other.key;
 }
 
-template<typename Key, typename Value>
-inline bool attribute_map<Key, Value>::entry::operator<(entry const &other) const
+template<typename key_type, typename value_type>
+inline bool attribute_map<key_type, value_type>::entry::operator<(entry const &other) const
 {
    return key < other.key;
 }

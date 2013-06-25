@@ -246,13 +246,13 @@ void geometry_mesh::build_mesh_from_geometry(
 
    corner_indices = m_geometry->corner_attributes().find_or_create<unsigned int>("corner_indices");
 
-   auto attribute_position      = m_vertex_format->find_attribute_maybe(vertex_attribute_usage::position,     0);
-   auto attribute_normal        = m_vertex_format->find_attribute_maybe(vertex_attribute_usage::normal,       0);   /*  content normals     */
-   auto attribute_normal_flat   = m_vertex_format->find_attribute_maybe(vertex_attribute_usage::normal,       1);   /*  flat normals        */
-   auto attribute_normal_smooth = m_vertex_format->find_attribute_maybe(vertex_attribute_usage::normal,       2);   /*  smooth normals      */
-   auto attribute_color         = m_vertex_format->find_attribute_maybe(vertex_attribute_usage::color,        0);
-   auto attribute_texcoord      = m_vertex_format->find_attribute_maybe(vertex_attribute_usage::tex_coord,    0);
-   auto attribute_id_vec3       = m_vertex_format->find_attribute_maybe(vertex_attribute_usage::id,           0);
+   auto attribute_position      = m_vertex_format->find_attribute_maybe(vertex_attribute_usage::position,   0);
+   auto attribute_normal        = m_vertex_format->find_attribute_maybe(vertex_attribute_usage::normal,     0);   /*  content normals     */
+   auto attribute_normal_flat   = m_vertex_format->find_attribute_maybe(vertex_attribute_usage::normal,     1);   /*  flat normals        */
+   auto attribute_normal_smooth = m_vertex_format->find_attribute_maybe(vertex_attribute_usage::normal,     2);   /*  smooth normals      */
+   auto attribute_color         = m_vertex_format->find_attribute_maybe(vertex_attribute_usage::color,      0);
+   auto attribute_texcoord      = m_vertex_format->find_attribute_maybe(vertex_attribute_usage::tex_coord,  0);
+   auto attribute_id_vec3       = m_vertex_format->find_attribute_maybe(vertex_attribute_usage::id,         0);
 
    shared_ptr<vertex_attribute> attribute_id_uint = nullptr;
    if (configuration::use_integer_polygon_ids)

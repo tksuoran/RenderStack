@@ -69,12 +69,12 @@ game::game()
 }
 
 void game::connect(
-   shared_ptr<renderstack::graphics::renderer>   renderer,
-   shared_ptr<renderstack::ui::gui_renderer>     gui_renderer,
-   shared_ptr<application>  application,
-   shared_ptr<menu>         menu,
-   shared_ptr<programs>     programs,
-   shared_ptr<textures>     textures
+   shared_ptr<renderstack::graphics::renderer>  renderer,
+   shared_ptr<renderstack::ui::gui_renderer>    gui_renderer,
+   shared_ptr<application> application,
+   shared_ptr<menu>        menu,
+   shared_ptr<programs>    programs,
+   shared_ptr<textures>    textures
 )
 {
    m_renderer     = renderer;
@@ -301,6 +301,9 @@ void game::on_load()
          m_format_info.set_mappings(m_programs->mappings);
          m_manipulator_frame = make_shared<renderstack::scene::frame>();
          m_format_info.set_constant_color(vec4(1.0f, 0.0f, 0.0f, 1.0f));
+         mat4 x_to_y;
+         mat4 x_to_z;
+         
          auto x_tip_g  = make_shared<renderstack::geometry::shapes::cone      >(0.75f, 1.00f, 0.15f, true, 18, 2);
          auto x_tail_g = make_shared<renderstack::geometry::shapes::cylinder  >(0.00f, 0.75f, 0.03f, true, false, 12, 2);
          auto x_tip_m  = make_model(m_manipulator_frame, x_tip_g);

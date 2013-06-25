@@ -125,16 +125,18 @@ public:
    glm::vec3 compute_point_normal(point* point);
    void compute_point_normals(std::string const &map_name);
    void smooth_normalize(
-      std::string const   &corner_attribute,
-      std::string const   &polygon_attribute,
-      float               max_smoothing_angle_radians
+      std::string const &corner_attribute,
+      std::string const &polygon_attribute,
+      float             max_smoothing_angle_radians
    );
    void smooth_average(
-      std::string const   &corner_attribute,
-      std::string const   &point_normal_name
+      std::string const &corner_attribute,
+      std::string const &point_normal_name
    );
 
    void build_edges();
+
+   void transform(glm::mat4 m);
 
 private:
    std::string                      m_name;

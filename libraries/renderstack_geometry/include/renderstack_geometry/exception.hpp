@@ -46,14 +46,14 @@ struct invalid_index_exception
    uint32_t max_index;
 };
 
-template<typename Key>
+template<typename key_type>
 struct key_not_found_exception
 {
-   key_not_found_exception(Key key_)
+   key_not_found_exception(key_type key_)
    {
       this->key = key_;
    }
-   Key key;
+   key_type key;
 };
 
 } }
