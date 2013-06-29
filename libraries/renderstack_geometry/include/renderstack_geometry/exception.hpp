@@ -9,9 +9,9 @@
 
 namespace renderstack { namespace geometry {
 
-struct attribute_map_not_found_exception
+struct property_map_not_found_exception
 {
-   attribute_map_not_found_exception(std::string const &name_)
+   property_map_not_found_exception(std::string const &name_)
    {
       this->name = name_;
    }

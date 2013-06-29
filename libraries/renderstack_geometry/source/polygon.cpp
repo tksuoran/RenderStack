@@ -2,7 +2,7 @@
 #include "renderstack_geometry/polygon.hpp"
 #include "renderstack_geometry/point.hpp"
 #include "renderstack_geometry/corner.hpp"
-#include "renderstack_geometry/attribute_map.hpp"
+#include "renderstack_geometry/property_map.hpp"
 #include <cassert>
 #include <cmath>
 #include <exception>
@@ -23,9 +23,9 @@ polygon::~polygon()
 }
 
 void polygon::smooth_normalize(
-   std::shared_ptr<attribute_map<renderstack::geometry::corner*,  vec3> >  corner_attribute,
-   std::shared_ptr<attribute_map<renderstack::geometry::polygon*, vec3> >  polygon_attribute,
-   std::shared_ptr<attribute_map<renderstack::geometry::polygon*, vec3> >  polygon_normals,
+   std::shared_ptr<property_map<renderstack::geometry::corner*,  vec3> >  corner_attribute,
+   std::shared_ptr<property_map<renderstack::geometry::polygon*, vec3> >  polygon_attribute,
+   std::shared_ptr<property_map<renderstack::geometry::polygon*, vec3> >  polygon_normals,
    float                                                                   cos_max_smoothing_angle
 )
 {
@@ -42,10 +42,10 @@ void polygon::smooth_normalize(
 }
 
 void polygon::smooth_average(
-   std::shared_ptr<attribute_map<renderstack::geometry::corner*, vec4> >   new_corner_attribute,
-   std::shared_ptr<attribute_map<renderstack::geometry::corner*, vec4> >   old_corner_attribute,
-   std::shared_ptr<attribute_map<renderstack::geometry::corner*, vec3> >   normer_normals,
-   std::shared_ptr<attribute_map<renderstack::geometry::point*,  vec3> >   point_normals   
+   std::shared_ptr<property_map<renderstack::geometry::corner*, vec4> >   new_corner_attribute,
+   std::shared_ptr<property_map<renderstack::geometry::corner*, vec4> >   old_corner_attribute,
+   std::shared_ptr<property_map<renderstack::geometry::corner*, vec3> >   normer_normals,
+   std::shared_ptr<property_map<renderstack::geometry::point*,  vec3> >   point_normals   
 )
 {
    for (auto i = m_corners.begin(); i != m_corners.end(); ++i)
@@ -61,8 +61,8 @@ void polygon::smooth_average(
 }
 
 void polygon::compute_normal(
-   std::shared_ptr<attribute_map<polygon*, vec3> > polygon_normals,
-   std::shared_ptr<attribute_map<point*,   vec3> > point_locations
+   std::shared_ptr<property_map<polygon*, vec3> > polygon_normals,
+   std::shared_ptr<property_map<point*,   vec3> > point_locations
 )
 {
    if (m_corners.size() > 2)
@@ -82,12 +82,12 @@ void polygon::compute_normal(
          (p1 != p2)
       )
       {
-         vec3 pos0   = point_locations->value(p0);
-         vec3 pos1   = point_locations->value(p1);
-         vec3 pos2   = point_locations->value(p2);
+         vec3 pos0   = point_locations->get(p0);
+         vec3 pos1   = point_locations->get(p1);
+         vec3 pos2   = point_locations->get(p2);
          vec3 normal = cross((pos2 - pos0), (pos1 - pos0));
          normal = normalize(normal);
-         polygon_normals->set_value(this, normal);
+         polygon_normals->put(this, normal);
       }
       else
          throw std::runtime_error("polygons with duplicate points");
@@ -96,8 +96,8 @@ void polygon::compute_normal(
 }
 
 void polygon::compute_centroid(
-   std::shared_ptr<attribute_map<polygon*, vec3> > polygon_centroids,
-   std::shared_ptr<attribute_map<point*,   vec3> > point_locations
+   std::shared_ptr<property_map<polygon*, vec3> > polygon_centroids,
+   std::shared_ptr<property_map<point*,   vec3> > point_locations
 )
 {
    vec3 centroid(0.0f, 0.0f, 0.0f);
@@ -107,18 +107,18 @@ void polygon::compute_centroid(
    {
       class corner *cor  = *i;
       point *pnt  = cor->point();
-      vec3  pos0  = point_locations->value(pnt);
+      vec3  pos0  = point_locations->get(pnt);
       centroid += pos0;
       ++count;
    }
    if (count > 0)
    {
       centroid /= (float)(count);
-      polygon_centroids->set_value(this, centroid);
+      polygon_centroids->put(this, centroid);
    }
    else
    {
-      polygon_centroids->set_value(this, centroid);
+      polygon_centroids->put(this, centroid);
    }
 }
 
@@ -139,6 +139,29 @@ corner *polygon::make_corner(point *pnt)
    pnt->add_corner(cor);
    m_corners.push_back(cor);
    return cor;
+}
+
+
+renderstack::geometry::corner *polygon::next_corner(renderstack::geometry::corner *c)
+{
+   for (size_t i = 0; i < m_corners.size(); ++i)
+   {
+      renderstack::geometry::corner *corner0 = m_corners[i];
+      if (corner0 == c)
+         return m_corners[(i + 1) % m_corners.size()];
+   }
+   return nullptr;
+}
+
+renderstack::geometry::corner *polygon::prev_corner(renderstack::geometry::corner *c)
+{
+   for (size_t i = 0; i < m_corners.size(); ++i)
+   {
+      renderstack::geometry::corner *corner0 = m_corners[i];
+      if (corner0 == c)
+         return m_corners[(m_corners.size() + i - 1) % m_corners.size()];
+   }
+   return nullptr;
 }
 
 } }

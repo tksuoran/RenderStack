@@ -20,13 +20,13 @@ struct disc::make_info
    map<pair<int,int>, class point*>  points;
    class point        *center;
 
-   shared_ptr<attribute_map<point*, vec3> >   point_locations;
-   shared_ptr<attribute_map<point*, vec3> >   point_normals;
-   shared_ptr<attribute_map<point*, vec2> >   point_texcoords;
-   shared_ptr<attribute_map<corner*, vec3> >  corner_normals;
-   shared_ptr<attribute_map<corner*, vec2> >  corner_texcoords;
-   shared_ptr<attribute_map<polygon*, vec3> > polygon_centroids;
-   shared_ptr<attribute_map<polygon*, vec3> > polygon_normals;
+   shared_ptr<property_map<point*, vec3> >   point_locations;
+   shared_ptr<property_map<point*, vec3> >   point_normals;
+   shared_ptr<property_map<point*, vec2> >   point_texcoords;
+   shared_ptr<property_map<corner*, vec3> >  corner_normals;
+   shared_ptr<property_map<corner*, vec2> >  corner_texcoords;
+   shared_ptr<property_map<polygon*, vec3> > polygon_centroids;
+   shared_ptr<property_map<polygon*, vec3> > polygon_normals;
 
    make_info(
       double  inner_radius_,
@@ -68,9 +68,9 @@ point *disc::make_point(make_info &info, double rel_slice, double rel_stack)
 
    class point *point = geometry::make_point();
 
-   info.point_locations->set_value(point, vec3(position.x, position.y, position.z));
-   info.point_normals  ->set_value(point, vec3(0.0f, 0.0f, 1.0f));
-   info.point_texcoords->set_value(point, vec2(s, t));
+   info.point_locations->put(point, vec3(position.x, position.y, position.z));
+   info.point_normals  ->put(point, vec3(0.0f, 0.0f, 1.0f));
+   info.point_texcoords->put(point, vec2(s, t));
 
    return point;
 }
@@ -103,7 +103,7 @@ corner *disc::make_corner(make_info &info, polygon *polygon, int slice, int stac
       float s = static_cast<float>(rel_slice);
       float t = static_cast<float>(rel_stack);
 
-      info.corner_texcoords->set_value(corner, vec2(s, t));
+      info.corner_texcoords->put(corner, vec2(s, t));
    }
 
    return corner;
@@ -119,13 +119,13 @@ disc::disc(
 {
    make_info info(outer_radius, inner_radius, slice_count, stack_count);
 
-   info.point_locations    = point_attributes().find_or_create<vec3>("point_locations", usage::position);
-   info.point_normals      = point_attributes().find_or_create<vec3>("point_normals", usage::direction);
-   info.point_texcoords    = point_attributes().find_or_create<vec2>("point_texcoords", usage::none);
-   info.polygon_centroids  = polygon_attributes().find_or_create<vec3>("polygon_centroids", usage::position);
-   info.polygon_normals    = polygon_attributes().find_or_create<vec3>("polygon_normals", usage::direction);
-   info.corner_normals     = corner_attributes().find_or_create<vec3>("corner_normals", usage::direction);
-   info.corner_texcoords   = corner_attributes().find_or_create<vec2>("corner_texcoords", usage::none);
+   info.point_locations    = point_attributes().find_or_create<vec3>("point_locations");
+   info.point_normals      = point_attributes().find_or_create<vec3>("point_normals");
+   info.point_texcoords    = point_attributes().find_or_create<vec2>("point_texcoords");
+   info.polygon_centroids  = polygon_attributes().find_or_create<vec3>("polygon_centroids");
+   info.polygon_normals    = polygon_attributes().find_or_create<vec3>("polygon_normals");
+   info.corner_normals     = corner_attributes().find_or_create<vec3>("corner_normals");
+   info.corner_texcoords   = corner_attributes().find_or_create<vec2>("corner_texcoords");
 
    //  Make points
    for (int stack = 0; stack < stack_count; ++stack)
@@ -143,8 +143,8 @@ disc::disc(
    if (stack_count == 1)
    {
       class polygon *polygon = make_polygon();
-      info.polygon_centroids->set_value(polygon, vec3(0.0f, 0.0f, 0.0f));
-      info.polygon_normals  ->set_value(polygon, vec3(0.0f, 0.0f, 1.0f));
+      info.polygon_centroids->put(polygon, vec3(0.0f, 0.0f, 0.0f));
+      info.polygon_normals  ->put(polygon, vec3(0.0f, 0.0f, 1.0f));
 
       for (int slice = slice_count - 1; slice >= 0; --slice)
          make_corner(info, polygon, slice, 0);
@@ -166,18 +166,18 @@ disc::disc(
          point   *centroid           = make_point(info, rel_slice_centroid, rel_stack_centroid);
          polygon *polygon            = make_polygon();
 
-         info.polygon_centroids->set_value(polygon, info.point_locations->value(centroid));
-         info.polygon_normals  ->set_value(polygon, vec3(0.0f, 0.0f, 1.0f));
+         info.polygon_centroids->put(polygon, info.point_locations->get(centroid));
+         info.polygon_normals  ->put(polygon, vec3(0.0f, 0.0f, 1.0f));
          if ((stack == 0) && (inner_radius == 0.0))
          {
             corner *tip = make_corner(info, polygon, slice, stack);
             make_corner(info, polygon, slice + 1, stack + 1);
             make_corner(info, polygon, slice, stack + 1);
 
-            vec2 t1 = info.point_texcoords->value(get_point(info, slice, stack));
-            vec2 t2 = info.point_texcoords->value(get_point(info, slice + 1, stack));
+            vec2 t1 = info.point_texcoords->get(get_point(info, slice, stack));
+            vec2 t2 = info.point_texcoords->get(get_point(info, slice + 1, stack));
             vec2 average_texcoord = (t1 + t2) / 2.0f;
-            info.corner_texcoords->set_value(tip, average_texcoord);
+            info.corner_texcoords->put(tip, average_texcoord);
          }
          else
          {

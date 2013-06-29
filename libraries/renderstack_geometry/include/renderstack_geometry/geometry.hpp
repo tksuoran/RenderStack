@@ -5,8 +5,8 @@
 #include "renderstack_geometry/edge.hpp"
 #include "renderstack_geometry/point.hpp"
 #include "renderstack_geometry/polygon.hpp"
-#include "renderstack_geometry/attribute_map.hpp"
-#include "renderstack_geometry/attribute_map_collection.hpp"
+#include "renderstack_geometry/property_map.hpp"
+#include "renderstack_geometry/property_map_collection.hpp"
 #include <vector>
 #include <unordered_set>
 
@@ -19,10 +19,10 @@ namespace renderstack { namespace geometry {
 class geometry 
 {
 public:
-   typedef attribute_map_collection<point*>     point_attribute_map_collection;
-   typedef attribute_map_collection<corner*>    corner_attribute_map_collection;
-   typedef attribute_map_collection<polygon*>   polygon_attribute_map_collection;
-   typedef attribute_map_collection<edge*>      edge_attribute_map_collection;
+   typedef property_map_collection<point*>     point_property_map_collection;
+   typedef property_map_collection<corner*>    corner_property_map_collection;
+   typedef property_map_collection<polygon*>   polygon_property_map_collection;
+   typedef property_map_collection<edge*>      edge_property_map_collection;
 
    typedef std::vector<renderstack::geometry::point*>    point_collection;
    typedef std::vector<renderstack::geometry::polygon*>  polygon_collection;
@@ -72,15 +72,15 @@ public:
 
    void info(mesh_info &info) const;
 
-   point_attribute_map_collection      &point_attributes   (){ return m_point_attribute_map_collection; }
-   corner_attribute_map_collection     &corner_attributes  (){ return m_corner_attribute_map_collection; }
-   polygon_attribute_map_collection    &polygon_attributes (){ return m_polygon_attribute_map_collection; }
-   edge_attribute_map_collection       &edge_attributes    (){ return m_edge_attribute_map_collection; }
+   point_property_map_collection      &point_attributes   (){ return m_point_property_map_collection; }
+   corner_property_map_collection     &corner_attributes  (){ return m_corner_property_map_collection; }
+   polygon_property_map_collection    &polygon_attributes (){ return m_polygon_property_map_collection; }
+   edge_property_map_collection       &edge_attributes    (){ return m_edge_property_map_collection; }
 
-   point_attribute_map_collection      const &point_attributes     () const { return m_point_attribute_map_collection; }
-   corner_attribute_map_collection     const &corner_attributes    () const { return m_corner_attribute_map_collection; }
-   polygon_attribute_map_collection    const &polygon_attributes   () const { return m_polygon_attribute_map_collection; }
-   edge_attribute_map_collection       const &edge_attributes      () const { return m_edge_attribute_map_collection; }
+   point_property_map_collection      const &point_attributes     () const { return m_point_property_map_collection; }
+   corner_property_map_collection     const &corner_attributes    () const { return m_corner_property_map_collection; }
+   polygon_property_map_collection    const &polygon_attributes   () const { return m_polygon_property_map_collection; }
+   edge_property_map_collection       const &edge_attributes      () const { return m_edge_property_map_collection; }
 
    void    reserve_points  (std::size_t point_count);
    void    reserve_polygons(std::size_t polygon_count);
@@ -140,10 +140,10 @@ public:
 
 private:
    std::string                      m_name;
-   point_attribute_map_collection   m_point_attribute_map_collection;
-   corner_attribute_map_collection  m_corner_attribute_map_collection;
-   polygon_attribute_map_collection m_polygon_attribute_map_collection;
-   edge_attribute_map_collection    m_edge_attribute_map_collection;
+   point_property_map_collection   m_point_property_map_collection;
+   corner_property_map_collection  m_corner_property_map_collection;
+   polygon_property_map_collection m_polygon_property_map_collection;
+   edge_property_map_collection    m_edge_property_map_collection;
 
    point_collection                 m_points;
    polygon_collection               m_polygons;

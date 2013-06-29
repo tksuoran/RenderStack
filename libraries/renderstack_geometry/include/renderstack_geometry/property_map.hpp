@@ -1,5 +1,5 @@
-#ifndef attribute_map_hpp_renderstack_geometry
-#define attribute_map_hpp_renderstack_geometry
+#ifndef property_map_hpp_renderstack_geometry
+#define property_map_hpp_renderstack_geometry
 
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_geometry/exception.hpp"
@@ -9,44 +9,43 @@
 #include <typeinfo>
 #include <cassert>
 #include <stdint.h>
+#include "boost/any.hpp"
 
 namespace renderstack { namespace geometry {
 
-typedef size_t  index_type;
+
+typedef size_t index_type;
 
 template<typename key_type>
-class attribute_map_base
+class property_map_base
 {
 public:
    typedef std::vector<key_type>          key_array;
    typedef std::map<key_type, index_type> key_index_map;
 
-   virtual ~attribute_map_base();
+   virtual ~property_map_base();
 
 public:
+   virtual property_map_base *constructor() const = 0;
+   virtual void interpolate(
+      property_map_base<key_type> *destination,
+      std::map<key_type, std::vector<std::pair<float, key_type>>> key_new_to_olds
+   ) const = 0;
+
    virtual std::type_info const &value_type_id() const = 0;
 
 protected:
-   attribute_map_base();
+   property_map_base();
 };
 
-namespace usage
-{
-   enum value
-   {
-      direction,
-      position,
-      none
-   };
-};
 
 /**  \brief contains attributes (like positions, normals, texcoords) for keys (polygon, point, corner)  */ 
 template<typename key_type, typename value_type>
-class attribute_map 
-:  public attribute_map_base<key_type>
+class property_map
+:  public property_map_base<key_type>
 {
 public:
-   attribute_map();
+   property_map();
 
    void        clear          ();
    bool        empty          () const;
@@ -55,16 +54,19 @@ public:
    void        insert         (key_type const &key, value_type const &value);
    void        end_insertion  ();
    bool        is_inserting   () const;
-   void        set_value      (key_type const &key, value_type const &value);
-   value_type  value          (key_type const &key) const;
+   void        put            (key_type const &key, value_type const &value);
+   value_type  get            (key_type const &key) const;
    bool        has            (key_type const &key) const;
    void        optimize       ();
    bool        is_optimized   () const;
 
-   usage::value usage() const { return m_usage; }
-   void                 set_usage(usage::value value) { m_usage = value; }
-
 public:
+   property_map_base<key_type> *constructor() const;
+   /*virtual*/ void interpolate(
+      property_map_base<key_type> *destination,
+      std::map<key_type, std::vector<std::pair<float, key_type>>> key_new_to_olds
+   ) const;
+
    std::type_info const &value_type_id() const;
 
 private:
@@ -89,11 +91,10 @@ private:
    entry_container   m_entries;
    bool              m_is_optimized;
    bool              m_is_inserting;
-   usage::value      m_usage;
 };
 
 } }
 
-#include "attribute_map.inl"
+#include "property_map.inl"
 
 #endif

@@ -29,6 +29,8 @@
 #include "renderstack_graphics/renderer.hpp"
 #include <cassert>
 
+#include <boost/property_map/dynamic_property_map.hpp>
+
 #if defined(RENDERSTACK_USE_GLFW)
 # include <GLFW/glfw3.h>
 #endif

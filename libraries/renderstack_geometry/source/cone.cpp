@@ -50,13 +50,13 @@ struct conical_frustum::make_info
    class point        *top;
    class point        *bottom;
 
-   shared_ptr<attribute_map<point*, vec3> >   point_locations;
-   shared_ptr<attribute_map<point*, vec3> >   point_normals;
-   shared_ptr<attribute_map<point*, vec2> >   point_texcoords;
-   shared_ptr<attribute_map<corner*, vec3> >  corner_normals;
-   shared_ptr<attribute_map<corner*, vec2> >  corner_texcoords;
-   shared_ptr<attribute_map<polygon*, vec3> > polygon_centroids;
-   shared_ptr<attribute_map<polygon*, vec3> > polygon_normals;
+   shared_ptr<property_map<point*, vec3> >   point_locations;
+   shared_ptr<property_map<point*, vec3> >   point_normals;
+   shared_ptr<property_map<point*, vec2> >   point_texcoords;
+   shared_ptr<property_map<corner*, vec3> >  corner_normals;
+   shared_ptr<property_map<corner*, vec2> >  corner_texcoords;
+   shared_ptr<property_map<polygon*, vec3> > polygon_centroids;
+   shared_ptr<property_map<polygon*, vec3> > polygon_normals;
 
    make_info(
       double  min_x_, 
@@ -133,9 +133,9 @@ point *conical_frustum::cone_point(make_info &info, double rel_slice, double rel
 
    point *point = make_point();
 
-   info.point_locations->set_value(point, vec3((float)position.x,  (float)position.y,  (float)position.z));
-   info.point_normals  ->set_value(point, vec3((float)normal.x,    (float)normal.y,    (float)normal.z));
-   info.point_texcoords->set_value(point, vec2((float)s,           (float)t));
+   info.point_locations->put(point, vec3((float)position.x,  (float)position.y,  (float)position.z));
+   info.point_normals  ->put(point, vec3((float)normal.x,    (float)normal.y,    (float)normal.z));
+   info.point_texcoords->put(point, vec2((float)s,           (float)t));
 
    return point;
 }
@@ -175,16 +175,16 @@ corner *conical_frustum::make_corner(make_info &info, polygon *polygon, int slic
       float s = (float)(rel_slice);
       float t = (float)(0.5 + 0.5 * rel_stack);
 
-      info.corner_texcoords->set_value(corner, vec2(s, t));
+      info.corner_texcoords->put(corner, vec2(s, t));
    }
 
    if (top || bottom)
    {
       if (cap && bottom && (info.bottom_radius != 0.0) && info.use_bottom)
-         info.corner_normals->set_value(corner, vec3(-1.0f, 0.0f, 0.0f));
+         info.corner_normals->put(corner, vec3(-1.0f, 0.0f, 0.0f));
 
       if (cap && top && (info.top_radius != 0.0) && info.use_top)
-         info.corner_normals->set_value(corner, vec3(1.0f, 0.0f, 0.0f));
+         info.corner_normals->put(corner, vec3(1.0f, 0.0f, 0.0f));
    }
    return corner;
 }
@@ -203,13 +203,13 @@ conical_frustum::conical_frustum(
 {
    make_info info(min_x, max_x, bottom_radius, top_radius, use_bottom, use_top, slice_count, stack_division);
 
-   info.point_locations    = point_attributes().find_or_create<vec3>("point_locations", usage::position);
-   info.point_normals      = point_attributes().find_or_create<vec3>("point_normals", usage::direction);
-   info.point_texcoords    = point_attributes().find_or_create<vec2>("point_texcoords", usage::none);
-   info.polygon_centroids  = polygon_attributes().find_or_create<vec3>("polygon_centroids", usage::position);
-   info.polygon_normals    = polygon_attributes().find_or_create<vec3>("polygon_normals", usage::direction);
-   info.corner_normals     = corner_attributes().find_or_create<vec3>("corner_normals", usage::direction);
-   info.corner_texcoords   = corner_attributes().find_or_create<vec2>("corner_texcoords", usage::none);
+   info.point_locations    = point_attributes().find_or_create<vec3>("point_locations");
+   info.point_normals      = point_attributes().find_or_create<vec3>("point_normals");
+   info.point_texcoords    = point_attributes().find_or_create<vec2>("point_texcoords");
+   info.polygon_centroids  = polygon_attributes().find_or_create<vec3>("polygon_centroids");
+   info.polygon_normals    = polygon_attributes().find_or_create<vec3>("polygon_normals");
+   info.corner_normals     = corner_attributes().find_or_create<vec3>("corner_normals");
+   info.corner_texcoords   = corner_attributes().find_or_create<vec2>("corner_texcoords");
 
    //  Points
    for (int slice = 0; slice <= slice_count; ++slice)
@@ -244,18 +244,18 @@ conical_frustum::conical_frustum(
          make_corner(info, polygon, slice,     stack);
          corner *tip = make_corner(info, polygon, slice, -stack_division - 1);
 
-         vec3 n1 = info.point_normals->value(get_point(info, slice,     stack));
-         vec3 n2 = info.point_normals->value(get_point(info, slice + 1, stack));
+         vec3 n1 = info.point_normals->get(get_point(info, slice,     stack));
+         vec3 n2 = info.point_normals->get(get_point(info, slice + 1, stack));
          vec3 average_normal = normalize(n1 + n2);
-         info.corner_normals->set_value(tip, average_normal);
+         info.corner_normals->put(tip, average_normal);
 
-         vec2 t1 = info.point_texcoords->value(get_point(info, slice,     stack));
-         vec2 t2 = info.point_texcoords->value(get_point(info, slice + 1, stack));
+         vec2 t1 = info.point_texcoords->get(get_point(info, slice,     stack));
+         vec2 t2 = info.point_texcoords->get(get_point(info, slice + 1, stack));
          vec2 average_texcoord = (t1 + t2) / 2.0f;
-         info.corner_texcoords->set_value(tip, average_texcoord);
+         info.corner_texcoords->put(tip, average_texcoord);
 
-         info.polygon_centroids->set_value(polygon, info.point_locations->value(centroid));
-         info.polygon_normals  ->set_value(polygon, info.point_normals  ->value(centroid));
+         info.polygon_centroids->put(polygon, info.point_locations->get(centroid));
+         info.polygon_normals  ->put(polygon, info.point_normals  ->get(centroid));
       }
    }
    else
@@ -263,8 +263,8 @@ conical_frustum::conical_frustum(
       if (use_bottom)
       {
          polygon *polygon = make_polygon();
-         info.polygon_centroids->set_value(polygon, vec3((float)min_x, 0.0f, 0.0f));
-         info.polygon_normals  ->set_value(polygon, vec3(-1.0f,        0.0f, 0.0f));
+         info.polygon_centroids->put(polygon, vec3((float)min_x, 0.0f, 0.0f));
+         info.polygon_normals  ->put(polygon, vec3(-1.0f,        0.0f, 0.0f));
 
          for (int slice = 0; slice < slice_count; ++slice)
          {
@@ -296,8 +296,8 @@ conical_frustum::conical_frustum(
          make_corner(info, polygon, slice,     stack    );
          make_corner(info, polygon, slice + 1, stack    );
 
-         info.polygon_centroids->set_value(polygon, info.point_locations->value(centroid));
-         info.polygon_normals  ->set_value(polygon, info.point_normals  ->value(centroid));
+         info.polygon_centroids->put(polygon, info.point_locations->get(centroid));
+         info.polygon_normals  ->put(polygon, info.point_normals  ->get(centroid));
       }
    }
 
@@ -318,18 +318,18 @@ conical_frustum::conical_frustum(
          make_corner(info, polygon, slice, stack);
          make_corner(info, polygon, slice + 1, stack);
 
-         vec3 n1 = info.point_normals->value(get_point(info, slice, stack));
-         vec3 n2 = info.point_normals->value(get_point(info, slice + 1, stack));
+         vec3 n1 = info.point_normals->get(get_point(info, slice, stack));
+         vec3 n2 = info.point_normals->get(get_point(info, slice + 1, stack));
          vec3 average_normal = normalize(n1 + n2);
-         info.corner_normals->set_value(tip, average_normal);
+         info.corner_normals->put(tip, average_normal);
 
-         vec2 t1 = info.point_texcoords->value(get_point(info, slice, stack));
-         vec2 t2 = info.point_texcoords->value(get_point(info, slice + 1, stack));
+         vec2 t1 = info.point_texcoords->get(get_point(info, slice, stack));
+         vec2 t2 = info.point_texcoords->get(get_point(info, slice + 1, stack));
          vec2 average_texcoord = (t1 + t2) / 2.0f;
-         info.corner_texcoords->set_value(tip, average_texcoord);
+         info.corner_texcoords->put(tip, average_texcoord);
 
-         info.polygon_centroids->set_value(polygon, info.point_locations->value(centroid));
-         info.polygon_normals  ->set_value(polygon, info.point_normals  ->value(centroid));
+         info.polygon_centroids->put(polygon, info.point_locations->get(centroid));
+         info.polygon_normals  ->put(polygon, info.point_normals  ->get(centroid));
       }
    }
    else
@@ -337,8 +337,8 @@ conical_frustum::conical_frustum(
       if (use_top)
       {
          polygon *polygon = make_polygon();
-         info.polygon_centroids->set_value(polygon, vec3((float)max_x, 0.0f, 0.0f));
-         info.polygon_normals  ->set_value(polygon, vec3(1.0f, 0.0f, 0.0f));
+         info.polygon_centroids->put(polygon, vec3((float)max_x, 0.0f, 0.0f));
+         info.polygon_normals  ->put(polygon, vec3(1.0f, 0.0f, 0.0f));
 
          for (int slice = 0; slice < slice_count; ++slice)
             make_corner(info, polygon, slice, stack_division + 1, true);

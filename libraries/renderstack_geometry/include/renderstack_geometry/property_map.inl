@@ -1,47 +1,46 @@
-#ifndef attribute_map_inl_renderstack_geometry
-#define attribute_map_inl_renderstack_geometry
+#ifndef property_map_inl_renderstack_geometry
+#define property_map_inl_renderstack_geometry
 
 namespace renderstack { namespace geometry {
 
 template<typename key_type>
-inline attribute_map_base<key_type>::attribute_map_base()
+inline property_map_base<key_type>::property_map_base()
 {
 }
 
 template<typename key_type>
-inline attribute_map_base<key_type>::~attribute_map_base()
+inline property_map_base<key_type>::~property_map_base()
 {
 }
 
 template<typename key_type, typename value_type>
-inline attribute_map<key_type, value_type>::attribute_map()
+inline property_map<key_type, value_type>::property_map()
 :  m_is_optimized(true)
 ,  m_is_inserting(false)
-,  m_usage(usage::none)
 {
 }
 
 template<typename key_type, typename value_type>
-inline void attribute_map<key_type, value_type>::clear()
+inline void property_map<key_type, value_type>::clear()
 {
    m_entries.clear();
 }
 
 template<typename key_type, typename value_type>
-inline bool attribute_map<key_type, value_type>::empty() const
+inline bool property_map<key_type, value_type>::empty() const
 {
    return m_entries.empty();
 }
 
 template<typename key_type, typename value_type>
-inline index_type attribute_map<key_type, value_type>::size() const
+inline index_type property_map<key_type, value_type>::size() const
 {
    assert(m_entries.size() < std::numeric_limits<index_type>::max());
    return static_cast<index_type>(m_entries.size());
 }
 
 template<typename key_type, typename value_type>
-inline void attribute_map<key_type, value_type>::begin_insertion(
+inline void property_map<key_type, value_type>::begin_insertion(
    index_type estimated_count)
 {
    assert(!is_inserting());
@@ -54,7 +53,7 @@ inline void attribute_map<key_type, value_type>::begin_insertion(
 }
 
 template<typename key_type, typename value_type>
-inline void attribute_map<key_type, value_type>::insert(
+inline void property_map<key_type, value_type>::insert(
    key_type const   &key,
    value_type const &value
 )
@@ -76,7 +75,7 @@ inline void attribute_map<key_type, value_type>::insert(
 }
 
 template<typename key_type, typename value_type>
-inline void attribute_map<key_type, value_type>::end_insertion()
+inline void property_map<key_type, value_type>::end_insertion()
 {
    assert(is_inserting());
 
@@ -86,13 +85,13 @@ inline void attribute_map<key_type, value_type>::end_insertion()
 }
 
 template<typename key_type, typename value_type>
-inline bool attribute_map<key_type, value_type>::is_inserting() const
+inline bool property_map<key_type, value_type>::is_inserting() const
 {
    return m_is_inserting;
 }
 
 template<typename key_type, typename value_type>
-inline void attribute_map<key_type, value_type>::set_value(
+inline void property_map<key_type, value_type>::put(
    key_type const   &key,
    value_type const &value
 )
@@ -107,7 +106,7 @@ inline void attribute_map<key_type, value_type>::set_value(
 }
 
 template<typename key_type, typename value_type>
-inline value_type attribute_map<key_type, value_type>::value(key_type const &key) const
+inline value_type property_map<key_type, value_type>::get(key_type const &key) const
 {
    assert(!is_inserting());
 
@@ -119,7 +118,7 @@ inline value_type attribute_map<key_type, value_type>::value(key_type const &key
 }
 
 template<typename key_type, typename value_type>
-inline bool attribute_map<key_type, value_type>::has(key_type const& key) const
+inline bool property_map<key_type, value_type>::has(key_type const& key) const
 {
    assert(!is_inserting());
 
@@ -127,7 +126,7 @@ inline bool attribute_map<key_type, value_type>::has(key_type const& key) const
 }
 
 template<typename key_type, typename value_type>
-inline void attribute_map<key_type, value_type>::optimize()
+inline void property_map<key_type, value_type>::optimize()
 {
    assert(!is_inserting());
 
@@ -137,20 +136,28 @@ inline void attribute_map<key_type, value_type>::optimize()
 }
 
 template<typename key_type, typename value_type>
-inline bool attribute_map<key_type, value_type>::is_optimized() const
+inline bool property_map<key_type, value_type>::is_optimized() const
 {
    return m_is_optimized;
 }
 
 template<typename key_type, typename value_type>
-inline std::type_info const &attribute_map<key_type, value_type>::value_type_id() const
+inline property_map_base<key_type> *property_map<key_type, value_type>::constructor() const
+{
+   property_map<key_type, value_type> *instance = new property_map<key_type, value_type>();
+   property_map_base<key_type> *base_ptr = dynamic_cast<property_map_base<key_type> *>(instance);
+   return base_ptr;
+}
+
+template<typename key_type, typename value_type>
+inline std::type_info const &property_map<key_type, value_type>::value_type_id() const
 {
    return typeid(value_type);
 }
 
 template<typename key_type, typename value_type>
-inline typename attribute_map<key_type, value_type>::entry_container::const_iterator
-   attribute_map<key_type, value_type>::find(key_type const &key) const
+inline typename property_map<key_type, value_type>::entry_container::const_iterator
+   property_map<key_type, value_type>::find(key_type const &key) const
 {
    entry e;
    e.key = key;
@@ -168,8 +175,8 @@ inline typename attribute_map<key_type, value_type>::entry_container::const_iter
 }
 
 template<typename key_type, typename value_type>
-inline typename attribute_map<key_type, value_type>::entry_container::iterator
-   attribute_map<key_type, value_type>::find(key_type const &key)
+inline typename property_map<key_type, value_type>::entry_container::iterator
+   property_map<key_type, value_type>::find(key_type const &key)
 {
    entry e;
    e.key = key;
@@ -181,12 +188,13 @@ inline typename attribute_map<key_type, value_type>::entry_container::iterator
          typename entry_container::iterator
       > p = std::equal_range(m_entries.begin(), m_entries.end(), e); 
       return p.first != p.second ? p.first : m_entries.end();
-   } else
+   }
+   else
       return std::find(m_entries.begin(), m_entries.end(), e);
 }
 
 template<typename key_type, typename value_type>
-inline void attribute_map<key_type, value_type>::insert_entry(
+inline void property_map<key_type, value_type>::insert_entry(
    key_type const   &key,
    value_type const &value
 )
@@ -204,15 +212,61 @@ inline void attribute_map<key_type, value_type>::insert_entry(
 }
 
 template<typename key_type, typename value_type>
-inline bool attribute_map<key_type, value_type>::entry::operator==(entry const &other) const
+inline bool property_map<key_type, value_type>::entry::operator==(entry const &other) const
 {
    return key == other.key;
 }
 
 template<typename key_type, typename value_type>
-inline bool attribute_map<key_type, value_type>::entry::operator<(entry const &other) const
+inline bool property_map<key_type, value_type>::entry::operator<(entry const &other) const
 {
    return key < other.key;
+}
+
+/*virtual*/
+template<typename key_type, typename value_type>
+inline void property_map<key_type, value_type>::interpolate(
+   property_map_base<key_type> *destination_base,
+   std::map<key_type, std::vector<std::pair<float, key_type>>> key_new_to_olds
+) const
+{
+   property_map<key_type, value_type> *destination = dynamic_cast<property_map<key_type, value_type> *>(destination_base);
+
+   for (auto i = key_new_to_olds.cbegin(); i != key_new_to_olds.cend(); ++i)
+   {
+      key_type new_key = i->first;
+      std::vector<std::pair<float, key_type>> old_keys = i->second;
+
+      float sum_weights = 0.0f;
+      for (auto j = old_keys.cbegin(); j != old_keys.cend(); ++j)
+      {
+         key_type old_key = j->second;
+         auto fi = find(old_key);
+         if (fi != m_entries.cend())
+            sum_weights += j->first;
+      }
+
+      if (sum_weights == 0.0f)
+         continue;
+
+      value_type new_value(0);
+      for (auto j = old_keys.cbegin(); j != old_keys.cend(); ++j)
+      {
+         float       weight   = j->first;
+         key_type    old_key  = j->second;
+         value_type  old_value;
+
+         auto fi = find(old_key);
+         if (fi != m_entries.cend())
+         {
+            auto &entry = *fi;
+            old_value = entry.value;
+            new_value += (weight / sum_weights) * old_value;
+         }
+      }
+
+      destination->put(new_key, new_value);
+   }
 }
 
 } }

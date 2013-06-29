@@ -1,6 +1,6 @@
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_geometry/corner.hpp"
-#include "renderstack_geometry/attribute_map.hpp"
+#include "renderstack_geometry/property_map.hpp"
 #include "renderstack_geometry/point.hpp"
 #include <cassert>
 
@@ -9,17 +9,17 @@ namespace renderstack { namespace geometry {
 using namespace glm;
 
 void corner::smooth_normalize(
-   std::shared_ptr<attribute_map<renderstack::geometry::corner*,  vec3> >  corner_attribute,
-   std::shared_ptr<attribute_map<renderstack::geometry::polygon*, vec3> >  polygon_attribute,
-   std::shared_ptr<attribute_map<renderstack::geometry::polygon*, vec3> >  polygon_normals,
+   std::shared_ptr<property_map<renderstack::geometry::corner*,  vec3> >  corner_attribute,
+   std::shared_ptr<property_map<renderstack::geometry::polygon*, vec3> >  polygon_attribute,
+   std::shared_ptr<property_map<renderstack::geometry::polygon*, vec3> >  polygon_normals,
    float                                                                   cos_max_smoothing_angle
 )
 {
    if (polygon_normals->has(polygon()) == false)
       return;
 
-   vec3 polygon_normal = polygon_normals->value(polygon());
-   vec3 polygon_value = polygon_attribute->value(polygon());
+   vec3 polygon_normal = polygon_normals->get(polygon());
+   vec3 polygon_value = polygon_attribute->get(polygon());
    vec3 corner_value = polygon_value;
 
    int point_corners = 0;
@@ -36,7 +36,7 @@ void corner::smooth_normalize(
          (neighbor_polygon->corners().size() > 2)
       )
       {
-         vec3 neighbor_normal = polygon_normals->value(neighbor_polygon);
+         vec3 neighbor_normal = polygon_normals->get(neighbor_polygon);
          //float pLen = polygonNormal.Length;
          //float nLen = neighborNormal.Length;
          float cos_angle = dot(polygon_normal, neighbor_normal);
@@ -51,21 +51,21 @@ void corner::smooth_normalize(
          //  Cosine == 1 == maximum sharpness
          //  Cosine == -1 == minimum sharpness (flat)
          if (cos_angle <= cos_max_smoothing_angle) {
-            corner_value += polygon_attribute->value(neighbor_polygon);
+            corner_value += polygon_attribute->get(neighbor_polygon);
             ++participants;
          }
       }
    }
 
    corner_value = normalize(corner_value);
-   corner_attribute->set_value(this, corner_value);
+   corner_attribute->put(this, corner_value);
 }
 
 void corner::smooth_average(
-   std::shared_ptr<attribute_map<corner*,      vec4> >   new_corner_attribute,
-   std::shared_ptr<attribute_map<corner*,      vec4> >   old_corner_attribute,
-   std::shared_ptr<attribute_map<corner*,      vec3> >   corner_normals,
-   std::shared_ptr<attribute_map<class point*, vec3> >   point_normals
+   std::shared_ptr<property_map<corner*,      vec4> >   new_corner_attribute,
+   std::shared_ptr<property_map<corner*,      vec4> >   old_corner_attribute,
+   std::shared_ptr<property_map<corner*,      vec3> >   corner_normals,
+   std::shared_ptr<property_map<class point*, vec3> >   point_normals
 )
 {
    bool has_corner_normal = corner_normals->has(this);
@@ -75,7 +75,7 @@ void corner::smooth_average(
    )
       return;
 
-   vec3 corner_normal = has_corner_normal ? corner_normals->value(this) : point_normals->value(point());
+   vec3 corner_normal = has_corner_normal ? corner_normals->get(this) : point_normals->get(point());
    vec4 corner_value(0.0f, 0.0f, 0.0f, 0.0f);
 
    int point_corners = 0;
@@ -87,18 +87,18 @@ void corner::smooth_average(
 
       if (
          !has_corner_normal ||
-         (corner_normals->value(point_corner) == corner_normal)
+         (corner_normals->get(point_corner) == corner_normal)
       )
       {
          if (old_corner_attribute->has(point_corner)) {
-            corner_value += old_corner_attribute->value(point_corner);
+            corner_value += old_corner_attribute->get(point_corner);
             ++participants;
          }
       }
    }
 
    corner_value = corner_value / (float)(participants);
-   new_corner_attribute->set_value(this, corner_value);
+   new_corner_attribute->put(this, corner_value);
 }
 
 } }

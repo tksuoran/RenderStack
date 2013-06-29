@@ -8,16 +8,17 @@ include_directories(
 
 add_library(
    renderstack_geometry STATIC
-   include/renderstack_geometry/attribute_map.hpp
-   include/renderstack_geometry/attribute_map.inl
-   include/renderstack_geometry/attribute_map_collection.hpp
-   include/renderstack_geometry/attribute_map_collection.inl
+   include/renderstack_geometry/property_map.hpp
+   include/renderstack_geometry/property_map.inl
+   include/renderstack_geometry/property_map_collection.hpp
+   include/renderstack_geometry/property_map_collection.inl
    include/renderstack_geometry/cone.hpp
    include/renderstack_geometry/corner.hpp
    include/renderstack_geometry/disc.hpp
    include/renderstack_geometry/edge.hpp
    include/renderstack_geometry/exception.hpp
    include/renderstack_geometry/geometry.hpp
+   include/renderstack_geometry/geometry_operation.hpp
    include/renderstack_geometry/point.hpp
    include/renderstack_geometry/polygon.hpp
    include/renderstack_geometry/polygon.inl
@@ -28,6 +29,7 @@ add_library(
    source/corner.cpp
    source/disc.cpp
    source/geometry.cpp
+   source/geometry_operation.cpp
    source/polygon.cpp
    source/sphere.cpp
    source/triangle.cpp

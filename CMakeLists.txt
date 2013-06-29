@@ -25,6 +25,17 @@ else ()
    message(FATAL_ERROR "Unsupported RENDERSTACK_WINDOW_TOOLKIT")
 endif ()
 
+set(Boost_USE_STATIC_LIBS OFF)
+set(Boost_USE_MULTITHREADED ON) 
+set(Boost_USE_STATIC_RUNTIME OFF)
+find_package(Boost 1.53.0)
+
+if (Boost_FOUND)
+    include_directories(${Boost_INCLUDE_DIRS})
+    # add_executable(progname file1.cxx file2.cxx)
+    # target_link_libraries(progname ${Boost_LIBRARIES})                                                                                                                                                                                                                            
+endif()
+
 set(RENDERSTACK_GL_API "OpenGL" CACHE STRING "OpenGL API version")
 set_property(CACHE RENDERSTACK_GL_API PROPERTY STRINGS "OpenGL" "OpenGL ES 2" "OpenGL ES 3")
 if (RENDERSTACK_GL_API STREQUAL "OpenGL")
@@ -103,7 +114,7 @@ if (RENDERSTACK_USE_FREETYPE)
 endif ()
 
 if (MSVC OR (WIN32 AND CMAKE_C_COMPILER_ID MATCHES "Intel"))
-   add_definitions(-D_VARIADIC_MAX=7)
+   add_definitions(-D_VARIADIC_MAX=8)
 
    option(RENDERSTACK_HAS_ITERATOR_DEBUGGING "MSVC Iterator Debugging" OFF)
    option(RENDERSTACK_DISABLE_BUFFER_CHECKS  "MSVC Disable Buffer Checks" ON)

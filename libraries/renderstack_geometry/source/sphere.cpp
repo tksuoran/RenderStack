@@ -31,12 +31,12 @@ struct sphere::make_info
    point*          top;
    point*          bottom;
 
-   shared_ptr<attribute_map<point*, vec3> >   point_locations;
-   shared_ptr<attribute_map<point*, vec3> >   point_normals;
-   shared_ptr<attribute_map<point*, vec2> >   point_texcoords;
-   shared_ptr<attribute_map<corner*, vec2> >  corner_texcoords;
-   shared_ptr<attribute_map<polygon*, vec3> > polygon_centroids;
-   shared_ptr<attribute_map<polygon*, vec3> > polygon_normals;
+   shared_ptr<property_map<point*, vec3> >   point_locations;
+   shared_ptr<property_map<point*, vec3> >   point_normals;
+   shared_ptr<property_map<point*, vec2> >   point_texcoords;
+   shared_ptr<property_map<corner*, vec2> >  corner_texcoords;
+   shared_ptr<property_map<polygon*, vec3> > polygon_centroids;
+   shared_ptr<property_map<polygon*, vec3> > polygon_normals;
 
    make_info(double radius_, int slice_count_, int stack_division_)
    {
@@ -58,12 +58,12 @@ sphere::sphere(
 {
    make_info info(radius, static_cast<int>(slice_count), static_cast<int>(stack_division));
 
-   info.point_locations    = point_attributes().find_or_create<vec3>("point_locations", usage::position);
-   info.point_normals      = point_attributes().find_or_create<vec3>("point_normals", usage::direction);
-   info.point_texcoords    = point_attributes().find_or_create<vec2>("point_texcoords", usage::none);
-   info.polygon_centroids  = polygon_attributes().find_or_create<vec3>("polygon_centroids", usage::position);
-   info.polygon_normals    = polygon_attributes().find_or_create<vec3>("polygon_normals", usage::direction);
-   info.corner_texcoords   = corner_attributes().find_or_create<vec2>("corner_texcoords", usage::none);
+   info.point_locations    = point_attributes().find_or_create<vec3>("point_locations");
+   info.point_normals      = point_attributes().find_or_create<vec3>("point_normals");
+   info.point_texcoords    = point_attributes().find_or_create<vec2>("point_texcoords");
+   info.polygon_centroids  = polygon_attributes().find_or_create<vec3>("polygon_centroids");
+   info.polygon_normals    = polygon_attributes().find_or_create<vec3>("polygon_normals");
+   info.corner_texcoords   = corner_attributes().find_or_create<vec2>("corner_texcoords");
 
    int slice;
    int stack;
@@ -98,8 +98,8 @@ sphere::sphere(
          make_corner(info, polygon, slice, info.stack_base0_bottom);
          make_corner(info, polygon, next_slice, stack_base0);
 
-         info.polygon_centroids->set_value(polygon, info.point_locations->value(centroid));
-         info.polygon_normals->set_value(polygon, info.point_normals->value(centroid));
+         info.polygon_centroids->put(polygon, info.point_locations->get(centroid));
+         info.polygon_normals->put(polygon, info.point_normals->get(centroid));
       }
    }
 #  endif
@@ -124,8 +124,8 @@ sphere::sphere(
          make_corner(info, polygon, slice,       stack_base0);
          make_corner(info, polygon, next_slice,  stack_base0);
 
-         info.polygon_centroids->set_value(polygon, info.point_locations->value(centroid));
-         info.polygon_normals->set_value(polygon, info.point_normals->value(centroid));
+         info.polygon_centroids->put(polygon, info.point_locations->get(centroid));
+         info.polygon_normals->put(polygon, info.point_normals->get(centroid));
       }
    }
 #  endif
@@ -146,8 +146,8 @@ sphere::sphere(
       make_corner(info, polygon, slice,       stack_base0);
       make_corner(info, polygon, next_slice,  stack_base0);
 
-      info.polygon_centroids->set_value(polygon, info.point_locations->value(centroid));
-      info.polygon_normals->set_value(polygon, info.point_normals->value(centroid));
+      info.polygon_centroids->put(polygon, info.point_locations->get(centroid));
+      info.polygon_normals->put(polygon, info.point_normals->get(centroid));
    }
 #  endif
 }
@@ -179,10 +179,10 @@ point *sphere::sphere_point(make_info &info, double rel_slice, double rel_stack)
 
    bool uv_discontinuity = (rel_stack == -1.0) || (rel_stack == 1.0) || /*(relSlice == 0.0) ||*/ (rel_slice == 1.0);
 
-   info.point_locations->set_value(point, vec3(xP, yP, zP));
-   info.point_normals->set_value(point, vec3(xVN, yVN, zVN));
+   info.point_locations->put(point, vec3(xP, yP, zP));
+   info.point_normals->put(point, vec3(xVN, yVN, zVN));
    if (uv_discontinuity == false)
-      info.point_texcoords->set_value(point, vec2(s, t));
+      info.point_texcoords->put(point, vec2(s, t));
 
    return point;
 }
@@ -218,7 +218,7 @@ void sphere::make_corner(make_info &info, polygon *polygon, int slice, int stack
       float s = 1.0f - (float)(rel_slice);
       float t = 1.0f - (float)(0.5 * (1.0 + rel_stack));
 
-      info.corner_texcoords->set_value(corner, vec2(s, t));
+      info.corner_texcoords->put(corner, vec2(s, t));
    }
 }
 

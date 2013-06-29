@@ -8,7 +8,7 @@
 #include "renderstack_toolkit/math_util.hpp"
 #include "renderstack_toolkit/logstream.hpp"
 
-#include "renderstack_geometry/attribute_map.hpp"
+#include "renderstack_geometry/property_map.hpp"
 #include "renderstack_geometry/geometry.hpp"
 #include "renderstack_geometry/corner.hpp"
 #include "renderstack_geometry/polygon.hpp"
@@ -124,8 +124,8 @@ void geometry_mesh::prepare_vertex_format(
 
    if (!has_tex_coord && format_info.want_texcoord())
    {
-      shared_ptr<attribute_map<corner*, vec2> > corner_texcoords;
-      shared_ptr<attribute_map<point*, vec2> >  point_texcoords;
+      shared_ptr<property_map<corner*, vec2> > corner_texcoords;
+      shared_ptr<property_map<point*, vec2> >  point_texcoords;
 
       if (geometry->corner_attributes().contains<vec2>("corner_texcoords"))
          corner_texcoords = geometry->corner_attributes().find<vec2>("corner_texcoords");
@@ -163,19 +163,19 @@ void geometry_mesh::build_mesh_from_geometry(
 
    m_vertex_format = buffer_info.vertex_format();
 
-   shared_ptr<attribute_map<polygon*,  vec3> >           polygon_ids_vector3;
-   shared_ptr<attribute_map<polygon*,  unsigned int> >   polygon_ids_uint32;
-   shared_ptr<attribute_map<polygon*,  vec3> >           polygon_normals;
-   shared_ptr<attribute_map<polygon*,  vec3> >           polygon_centroids;
-   shared_ptr<attribute_map<corner*,   vec3> >           corner_normals;
-   shared_ptr<attribute_map<corner*,   vec2> >           corner_texcoords;
-   shared_ptr<attribute_map<corner*,   vec4> >           corner_colors;
-   shared_ptr<attribute_map<corner*,   unsigned int> >   corner_indices;
-   shared_ptr<attribute_map<point*,    vec3> >           point_locations;
-   shared_ptr<attribute_map<point*,    vec3> >           point_normals;
-   shared_ptr<attribute_map<point*,    vec3> >           point_normals_smooth;
-   shared_ptr<attribute_map<point*,    vec2> >           point_texcoords;
-   shared_ptr<attribute_map<point*,    vec4> >           point_colors;
+   shared_ptr<property_map<polygon*,  vec3> >           polygon_ids_vector3;
+   shared_ptr<property_map<polygon*,  unsigned int> >   polygon_ids_uint32;
+   shared_ptr<property_map<polygon*,  vec3> >           polygon_normals;
+   shared_ptr<property_map<polygon*,  vec3> >           polygon_centroids;
+   shared_ptr<property_map<corner*,   vec3> >           corner_normals;
+   shared_ptr<property_map<corner*,   vec2> >           corner_texcoords;
+   shared_ptr<property_map<corner*,   vec4> >           corner_colors;
+   shared_ptr<property_map<corner*,   unsigned int> >   corner_indices;
+   shared_ptr<property_map<point*,    vec3> >           point_locations;
+   shared_ptr<property_map<point*,    vec3> >           point_normals;
+   shared_ptr<property_map<point*,    vec3> >           point_normals_smooth;
+   shared_ptr<property_map<point*,    vec2> >           point_texcoords;
+   shared_ptr<property_map<point*,    vec4> >           point_colors;
 
    if (!m_geometry->polygon_attributes().contains<vec3>("polygon_normals"))
       m_geometry->compute_polygon_normals();
@@ -408,7 +408,7 @@ void geometry_mesh::build_mesh_from_geometry(
       for (auto i = m_geometry->points().cbegin(); i != m_geometry->points().cend(); ++i)
       {
          auto point = *i;
-         vec3 position = point_locations->value(point);
+         vec3 position = point_locations->get(point);
          m_min = glm::min(m_min, position);
          m_max = glm::max(m_max, position);
       }
@@ -424,9 +424,9 @@ void geometry_mesh::build_mesh_from_geometry(
       if (format_info.want_id())
       {
          if (polygon_ids_uint32)
-            polygon_ids_uint32->set_value(polygon, polygon_index);
+            polygon_ids_uint32->put(polygon, polygon_index);
 
-         polygon_ids_vector3->set_value(polygon, vec3_from_uint(polygon_index));
+         polygon_ids_vector3->put(polygon, vec3_from_uint(polygon_index));
       }
 
       vec3 polygon_normal(0.0f, 1.0f, 0.0f);
@@ -435,7 +435,7 @@ void geometry_mesh::build_mesh_from_geometry(
          polygon_normals &&
          polygon_normals->has(polygon)
       )
-         polygon_normal = polygon_normals->value(polygon);
+         polygon_normal = polygon_normals->get(polygon);
 
       unsigned int first_index    = vertex_index;
       unsigned int previous_index = first_index;
@@ -448,24 +448,24 @@ void geometry_mesh::build_mesh_from_geometry(
          //  Position
          if (format_info.want_position())
          {
-            vec3 position = point_locations->value(corner->point());
+            vec3 position = point_locations->get(corner->point());
             write(&vertex_data[o_position], t_position, position);
          }
 
          //  Normal
          vec3 normal(0.0f, 1.0f, 0.0f);
          if (corner_normals && corner_normals->has(corner))
-            normal = corner_normals->value(corner);
+            normal = corner_normals->get(corner);
          else if (point_normals && point_normals->has(corner->point()))
-            normal = point_normals->value(corner->point());
+            normal = point_normals->get(corner->point());
          else if (point_normals_smooth && point_normals_smooth->has(corner->point()))
-            normal = point_normals_smooth->value(corner->point());
+            normal = point_normals_smooth->get(corner->point());
 
          vec3 point_normal(0.0f, 1.0f, 0.0f);
          if (point_normals && point_normals->has(corner->point()))
-            point_normal = point_normals->value(corner->point());
+            point_normal = point_normals->get(corner->point());
          else if (point_normals_smooth && point_normals_smooth->has(corner->point()))
-            point_normal = point_normals_smooth->value(corner->point());
+            point_normal = point_normals_smooth->get(corner->point());
 
          if (format_info.want_normal())
          {
@@ -487,16 +487,16 @@ void geometry_mesh::build_mesh_from_geometry(
             write(&vertex_data[o_normal_flat], t_normal_flat, polygon_normal);
 
          if (format_info.want_normal_smooth() && attribute_normal_smooth)
-            write(&vertex_data[o_normal_smooth], t_normal_smooth, point_normals_smooth->value(corner->point()));
+            write(&vertex_data[o_normal_smooth], t_normal_smooth, point_normals_smooth->get(corner->point()));
 
          //  Texcoord
          if (format_info.want_texcoord() && attribute_texcoord)
          {
             vec2 texcoord(0.0f, 0.0f);
             if (corner_texcoords && corner_texcoords->has(corner))
-               texcoord = corner_texcoords->value(corner);
+               texcoord = corner_texcoords->get(corner);
             else if (point_texcoords && point_texcoords->has(corner->point()))
-               texcoord = point_texcoords->value(corner->point());
+               texcoord = point_texcoords->get(corner->point());
 
             write(&vertex_data[o_texcoord], t_texcoord, texcoord);
          }
@@ -505,9 +505,9 @@ void geometry_mesh::build_mesh_from_geometry(
          if (format_info.want_color() && attribute_color)
          {
             if (corner_colors && corner_colors->has(corner))
-               write(&vertex_data[o_color], t_color, corner_colors->value(corner));
+               write(&vertex_data[o_color], t_color, corner_colors->get(corner));
             else if (point_colors && point_colors->has(corner->point()))
-               write(&vertex_data[o_color], t_color, point_colors->value(corner->point()));
+               write(&vertex_data[o_color], t_color, point_colors->get(corner->point()));
             else
                write(&vertex_data[o_color], t_color, format_info.constant_color());
          }
@@ -535,7 +535,7 @@ void geometry_mesh::build_mesh_from_geometry(
          }
 
          // TODO Where is this used? With or without + base_vertex?
-         corner_indices->set_value(corner, vertex_index/* + base_vertex*/);
+         corner_indices->put(corner, vertex_index/* + base_vertex*/);
 
          if (format_info.want_fill_triangles())
          {
@@ -571,8 +571,8 @@ void geometry_mesh::build_mesh_from_geometry(
 
          if (corner_indices->has(ca) && corner_indices->has(cb))
          {
-            unsigned int i0 = corner_indices->value(ca);
-            unsigned int i1 = corner_indices->value(cb);
+            unsigned int i0 = corner_indices->get(ca);
+            unsigned int i1 = corner_indices->get(cb);
             *edge_line_index_data++ = i0 + base_vertex;
             *edge_line_index_data++ = i1 + base_vertex;
             edge_line_indices_written += 2;
@@ -588,10 +588,10 @@ void geometry_mesh::build_mesh_from_geometry(
          vec3 &normal = unit_y;
 
          if (polygon_normals->has(polygon))
-            normal = polygon_normals->value(polygon);
+            normal = polygon_normals->get(polygon);
 
          if (format_info.want_position())
-            write(&vertex_data[o_position], t_position, polygon_centroids->value(polygon));
+            write(&vertex_data[o_position], t_position, polygon_centroids->get(polygon));
 
          if (format_info.want_normal() && attribute_normal)
             write(&vertex_data[o_normal], t_normal, normal);

@@ -41,13 +41,13 @@ struct cube::make_info
    float             p;
    map<long, point*> points;
 
-   shared_ptr<attribute_map<point*, vec3> >   point_locations;
-   shared_ptr<attribute_map<point*, vec3> >   point_normals;
-   shared_ptr<attribute_map<point*, vec2> >   point_texcoords;
-   shared_ptr<attribute_map<corner*, vec3> >  corner_normals;
-   shared_ptr<attribute_map<corner*, vec2> >  corner_texcoords;
-   shared_ptr<attribute_map<polygon*, vec3> > polygon_centroids;
-   shared_ptr<attribute_map<polygon*, vec3> > polygon_normals;
+   shared_ptr<property_map<point*, vec3> >   point_locations;
+   shared_ptr<property_map<point*, vec3> >   point_normals;
+   shared_ptr<property_map<point*, vec2> >   point_texcoords;
+   shared_ptr<property_map<corner*, vec3> >  corner_normals;
+   shared_ptr<property_map<corner*, vec2> >  corner_texcoords;
+   shared_ptr<property_map<polygon*, vec3> > polygon_centroids;
+   shared_ptr<property_map<polygon*, vec3> > polygon_normals;
 
    make_info(
       vec3  const &size_,
@@ -92,11 +92,11 @@ point *cube::make_point(make_info &info, int x, int y, int z, glm::vec3 const &n
 
    bool discontinuity = (x == -info.div.x) || (x == info.div.x) || (y == -info.div.y) || (y == info.div.y) || (z == -info.div.z) || (z == info.div.z);
 
-   info.point_locations->set_value(point, vec3(x_p, y_p, z_p));
+   info.point_locations->put(point, vec3(x_p, y_p, z_p));
    if (!discontinuity)
    {
-      info.point_normals->set_value(point, n);
-      info.point_texcoords->set_value(point, vec2(s, t));
+      info.point_normals->put(point, n);
+      info.point_texcoords->put(point, vec2(s, t));
    }
 
    info.points[key] = point;
@@ -125,8 +125,8 @@ corner *cube::make_corner(make_info &info, polygon *polygon, int x, int y, int z
 
    if (discontinuity)
    {
-      info.point_normals->set_value(point, n);
-      info.point_texcoords->set_value(point, vec2(s, t));
+      info.point_normals->put(point, n);
+      info.point_texcoords->put(point, vec2(s, t));
    }
 
    return corner;
@@ -140,13 +140,13 @@ cube::cube(glm::vec3 const &size, glm::ivec3 const &div, float p)
 
    make_info info(0.5f * size, div, p);
 
-   info.point_locations    = point_attributes().find_or_create<vec3>("point_locations", usage::position);
-   info.point_normals      = point_attributes().find_or_create<vec3>("point_normals", usage::direction);
-   info.point_texcoords    = point_attributes().find_or_create<vec2>("point_texcoords", usage::none);
-   info.corner_normals     = corner_attributes().find_or_create<vec3>("corner_normals", usage::direction);
-   info.corner_texcoords   = corner_attributes().find_or_create<vec2>("corner_texcoords", usage::none);
-   info.polygon_centroids  = polygon_attributes().find_or_create<vec3>("polygon_centroids", usage::position);
-   info.polygon_normals    = polygon_attributes().find_or_create<vec3>("polygon_normals", usage::direction);
+   info.point_locations    = point_attributes().find_or_create<vec3>("point_locations");
+   info.point_normals      = point_attributes().find_or_create<vec3>("point_normals");
+   info.point_texcoords    = point_attributes().find_or_create<vec2>("point_texcoords");
+   info.corner_normals     = corner_attributes().find_or_create<vec3>("corner_normals");
+   info.corner_texcoords   = corner_attributes().find_or_create<vec2>("corner_texcoords");
+   info.polygon_centroids  = polygon_attributes().find_or_create<vec3>("polygon_centroids");
+   info.polygon_normals    = polygon_attributes().find_or_create<vec3>("polygon_normals");
    
    //  Generate vertices
    //  Top and bottom
@@ -210,8 +210,8 @@ cube::cube(glm::vec3 const &size, glm::ivec3 const &div, float p)
          make_corner(info, bottom, x + 1, -info.div.y, z + 1, -unit_y, rel_x2, rel_z2);
          make_corner(info, bottom, x + 1, -info.div.y, z,     -unit_y, rel_x2, rel_z1);
 
-         info.polygon_normals->set_value(top,     unit_y);
-         info.polygon_normals->set_value(bottom, -unit_y);
+         info.polygon_normals->put(top,     unit_y);
+         info.polygon_normals->put(bottom, -unit_y);
       }
       for (y = -info.div.y; y < info.div.y; y++)
       {
@@ -230,8 +230,8 @@ cube::cube(glm::vec3 const &size, glm::ivec3 const &div, float p)
          make_corner(info, front, x,     y + 1, -info.div.z, -unit_z, rel_x1, rel_y2);
          make_corner(info, front, x,     y,     -info.div.z, -unit_z, rel_x1, rel_y1);
 
-         info.polygon_normals->set_value(back,   unit_z);
-         info.polygon_normals->set_value(front, -unit_z);
+         info.polygon_normals->put(back,   unit_z);
+         info.polygon_normals->put(front, -unit_z);
       }
    }
 
@@ -258,8 +258,8 @@ cube::cube(glm::vec3 const &size, glm::ivec3 const &div, float p)
          make_corner(info, left, -info.div.x, y,     z + 1, -unit_x, rel_y1, rel_z2);
          make_corner(info, left, -info.div.x, y,     z,     -unit_x, rel_y1, rel_z1);
 
-         info.polygon_normals->set_value(right,  unit_x);
-         info.polygon_normals->set_value(left,  -unit_x);
+         info.polygon_normals->put(right,  unit_x);
+         info.polygon_normals->put(left,  -unit_x);
       }
    }
    geometry::compute_polygon_centroids();
