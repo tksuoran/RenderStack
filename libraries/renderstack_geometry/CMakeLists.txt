@@ -18,7 +18,9 @@ add_library(
    include/renderstack_geometry/edge.hpp
    include/renderstack_geometry/exception.hpp
    include/renderstack_geometry/geometry.hpp
-   include/renderstack_geometry/geometry_operation.hpp
+   include/renderstack_geometry/operation/geometry_operation.hpp
+   include/renderstack_geometry/operation/clone.hpp
+   include/renderstack_geometry/operation/catmull_clark.hpp
    include/renderstack_geometry/point.hpp
    include/renderstack_geometry/polygon.hpp
    include/renderstack_geometry/polygon.inl
@@ -29,7 +31,9 @@ add_library(
    source/corner.cpp
    source/disc.cpp
    source/geometry.cpp
-   source/geometry_operation.cpp
+   source/operation/geometry_operation.cpp
+   source/operation/clone.cpp
+   source/operation/catmull_clark.cpp
    source/polygon.cpp
    source/sphere.cpp
    source/triangle.cpp

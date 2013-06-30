@@ -27,6 +27,8 @@
 #include "renderstack_mesh/geometry_mesh.hpp"
 #include "renderstack_mesh/build_info.hpp"
 #include "renderstack_graphics/renderer.hpp"
+#include "renderstack_geometry/operation/clone.hpp"
+#include "renderstack_geometry/operation/catmull_clark.hpp"
 #include <cassert>
 
 #include <boost/property_map/dynamic_property_map.hpp>
@@ -198,6 +200,21 @@ void game::on_load()
       g_collection.push_back(make_shared<renderstack::geometry::shapes::icosahedron>(1.0));
       g_collection.push_back(make_shared<renderstack::geometry::shapes::octahedron>(1.0));
       g_collection.push_back(make_shared<renderstack::geometry::shapes::tetrahedron>(1.0));
+
+      g_collection.push_back(make_shared<renderstack::geometry::shapes::dodecahedron>(2.0));
+      auto g0 = make_shared<renderstack::geometry::shapes::dodecahedron>(2.0);
+      g0->build_edges();
+
+      auto o1 = make_shared<renderstack::geometry::operation::catmull_clark>(g0);
+      auto g1 = o1->destination();
+
+      auto o2 = make_shared<renderstack::geometry::operation::catmull_clark>(g1);
+      auto g2 = o2->destination();
+
+      g2->compute_polygon_normals();
+      g2->compute_point_normals("point_normals");
+      g_collection.push_back(g2);
+
 #endif
 
 #if 0

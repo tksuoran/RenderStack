@@ -38,6 +38,8 @@ void game::update_fixed_steps()
       update_fixed_step();
       m_simulation_time += dt;
       ++updates;
+
+      // TODO 
       if (updates > 100000)
          throw runtime_error("oh no!");
    }

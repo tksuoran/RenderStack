@@ -74,6 +74,8 @@ add_executable(
    main/textures.cpp
    main/textures.hpp
    main/update.cpp
+   main/netlib_polyhedron.cpp
+   main/netlib_polyhedron.hpp
    ${res_images}
    ${res_fonts}
    ${res_sm0}

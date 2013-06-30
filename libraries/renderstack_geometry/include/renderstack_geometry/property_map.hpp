@@ -27,12 +27,20 @@ public:
 
 public:
    virtual property_map_base *constructor() const = 0;
+
+   virtual void                  clear          () = 0;
+   virtual bool                  empty          () const = 0;
+   virtual index_type            size           () const = 0;
+   virtual void                  begin_insertion(index_type estimated_count) = 0;
+   virtual bool                  is_inserting   () const = 0;
+   virtual bool                  has            (key_type const &key) const = 0;
+   virtual void                  optimize       () = 0;
+   virtual bool                  is_optimized   () const = 0;
+   virtual std::type_info const  &value_type_id () const = 0;
    virtual void interpolate(
       property_map_base<key_type> *destination,
       std::map<key_type, std::vector<std::pair<float, key_type>>> key_new_to_olds
    ) const = 0;
-
-   virtual std::type_info const &value_type_id() const = 0;
 
 protected:
    property_map_base();
@@ -47,6 +55,9 @@ class property_map
 public:
    property_map();
 
+   void        put            (key_type const &key, value_type const &value);
+   value_type  get            (key_type const &key) const;
+
    void        clear          ();
    bool        empty          () const;
    index_type  size           () const;
@@ -54,20 +65,19 @@ public:
    void        insert         (key_type const &key, value_type const &value);
    void        end_insertion  ();
    bool        is_inserting   () const;
-   void        put            (key_type const &key, value_type const &value);
-   value_type  get            (key_type const &key) const;
    bool        has            (key_type const &key) const;
    void        optimize       ();
    bool        is_optimized   () const;
 
-public:
-   property_map_base<key_type> *constructor() const;
    /*virtual*/ void interpolate(
       property_map_base<key_type> *destination,
       std::map<key_type, std::vector<std::pair<float, key_type>>> key_new_to_olds
    ) const;
 
+   property_map_base<key_type> *constructor() const;
+
    std::type_info const &value_type_id() const;
+
 
 private:
    struct entry

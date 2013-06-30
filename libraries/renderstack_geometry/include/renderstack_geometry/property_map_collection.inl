@@ -217,6 +217,7 @@ inline void property_map_collection<key_type>::interpolate(
       property_map_base<key_type>                     *destination_map_ptr = src_map->constructor();
       std::shared_ptr<property_map_base<key_type> >   destination_map(destination_map_ptr);
 
+      src_map->optimize();
       src_map->interpolate(destination_map_ptr, key_new_to_olds);
 
       destination.insert(map_name, destination_map);

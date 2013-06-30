@@ -1,5 +1,5 @@
-#ifndef geometry_operation_hpp_renderstack_geometry
-#define geometry_operation_hpp_renderstack_geometry
+#ifndef geometry_operation_hpp_renderstack_geometry_operation
+#define geometry_operation_hpp_renderstack_geometry_operation
 
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_geometry/edge.hpp"
@@ -11,11 +11,11 @@
 #include <vector>
 #include <unordered_set>
 
-namespace renderstack { namespace geometry {
+namespace renderstack { namespace geometry { namespace operation {
 
 class geometry_operation
 {
-private:
+protected:
    std::shared_ptr<geometry>                                         m_source;
    std::shared_ptr<geometry>                                         m_destination;
    std::map<point*,     point*>                                      m_point_old_to_new;
@@ -45,8 +45,8 @@ public:
    // The new point is linked to the old point in Source.
    // Old point is set as source for the new point with weight 1.0.
    //
-   // old_point    Old point used as source for the new point
-   // returns     he new point.
+   // old_point   Old point used as source for the new point
+   // returns     The new point.
    point *make_new_point_from_point(point *old_point);
 
    // Creates a new point to Destination from centroid of old polygon.
@@ -63,14 +63,15 @@ public:
    void add_point_source(point *new_point, float weight, point *old_point);
    void add_point_source(point *new_point, float weight, corner *old_corner);
    void add_corner_source(corner *new_corner, float weight, corner *old_corner);
+
+   // Inherit point sources to corner
    void distribute_corner_sources(corner *new_corner, float weight, point *new_point);
    void add_polygon_source(polygon *new_polygon, float weight, polygon *old_polygon);
    void add_edge_source(edge *new_edge, float weight, edge *old_edge);
 
    void build_destination_edges_with_sourcing();
-   void interpolate_all_attribute_maps();
+   void interpolate_all_property_maps();
 
-protected:
    void set_source(std::shared_ptr<geometry> value)
    {
       m_source = value;
@@ -79,41 +80,9 @@ protected:
    {
       return m_destination;
    }
+
 };
 
-class clone_geometry_operation : public geometry_operation
-{
-public:
-   clone_geometry_operation(
-      std::shared_ptr<geometry> src
-      /*, HashSet<uint> selectedPolygonIndices*/
-   )
-   {
-      set_source(src);
-
-      for (auto i = src->points().cbegin(); i != src->points().cend(); ++i)
-         make_new_point_from_point(*i);
-
-      for (std::size_t polygon_index = 0; polygon_index < src->polygons().size(); ++polygon_index)
-      {
-         /*if(
-            (selectedPolygonIndices == null) || 
-            selectedPolygonIndices.Contains(polygonIndex)
-         ) */
-         {
-            polygon *old_polygon = src->polygons()[polygon_index];
-            polygon *new_polygon = make_new_polygon_from_polygon(old_polygon);
-            add_polygon_corners(new_polygon, old_polygon);
-         }
-      }
-
-      build_destination_edges_with_sourcing();
-      interpolate_all_attribute_maps();
-   }
-};
-
-} }
-
-#include "geometry_operation.inl"
+} } }
 
 #endif 

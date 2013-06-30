@@ -1,22 +1,15 @@
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_geometry/corner.hpp"
-#include "renderstack_geometry/geometry.hpp"
-#include "renderstack_geometry/geometry_operation.hpp"
-#include "renderstack_geometry/point.hpp"
-#include "renderstack_geometry/polygon.hpp"
-#include <glm/glm.hpp>
-#include <stdexcept>
-#include <cmath>
+#include "renderstack_geometry/operation/geometry_operation.hpp"
 
-namespace renderstack { namespace geometry {
+namespace renderstack { namespace geometry { namespace operation {
 
 using namespace std;
-using namespace glm;
 
 geometry_operation::geometry_operation()
 :  m_source(nullptr)
 {
-   m_destination = std::make_shared<geometry>();
+   m_destination = make_shared<geometry>();
 }
 
 point *geometry_operation::make_new_point_from_point(float weight, point *old_point)
@@ -131,7 +124,7 @@ void geometry_operation::add_point_source(point *new_point, float weight, point 
    auto fi = m_new_point_sources.find(new_point);
    if (fi == m_new_point_sources.end())
    {
-      std::vector<std::pair<float, point*> > v;
+      vector<pair<float, point*> > v;
       m_new_point_sources[new_point] = v;
    }
 
@@ -146,7 +139,7 @@ void geometry_operation::add_point_source(point *new_point, float weight, corner
    auto fi = m_new_point_corner_sources.find(new_point);
    if (fi == m_new_point_corner_sources.end())
    {
-      std::vector<std::pair<float, point*> > v;
+      vector<pair<float, point*> > v;
       m_new_point_sources[new_point] = v;
    }
 
@@ -161,7 +154,7 @@ void geometry_operation::add_corner_source(corner *new_corner, float weight, cor
    auto fi = m_new_corner_sources.find(new_corner);
    if (fi == m_new_corner_sources.end())
    {
-      std::vector<std::pair<float, corner*> > v;
+      vector<pair<float, corner*> > v;
       m_new_corner_sources[new_corner] = v;
    }
    m_new_corner_sources[new_corner].push_back(make_pair(weight, old_corner));
@@ -188,7 +181,7 @@ void geometry_operation::add_polygon_source(polygon *new_polygon, float weight, 
    auto fi = m_new_polygon_sources.find(new_polygon);
    if (fi == m_new_polygon_sources.end())
    {
-      std::vector<std::pair<float, polygon*> > v;
+      vector<pair<float, polygon*> > v;
       m_new_polygon_sources[new_polygon] = v;
    }
    m_new_polygon_sources[new_polygon].push_back(make_pair(weight, old_polygon));
@@ -204,7 +197,7 @@ void geometry_operation::add_edge_source(edge *new_edge, float weight, edge *old
    auto fi = m_new_edge_sources.find(new_edge);
    if (fi == m_new_edge_sources.end())
    {
-      std::vector<std::pair<float, edge*> > v;
+      vector<pair<float, edge*> > v;
       m_new_edge_sources[new_edge] = v;
    }
    m_new_edge_sources[new_edge].push_back(make_pair(weight, old_edge));
@@ -223,7 +216,7 @@ void geometry_operation::build_destination_edges_with_sourcing()
    }
 }
 
-void geometry_operation::interpolate_all_attribute_maps()
+void geometry_operation::interpolate_all_property_maps()
 {
    m_source->point_attributes()  .interpolate(m_destination->point_attributes(),    m_new_point_sources);
    m_source->polygon_attributes().interpolate(m_destination->polygon_attributes(),  m_new_polygon_sources);
@@ -231,5 +224,5 @@ void geometry_operation::interpolate_all_attribute_maps()
    m_source->edge_attributes()   .interpolate(m_destination->edge_attributes(),     m_new_edge_sources);
 }
 
-} }
+} } }
 

@@ -3,6 +3,7 @@
 
 #include "renderstack_toolkit/platform.hpp"
 #include <utility>
+#include <cassert>
 
 namespace renderstack { namespace geometry {
 
@@ -13,6 +14,8 @@ struct edge
 public:
    edge(point *p0, point *p1)
    {
+      assert(p0 != p1);
+
       if (p0 < p1)
       {
          m_pair.first  = p0;
@@ -27,6 +30,11 @@ public:
 
    bool operator<(edge const &other) const
    {
+      assert(m_pair.first != m_pair.second);
+      assert(other.m_pair.first != other.m_pair.second);
+      //assert(!(m_pair.first == other.m_pair.first && m_pair.second == other.m_pair.second));
+      assert(!(m_pair.first == other.m_pair.second && m_pair.second == other.m_pair.first));
+
       return m_pair < other.m_pair;
    }
 
