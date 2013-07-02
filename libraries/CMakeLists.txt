@@ -1,5 +1,6 @@
 # CMakeLists.txt for RenderStack/libraries
 
+add_subdirectory(tinyxml2)
 add_subdirectory(RectangleBinPack)
 add_subdirectory(renderstack_geometry)
 add_subdirectory(renderstack_graphics)

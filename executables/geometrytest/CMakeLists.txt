@@ -5,6 +5,7 @@
 
 include_directories(
    ${KHRONOS_INCLUDE}
+   ${TINYXML_INCLUDE_DIRS}
 )
 
 include_directories(
@@ -76,6 +77,8 @@ add_executable(
    main/update.cpp
    main/netlib_polyhedron.cpp
    main/netlib_polyhedron.hpp
+   main/xml_polyhedron.cpp
+   main/xml_polyhedron.hpp
    ${res_images}
    ${res_fonts}
    ${res_sm0}
@@ -104,6 +107,7 @@ target_link_libraries(
    renderstack_toolkit
    RectangleBinPack
    ${RENDERSTACK_WINDOW_TOOLKIT_LIBRARIES}
+   tinyxml2static
 )
 
 if (RENDERSTACK_USE_FREETYPE)

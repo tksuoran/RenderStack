@@ -4,3 +4,6 @@
 [submodule "libraries/glwt"]
 	path = libraries/glwt
 	url = git://github.com/rikusalminen/glwt.git
+[submodule "libraries/tinyxml2"]
+	path = libraries/tinyxml2
+	url = https://github.com/leethomason/tinyxml2.git

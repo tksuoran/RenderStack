@@ -71,7 +71,10 @@ endif ()
 
 option(RENDERSTACK_USE_FREETYPE "Use Freetype" TRUE)
 
+# Slightly hacky
 set(GLM_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/libraries/glm-0.9.4.2")
+set(TINYXML_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/libraries/tinyxml2")
+
 
 include("ExportFile.cmake") # This is used by executables to copy data files
 
