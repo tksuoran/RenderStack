@@ -71,8 +71,6 @@ source_group(
    REGULAR_EXPRESSION
    "include/renderstack_graphics/.*\\.inl|include/renderstack_graphics/.*\\.hpp|source/.*\\.cpp")
 
-message(sources = ${SOURCES})
-
 # source_group("src" REGULAR_EXPRESSION ".hpp|.cpp")
 
 install(TARGETS renderstack_graphics DESTINATION lib)
