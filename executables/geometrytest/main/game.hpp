@@ -2,23 +2,23 @@
 #define game_hpp
 
 #include "renderstack_toolkit/platform.hpp"
+#include "renderstack_toolkit/service.hpp"
+#include "renderstack_toolkit/window.hpp"
+#include "renderstack_ui/action.hpp"
+
 #include "main/screen.hpp"
 #include "main/programs.hpp"
-#include "main/deferred_renderer.hpp"
-#include "main/forward_renderer.hpp"
-#include "main/id_renderer.hpp"
-#include "main/debug_renderer.hpp"
-#include "main/model.hpp"
-#include "renderstack_ui/action.hpp"
-#include "renderstack_toolkit/window.hpp"
-#include "renderstack_toolkit/logstream.hpp"
+#include "renderers/deferred_renderer.hpp"
+#include "renderers/forward_renderer.hpp"
+#include "renderers/id_renderer.hpp"
+#include "renderers/debug_renderer.hpp"
+#include "scene/model.hpp"
 #include "util/frame_controller.hpp"
+
 #include <glm/glm.hpp>
 #include <unordered_set>
 #include <vector>
 #include <memory>
-
-extern log_category log_game;
 
 namespace renderstack
 {
@@ -81,23 +81,29 @@ public:
    void update_fixed_step();
 };
 
-class game : public screen, public renderstack::ui::action_sink
+class game
+:  public screen
+,  public renderstack::ui::action_sink
+,  public renderstack::toolkit::service
 {
 public:
    game();
-   virtual ~game()
-   {
-   }
+   /*virtual*/ ~game();
 
    void connect(
-      std::shared_ptr<renderstack::graphics::renderer>   renderer,
-      std::shared_ptr<renderstack::ui::gui_renderer>     gui_renderer,
-      std::shared_ptr<application>  application,
-      std::shared_ptr<menu>         menu,
-      std::shared_ptr<programs>     programs,
-      std::shared_ptr<textures>     textures
+      std::shared_ptr<renderstack::graphics::renderer>  renderer,
+      std::shared_ptr<renderstack::ui::gui_renderer>    gui_renderer,
+      std::shared_ptr<programs>                         programs_,
+      std::shared_ptr<textures>                         textures_,
+      std::shared_ptr<debug_renderer>                   debug_renderer_,
+      std::shared_ptr<forward_renderer>                 forward_renderer_,
+      std::shared_ptr<deferred_renderer>                deferred_renderer_,
+      std::shared_ptr<id_renderer>                      id_renderer_,
+      std::shared_ptr<menu>                             menu_,
+      std::shared_ptr<application>                      application_
    );
    void disconnect();
+   /*virtual*/ void initialize_service();
 
    void action(std::weak_ptr<renderstack::ui::action_source> source);
 
@@ -136,51 +142,42 @@ private:
       std::shared_ptr<renderstack::geometry::geometry> geometry,
       glm::vec3 position = glm::vec3(0.0f));
 
-private:
-   std::shared_ptr<application>                       m_application;
-
+private: /* services */
    std::shared_ptr<renderstack::graphics::renderer>   m_renderer;
    std::shared_ptr<renderstack::ui::gui_renderer>     m_gui_renderer;
-
-   std::shared_ptr<menu>                              m_menu;
    std::shared_ptr<programs>                          m_programs;
    std::shared_ptr<textures>                          m_textures;
+   std::shared_ptr<debug_renderer>                    m_debug_renderer;
+   std::shared_ptr<forward_renderer>                  m_forward_renderer;
+   std::shared_ptr<deferred_renderer>                 m_deferred_renderer;
+   std::shared_ptr<id_renderer>                       m_id_renderer;
+   std::shared_ptr<menu>                              m_menu;
+   std::shared_ptr<application>                       m_application;
 
-   std::shared_ptr<renderstack::ui::font>             m_font;
-   std::shared_ptr<renderstack::ui::text_buffer>      m_text_buffer;
-
-   std::shared_ptr<renderstack::ui::layer>            m_root_layer;
-   std::shared_ptr<renderstack::ui::button>           m_menu_button;
-   std::shared_ptr<renderstack::ui::slider>           m_slider;
-
-   std::shared_ptr<renderstack::graphics::buffer>                 m_uniform_buffer;
+private: /* self owned parts */
+   std::shared_ptr<class group>                                   m_models;
+   std::shared_ptr<renderstack::scene::frame>                     m_manipulator_frame;
+   std::shared_ptr<class group>                                   m_manipulator;
+   std::shared_ptr<renderstack::ui::font>                         m_font;
+   std::shared_ptr<renderstack::ui::text_buffer>                  m_text_buffer;
+   std::shared_ptr<renderstack::ui::layer>                        m_root_layer;
+   std::shared_ptr<renderstack::ui::button>                       m_menu_button;
+   std::shared_ptr<renderstack::ui::slider>                       m_slider;
    std::shared_ptr<renderstack::graphics::uniform_buffer_range>   m_text_uniform_buffer_range;
 
    std::vector<std::string>                        m_debug_lines;
+   renderstack::graphics::render_states            m_font_render_states;
+   controls                                        m_controls;
+   glm::mat4                                       m_projection;
+
    double                                          m_update_time;
    double                                          m_frame_dt;
    double                                          m_min_frame_dt;
    double                                          m_max_frame_dt;
    double                                          m_simulation_time;
 
-   renderstack::graphics::render_states            m_font_render_states;
-
-   controls                                        m_controls;
-
-   std::shared_ptr<class group>                    m_models;
-
-   std::shared_ptr<renderstack::scene::frame>      m_manipulator_frame;
-   std::shared_ptr<class group>                    m_manipulator;
-
-   std::shared_ptr<deferred_renderer>              m_deferred_renderer;
-   std::shared_ptr<forward_renderer>               m_forward_renderer;
-   std::shared_ptr<id_renderer>                    m_id_renderer;
-   std::shared_ptr<debug_renderer>                 m_debug_renderer;
-   glm::mat4                                       m_projection;
-
    // are we between on_enter() and on_exit()?
    bool m_screen_active;
-
    bool m_mouse_down;
 };
 

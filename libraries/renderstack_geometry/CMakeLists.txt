@@ -12,32 +12,34 @@ add_library(
    include/renderstack_geometry/property_map.inl
    include/renderstack_geometry/property_map_collection.hpp
    include/renderstack_geometry/property_map_collection.inl
-   include/renderstack_geometry/cone.hpp
    include/renderstack_geometry/corner.hpp
-   include/renderstack_geometry/disc.hpp
    include/renderstack_geometry/edge.hpp
    include/renderstack_geometry/exception.hpp
    include/renderstack_geometry/geometry.hpp
-   include/renderstack_geometry/operation/geometry_operation.hpp
-   include/renderstack_geometry/operation/clone.hpp
-   include/renderstack_geometry/operation/catmull_clark.hpp
+   include/renderstack_geometry/log.hpp
    include/renderstack_geometry/point.hpp
    include/renderstack_geometry/polygon.hpp
    include/renderstack_geometry/polygon.inl
-   include/renderstack_geometry/sphere.hpp
-   include/renderstack_geometry/triangle.hpp
-   include/renderstack_geometry/cube.hpp
-   source/cone.cpp
+   include/renderstack_geometry/operation/geometry_operation.hpp
+   include/renderstack_geometry/operation/clone.hpp
+   include/renderstack_geometry/operation/catmull_clark.hpp
+   include/renderstack_geometry/shapes/cone.hpp
+   include/renderstack_geometry/shapes/disc.hpp
+   include/renderstack_geometry/shapes/sphere.hpp
+   include/renderstack_geometry/shapes/triangle.hpp
+   include/renderstack_geometry/shapes/cube.hpp
    source/corner.cpp
-   source/disc.cpp
    source/geometry.cpp
+   source/log.cpp
+   source/polygon.cpp
    source/operation/geometry_operation.cpp
    source/operation/clone.cpp
    source/operation/catmull_clark.cpp
-   source/polygon.cpp
-   source/sphere.cpp
-   source/triangle.cpp
-   source/cube.cpp
+   source/shapes/cone.cpp
+   source/shapes/disc.cpp
+   source/shapes/sphere.cpp
+   source/shapes/triangle.cpp
+   source/shapes/cube.cpp
 )
 
 source_group(

@@ -11,6 +11,7 @@
 */
 #include <utility>
 #include <iostream>
+#include <algorithm>
 
 #include <cassert>
 #include <cstring>
@@ -85,7 +86,7 @@ ShelfNextFitBinPack::Node ShelfNextFitBinPack::Insert(int width, int height)
 	newNode.y = currentY;
 
 	currentX += width;
-	shelfHeight = max(shelfHeight, height);
+	shelfHeight = std::max(shelfHeight, height);
 
 	usedSurfaceArea += width * height;
 

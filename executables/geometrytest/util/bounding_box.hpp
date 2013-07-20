@@ -1,5 +1,5 @@
-#ifndef bounding_box_hpp
-#define bounding_box_hpp
+#ifndef bounding_box_hpp_util
+#define bounding_box_hpp_util
 
 #include "renderstack_toolkit/platform.hpp"
 #include <glm/glm.hpp>

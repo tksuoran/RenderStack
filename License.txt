@@ -1,0 +1,60 @@
+Licenses for RenderStack and other parts:
+-----------------------------------------
+
+executables/geometrytest:
+libraries/egl_dummy
+libraries/gles3_dummy
+libraries/renderstack_geometry
+libraries/renderstack_graphics
+libraries/renderstack_mesh
+libraries/renderstack_scene
+libraries/renderstack_toolkit
+libraries/renderstack_ui:
+   Origin:     https://github.com/tksuoran/RenderStack
+   Contact:    Timo Suoranta <tksuoran@gmail.com>
+   License:    zlib/libpng (COPYING.TXT)
+
+libraries/renderstack_toolkit/lodepng
+   Origin:     http://lodev.org/lodepng/
+   Contact:    Lode Vandevenne <lode.vandevenne@gmail.com>
+   License:    zlib/libpng (COPYING.TXT)
+
+libraries/renderstack_toolkit/lodepng
+   Origin:     http://www.codeproject.com/Articles/286304/Solution-for-multiple-enable_shared_from_this-in-i
+   Contact:    Philippe Cayouette
+   License:    MIT (http://www.opensource.org/licenses/mit-license.php)
+
+libraries/freetype-2.5.0
+   Origin:     http://www.freetype.org/
+   Contact:    The Freetype Project <freetype@nongnu.org>
+   License:    The FreeType License (FTL) or The GNU General Public License (GPL), version 2
+
+libraries/glfw
+   Origin:     https://github.com/tksuoran/RenderStack
+   Contact:    Camilla Berglund <elmindreda@elmindreda.org>
+   License:    zlib/libpng (COPYING.TXT)
+
+libraries/glm
+   Origin:     http://glm.g-truc.net/
+   Contact:    Christophe Riccio <glm@g-truc.net>
+   License:    MIT (copying.TXT)
+
+libraries/glwt
+   Origin:     https://github.com/rikusalminen/glwt
+   Contact:    Riku Salminen <riku.salminen@tkk.fi>
+   License:    zlib (copying.TXT)
+
+libraries/khronos
+   Origin:     http://www.khronos.org/registry/
+   Contact:    The Khronos Group Inc. https://www.khronos.org/bugzilla/
+   License:    See individual header files.
+
+libraries/RectangleBinPack
+   Origin:     https://github.com/juj/RectangleBinPack
+   Contact:    Jukka Jylänki <jujjyl@gmail.com>
+   License:    Public Domain
+
+libraries/tinyxml-2
+   Origin:     https://github.com/leethomason/tinyxml2
+   Contact:    Lee Thomason <leethomason@gmail.com>
+   License:    zlib, copying.TXT

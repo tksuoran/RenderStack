@@ -1,12 +1,14 @@
 #include "renderstack_toolkit/platform.hpp"
-#include "main/application.hpp"
-#include "renderstack_graphics/configuration.hpp"
-#include "renderstack_graphics/shader_monitor.hpp"
 #include "renderstack_toolkit/gl.hpp"
 #include "renderstack_toolkit/strong_gl_enums.hpp"
+#include "renderstack_graphics/configuration.hpp"
+#include "renderstack_graphics/shader_monitor.hpp"
 #include "renderstack_graphics/program.hpp"
 #include "renderstack_ui/font.hpp"
-#include "renderstack_toolkit/logstream.hpp"
+
+#include "main/application.hpp"
+#include "main/log.hpp"
+
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -14,11 +16,6 @@
 #include <sstream>
 #include <sys/stat.h>
 #include <iomanip>
-
-log_category log_game      (C_WHITE,     C_GRAY, LOG_WARN);
-log_category log_menu      (C_WHITE,     C_GRAY, LOG_WARN);
-log_category log_programs  (C_DARK_BLUE, C_GRAY, LOG_WARN);
-log_category log_textures  (C_DARK_BLUE, C_GRAY, LOG_WARN);
 
 
 using namespace gl;
@@ -30,12 +27,35 @@ using namespace renderstack::toolkit;
 
 
 application::application()
+:  service("application")
 {
 }
 
 application::~application()
 {
    on_exit(); // TODO figure out how to get ~window call to on_exit() to call derived on_exit?
+}
+
+void application::connect(std::shared_ptr<game> game_, std::shared_ptr<menu> menu_)
+{
+   m_game = game_;
+   m_menu = menu_;
+
+   initialization_depends_on(game_);
+   initialization_depends_on(menu_);
+}
+
+void application::initialize_service()
+{
+#  if 1
+   if (m_menu)
+      set_screen(m_menu);
+#  else
+   if (m_game)
+      set_screen(m_game);
+#  endif
+
+   m_last_screen.reset();
 }
 
 void application::set_screen(shared_ptr<screen> screen)
@@ -81,50 +101,4 @@ void application::on_mouse_button(int button, int action, int mods)
 void application::on_scroll(double x, double y)
 {
    m_screen->on_scroll(x, y);
-}
-
-
-int main(int argc, char *argv[])
-{
-   console_init();
-
-   init_memory_system();
-   begin_memory_compare();
-
-   (void)argc;
-   (void)argv;
-   shared_ptr<renderstack::toolkit::window> g_application;
-   int return_value = EXIT_FAILURE;
-
-#  if defined(NDEBUG)
-   try
-#  endif
-   {
-      g_application = make_shared<application>();
-      if (g_application->on_load())
-      {
-         g_application->run();
-         return_value = EXIT_SUCCESS;
-      }
-      else
-      {
-         return_value = EXIT_FAILURE;
-      }
-
-   }
-#  if defined(NDEBUG)
-   catch(...)
-   {
-      ;
-   }
-#  endif
-
-   if (g_application)
-      g_application->on_exit();
-
-   g_application.reset();
-
-   end_memory_compare();
-
-   exit(return_value);
 }

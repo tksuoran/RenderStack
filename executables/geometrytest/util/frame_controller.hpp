@@ -1,5 +1,5 @@
-#ifndef frame_controller_hpp
-#define frame_controller_hpp
+#ifndef frame_controller_hpp_util
+#define frame_controller_hpp_util
 
 #include "renderstack_toolkit/platform.hpp"
 #include "util/controller.hpp"

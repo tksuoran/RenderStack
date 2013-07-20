@@ -2,6 +2,7 @@
 #define renderer_hpp_renderstack_graphics
 
 #include "renderstack_toolkit/platform.hpp"
+#include "renderstack_toolkit/service.hpp"
 #include "renderstack_graphics/buffer.hpp"
 #include "renderstack_graphics/color_mask_state.hpp"
 #include "renderstack_graphics/configuration.hpp"
@@ -18,10 +19,13 @@
 namespace renderstack { namespace graphics {
 
 
-class renderer
+class renderer : public renderstack::toolkit::service
 {
 public:
    renderer();
+   /*virtual*/ ~renderer();
+
+   /*virtual*/ void initialize_service();
 
    state_trackers &track() { return m_track; }
 

@@ -5,6 +5,7 @@
 #include "renderstack_graphics/buffer.hpp"
 #include "renderstack_toolkit/gl.hpp"
 #include <stdexcept>
+#include <algorithm>
 
 namespace renderstack { namespace graphics {
 

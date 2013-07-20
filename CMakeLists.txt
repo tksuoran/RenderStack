@@ -72,7 +72,7 @@ endif ()
 option(RENDERSTACK_USE_FREETYPE "Use Freetype" TRUE)
 
 # Slightly hacky
-set(GLM_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/libraries/glm-0.9.4.2")
+set(GLM_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/libraries/glm-0.9.4.4")
 set(TINYXML_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/libraries/tinyxml2")
 
 
@@ -103,12 +103,12 @@ endif ()
 if (RENDERSTACK_USE_FREETYPE)
    if (MSVC)
       set(FREETYPE_FOUND TRUE)
-      set(FREETYPE_INCLUDE_DIR_ft2build "${CMAKE_SOURCE_DIR}/libraries/freetype-2.4.9/include")
-      set(FREETYPE_INCLUDE_DIR_freetype2 "${CMAKE_SOURCE_DIR}/libraries/freetype-2.4.9/include/freetype")
+      set(FREETYPE_INCLUDE_DIR_ft2build "${CMAKE_SOURCE_DIR}/libraries/freetype-2.5.0/include")
+      set(FREETYPE_INCLUDE_DIR_freetype2 "${CMAKE_SOURCE_DIR}/libraries/freetype-2.5.0/include/freetype")
       set(FREETYPE_INCLUDE_DIRS "${FREETYPE_INCLUDE_DIR_ft2build};${FREETYPE_INCLUDE_DIR_freetype2}")
       include_external_msproject(
-         freetype-2.4.9
-         ${CMAKE_SOURCE_DIR}/libraries/freetype-2.4.9/builds/win32/vc2010/freetype.vcxproj
+         freetype-2.5.0
+         ${CMAKE_SOURCE_DIR}/libraries/freetype-2.5.0/builds/win32/vc2010/freetype.vcxproj
       )
    else ()
       find_package(Freetype REQUIRED)

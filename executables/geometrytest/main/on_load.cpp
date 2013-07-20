@@ -1,47 +1,28 @@
 #include "renderstack_toolkit/platform.hpp"
-#include "main/application.hpp"
-#include "main/game.hpp"
-#include "main/menu.hpp"
+#include "renderstack_toolkit/gl.hpp"
+#include "renderstack_toolkit/strong_gl_enums.hpp"
+#include "renderstack_toolkit/enable_shared_from_this.hpp"
 #include "renderstack_graphics/configuration.hpp"
 #include "renderstack_graphics/vertex_stream_mappings.hpp"
 #include "renderstack_graphics/uniform_block.hpp"
 #include "renderstack_graphics/renderer.hpp"
-#include "renderstack_toolkit/gl.hpp"
-#include "renderstack_toolkit/strong_gl_enums.hpp"
-#include "renderstack_toolkit/enable_shared_from_this.hpp"
 #include "renderstack_ui/gui_renderer.hpp"
+
+#include "main/application.hpp"
+#include "main/game.hpp"
+#include "main/menu.hpp"
+#include "renderers/debug_renderer.hpp"
+#include "renderers/quad_renderer.hpp"
+#include "renderers/forward_renderer.hpp"
+#include "renderers/deferred_renderer.hpp"
+#include "renderers/id_renderer.hpp"
 
 using namespace gl;
 using namespace std;
 using namespace renderstack::toolkit;
 using namespace renderstack::graphics;
 
-bool application::on_exit()
-{
-   if (m_screen)
-   {
-      m_screen->on_exit();
-      m_screen.reset();
-   }
-
-   if (m_game)
-      m_game->disconnect();
-
-   if (m_menu)
-      m_menu->disconnect();
-
-   m_screen.reset();
-   m_last_screen.reset();
-   m_programs.reset();
-   m_textures.reset();
-   m_game.reset();
-   m_menu.reset();
-   m_gui_renderer.reset();
-   m_renderer.reset();
-
-   return true;
-}
-bool application::on_load()
+bool application::create_gl_window()
 {
 
 #if defined(RENDERSTACK_GL_API_OPENGL)
@@ -74,56 +55,123 @@ bool application::on_load()
 
    configuration::initialize();
 
-   m_renderer = make_shared<renderstack::graphics::renderer>();
-   m_gui_renderer = make_shared<renderstack::ui::gui_renderer>(m_renderer);
+   return true;
+}
 
-#if 0
+bool application::initialize_services()
+{
+   auto application_       = shared_from_this();
+
+   auto renderer           = make_shared<renderstack::graphics::renderer>();
+   auto gui_renderer       = make_shared<renderstack::ui::gui_renderer>();
+
+   auto programs_          = make_shared<programs>();
+   auto textures_          = make_shared<textures>();
+
+   auto debug_renderer_    = make_shared<debug_renderer>();
+   auto quad_renderer_     = make_shared<quad_renderer>();
+   auto forward_renderer_  = make_shared<forward_renderer>();
+   auto deferred_renderer_ = make_shared<deferred_renderer>();
+   auto id_renderer_       = make_shared<id_renderer>();
+
+   auto game_              = smart_ptr_builder::create_shared_ptr<renderstack::ui::action_sink>(new game());
+   auto menu_              = smart_ptr_builder::create_shared_ptr<renderstack::ui::action_sink>(new menu());
+
+   m_services.add(renderer);
+   m_services.add(gui_renderer);
+
+   m_services.add(programs_);
+   m_services.add(textures_);
+
+   m_services.add(debug_renderer_);
+   m_services.add(quad_renderer_);
+   m_services.add(forward_renderer_);
+   m_services.add(deferred_renderer_);
+   m_services.add(id_renderer_);
+
+   m_services.add(game_);
+   m_services.add(menu_);
+
+   m_services.add(application_);
+
+   if (gui_renderer)       gui_renderer->connect(renderer);
+
+   if (programs_)          programs_->connect(renderer);
+   if (textures_)          textures_->connect(renderer);
+
+   if (debug_renderer_)    debug_renderer_->connect(renderer, programs_);
+   if (quad_renderer_)     quad_renderer_->connect(renderer);
+   if (forward_renderer_)  forward_renderer_->connect(renderer, programs_);
+   if (deferred_renderer_) deferred_renderer_->connect(renderer, programs_, quad_renderer_);
+   if (id_renderer_)       id_renderer_->connect(renderer, programs_);
+
+   if (game_)
+      game_->connect(
+         renderer,
+         gui_renderer,
+         programs_,
+         textures_,
+         debug_renderer_,
+         forward_renderer_,
+         deferred_renderer_,
+         id_renderer_,
+         menu_,
+         application_
+      );
+
+   if (menu_)              menu_->connect(renderer, gui_renderer, programs_, textures_, game_, application_);
+
+   if (application_)       application_->connect(game_, menu_);
+
+   m_services.initialize_services();
+
+   gl::viewport(0, 0, width(), height());
+   gl::clear_color(0.0f, 0.0f, 0.0f, 0.0f);
+   gl::clear(clear_buffer_mask::color_buffer_bit | clear_buffer_mask::depth_buffer_bit);
+
+   return true;
+}
+
+bool application::on_load()
+{
+   try
    {
-      execute_tests();
-      return false;
-   }
-#else
-   {
-      m_game = smart_ptr_builder::create_shared_ptr<renderstack::ui::action_sink>(new game());
-      m_menu = smart_ptr_builder::create_shared_ptr<renderstack::ui::action_sink>(new menu());
-      m_textures = make_shared<textures>();
-      m_programs = make_shared<programs>();
+      if (!create_gl_window())
+         return false;
 
-      if (m_game)
-         m_game->connect(m_renderer, m_gui_renderer, shared_from_this(), m_menu, m_programs, m_textures);
+      if (!initialize_services())
+         return false;
 
-      if (m_menu)
-         m_menu->connect(m_renderer, m_gui_renderer, shared_from_this(), m_game, m_programs, m_textures);
-
-      if (m_textures)
-         m_textures->on_load(*m_renderer);
-
-      if (m_programs)
-         m_programs->prepare_gl_resources();
-      
-      if (m_game)
-         m_game->on_load();
-
-      if (m_menu)
-         m_menu->on_load();
-
-      gl::viewport(0, 0, width(), height());
-
-      gl::clear_color(0.0f, 0.0f, 0.0f, 0.0f);
-      gl::clear(clear_buffer_mask::color_buffer_bit | clear_buffer_mask::depth_buffer_bit);
-
-#  if 1
-      if (m_menu)
-         set_screen(m_menu);
-#  else
-      if (m_game)
-         set_screen(m_game);
-#  endif
-
-      m_last_screen.reset();
       return true;
    }
-#endif
-
+   catch (...)
+   {
+      return false;
+   }
 }
+
+bool application::on_exit()
+{
+   if (m_screen)
+   {
+      m_screen->on_exit();
+      m_screen.reset();
+   }
+
+   if (m_game)
+      m_game->disconnect();
+
+   if (m_menu)
+      m_menu->disconnect();
+
+   m_screen.reset();
+   m_last_screen.reset();
+   m_game.reset();
+   m_menu.reset();
+
+   m_services.cleanup_services();
+
+   return true;
+}
+
 

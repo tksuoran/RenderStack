@@ -15,11 +15,13 @@ add_library(
    renderstack_mesh STATIC
    include/renderstack_mesh/build_info.hpp
    include/renderstack_mesh/geometry_mesh.hpp
+   include/renderstack_mesh/log.hpp
    include/renderstack_mesh/mesh.hpp
    include/renderstack_mesh/index_range.hpp
    include/renderstack_mesh/normal_style.hpp
    include/renderstack_mesh/mesh_mode.hpp
    source/geometry_mesh.cpp
+   source/log.cpp
    source/mesh.cpp
    source/mesh_mode.cpp
    source/index_range.cpp

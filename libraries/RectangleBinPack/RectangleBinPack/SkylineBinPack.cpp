@@ -8,6 +8,8 @@
 #include <utility>
 #include <iostream>
 #include <limits>
+#include <algorithm>
+
 
 #include <cassert>
 #include <cstring>
@@ -151,7 +153,7 @@ bool SkylineBinPack::RectangleFits(int skylineNodeIndex, int width, int height, 
 	y = skyLine[skylineNodeIndex].y;
 	while(widthLeft > 0)
 	{
-		y = max(y, skyLine[i].y);
+		y = std::max(y, skyLine[i].y);
 		if (y + height > binHeight)
 			return false;
 		widthLeft -= skyLine[i].width;
@@ -173,7 +175,7 @@ int SkylineBinPack::ComputeWastedArea(int skylineNodeIndex, int width, int heigh
 			break;
 
 		int leftSide = skyLine[skylineNodeIndex].x;
-		int rightSide = min(rectRight, leftSide + skyLine[skylineNodeIndex].width);
+		int rightSide = std::min(rectRight, leftSide + skyLine[skylineNodeIndex].width);
 		assert(y >= skyLine[skylineNodeIndex].y);
 		wastedArea += (rightSide - leftSide) * (y - skyLine[skylineNodeIndex].y);
 	}

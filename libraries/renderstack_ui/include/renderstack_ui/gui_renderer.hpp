@@ -2,6 +2,7 @@
 #define gui_renderer_hpp_renderstack_ui
 
 #include "renderstack_toolkit/platform.hpp"
+#include "renderstack_toolkit/service.hpp"
 #include "renderstack_graphics/configuration.hpp"
 #include "renderstack_graphics/renderer.hpp"
 #include "renderstack_graphics/blend_state.hpp"
@@ -29,7 +30,7 @@ class font;
 class ninepatch_style;
 class style;
 
-class gui_renderer
+class gui_renderer : public renderstack::toolkit::service
 {
 public:
    struct uniform_offsets
@@ -42,7 +43,11 @@ public:
       std::size_t t;                /* float */
    };
 
-   gui_renderer(std::shared_ptr<class renderstack::graphics::renderer> renderer);
+   gui_renderer();
+   /*virtual*/ ~gui_renderer();
+
+   void connect(std::shared_ptr<class renderstack::graphics::renderer> renderer);
+   /*virtual*/ void initialize_service();
 
    void prepare();
    void on_resize(int width, int height);

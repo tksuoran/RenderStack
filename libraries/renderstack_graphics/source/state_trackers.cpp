@@ -1,11 +1,11 @@
 #include "renderstack_toolkit/platform.hpp"
-#include "renderstack_toolkit/logstream.hpp"
+#include "renderstack_toolkit/log.hpp"
 #include "renderstack_graphics/state_trackers.hpp"
 #include "renderstack_graphics/sampler.hpp"
 #include "renderstack_graphics/buffer.hpp"
 #include "renderstack_graphics/vertex_array.hpp"
 
-#define LOG_CATEGORY &log_graphics_renderer
+#define LOG_CATEGORY &log_renderer
 
 namespace renderstack { namespace graphics {
 

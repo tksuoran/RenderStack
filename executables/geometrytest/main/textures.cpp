@@ -1,11 +1,13 @@
 #include "renderstack_toolkit/platform.hpp"
-#include "main/application.hpp"
-#include "main/textures.hpp"
-#include "renderstack_graphics/texture.hpp"
 #include "renderstack_toolkit/gl.hpp"
 #include "renderstack_toolkit/strong_gl_enums.hpp"
 #include "renderstack_toolkit/lodepng.h"
-#include "renderstack_toolkit/logstream.hpp"
+#include "renderstack_graphics/texture.hpp"
+
+#include "main/application.hpp"
+#include "main/textures.hpp"
+#include "main/log.hpp"
+
 #include <stdexcept>
 
 #define LOG_CATEGORY &log_textures
@@ -15,19 +17,32 @@ using namespace std;
 using namespace renderstack::graphics;
 
 textures::textures()
-:  background_texture(nullptr)
+:  service("textures")
+,  background_texture(nullptr)
 {
 }
 
-void textures::on_load(renderstack::graphics::renderer &renderer)
+textures::~textures()
 {
-   slog_trace("textures::on_load()");
+}
 
-   background_texture = load(renderer, 1, "res/images/background.png");
+void textures::connect(shared_ptr<renderstack::graphics::renderer> renderer)
+{
+   m_renderer = renderer;
+
+   initialization_depends_on(renderer);
+}
+
+void textures::initialize_service()
+{
+   assert(m_renderer);
+
+   slog_trace("textures::on_load()");
+   
+   background_texture = load(1, "res/images/background.png");
 }
 
 shared_ptr<renderstack::graphics::texture> textures::load(
-   renderstack::graphics::renderer &renderer,
    unsigned int texture_unit,
    string const &path
 )
@@ -56,6 +71,8 @@ shared_ptr<renderstack::graphics::texture> textures::load(
    if (data == nullptr)
       throw runtime_error("texture image load failed - no data");
 
+   auto &r = *m_renderer;
+
    auto texture = make_shared<renderstack::graphics::texture>(
       renderstack::graphics::texture_target::texture_2d,
       GL_RGB8,
@@ -65,7 +82,7 @@ shared_ptr<renderstack::graphics::texture> textures::load(
    );
 
    unsigned int old_unit;
-   auto old_texture = renderer.set_texture(texture_unit, texture, &old_unit);
+   auto old_texture = r.set_texture(texture_unit, texture, &old_unit);
 
    gl::pixel_store_i(GL_UNPACK_ALIGNMENT, 1);
    gl::tex_image_2d(
@@ -84,9 +101,9 @@ shared_ptr<renderstack::graphics::texture> textures::load(
    texture->set_min_filter(texture_min_filter::nearest);
    texture->set_mag_filter(texture_mag_filter::nearest);
 
-   texture->apply(renderer, texture_unit);
+   texture->apply(r, texture_unit);
 
-   renderer.restore_texture(
+   r.restore_texture(
       renderstack::graphics::texture_target::texture_2d,
       old_texture,
       old_unit

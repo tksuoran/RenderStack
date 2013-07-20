@@ -4,8 +4,7 @@ set(
    sources
    include/renderstack_toolkit/gl_core.hpp
    include/renderstack_toolkit/file.hpp
-   include/renderstack_toolkit/debugstream.hpp
-   include/renderstack_toolkit/logstream.hpp
+   include/renderstack_toolkit/log.hpp
    include/renderstack_toolkit/gl.hpp
    include/renderstack_toolkit/strong_gl_enums.hpp
    include/renderstack_toolkit/window.hpp
@@ -14,11 +13,15 @@ set(
    include/renderstack_toolkit/platform.hpp
    include/renderstack_toolkit/enable_shared_from_this.hpp
    include/renderstack_toolkit/smart_ptr_builder.hpp
-   source/logstream.cpp
+   include/renderstack_toolkit/service.hpp
+   include/renderstack_toolkit/services.hpp
+   source/log.cpp
    source/lodepng.cpp
    source/math_util.cpp
    source/file.cpp
    source/gl_core.cpp
+   source/service.cpp
+   source/services.cpp
 )
 
 if (RENDERSTACK_USE_GLFW)

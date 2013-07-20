@@ -3,6 +3,7 @@
 
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_toolkit/window.hpp"
+#include "renderstack_toolkit/services.hpp"
 #include "main/screen.hpp"
 #include "main/game.hpp"
 #include "main/menu.hpp"
@@ -12,33 +13,28 @@
 #include <string>
 #include <memory>
 
-extern log_category log_game;
-extern log_category log_menu;
-extern log_category log_programs;
-extern log_category log_textures;
-
 namespace renderstack { namespace renderer { class renderer; } }
 namespace renderstack { namespace ui { class gui_renderer; } }
 
-
 class application
 :  public renderstack::toolkit::window
+,  public renderstack::toolkit::service
 ,  public std::enable_shared_from_this<application>
 {
 private:
-   std::shared_ptr<renderstack::graphics::renderer>   m_renderer;
-   std::shared_ptr<renderstack::ui::gui_renderer>     m_gui_renderer;
+   renderstack::toolkit::services   m_services;
 
-   std::shared_ptr<screen>    m_screen;
-   std::shared_ptr<screen>    m_last_screen;
-   std::shared_ptr<programs>  m_programs;
-   std::shared_ptr<textures>  m_textures;
-   std::shared_ptr<game>      m_game;
-   std::shared_ptr<menu>      m_menu;
+   std::shared_ptr<screen>          m_screen;
+   std::shared_ptr<screen>          m_last_screen;
+   std::shared_ptr<game>            m_game;
+   std::shared_ptr<menu>            m_menu;
 
 public:
    application();
-   virtual ~application();
+   /*virtual*/ ~application();
+   void connect(std::shared_ptr<game> game_, std::shared_ptr<menu> menu_);
+
+   /*virtual*/ void initialize_service();
 
    void set_screen(std::shared_ptr<screen> screen);
    void reset_screen();
@@ -58,6 +54,10 @@ public:
    void on_scroll       (double x, double y);
 
    void setup_programs  ();
+
+private:
+   bool create_gl_window();
+   bool initialize_services();
 };
 
 #endif

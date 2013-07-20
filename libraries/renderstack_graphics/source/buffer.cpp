@@ -1,18 +1,19 @@
 #include "renderstack_toolkit/platform.hpp"
+#include "renderstack_toolkit/gl.hpp"
 #include "renderstack_graphics/configuration.hpp"
 #include "renderstack_graphics/buffer.hpp"
 #include "renderstack_graphics/renderer.hpp"
-#include "renderstack_toolkit/gl.hpp"
-#include "renderstack_toolkit/logstream.hpp"
+#include "renderstack_graphics/log.hpp"
 #include <cstdint>
 #include <cassert>
 #include <cstring>
 #include <stdexcept>
 
-#define LOG_CATEGORY &log_graphics_buffer
+#define LOG_CATEGORY &log_buffer
 
 namespace renderstack { namespace graphics {
 
+using namespace renderstack::toolkit;
 using namespace gl;
 using namespace std;
 
@@ -105,6 +106,7 @@ void buffer::allocate_storage(class renderer &renderer)
    if (m_target == buffer_target::element_array_buffer)
    {
       auto va = renderer.vertex_array();
+      assert(va);
       old = va->set_index_buffer(shared_from_this());
    }
    else

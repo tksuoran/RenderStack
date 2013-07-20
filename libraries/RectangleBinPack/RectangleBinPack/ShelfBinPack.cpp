@@ -7,6 +7,7 @@
 */
 #include <utility>
 #include <iostream>
+#include <algorithm>
 
 #include <cassert>
 #include <cstring>
@@ -112,7 +113,7 @@ void ShelfBinPack::AddToShelf(Shelf &shelf, int width, int height, Rect &newNode
 	assert(shelf.currentX <= binWidth);
 
 	// Grow the shelf height.
-	shelf.height = max(shelf.height, height);
+	shelf.height = std::max(shelf.height, height);
 	assert(shelf.height <= binHeight);
 
 	usedSurfaceArea += width * height;
@@ -224,7 +225,7 @@ Rect ShelfBinPack::Insert(int width, int height, ShelfChoiceHeuristic method)
 				RotateToShelf(shelves[i], width, height);
 				if (FitsOnShelf(shelves[i], width, height, i == shelves.size()-1))
 				{
-					int heightDifference = max(shelves[i].height - height, 0);
+					int heightDifference = std::max(shelves[i].height - height, 0);
 					assert(heightDifference >= 0);
 
 					if (heightDifference < bestShelfHeightDifference)

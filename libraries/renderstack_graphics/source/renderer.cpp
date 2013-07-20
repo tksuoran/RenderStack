@@ -1,28 +1,44 @@
 #include "renderstack_toolkit/platform.hpp"
-#include "renderstack_toolkit/logstream.hpp"
 
 #include "renderstack_graphics/vertex_array.hpp"
 #include "renderstack_graphics/vertex_format.hpp"
 #include "renderstack_graphics/renderer.hpp"
+#include "renderstack_graphics/log.hpp"
 
-#define LOG_CATEGORY &log_graphics_renderer
+#include <algorithm>
+
+#define LOG_CATEGORY &log_renderer
 
 namespace renderstack { namespace graphics {
 
 using namespace std;
+using namespace renderstack::toolkit;
 
 renderer::renderer()
-:  m_cache_enabled(true)
+:  service("renderstack::graphics::renderer")
+,  m_cache_enabled(true)
+,  m_default_vertex_array(nullptr)
+{
+   static int init_count = 0;
+
+   assert(init_count == 0);
+   ++init_count;
+
+   for (int i = 0; i < buffer_target::all_buffer_target_count; ++i)
+      m_mapped_buffer[i].reset();
+}
+/*virtual*/ renderer::~renderer()
+{
+}
+/*virtual*/ void renderer::initialize_service()
 {
    // When vertex arrays are not used, we use this to keep track
    // of enabled attributes and set vertex attribute pointers.
    m_default_vertex_array = make_shared<class vertex_array>(true);
 
-   for (int i = 0; i < buffer_target::all_buffer_target_count; ++i)
-      m_mapped_buffer[i].reset();
-
    (void)set_vertex_array(m_default_vertex_array);
 }
+
 void renderer::push()
 {
    m_request_stack.push(m_requested);
@@ -311,6 +327,8 @@ shared_ptr<class buffer> renderer::set_buffer(buffer_target::value target, share
 shared_ptr<class vertex_array> renderer::set_vertex_array(shared_ptr<class vertex_array> vertex_array)
 {
    shared_ptr<class vertex_array> old = m_effective.vertex_array_binding;
+
+   assert(vertex_array);
 
    m_requested.vertex_array_binding = vertex_array;
    if (!cache_enabled() || (m_effective.vertex_array_binding != m_requested.vertex_array_binding))

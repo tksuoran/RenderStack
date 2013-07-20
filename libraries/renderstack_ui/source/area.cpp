@@ -2,7 +2,7 @@
 
 #include "renderstack_ui/area.hpp"
 #include "renderstack_ui/gui_renderer.hpp"
-#include "renderstack_toolkit/logstream.hpp"
+#include "renderstack_ui/log.hpp"
 #include <glm/gtx/string_cast.hpp>
 
 // #define LOG_LAYOUT

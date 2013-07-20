@@ -1,5 +1,5 @@
-#ifndef aabb_hpp
-#define aabb_hpp
+#ifndef aabb_hpp_util
+#define aabb_hpp_util
 
 #include "renderstack_toolkit/platform.hpp"
 #include <glm/glm.hpp>

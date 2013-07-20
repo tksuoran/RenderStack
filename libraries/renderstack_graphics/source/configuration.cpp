@@ -1,18 +1,19 @@
 #include "renderstack_toolkit/platform.hpp"
-#include "renderstack_graphics/configuration.hpp"
 #include "renderstack_toolkit/gl.hpp"
 #include "renderstack_toolkit/strong_gl_enums.hpp"
-#include "renderstack_toolkit/logstream.hpp"
+#include "renderstack_graphics/configuration.hpp"
+#include "renderstack_graphics/log.hpp"
 #include <algorithm>
 #include <cctype>
 #include <cstdlib>
 #include <list>
 #include <stdexcept>
 
-#define LOG_CATEGORY &log_graphics_configuration
+#define LOG_CATEGORY &log_configuration
 
 namespace renderstack { namespace graphics {
 
+using namespace renderstack::toolkit;
 using namespace std;
 
 bool  configuration::use_gl1  = false;
@@ -692,7 +693,7 @@ void configuration::initialize()
 #endif
 
    extensions.clear();
-   ::set_text_color(C_GRAY);
+   set_text_color(C_GRAY);
 }
 
 } }

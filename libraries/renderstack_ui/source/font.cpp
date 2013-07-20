@@ -10,7 +10,7 @@
 #if defined(RENDERSTACK_USE_FREETYPE)
 # include "renderstack_ui/glyph.hpp"
 #endif
-#include "renderstack_toolkit/logstream.hpp"
+#include "renderstack_ui/log.hpp"
 #include "RectangleBinPack/SkylineBinPack.h"
 #include "renderstack_ui/bitmap.hpp"
 #include "renderstack_toolkit/gl.hpp"
@@ -22,8 +22,7 @@
 #include <map>
 #include <memory>
 
-log_category log_ui_font(C_YELLOW, C_GRAY, LOG_WARN);
-#define LOG_CATEGORY &log_ui_font
+#define LOG_CATEGORY &log_font
 
 // #define LOG
 
@@ -107,7 +106,7 @@ font::font(
 void font::validate(FT_Error error)
 {
    if (error == FT_Err_Unknown_File_Format) 
-      log() << "FT_Err_Unknown_File_Format\n";
+      log_error("font::validate(): FT_Err_Unknown_File_Format");
 
    if (error)
       throw runtime_error("freetype error");

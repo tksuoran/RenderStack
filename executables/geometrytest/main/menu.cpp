@@ -1,14 +1,9 @@
 //#define DEBUG_FONT 1
 
 #include "renderstack_toolkit/platform.hpp"
-#include "main/application.hpp"
-#include "main/menu.hpp"
-#include "main/game.hpp"
-#include "main/programs.hpp"
-#include "main/textures.hpp"
-#include "renderstack_ui/gui_renderer.hpp"
 #include "renderstack_toolkit/gl.hpp"
-#include "renderstack_toolkit/logstream.hpp"
+#include "renderstack_toolkit/window.hpp"
+#include "renderstack_toolkit/strong_gl_enums.hpp"
 #include "renderstack_graphics/buffer.hpp"
 #include "renderstack_graphics/configuration.hpp"
 #include "renderstack_graphics/program.hpp"
@@ -16,8 +11,6 @@
 #include "renderstack_graphics/uniform_buffer_range.hpp"
 #include "renderstack_graphics/uniform.hpp"
 #include "renderstack_graphics/renderer.hpp"
-#include "renderstack_toolkit/window.hpp"
-#include "renderstack_toolkit/strong_gl_enums.hpp"
 #include "renderstack_ui/button.hpp"
 #include "renderstack_ui/context.hpp"
 #include "renderstack_ui/dock.hpp"
@@ -25,6 +18,14 @@
 #include "renderstack_ui/layer.hpp"
 #include "renderstack_ui/menulist.hpp"
 #include "renderstack_ui/text_buffer.hpp"
+#include "renderstack_ui/gui_renderer.hpp"
+
+#include "main/programs.hpp"
+#include "main/textures.hpp"
+#include "main/menu.hpp"
+#include "main/game.hpp"
+#include "main/application.hpp"
+#include "main/log.hpp"
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -45,6 +46,12 @@ using namespace renderstack::toolkit;
 #define RENDER_GUI         1
 
 menu::menu()
+:  service("menu")
+,  m_renderer    (nullptr)
+,  m_gui_renderer(nullptr)
+,  m_programs    (nullptr)
+,  m_textures    (nullptr)
+,  m_game        (nullptr)
 {
 }
 
@@ -53,20 +60,25 @@ menu::~menu()
 }
 
 void menu::connect(
-   shared_ptr<renderstack::graphics::renderer>   renderer,
-   shared_ptr<renderstack::ui::gui_renderer>     gui_renderer,
-   shared_ptr<application> application,
-   shared_ptr<class game>  game,
-   shared_ptr<programs>    programs,
-   shared_ptr<textures>    textures
+   shared_ptr<renderstack::graphics::renderer>  renderer,
+   shared_ptr<renderstack::ui::gui_renderer>    gui_renderer,
+   shared_ptr<programs>                         programs,
+   shared_ptr<textures>                         textures,
+   shared_ptr<class game>                       game,
+   shared_ptr<application>                      application
 )
 {
-   m_renderer = renderer;
+   m_renderer     = renderer;
    m_gui_renderer = gui_renderer;
-   m_application = application;
-   m_game = game;
-   m_programs = programs;
-   m_textures = textures;
+   m_programs     = programs;
+   m_textures     = textures;
+   m_game         = game;
+   m_application  = application;
+
+   initialization_depends_on(renderer);
+   initialization_depends_on(gui_renderer);
+   initialization_depends_on(programs);
+   initialization_depends_on(textures);
 }
 void menu::disconnect()
 {
@@ -79,24 +91,19 @@ void menu::disconnect()
    m_programs.reset();
    m_textures.reset();
 }
-void menu::action(weak_ptr<action_source> source)
+void menu::initialize_service()
 {
-   auto s = source.lock();
-   if (s == m_map_editor)
-   {
-		if (m_game)
-	      m_application->set_screen(m_game);
-   }
+   assert(m_renderer);
+   assert(m_gui_renderer);
+   assert(m_programs);
+   assert(m_textures);
 
-   if (s == m_quit)
-      m_application->close();
-}
-void menu::on_load()
-{
    slog_trace("menu::on_load()");
 
+   auto &r = *m_renderer;
+
 #if defined(RENDER_TEXT) || defined(DEBUG_FONT) 
-   m_font = make_shared<font>(*m_renderer, "res/fonts/Ubuntu-R.ttf", 48, 4.0f);
+   m_font = make_shared<font>(r, "res/fonts/Ubuntu-R.ttf", 48, 4.0f);
    m_text_buffer = make_shared<text_buffer>(
       m_gui_renderer,
       m_font,
@@ -122,7 +129,6 @@ void menu::on_load()
    auto p = m_programs->textured;
    auto m = p->mappings();
    auto gr = m_gui_renderer;
-   auto &r = *gr->renderer();
 
 #if defined(RENDER_BACKGROUND)
    m_mesh = make_shared<renderstack::mesh::mesh>();
@@ -191,6 +197,19 @@ void menu::on_load()
    m_root_layer->add(d);
 #endif
 }
+void menu::action(weak_ptr<action_source> source)
+{
+   auto s = source.lock();
+   if (s == m_map_editor)
+   {
+		if (m_game)
+	      m_application->set_screen(m_game);
+   }
+
+   if (s == m_quit)
+      m_application->close();
+}
+
 void menu::on_resize(int width, int height)
 {
    slog_trace("menu::on_resize()");

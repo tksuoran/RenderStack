@@ -1,12 +1,5 @@
 #include "renderstack_toolkit/platform.hpp"
-
-#include <glm/glm.hpp>
-#include <glm/gtx/constants.hpp>
-
-#include "renderstack_mesh/geometry_mesh.hpp"
-#include "renderstack_mesh/mesh.hpp"
 #include "renderstack_toolkit/math_util.hpp"
-#include "renderstack_toolkit/logstream.hpp"
 
 #include "renderstack_geometry/property_map.hpp"
 #include "renderstack_geometry/geometry.hpp"
@@ -20,13 +13,19 @@
 #include "renderstack_graphics/vertex_format.hpp"
 #include "renderstack_graphics/vertex_stream.hpp"
 #include "renderstack_graphics/vertex_stream_mappings.hpp"
-
 #include "renderstack_graphics/renderer.hpp"
+
+#include "renderstack_mesh/geometry_mesh.hpp"
+#include "renderstack_mesh/mesh.hpp"
+#include "renderstack_mesh/log.hpp"
+
+#include <glm/glm.hpp>
+#include <glm/gtx/constants.hpp>
 
 #include <stdexcept>
 #include <map>
 
-#define LOG_CATEGORY &log_mesh_geometry_mesh
+#define LOG_CATEGORY &log_geometry_mesh
 
 namespace renderstack { namespace mesh {
 

@@ -16,12 +16,14 @@ add_library(
    include/renderstack_scene/camera.hpp
    include/renderstack_scene/frame.hpp
    include/renderstack_scene/light.hpp
+   include/renderstack_scene/log.hpp
    include/renderstack_scene/projection.hpp
    include/renderstack_scene/stereo_parameters.hpp
    include/renderstack_scene/transform.hpp
    source/camera.cpp
    source/frame.cpp
    source/light.cpp
+   source/log.cpp
    source/projection.cpp
    source/stereo_parameters.cpp
    source/transform.cpp

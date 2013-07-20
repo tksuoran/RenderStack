@@ -1,6 +1,5 @@
 #include "renderstack_toolkit/platform.hpp"
-#include "main/application.hpp"
-#include "main/programs.hpp"
+#include "renderstack_toolkit/file.hpp"
 #include "renderstack_graphics/configuration.hpp"
 #include "renderstack_graphics/program.hpp"
 #include "renderstack_graphics/renderer.hpp"
@@ -10,8 +9,11 @@
 #include "renderstack_graphics/uniform_block.hpp"
 #include "renderstack_graphics/uniform_buffer_range.hpp"
 #include "renderstack_graphics/uniform.hpp"
-#include "renderstack_toolkit/file.hpp"
-#include "renderstack_toolkit/logstream.hpp"
+
+#include "main/application.hpp"
+#include "main/programs.hpp"
+#include "main/log.hpp"
+
 #include <string>
 #include <fstream>
 #include <stdexcept>
@@ -47,9 +49,40 @@ int programs::glsl_version() const
    return m_glsl_version;
 }
 
-void programs::prepare_gl_resources()
+programs::programs()
+:  service("programs")
+,  uniform_buffer   (nullptr)
+,  block            (nullptr)
+,  samplers         (nullptr)
+,  mappings         (nullptr)
+,  font             (nullptr)
+,  basic            (nullptr)
+,  debug_line       (nullptr)
+,  textured         (nullptr)
+,  gbuffer          (nullptr)
+,  light            (nullptr)
+,  show_rt          (nullptr)
+,  show_rt_spherical(nullptr)
+,  id               (nullptr)
 {
-   slog_trace("programs::prepare_gl_resources()");
+}
+
+/*virtual*/ programs::~programs()
+{
+}
+
+void programs::connect(std::shared_ptr<renderstack::graphics::renderer> renderer)
+{
+   m_renderer = renderer;
+
+   initialization_depends_on(renderer);
+}
+
+/*virtual*/ void programs::initialize_service()
+{
+   assert(m_renderer);
+
+   slog_trace("programs::initialize_service()");
 
 #if 0
    try
@@ -114,6 +147,17 @@ void programs::prepare_gl_resources()
    uniform_keys.material_parameters = 7;
    uniform_keys.show_rt_transform   = 8;
    uniform_keys.id_offset           = 9;
+
+   auto &r = *m_renderer;
+
+   size_t size = 20; // TODO MUSTFIX
+   uniform_buffer = make_shared<buffer>(
+      renderstack::graphics::buffer_target::uniform_buffer,
+      block->size() * size,
+      1
+   );
+   uniform_buffer->allocate_storage(r);
+
 
    auto nearest_sampler = make_shared<sampler>();
    auto show_rt_sampler = make_shared<sampler>();

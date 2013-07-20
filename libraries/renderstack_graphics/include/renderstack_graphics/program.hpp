@@ -4,7 +4,7 @@
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_toolkit/gl.hpp"
 #include "renderstack_toolkit/strong_gl_enums.hpp"
-#include "renderstack_toolkit/logstream.hpp"
+#include "renderstack_toolkit/log.hpp"
 #include "renderstack_graphics/vertex_stream_mappings.hpp"
 #include <map>
 #include <string>

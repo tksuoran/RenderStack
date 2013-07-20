@@ -2,10 +2,10 @@
 #define vertex_array_hpp_renderstack_graphics
 
 #include "renderstack_toolkit/platform.hpp"
-#include "renderstack_graphics/vertex_attribute.hpp"
 #include "renderstack_toolkit/gl.hpp"
 #include "renderstack_toolkit/strong_gl_enums.hpp"
-#include "renderstack_toolkit/logstream.hpp"
+#include "renderstack_toolkit/log.hpp"
+#include "renderstack_graphics/vertex_attribute.hpp"
 #include <vector>
 #include <cstddef>
 #include <memory>

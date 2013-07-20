@@ -11,13 +11,13 @@
 #include "renderstack_graphics/uniform_buffer_range.hpp"
 #include "renderstack_graphics/uniform.hpp"
 #include "renderstack_graphics/samplers.hpp"
-#include "renderstack_toolkit/logstream.hpp"
+#include "renderstack_ui/log.hpp"
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <cassert>
 
-#define LOG_CATEGORY &log_ui_gui_renderer
+#define LOG_CATEGORY &log_gui_renderer
 
 namespace renderstack { namespace ui {
 
@@ -40,10 +40,26 @@ void gui_renderer::map(shared_ptr<renderstack::graphics::program> program)
    }
 }
 
-gui_renderer::gui_renderer(shared_ptr<class renderstack::graphics::renderer> renderer)
-:  m_start(nullptr)
+gui_renderer::gui_renderer()
+:  service("renderstack::ui::gui_renderer")
+,  m_start(nullptr)
 {
-   slog_trace("gui_renderer::gui_renderer()");
+}
+
+/*virtual*/ gui_renderer::~gui_renderer()
+{
+}
+
+void gui_renderer::connect(shared_ptr<class renderstack::graphics::renderer> renderer)
+{
+   m_renderer = renderer;
+
+   initialization_depends_on(renderer);
+}
+
+void gui_renderer::initialize_service()
+{
+   slog_trace("gui_renderer::initialize_service()");
 
    m_blend_alpha.set_enabled(true);
    m_blend_alpha.rgb().set_equation_mode(gl::blend_equation_mode::func_add);
@@ -60,8 +76,6 @@ gui_renderer::gui_renderer(shared_ptr<class renderstack::graphics::renderer> ren
    m_blend_add.alpha().set_equation_mode(gl::blend_equation_mode::func_add);
    m_blend_add.alpha().set_source_factor(gl::blending_factor_src::one);
    m_blend_add.alpha().set_destination_factor(gl::blending_factor_dest::one);
-
-   m_renderer = renderer;
 
    m_mappings = make_shared<renderstack::graphics::vertex_stream_mappings>();
    m_mappings->add("a_position",       vertex_attribute_usage::position,   0, 0);

@@ -1,7 +1,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 
 #include "renderstack_ui/dock.hpp"
-#include "renderstack_toolkit/logstream.hpp"
+#include "renderstack_ui/log.hpp"
 #include <glm/gtx/string_cast.hpp>
 
 // #define LOG_LAYOUT

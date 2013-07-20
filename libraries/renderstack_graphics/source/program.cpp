@@ -1,6 +1,6 @@
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_toolkit/gl.hpp"
-#include "renderstack_toolkit/logstream.hpp"
+#include "renderstack_toolkit/file.hpp"
 #include "renderstack_graphics/configuration.hpp"
 #include "renderstack_graphics/program.hpp"
 #include "renderstack_graphics/renderer.hpp"
@@ -8,7 +8,7 @@
 #include "renderstack_graphics/uniform_block.hpp"
 #include "renderstack_graphics/uniform.hpp"
 #include "renderstack_graphics/vertex_stream_mappings.hpp"
-#include "renderstack_toolkit/file.hpp"
+#include "renderstack_graphics/log.hpp"
 #include <fstream>
 #include <sstream>
 #include <sys/stat.h>
@@ -20,7 +20,7 @@
 #include <vector>
 #include <string>
 
-#define LOG_CATEGORY &log_graphics_program
+#define LOG_CATEGORY &log_program
 
 // #define LOG_LINK 1
 
@@ -233,16 +233,15 @@ int program::get_uniform_location(const char *name)
 
 void program::dump_shaders() const
 {
-   log() << "Shaders for " << m_name << ":\n";
+   log_trace("Shaders for %s:\n", m_name.c_str());
    for (auto i = m_loaded_shaders.begin(); i != m_loaded_shaders.end(); ++i)
    {
       auto     &resource = *i;
       string   f_source = format(resource.compiled_src);
 
       //  detach old shader, load, compile and attach new
-      log() << gl::enum_string(resource.type) << " compiled from " << resource.path << ":\n";
-      log() << f_source;
-      log() << "\n";
+      log_trace("%s compiled from %s:\n", gl::enum_string(resource.type), resource.path);
+      log_trace("%s", f_source);
    }
 }
 

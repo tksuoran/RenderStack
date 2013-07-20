@@ -120,8 +120,15 @@ geometry::edge_collection    const  &geometry::edges   () const { return m_edges
 
 void geometry::compute_polygon_normals()
 {
+   if (points().size() == 0)
+      return;
+
    shared_ptr<property_map<polygon*, vec3> > polygon_normals = polygon_attributes().find_or_create<vec3>("polygon_normals");
-   shared_ptr<property_map<point*,   vec3> > point_locations = point_attributes().find<vec3>("point_locations");
+   shared_ptr<property_map<point*,   vec3> > point_locations = point_attributes().maybe_find<vec3>("point_locations");
+
+   if (point_locations == nullptr)
+      return;
+
    for (auto i = polygons().begin(); i != polygons().end(); ++i)
    {
       polygon *pol = *i;
@@ -134,7 +141,10 @@ void geometry::compute_polygon_normals()
 void geometry::compute_polygon_centroids()
 {
    shared_ptr<property_map<polygon*, vec3> > polygon_centroids = polygon_attributes().find_or_create<vec3>("polygon_centroids");
-   shared_ptr<property_map<point*,   vec3> > point_locations = point_attributes().find<vec3>("point_locations");
+   shared_ptr<property_map<point*,   vec3> > point_locations = point_attributes().maybe_find<vec3>("point_locations");
+
+   if (point_locations == nullptr)
+      return;
 
    for (auto i = polygons().begin(); i != polygons().end(); ++i)
    {
@@ -153,8 +163,11 @@ void geometry::smooth_normalize(
 )
 {
    auto corner_attributes2 = corner_attributes().find_or_create<vec3>(corner_attribute/*"corner_normals"*/);
-   auto polygon_attributes2 = polygon_attributes().find<vec3>(polygon_attribute/*"polygon_normals"*/);
-   auto polygon_normals = polygon_attributes().find<vec3>("polygon_normals");
+   auto polygon_attributes2 = polygon_attributes().maybe_find<vec3>(polygon_attribute/*"polygon_normals"*/);
+   auto polygon_normals = polygon_attributes().maybe_find<vec3>("polygon_normals");
+
+   if (polygon_attributes2 == nullptr || polygon_normals == nullptr)
+      return;
 
    float cos_max_smoothing_angle = cos(max_smoothing_angle_radians);
 
@@ -185,7 +198,10 @@ void geometry::smooth_average(
 {
    auto corner_attributes2 = corner_attributes().find_or_create<vec4>(corner_attribute);
    auto corner_normals = corner_attributes().find_or_create<vec3>("corner_normals");
-   auto point_normals = point_attributes().find<vec3>(point_normal_name);
+   auto point_normals = point_attributes().maybe_find<vec3>(point_normal_name);
+
+   if (point_normals == nullptr)
+      return; // TODO?
 
    auto new_corner_attributes = corner_attributes().find_or_create<vec4>("temp");
    for (auto i = polygons().begin(); i != polygons().end(); ++i)
@@ -221,7 +237,7 @@ void geometry::build_edges()
             point *a = previous_point;
             point *b = corner->point();
             if (a == b)
-               throw std::runtime_error("duplicate point");
+               throw runtime_error("duplicate point");
 
             edge edge(a, b);
             //CheckEdge(edge);

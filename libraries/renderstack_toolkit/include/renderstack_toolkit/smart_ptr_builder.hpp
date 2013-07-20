@@ -2,7 +2,7 @@
 #ifndef smart_ptr_builder_hpp_renderstack_toolkit
 #define smart_ptr_builder_hpp_renderstack_toolkit
 
-#include "enable_shared_from_this.hpp"
+#include "renderstack_toolkit/enable_shared_from_this.hpp"
 #include <memory>
 
 namespace renderstack { namespace generic { //Generic

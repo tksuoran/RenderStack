@@ -30,6 +30,7 @@ add_library(
    include/renderstack_ui/glyph.hpp
    include/renderstack_ui/gui_renderer.hpp
    include/renderstack_ui/layer.hpp
+   include/renderstack_ui/log.hpp
    include/renderstack_ui/menulist.hpp
    include/renderstack_ui/ninepatch.hpp
    include/renderstack_ui/ninepatch_style.hpp
@@ -47,6 +48,7 @@ add_library(
    source/font.cpp
    source/glyph.cpp
    source/gui_renderer.cpp
+   source/log.cpp
    source/menulist.cpp
    source/ninepatch.cpp
    source/ninepatch_style.cpp

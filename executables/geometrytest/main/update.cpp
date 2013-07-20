@@ -1,9 +1,10 @@
 #include "renderstack_toolkit/platform.hpp"
+#include "renderstack_toolkit/window.hpp"
+#include "renderstack_toolkit/math_util.hpp"
+
 #include "main/game.hpp"
 #include "main/programs.hpp"
 #include "main/application.hpp"
-#include "renderstack_toolkit/window.hpp"
-#include "renderstack_toolkit/math_util.hpp"
 
 using namespace renderstack;
 using namespace renderstack::toolkit;

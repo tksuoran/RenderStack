@@ -1,14 +1,19 @@
 #include "renderstack_toolkit/platform.hpp"
-#include "main/game.hpp"
-#include "main/application.hpp"
-#include "main/textures.hpp"
-#include "main/menu.hpp"
-#include "main/programs.hpp"
 #include "renderstack_toolkit/window.hpp"
 #include "renderstack_toolkit/gl.hpp"
-#include "renderstack_toolkit/logstream.hpp"
 #include "renderstack_toolkit/strong_gl_enums.hpp"
 #include "renderstack_toolkit/math_util.hpp"
+#include "renderstack_geometry/shapes/sphere.hpp"
+#include "renderstack_geometry/shapes/disc.hpp"
+#include "renderstack_geometry/shapes/triangle.hpp"
+#include "renderstack_geometry/shapes/cone.hpp"
+#include "renderstack_geometry/shapes/cube.hpp"
+#include "renderstack_geometry/operation/clone.hpp"
+#include "renderstack_geometry/operation/catmull_clark.hpp"
+#include "renderstack_graphics/configuration.hpp"
+#include "renderstack_graphics/renderer.hpp"
+#include "renderstack_mesh/geometry_mesh.hpp"
+#include "renderstack_mesh/build_info.hpp"
 #include "renderstack_ui/layer.hpp"
 #include "renderstack_ui/button.hpp"
 #include "renderstack_ui/choice.hpp"
@@ -18,20 +23,15 @@
 #include "renderstack_ui/menulist.hpp"
 #include "renderstack_ui/push_button.hpp"
 #include "renderstack_ui/slider.hpp"
-#include "renderstack_geometry/sphere.hpp"
-#include "renderstack_geometry/disc.hpp"
-#include "renderstack_geometry/triangle.hpp"
-#include "renderstack_geometry/cone.hpp"
-#include "renderstack_geometry/cube.hpp"
-#include "renderstack_graphics/configuration.hpp"
-#include "renderstack_mesh/geometry_mesh.hpp"
-#include "renderstack_mesh/build_info.hpp"
-#include "renderstack_graphics/renderer.hpp"
-#include "renderstack_geometry/operation/clone.hpp"
-#include "renderstack_geometry/operation/catmull_clark.hpp"
+#include "main/game.hpp"
+#include "main/application.hpp"
+#include "main/textures.hpp"
+#include "main/menu.hpp"
+#include "main/programs.hpp"
+#include "main/log.hpp"
+#include "parsers/xml_polyhedron.hpp"
+#include "scene/group.hpp"
 #include <cassert>
-
-#include <boost/property_map/dynamic_property_map.hpp>
 
 #if defined(RENDERSTACK_USE_GLFW)
 # include <GLFW/glfw3.h>
@@ -57,37 +57,75 @@ using namespace renderstack::mesh;
 using namespace renderstack::ui;
 
 game::game()
-:  m_application              ()
-,  m_menu                     (nullptr)
-,  m_programs                 (nullptr)
-,  m_textures                 (nullptr)
+:  service("game")
+
+/* services */
+,  m_renderer         (nullptr)
+,  m_gui_renderer     (nullptr)
+,  m_programs         (nullptr)
+,  m_textures         (nullptr)
+,  m_debug_renderer   (nullptr)
+,  m_forward_renderer (nullptr)
+,  m_deferred_renderer(nullptr)
+,  m_id_renderer      (nullptr)
+,  m_menu             (nullptr)
+,  m_application      (nullptr)
+
+/* self owned parts */
+,  m_models                   (nullptr)
+,  m_manipulator_frame        (nullptr)
+,  m_manipulator              (nullptr)
 ,  m_font                     (nullptr)
 ,  m_text_buffer              (nullptr)
 ,  m_root_layer               (nullptr)
 ,  m_menu_button              (nullptr)
+,  m_slider                   (nullptr)
 ,  m_text_uniform_buffer_range(nullptr)
+
+,  m_update_time              (0.0)
 ,  m_frame_dt                 (0.0)
+,  m_min_frame_dt             (0.0)
+,  m_max_frame_dt             (0.0)
+,  m_simulation_time          (0.0)
 ,  m_screen_active            (false)
 ,  m_mouse_down               (false)
+{
+}
+
+/*virtual*/ game::~game()
 {
 }
 
 void game::connect(
    shared_ptr<renderstack::graphics::renderer>  renderer,
    shared_ptr<renderstack::ui::gui_renderer>    gui_renderer,
-   shared_ptr<application> application,
-   shared_ptr<menu>        menu,
-   shared_ptr<programs>    programs,
-   shared_ptr<textures>    textures
+   shared_ptr<programs>                         programs_,
+   shared_ptr<textures>                         textures_,
+   shared_ptr<debug_renderer>                   debug_renderer_,
+   shared_ptr<forward_renderer>                 forward_renderer_,
+   shared_ptr<deferred_renderer>                deferred_renderer_,
+   shared_ptr<id_renderer>                      id_renderer_,
+   shared_ptr<menu>                             menu_,
+   shared_ptr<application>                      application_
 )
 {
-   m_renderer     = renderer;
-   m_gui_renderer = gui_renderer;
-   m_application  = application;
-   m_menu         = menu;
-   m_programs     = programs;
-   m_textures     = textures;
+   m_renderer           = renderer;
+   m_gui_renderer       = gui_renderer;
+   m_application        = application_;
+   m_menu               = menu_;
+   m_programs           = programs_;
+   m_textures           = textures_;
+   m_deferred_renderer  = deferred_renderer_;
+   m_forward_renderer   = forward_renderer_;
+   m_id_renderer        = id_renderer_;
+   m_debug_renderer     = debug_renderer_;
+
+   initialization_depends_on(renderer);
+   initialization_depends_on(gui_renderer);
+   initialization_depends_on(programs_);
+   initialization_depends_on(textures_);
 }
+
 void game::disconnect()
 {
    slog_trace("game::disconnect()");
@@ -97,17 +135,6 @@ void game::disconnect()
    m_programs.reset();
    m_textures.reset();
 }
-void game::reset()
-{
-   slog_trace("game::reset()");
-
-   m_controls.reset();
-
-   m_frame_dt        = 0.0;
-   m_update_time     = m_application->time();
-   m_simulation_time = m_update_time;
-}
-
 
 void game::reset_build_info()
 {
@@ -135,56 +162,28 @@ std::shared_ptr<model> game::make_model(
    return m;
 }
 
-void game::on_load()
+void game::initialize_service()
 {
-   assert(m_application);
+   assert(m_renderer);
+   assert(m_gui_renderer);
+   assert(m_programs);
+   assert(m_textures);
 
    slog_trace("game::on_load()");
 
    if (m_programs->use_uniform_buffers())
    {
-      size_t size = 0;
-
-#if defined(USE_MESHES) || defined(USE_FONT)
-      ++size;
-#endif
-
-#if defined(USE_MESHES)
-      ++size; // forward renderer
-      ++size; // deferred renderer
-      ++size; // id renderer
-      ++size; // debug renderer
-      ++size;
-#endif
-
 #if defined(USE_FONT)
-      ++size;
-#endif
+      auto uniform_buffer = m_programs->uniform_buffer;
 
-      if (size > 0)
-      {
-         // TODO should I use size here as stride?
-         m_uniform_buffer = make_shared<buffer>(
-            renderstack::graphics::buffer_target::uniform_buffer,
-            m_programs->block->size() * size,
-            1
-         );
-         m_uniform_buffer->allocate_storage(*m_renderer);
-      }
-
-#if defined(USE_FONT)
       m_text_uniform_buffer_range = make_shared<uniform_buffer_range>(
          m_programs->block,
-         m_uniform_buffer
+         uniform_buffer
       );
 #endif
    }
 
    m_models = make_shared<group>();
-   m_deferred_renderer = make_shared<deferred_renderer>(m_renderer, m_programs, m_uniform_buffer);
-   m_forward_renderer = make_shared<forward_renderer>(m_renderer, m_programs, m_uniform_buffer);
-   m_id_renderer = make_shared<id_renderer>(m_renderer, m_programs, m_uniform_buffer);
-   m_debug_renderer = make_shared<debug_renderer>(m_renderer, m_programs, m_uniform_buffer);
 
 #if defined(USE_MESHES)
    {
@@ -214,6 +213,10 @@ void game::on_load()
       g2->compute_polygon_normals();
       g2->compute_point_normals("point_normals");
       g_collection.push_back(g2);
+
+      auto xml = make_shared<xml_polyhedron>("res/polyhedra/127.xml");
+      g2->compute_polygon_normals();
+      g_collection.push_back(xml);
 
 #endif
 
@@ -339,8 +342,9 @@ void game::on_load()
 #if defined(RENDERSTACK_USE_FREETYPE) && defined(USE_FONT)
    auto p = m_programs->font;
    auto m = p->mappings();
+   auto &r = *m_renderer;
 
-   m_font = make_shared<font>(*m_renderer, "res/fonts/Ubuntu-R.ttf", 10);
+   m_font = make_shared<font>(r, "res/fonts/Ubuntu-R.ttf", 10);
    m_text_buffer = make_shared<text_buffer>(m_gui_renderer, m_font, m);
 #endif
 
@@ -358,6 +362,17 @@ void game::on_load()
 #if defined(USE_GUI)
    setup_gui();
 #endif
+}
+
+void game::reset()
+{
+   slog_trace("game::reset()");
+
+   m_controls.reset();
+
+   m_frame_dt        = 0.0;
+   m_update_time     = m_application->time();
+   m_simulation_time = m_update_time;
 }
 
 void game::setup_gui()

@@ -1,8 +1,8 @@
 #ifndef math_util_hpp_renderstack_toolkit
 #define math_util_hpp_renderstack_toolkit
 
-#include "platform.hpp"
-#include <stdint.h>
+#include "renderstack_toolkit/platform.hpp"
+#include <cstdint>
 #include <glm/glm.hpp>
 
 namespace renderstack {

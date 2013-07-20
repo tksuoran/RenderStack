@@ -9,7 +9,7 @@
 #include "renderstack_geometry/property_map_collection.hpp"
 #include "renderstack_geometry/geometry.hpp"
 #include <vector>
-#include <unordered_set>
+#include <set>
 
 namespace renderstack { namespace geometry { namespace operation {
 

@@ -3,8 +3,8 @@
 #include "renderstack_ui/gui_renderer.hpp"
 #include "renderstack_ui/ninepatch_style.hpp"
 #include "renderstack_toolkit/math_util.hpp"
-#include "renderstack_geometry/triangle.hpp"
-#include "renderstack_geometry/disc.hpp"
+#include "renderstack_geometry/shapes/triangle.hpp"
+#include "renderstack_geometry/shapes/disc.hpp"
 #include "renderstack_mesh/geometry_mesh.hpp"
 #include "renderstack_graphics/vertex_format.hpp"
 #include <glm/glm.hpp>

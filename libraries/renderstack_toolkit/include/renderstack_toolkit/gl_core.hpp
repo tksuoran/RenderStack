@@ -1,7 +1,7 @@
 #ifndef gl_core_hpp_renderstack_toolkit
 #define gl_core_hpp_renderstack_toolkit
 
-#include "platform.hpp"
+#include "renderstack_toolkit/platform.hpp"
 #include "renderstack_toolkit/gl.hpp"
 
 namespace gl {

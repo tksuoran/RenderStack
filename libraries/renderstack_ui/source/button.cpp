@@ -2,9 +2,9 @@
 #include "renderstack_ui/context.hpp"
 #include "renderstack_ui/ninepatch_style.hpp"
 #include "renderstack_ui/gui_renderer.hpp"
-#include "renderstack_toolkit/logstream.hpp"
+#include "renderstack_ui/log.hpp"
 
-#define LOG_CATEGORY &log_ui_button
+#define LOG_CATEGORY &log_button
 
 namespace renderstack { namespace ui {
 

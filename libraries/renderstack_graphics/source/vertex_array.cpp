@@ -1,6 +1,6 @@
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_toolkit/strong_gl_enums.hpp"
-#include "renderstack_toolkit/logstream.hpp"
+#include "renderstack_toolkit/log.hpp"
 #include "renderstack_toolkit/gl.hpp"
 #include "renderstack_graphics/configuration.hpp"
 #include "renderstack_graphics/buffer.hpp"
@@ -8,8 +8,9 @@
 #include "renderstack_graphics/vertex_array.hpp"
 #include <cassert>
 #include <stdexcept>
+#include <algorithm>
 
-#define LOG_CATEGORY &log_graphics_vertex_stream
+#define LOG_CATEGORY &log_vertex_stream
 
 namespace renderstack { namespace graphics {
 

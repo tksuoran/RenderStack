@@ -1,17 +1,18 @@
+#include "renderstack_toolkit/platform.hpp"
+#include "renderstack_toolkit/gl.hpp"
+#include "renderstack_toolkit/strong_gl_enums.hpp"
+#include "renderstack_toolkit/lodepng.h"
+#include "renderstack_graphics/configuration.hpp"
+#include "renderstack_graphics/vertex_format.hpp"
+#include "renderstack_graphics/vertex_stream_mappings.hpp"
 #include "renderstack_ui/context.hpp"
 #include "renderstack_ui/ninepatch.hpp"
 #include "renderstack_ui/ninepatch_style.hpp"
 #include "renderstack_ui/gui_renderer.hpp"
 #include "renderstack_ui/style.hpp"
-#include "renderstack_graphics/configuration.hpp"
-#include "renderstack_graphics/vertex_format.hpp"
-#include "renderstack_graphics/vertex_stream_mappings.hpp"
-#include "renderstack_toolkit/gl.hpp"
-#include "renderstack_toolkit/strong_gl_enums.hpp"
-#include "renderstack_toolkit/lodepng.h"
-#include "renderstack_toolkit/logstream.hpp"
+#include "renderstack_ui/log.hpp"
 
-#define LOG_CATEGORY &log_ui_ninepatch
+#define LOG_CATEGORY &log_ninepatch
 
 namespace renderstack { namespace ui {
 

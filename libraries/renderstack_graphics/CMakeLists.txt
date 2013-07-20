@@ -12,6 +12,7 @@ add_library(
    renderstack_graphics STATIC
    include/renderstack_graphics/buffer.hpp
    include/renderstack_graphics/configuration.hpp
+   include/renderstack_graphics/log.hpp
    include/renderstack_graphics/program.hpp
    include/renderstack_graphics/sampler.hpp
    include/renderstack_graphics/samplers.hpp
@@ -38,6 +39,7 @@ add_library(
 
    source/buffer.cpp
    source/configuration.cpp
+   source/log.cpp
    source/program.cpp
    source/sampler.cpp
    source/samplers.cpp

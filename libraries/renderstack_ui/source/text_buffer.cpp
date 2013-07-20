@@ -1,13 +1,14 @@
-#include "renderstack_ui/context.hpp"
-#include "renderstack_ui/gui_renderer.hpp"
-#include "renderstack_ui/text_buffer.hpp"
+#include "renderstack_toolkit/platform.hpp"
 #include "renderstack_toolkit/gl.hpp"
 #include "renderstack_toolkit/strong_gl_enums.hpp"
-#include "renderstack_toolkit/logstream.hpp"
 #include "renderstack_graphics/configuration.hpp"
 #include "renderstack_graphics/vertex_format.hpp"
 #include "renderstack_graphics/vertex_stream_mappings.hpp"
 #include "renderstack_mesh/mesh.hpp"
+#include "renderstack_ui/context.hpp"
+#include "renderstack_ui/gui_renderer.hpp"
+#include "renderstack_ui/text_buffer.hpp"
+#include "renderstack_ui/log.hpp"
 #include <fstream>
 #include <sstream>
 #include <sys/stat.h>
@@ -17,7 +18,7 @@
 #include <algorithm>
 #include <limits>
 
-#define LOG_CATEGORY &log_ui_text_buffer
+#define LOG_CATEGORY &log_text_buffer
 
 namespace renderstack { namespace ui {
 

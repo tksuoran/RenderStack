@@ -5,19 +5,17 @@
 #include FT_BITMAP_H
 
 #include "renderstack_ui/glyph.hpp"
-#include "renderstack_toolkit/logstream.hpp"
+#include "renderstack_ui/log.hpp"
 #include "renderstack_ui/bitmap.hpp"
 #include <map>
 #include <stdexcept>
-
-#define LOG
 
 namespace renderstack { namespace ui {
 
 void glyph::validate(FT_Error error)
 {
-   if (error == FT_Err_Unknown_File_Format)
-      log() << "FT_Err_Unknown_File_Format\n";
+   // if (error == FT_Err_Unknown_File_Format)
+   //   log() << "FT_Err_Unknown_File_Format\n";
 
    if (error)
       throw std::runtime_error("freetype error");

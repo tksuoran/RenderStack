@@ -3,16 +3,14 @@
 # include "renderstack_toolkit/gles_ext.hpp"
 #endif
 #include "renderstack_toolkit/gl_core.hpp"
-#include "renderstack_toolkit/logstream.hpp"
+#include "renderstack_toolkit/log.hpp"
 #include <cassert>
 #include <cstdio>
 #include <cstdarg>
 #include <cctype>
 #include <iostream>
 
-log_category gl_functions(C_DARK_GREEN, C_GRAY, LOG_TRACE);
-#define LOG_CATEGORY &gl_functions
-
+#define LOG_CATEGORY &log_gl
 
 // #define LOG_GL             1
 // #define LOG_GL_VAO         1
@@ -34,6 +32,8 @@ log_category gl_functions(C_DARK_GREEN, C_GRAY, LOG_TRACE);
 #define ALWAYS_LOG_GL_FUNCTION(A) log_trace(A)
 
 namespace gl {
+
+using namespace renderstack::toolkit;
 
 #if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
    using namespace gl::detail;

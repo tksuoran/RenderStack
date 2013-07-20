@@ -1,7 +1,7 @@
 #ifndef window_hpp_renderstack_toolkit
 #define window_hpp_renderstack_toolkit
 
-#include "platform.hpp"
+#include "renderstack_toolkit/platform.hpp"
 #include "renderstack_toolkit/gl.hpp"
 #include <string>
 #if defined(RENDERSTACK_USE_GLWT)

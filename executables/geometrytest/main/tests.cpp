@@ -12,13 +12,13 @@
 #include "renderstack_ui/menulist.hpp"
 #include "renderstack_ui/push_button.hpp"
 #include "renderstack_ui/slider.hpp"
-#include "renderstack_geometry/cone.hpp"
 #include "renderstack_graphics/configuration.hpp"
-#include "renderstack_geometry/disc.hpp"
 #include "renderstack_graphics/renderer.hpp"
-#include "renderstack_geometry/sphere.hpp"
-#include "renderstack_geometry/triangle.hpp"
 #include "renderstack_graphics/vertex_stream_mappings.hpp"
+#include "renderstack_geometry/shapes/cone.hpp"
+#include "renderstack_geometry/shapes/disc.hpp"
+#include "renderstack_geometry/shapes/sphere.hpp"
+#include "renderstack_geometry/shapes/triangle.hpp"
 #include "renderstack_mesh/geometry_mesh.hpp"
 
 #include <cassert>

@@ -1,7 +1,7 @@
 #ifndef file_hpp_renderstack_toolkit
 #define file_hpp_renderstack_toolkit
 
-#include "platform.hpp"
+#include "renderstack_toolkit/platform.hpp"
 #include <string>
 
 namespace renderstack { namespace toolkit {

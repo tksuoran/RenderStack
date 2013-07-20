@@ -1,5 +1,5 @@
-#ifndef controller_hpp
-#define controller_hpp
+#ifndef controller_hpp_util
+#define controller_hpp_util
 
 class controller
 {

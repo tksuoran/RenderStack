@@ -1,6 +1,5 @@
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_toolkit/file.hpp"
-#include "renderstack_toolkit/logstream.hpp"
 
 #include <fstream>
 #include <sstream>

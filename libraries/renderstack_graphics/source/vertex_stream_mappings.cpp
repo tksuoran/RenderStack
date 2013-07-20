@@ -1,18 +1,19 @@
 #include "renderstack_toolkit/platform.hpp"
-#include "renderstack_toolkit/logstream.hpp"
 #include "renderstack_graphics/configuration.hpp"
 #include "renderstack_graphics/program.hpp"
 #include "renderstack_graphics/vertex_format.hpp"
 #include "renderstack_graphics/vertex_stream.hpp"
 #include "renderstack_graphics/vertex_stream_mappings.hpp"
 #include "renderstack_graphics/vertex_stream_mapping.hpp"
+#include "renderstack_graphics/log.hpp"
 #include <stdexcept>
 
-#define LOG_CATEGORY &log_graphics_vertex_stream_mappings
+#define LOG_CATEGORY &log_vertex_stream_mappings
 
 namespace renderstack { namespace graphics {
 
 using namespace std;
+using namespace renderstack::toolkit;
 
 
 vertex_stream_mappings::vertex_stream_mappings()

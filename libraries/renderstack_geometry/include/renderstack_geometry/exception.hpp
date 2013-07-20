@@ -4,8 +4,7 @@
 #include "renderstack_toolkit/platform.hpp"
 #include <stdexcept>
 #include <string>
-#include <stdint.h>
-//#include "renderstack_geometry/types.hpp"
+#include <cstdint>
 
 namespace renderstack { namespace geometry {
 

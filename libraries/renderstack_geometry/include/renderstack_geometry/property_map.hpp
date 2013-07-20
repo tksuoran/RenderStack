@@ -9,7 +9,6 @@
 #include <typeinfo>
 #include <cassert>
 #include <stdint.h>
-#include "boost/any.hpp"
 
 namespace renderstack { namespace geometry {
 

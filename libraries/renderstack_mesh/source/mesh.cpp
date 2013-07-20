@@ -1,11 +1,11 @@
 #include "renderstack_toolkit/platform.hpp"
-#include "renderstack_toolkit/logstream.hpp"
 #include "renderstack_graphics/buffer.hpp"
 #include "renderstack_mesh/mesh.hpp"
 #include "renderstack_mesh/index_range.hpp"
+#include "renderstack_mesh/log.hpp"
 #include <cassert>
 
-#define LOG_CATEGORY &log_mesh_mesh
+#define LOG_CATEGORY &log_mesh
 
 namespace renderstack { namespace mesh {
 

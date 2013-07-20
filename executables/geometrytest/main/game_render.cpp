@@ -1,6 +1,7 @@
 #include "renderstack_toolkit/platform.hpp"
-#include "main/game.hpp"
-#include "main/application.hpp"
+#include "renderstack_toolkit/gl.hpp"
+#include "renderstack_toolkit/strong_gl_enums.hpp"
+#include "renderstack_toolkit/math_util.hpp"
 #include "renderstack_graphics/buffer.hpp"
 #include "renderstack_graphics/configuration.hpp"
 #include "renderstack_graphics/program.hpp"
@@ -12,15 +13,17 @@
 #include "renderstack_graphics/vertex_format.hpp"
 #include "renderstack_mesh/geometry_mesh.hpp"
 #include "renderstack_mesh/mesh.hpp"
-#include "renderstack_toolkit/gl.hpp"
-#include "renderstack_toolkit/strong_gl_enums.hpp"
-#include "renderstack_toolkit/math_util.hpp"
 #include "renderstack_ui/context.hpp"
 #include "renderstack_ui/font.hpp"
 #include "renderstack_ui/gui_renderer.hpp"
 #include "renderstack_ui/layer.hpp"
 #include "renderstack_ui/slider.hpp"
 #include "renderstack_ui/text_buffer.hpp"
+
+#include "main/game.hpp"
+#include "main/application.hpp"
+#include "main/log.hpp"
+
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
