@@ -30,7 +30,7 @@ libraries/freetype-2.5.0
    License:    The FreeType License (FTL) or The GNU General Public License (GPL), version 2
 
 libraries/glfw
-   Origin:     https://github.com/tksuoran/RenderStack
+   Origin:     http://www.glfw.org/
    Contact:    Camilla Berglund <elmindreda@elmindreda.org>
    License:    zlib/libpng (COPYING.TXT)
 
