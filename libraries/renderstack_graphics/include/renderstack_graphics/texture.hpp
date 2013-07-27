@@ -5,6 +5,7 @@
 #include "renderstack_toolkit/strong_gl_enums.hpp"
 #include <cassert>
 #include <memory>
+#include <string>
 
 namespace renderstack { namespace graphics {
 

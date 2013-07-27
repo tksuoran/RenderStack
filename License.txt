@@ -13,48 +13,53 @@ libraries/renderstack_ui:
    Origin:     https://github.com/tksuoran/RenderStack
    Contact:    Timo Suoranta <tksuoran@gmail.com>
    License:    zlib/libpng (COPYING.TXT)
+   Form:       Original source code except for enable_shared_from_this / smart_ptr_builder
 
-libraries/renderstack_toolkit/lodepng
-   Origin:     http://lodev.org/lodepng/
-   Contact:    Lode Vandevenne <lode.vandevenne@gmail.com>
-   License:    zlib/libpng (COPYING.TXT)
-
-libraries/renderstack_toolkit/lodepng
+libraries/renderstack_toolkit/enable_shared_from_this.hpp
+libraries/renderstack_toolkit/smart_ptr_builder.hpp
    Origin:     http://www.codeproject.com/Articles/286304/Solution-for-multiple-enable_shared_from_this-in-i
    Contact:    Philippe Cayouette
    License:    MIT (http://www.opensource.org/licenses/mit-license.php)
+   Form:       Copied source code, minor modifications
 
 libraries/freetype-2.5.0
    Origin:     http://www.freetype.org/
    Contact:    The Freetype Project <freetype@nongnu.org>
    License:    The FreeType License (FTL) or The GNU General Public License (GPL), version 2
+   Form:       Copied source code, unmodified
 
 libraries/glfw
    Origin:     http://www.glfw.org/
    Contact:    Camilla Berglund <elmindreda@elmindreda.org>
    License:    zlib/libpng (COPYING.TXT)
+   Form:       Github submodule (unmodified)
 
 libraries/glm
    Origin:     http://glm.g-truc.net/
    Contact:    Christophe Riccio <glm@g-truc.net>
    License:    MIT (copying.TXT)
+   Form:       Copied source code, built documentation stripped
 
 libraries/glwt
    Origin:     https://github.com/rikusalminen/glwt
    Contact:    Riku Salminen <riku.salminen@tkk.fi>
    License:    zlib (copying.TXT)
+   Form:       Github submodule (unmodified)
 
 libraries/khronos
    Origin:     http://www.khronos.org/registry/
    Contact:    The Khronos Group Inc. https://www.khronos.org/bugzilla/
-   License:    See individual header files.
+   License:    Khronos Free Software License
+   Form:       Copied API headers, unmodified
 
 libraries/RectangleBinPack
    Origin:     https://github.com/juj/RectangleBinPack
    Contact:    Jukka Jylänki <jujjyl@gmail.com>
    License:    Public Domain
+   Form:       Copied source code, minor modifications
 
 libraries/tinyxml-2
    Origin:     https://github.com/leethomason/tinyxml2
    Contact:    Lee Thomason <leethomason@gmail.com>
    License:    zlib, copying.TXT
+   Form:       Github submodule (unmodified)

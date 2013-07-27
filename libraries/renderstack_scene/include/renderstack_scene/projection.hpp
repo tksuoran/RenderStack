@@ -53,23 +53,11 @@ namespace projection_type
 
 class projection
 {
-private:
-   projection_type::value  m_projection_type;
-   float                   m_near;
-   float                   m_far;
-   float                   m_fov_x;
-   float                   m_fov_y;
-   float                   m_ortho_left;
-   float                   m_ortho_width;
-   float                   m_ortho_bottom;
-   float                   m_ortho_height;
-   float                   m_frustum_left;
-   float                   m_frustum_right;
-   float                   m_frustum_bottom;
-   float                   m_frustum_top;
-   //stereo_parameters m_stereo_parameters;
-
 public:
+   projection();
+
+   void update(transform &transform, viewport &viewport);
+
    projection_type::value  projection_type      () { return m_projection_type; }
    void                    set_projection_type  (projection_type::value value) { m_projection_type = value; }
 
@@ -103,10 +91,21 @@ public:
    stereo_parameters const &stereo_parameters () { return m_stereo_parameters; }
 #endif
 
-public:
-   projection();
-
-   void update(transform &transform, viewport &viewport);
+private:
+   projection_type::value  m_projection_type;
+   float                   m_near;
+   float                   m_far;
+   float                   m_fov_x;
+   float                   m_fov_y;
+   float                   m_ortho_left;
+   float                   m_ortho_width;
+   float                   m_ortho_bottom;
+   float                   m_ortho_height;
+   float                   m_frustum_left;
+   float                   m_frustum_right;
+   float                   m_frustum_bottom;
+   float                   m_frustum_top;
+   //stereo_parameters m_stereo_parameters;
 };
 
 } }

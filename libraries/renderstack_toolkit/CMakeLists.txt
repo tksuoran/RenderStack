@@ -9,14 +9,12 @@ set(
    include/renderstack_toolkit/strong_gl_enums.hpp
    include/renderstack_toolkit/window.hpp
    include/renderstack_toolkit/math_util.hpp
-   include/renderstack_toolkit/lodepng.h
    include/renderstack_toolkit/platform.hpp
    include/renderstack_toolkit/enable_shared_from_this.hpp
    include/renderstack_toolkit/smart_ptr_builder.hpp
    include/renderstack_toolkit/service.hpp
    include/renderstack_toolkit/services.hpp
    source/log.cpp
-   source/lodepng.cpp
    source/math_util.cpp
    source/file.cpp
    source/gl_core.cpp

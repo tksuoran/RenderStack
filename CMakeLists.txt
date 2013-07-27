@@ -31,7 +31,7 @@ set(Boost_USE_STATIC_RUNTIME OFF)
 find_package(Boost 1.53.0)
 
 if (Boost_FOUND)
-    include_directories(${Boost_INCLUDE_DIRS})
+    # include_directories(${Boost_INCLUDE_DIRS})
     # add_executable(progname file1.cxx file2.cxx)
     # target_link_libraries(progname ${Boost_LIBRARIES})                                                                                                                                                                                                                            
 endif()
@@ -73,7 +73,57 @@ option(RENDERSTACK_USE_FREETYPE "Use Freetype" TRUE)
 
 # Slightly hacky
 set(GLM_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/libraries/glm-0.9.4.4")
+set(PNG_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/libraries/lpng163;${CMAKE_BINARY_DIR}/libraries/lpng163")
+# ${CMAKE_SOURCE_DIR}/libraries/zlib;${CMAKE_BINARY_DIR}/libraries/zlib")
 set(TINYXML_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/libraries/tinyxml2")
+set(TINYXML_LIBS tinyxml2static)
+set(PNG_LIBS png16_static zlibstatic)
+
+message("${CMAKE_BINARY_DIR}/libraries/zlib")
+
+# libpng requires some hacking due to dependency to zlib
+if (MSVC)
+   # Prevent libpng from trying to install anything
+   set(SKIP_INSTALL_ALL TRUE)
+
+   # Pre-override libpng cmake configuration to suit MSVC builds
+   set(PNG_SHARED FALSE)
+   set(PNG_STATIC TRUE)
+   option(PNG_TESTS "Build libpng tests" NO)
+
+   # Tell libpng that we have zlib
+   set(ZLIB_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/libraries/zlib")
+   set(ZLIB_LIBRARY zlib)
+   if(ZLIB_INCLUDE_DIR AND EXISTS "${ZLIB_INCLUDE_DIR}/zlib.h")
+       file(STRINGS "${ZLIB_INCLUDE_DIR}/zlib.h" ZLIB_H REGEX "^#define ZLIB_VERSION \"[^\"]*\"$")
+
+       string(REGEX REPLACE "^.*ZLIB_VERSION \"([0-9]+).*$" "\\1" ZLIB_VERSION_MAJOR "${ZLIB_H}")
+       string(REGEX REPLACE "^.*ZLIB_VERSION \"[0-9]+\\.([0-9]+).*$" "\\1" ZLIB_VERSION_MINOR  "${ZLIB_H}")
+       string(REGEX REPLACE "^.*ZLIB_VERSION \"[0-9]+\\.[0-9]+\\.([0-9]+).*$" "\\1" ZLIB_VERSION_PATCH "${ZLIB_H}")
+       set(ZLIB_VERSION_STRING "${ZLIB_VERSION_MAJOR}.${ZLIB_VERSION_MINOR}.${ZLIB_VERSION_PATCH}")
+
+       # only append a TWEAK version if it exists:
+       set(ZLIB_VERSION_TWEAK "")
+       if( "${ZLIB_H}" MATCHES "^.*ZLIB_VERSION \"[0-9]+\\.[0-9]+\\.[0-9]+\\.([0-9]+).*$")
+           set(ZLIB_VERSION_TWEAK "${CMAKE_MATCH_1}")
+           set(ZLIB_VERSION_STRING "${ZLIB_VERSION_STRING}.${ZLIB_VERSION_TWEAK}")
+       endif()
+
+       set(ZLIB_MAJOR_VERSION "${ZLIB_VERSION_MAJOR}")
+       set(ZLIB_MINOR_VERSION "${ZLIB_VERSION_MINOR}")
+       set(ZLIB_PATCH_VERSION "${ZLIB_VERSION_PATCH}")
+   endif()
+   set(ZLIB_INCLUDE_DIR ${ZLIB_INCLUDE_DIR};${CMAKE_BINARY_DIR}/libraries/zlib)
+   set(ZLIB_INCLUDE_DIRS ${ZLIB_INCLUDE_DIR})
+   set(ZLIB_LIBRARIES ${ZLIB_LIBRARY})
+   set(ZLIB_FOUND TRUE)
+
+   add_subdirectory(libraries/zlib)
+   add_subdirectory(libraries/lpng163)
+else ()
+   find_package(PNG REQUIRED)
+   find_package(ZLIB REQUIRED)
+endif ()
 
 
 include("ExportFile.cmake") # This is used by executables to copy data files
@@ -152,22 +202,22 @@ if (RENDERSTACK_USE_GLFW)
    list(APPEND RENDERSTACK_WINDOW_TOOLKIT_LIBRARIES glfw;${GLFW_LIBRARIES})
    if (RENDERSTACK_USE_EGL)
       set(KHRONOS_INCLUDE ${EGL_INCLUDE_DIR};${KHRONOS_INCLUDE})
-		set(RENDERSTACK_WINDOW_TOOLKIT_LIBRARIES "${EGL_LIBRARY}";${RENDERSTACK_WINDOW_TOOLKIT_LIBRARIES})
+      set(RENDERSTACK_WINDOW_TOOLKIT_LIBRARIES "${EGL_LIBRARY}";${RENDERSTACK_WINDOW_TOOLKIT_LIBRARIES})
    endif ()
    if (RENDERSTACK_GL_API_OPENGL)
       add_definitions(-DGLFW_INCLUDE_GLCOREARB -DGLCOREARB_PROTOTYPES)
-		set(KHRONOS_INCLUDE ${CMAKE_SOURCE_DIR}/libraries/khronos;${KHRONOS_INCLUDE})
+      set(KHRONOS_INCLUDE ${CMAKE_SOURCE_DIR}/libraries/khronos;${KHRONOS_INCLUDE})
    endif ()
    if (RENDERSTACK_GL_API_OPENGL_ES_2)
       add_definitions(-DGLFW_INCLUDE_ES2)
       set(KHRONOS_INCLUDE ${GLESv2_INCLUDE_DIR};${KHRONOS_INCLUDE})
-		set(RENDERSTACK_WINDOW_TOOLKIT_LIBRARIES "${GLESv2_LIBRARY}";${RENDERSTACK_WINDOW_TOOLKIT_LIBRARIES})
+      set(RENDERSTACK_WINDOW_TOOLKIT_LIBRARIES "${GLESv2_LIBRARY}";${RENDERSTACK_WINDOW_TOOLKIT_LIBRARIES})
    endif ()
    if (RENDERSTACK_GL_API_OPENGL_ES_3)
       add_definitions(-DGLFW_INCLUDE_ES3)
       set(KHRONOS_INCLUDE ${GLESv3_INCLUDE_DIR};${KHRONOS_INCLUDE})
-	  set(RENDERSTACK_WINDOW_TOOLKIT_LIBRARIES "${GLESv3_LIBRARY}";${RENDERSTACK_WINDOW_TOOLKIT_LIBRARIES})
-	  message(${RENDERSTACK_WINDOW_TOOLKIT_LIBRARIES})
+      set(RENDERSTACK_WINDOW_TOOLKIT_LIBRARIES "${GLESv3_LIBRARY}";${RENDERSTACK_WINDOW_TOOLKIT_LIBRARIES})
+      message(${RENDERSTACK_WINDOW_TOOLKIT_LIBRARIES})
    endif ()
 endif()
 

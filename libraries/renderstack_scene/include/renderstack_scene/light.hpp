@@ -48,15 +48,17 @@ public:
       std::string color;
    };
 
-   static spec      spec;
+   static spec spec;
 };
 
 class light
 {
-private:
-   std::shared_ptr<class camera> m_camera;
-
 public:
+   light(int light_index);
+
+   void update_frame();
+   void update_viewport(viewport &viewport);
+
    std::shared_ptr<class camera> camera      ();
    std::string const             &name       ();
    void                          set_name    (std::string const &value);
@@ -64,25 +66,19 @@ public:
    class projection const        &projection () const;
    class projection              &projection ();
 
-private:
-   static glm::mat4 s_texture;
-   static glm::mat4 s_texture_inverse;
-
-   transform m_shadow_from_world;
-
-   int m_light_index;
-
-public:
    int               light_index() const;
    void              set_light_index(int value);
    transform const   &shadow_from_world() const;
    transform         &shadow_from_world();
 
-public:
-   light(int light_index);
+private:
+   std::shared_ptr<class camera> m_camera;
 
-   void update_frame();
-   void update_viewport(viewport &viewport);
+   int                           m_light_index;
+   transform                     m_shadow_from_world;
+   static glm::mat4              s_texture;
+   static glm::mat4              s_texture_inverse;
+
 };
 
 } }

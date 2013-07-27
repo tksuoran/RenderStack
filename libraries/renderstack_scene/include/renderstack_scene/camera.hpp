@@ -15,14 +15,13 @@ namespace renderstack { namespace scene {
 
 class camera
 {
-private:
-   std::string                   m_name;
-   std::shared_ptr<class frame>  m_frame;
-   class projection              m_projection;
-   transform                     m_clip_from_view;
-   transform                     m_clip_from_world;
+public:
+   camera();
 
-   // TODO uniform buffer
+   // \todo UpdateProjection()
+   // Viewport has been modified, updates transformations.
+   void update_viewport(class viewport &viewport);
+   void update_frame();
 
 public:
    std::string const &name() { return m_name; }
@@ -39,13 +38,14 @@ public:
    transform const &clip_from_world() const { return m_clip_from_world; }
    transform &clip_from_world() { return m_clip_from_world; }
 
-public:
-   camera();
+private:
+   std::string                   m_name;
+   std::shared_ptr<class frame>  m_frame;
+   class projection              m_projection;
+   transform                     m_clip_from_view;
+   transform                     m_clip_from_world;
 
-   // \todo UpdateProjection()
-   // Viewport has been modified, updates transformations.
-   void update_viewport(class viewport &viewport);
-   void update_frame();
+   // TODO uniform buffer
 };
 
 } } 

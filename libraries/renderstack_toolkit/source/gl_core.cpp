@@ -10,6 +10,8 @@
 #include <cctype>
 #include <iostream>
 
+// TODO: This should be code generated.
+
 #define LOG_CATEGORY &log_gl
 
 // #define LOG_GL             1

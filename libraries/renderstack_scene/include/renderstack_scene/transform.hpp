@@ -11,10 +11,6 @@ namespace renderstack { namespace scene {
 
 class transform
 {
-private:
-   glm::mat4   m_matrix;
-   glm::mat4   m_inverse_matrix;
-
 public:
    transform(transform const &t);
    transform();
@@ -49,6 +45,10 @@ public:
    void set(glm::mat4 const &matrix);
    void set(glm::mat4 const &matrix, glm::mat4 const &inverse_matrix);
    void catenate(glm::mat4 const &m);
+
+private:
+   glm::mat4   m_matrix;
+   glm::mat4   m_inverse_matrix;
 };
 
 } }

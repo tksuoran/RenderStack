@@ -65,6 +65,13 @@ lights_uniforms::lights_uniforms(
 #endif
 }
 
+light::light(int light_index)
+:  m_camera(nullptr)
+,  m_shadow_from_world(mat4(1.0f), mat4(1.0f))
+,  m_light_index(light_index)
+{
+   m_camera = make_shared<class camera>();
+}
 
 shared_ptr<camera> light::camera()
 {
@@ -97,12 +104,6 @@ int light::light_index() const
 void light::set_light_index(int value)
 {
    m_light_index = value;
-}
-light::light(int light_index)
-:  m_shadow_from_world(mat4(1.0f), mat4(1.0f))
-,  m_light_index(light_index)
-{
-   m_camera = make_shared<class camera>();
 }
 transform const &light::shadow_from_world() const
 {

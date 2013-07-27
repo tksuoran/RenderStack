@@ -1,13 +1,13 @@
 #include "renderstack_toolkit/platform.hpp"
-#include "renderstack_toolkit/lodepng.h"
 #include "renderstack_toolkit/gl.hpp"
 #include "renderstack_toolkit/strong_gl_enums.hpp"
-#include "renderstack_ui/ninepatch_style.hpp"
-#include "renderstack_ui/style.hpp"
-#include "renderstack_ui/log.hpp"
+#include "renderstack_graphics/load_png.hpp"
 #include "renderstack_graphics/buffer.hpp"
 #include "renderstack_graphics/renderer.hpp"
 #include "renderstack_graphics/texture.hpp"
+#include "renderstack_ui/ninepatch_style.hpp"
+#include "renderstack_ui/style.hpp"
+#include "renderstack_ui/log.hpp"
 #include <stdexcept>
 
 #define LOG_CATEGORY &log_ninepatch_style
@@ -33,46 +33,14 @@ ninepatch_style::ninepatch_style(
 
    if (path.length() > 0)
    {
-      unsigned char* data = nullptr;
-      unsigned int w;
-      unsigned int h;
-      unsigned int res = ::lodepng_decode32_file(&data, &w, &h, path.c_str());
-      if (res != 0)
-         throw runtime_error("texture image not found: " + path);
-
-      m_texture = make_shared<renderstack::graphics::texture>(
-         renderstack::graphics::texture_target::texture_2d,
-         GL_RGBA8,
-         false,
-         w,
-         h
-      );
-      m_texture->allocate_storage(renderer);
+      m_texture = load_png(renderer, texture_unit, path);
       m_texture->set_debug_label(path);
-      unsigned int old_unit;
-      auto old_texture = renderer.set_texture(0, m_texture, &old_unit);
-
-      gl::pixel_store_i(GL_UNPACK_ALIGNMENT, 1);
-      gl::tex_sub_image_2d(
-         GL_TEXTURE_2D,
-         0,
-         0,
-         0,
-         static_cast<GLint>(w),
-         static_cast<GLint>(h),
-         GL_RGBA,
-         GL_UNSIGNED_BYTE,
-         reinterpret_cast<void*>(data)
-      );
-      ::free(data);
 
       m_texture->set_min_filter(gl::texture_min_filter::nearest);
       m_texture->set_mag_filter(gl::texture_mag_filter::nearest);
 
-      m_border_pixels.x = m_border_uv.x * (float)w;
-      m_border_pixels.y = m_border_uv.y * (float)h;
-
-      renderer.restore_texture(renderstack::graphics::texture_target::texture_2d, old_texture, old_unit);
+      m_border_pixels.x = m_border_uv.x * (float)m_texture->width();
+      m_border_pixels.y = m_border_uv.y * (float)m_texture->height();
    }
 }
 

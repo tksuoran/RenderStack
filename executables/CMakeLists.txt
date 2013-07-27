@@ -1,3 +1,3 @@
 # CMakeLists.txt for RenderStack/executables
 
-add_subdirectory(geometrytest)
+add_subdirectory(sandbox)

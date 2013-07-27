@@ -6,6 +6,8 @@ include_directories(
    ${KHRONOS_INCLUDE}
    ${CMAKE_SOURCE_DIR}/libraries/renderstack_graphics/include
    ${CMAKE_SOURCE_DIR}/libraries/renderstack_toolkit/include
+   ${PNG_INCLUDE_DIRS}
+   ${ZLIB_INCLUDE_DIRS}
 )
 
 add_library(
@@ -63,6 +65,9 @@ add_library(
    source/color_mask_state.cpp
    source/renderer.cpp
    source/stencil_state.cpp
+
+   include/renderstack_graphics/load_png.hpp
+   source/load_png.cpp
 
 )
 
