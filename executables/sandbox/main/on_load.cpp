@@ -119,11 +119,20 @@ bool application::initialize_services()
          application_
       );
 
-   if (menu_)              menu_->connect(renderer, gui_renderer, programs_, textures_, game_, application_);
+   if (menu_)
+      menu_->connect(renderer, gui_renderer, programs_, textures_, game_, application_);
 
-   if (application_)       application_->connect(game_, menu_);
+   if (application_)
+      application_->connect(game_, menu_);
 
-   m_services.initialize_services();
+   try
+   {
+      m_services.initialize_services();
+   }
+   catch (...)
+   {
+      return false;
+   }
 
    gl::viewport(0, 0, width(), height());
    gl::clear_color(0.0f, 0.0f, 0.0f, 0.0f);

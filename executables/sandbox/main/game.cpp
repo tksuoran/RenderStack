@@ -48,13 +48,13 @@
 #define USE_FONT        1
 #define USE_GUI         1
 
-using namespace std;
-using namespace gl;
-using namespace glm;
 using namespace renderstack::graphics;
 using namespace renderstack::toolkit;
 using namespace renderstack::mesh;
 using namespace renderstack::ui;
+using namespace std;
+using namespace gl;
+using namespace glm;
 
 game::game()
 :  service("game")
@@ -72,23 +72,22 @@ game::game()
 ,  m_application      (nullptr)
 
 /* self owned parts */
-,  m_models                   (nullptr)
-,  m_manipulator_frame        (nullptr)
-,  m_manipulator              (nullptr)
-,  m_font                     (nullptr)
-,  m_text_buffer              (nullptr)
-,  m_root_layer               (nullptr)
-,  m_menu_button              (nullptr)
-,  m_slider                   (nullptr)
-,  m_text_uniform_buffer_range(nullptr)
+,  m_models             (nullptr)
+,  m_manipulator_frame  (nullptr)
+,  m_manipulator        (nullptr)
+,  m_font               (nullptr)
+,  m_text_buffer        (nullptr)
+,  m_root_layer         (nullptr)
+,  m_menu_button        (nullptr)
+,  m_slider             (nullptr)
 
-,  m_update_time              (0.0)
-,  m_frame_dt                 (0.0)
-,  m_min_frame_dt             (0.0)
-,  m_max_frame_dt             (0.0)
-,  m_simulation_time          (0.0)
-,  m_screen_active            (false)
-,  m_mouse_down               (false)
+,  m_update_time        (0.0)
+,  m_frame_dt           (0.0)
+,  m_min_frame_dt       (0.0)
+,  m_max_frame_dt       (0.0)
+,  m_simulation_time    (0.0)
+,  m_screen_active      (false)
+,  m_mouse_down         (false)
 {
 }
 
@@ -142,15 +141,15 @@ void game::reset_build_info()
    m_buffer_info = geometry_mesh_buffer_info();
 }
 
-std::shared_ptr<model> game::make_model(
-   std::shared_ptr<renderstack::scene::frame> parent,
-   std::shared_ptr<renderstack::geometry::geometry> g,
-   glm::vec3 position
+shared_ptr<model> game::make_model(
+   shared_ptr<renderstack::scene::frame> parent,
+   shared_ptr<renderstack::geometry::geometry> g,
+   vec3 position
 )
 {
    geometry_mesh::prepare_vertex_format(g, m_format_info, m_buffer_info);
    mat4 transform;
-   renderstack::create_translation(position, transform);
+   create_translation(position, transform);
 
    auto gm = make_shared<renderstack::mesh::geometry_mesh>(*m_renderer, g, m_format_info, m_buffer_info);
    auto m = make_shared<model>();
@@ -170,18 +169,6 @@ void game::initialize_service()
    assert(m_textures);
 
    slog_trace("game::on_load()");
-
-   if (m_programs->use_uniform_buffers())
-   {
-#if defined(USE_FONT)
-      auto uniform_buffer = m_programs->uniform_buffer;
-
-      m_text_uniform_buffer_range = make_shared<uniform_buffer_range>(
-         m_programs->block,
-         uniform_buffer
-      );
-#endif
-   }
 
    m_models = make_shared<group>();
 
@@ -399,8 +386,8 @@ void game::setup_gui()
    m_root_layer->set_name("m_root_layer");
 
    auto d = smart_ptr_builder::create_shared_ptr<area>(new menulist(gr, ms, orientation::vertical));
-   d->set_offset_free_size_relative(glm::vec2(  1.0f,  1.0f));
-   d->set_offset_self_size_relative(glm::vec2( -1.0f, -1.0f));
+   d->set_offset_free_size_relative(vec2(  1.0f,  1.0f));
+   d->set_offset_self_size_relative(vec2( -1.0f, -1.0f));
    d->set_child_layout_style(area_layout_style::extend_horizontal);
 
    weak_ptr<action_sink> as = action_sink::shared_from_this();

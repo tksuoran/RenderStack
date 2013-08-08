@@ -81,21 +81,17 @@ void game::render_ui()
       glm::vec4 white(1.0f, 1.0f, 1.0f, 0.66f); // gamma in 4th component
       if (m_programs->use_uniform_buffers())
       {
-         assert(m_text_uniform_buffer_range);
-
-         uniform_offsets &o = m_programs->uniform_offsets;
-         r.set_uniform_buffer_range(
-            m_programs->block->binding_point(),
-            m_text_uniform_buffer_range);
-         unsigned char *start = m_text_uniform_buffer_range->begin_edit(r);
-         ::memcpy(&start[o.clip_from_model], value_ptr(ortho), 16 * sizeof(float));
-         ::memcpy(&start[o.color],           value_ptr(white), 4 * sizeof(float));
-         m_text_uniform_buffer_range->end_edit(r);
+         unsigned char *start = m_programs->begin_edit_uniforms();
+         ::memcpy(&start[m_programs->model_ubr->first_byte() + m_programs->model_block_access.clip_from_model], value_ptr(ortho), 16 * sizeof(float));
+         ::memcpy(&start[m_programs->material_ubr->first_byte() + m_programs->material_block_access.color], value_ptr(white), 4 * sizeof(float));
+         m_programs->model_ubr->flush(r);
+         m_programs->material_ubr->flush(r);
+         m_programs->end_edit_uniforms();
       }
       else
       {
-         int model_to_clip_ui = p->uniform_at(m_programs->uniform_keys.clip_from_model);
-         int color_ui         = p->uniform_at(m_programs->uniform_keys.color);
+         int model_to_clip_ui = p->uniform_at(m_programs->model_block_access.clip_from_model);
+         int color_ui         = p->uniform_at(m_programs->material_block_access.color);
 
          gl::uniform_matrix_4fv(model_to_clip_ui, 1, GL_FALSE, value_ptr(ortho));
          gl::uniform_4fv(color_ui, 1, value_ptr(white));

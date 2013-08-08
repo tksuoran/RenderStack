@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <stdexcept>
 
-namespace renderstack {
+namespace renderstack { namespace toolkit {
 
 using namespace glm;
 using namespace std;
@@ -68,26 +68,6 @@ vec2 project_to_screen_space(
    return window;
 }
 
-vec3 const& max_axis(vec3 const &v)
-{
-   if (std::abs(v.x) >= std::abs(v.y) && std::abs(v.x) >= std::abs(v.z))
-      return vec3_unit_x;
-
-   if (std::abs(v.y) >= std::abs(v.x) && std::abs(v.y) >= std::abs(v.z))
-      return vec3_unit_y;
-
-   return vec3_unit_z;
-}
-vec3 const& min_axis(vec3 const &v)
-{
-   if (std::abs(v.x) <= std::abs(v.y) && std::abs(v.x) <= std::abs(v.z))
-      return vec3_unit_x;
-
-   if (std::abs(v.y) <= std::abs(v.x) && std::abs(v.y) <= std::abs(v.z))
-      return vec3_unit_y;
-
-   return vec3_unit_z;
-}
 void create_frustum(float left, float right, float bottom, float top, float near, float far, mat4 &result)
 {
    float x, y, a, b, c, d;
@@ -526,4 +506,4 @@ vec3 spherical_to_cartesian(vec2 s)
    return v;
 }
 
-}
+} }

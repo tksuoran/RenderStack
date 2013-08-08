@@ -5,8 +5,10 @@
 #define GLM_SWIZZLE_XYZW
 #include <glm/glm.hpp>
 
+
+using namespace renderstack::toolkit;
 using namespace glm;
-using namespace renderstack;
+
 
 void frame_controller::set_position(vec3 const &position)
 {

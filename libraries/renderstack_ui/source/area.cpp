@@ -112,7 +112,7 @@ shared_ptr<class area> area::remove(shared_ptr<class area> a)
       m_children.erase(
          std::remove(m_children.begin(), m_children.end(), a), 
          m_children.end()
-         );
+      );
       a->reset_parent();
    }
    return a;

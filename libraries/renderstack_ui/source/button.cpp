@@ -8,6 +8,7 @@
 
 namespace renderstack { namespace ui {
 
+using namespace renderstack::toolkit;
 using namespace std;
 
 button::button(

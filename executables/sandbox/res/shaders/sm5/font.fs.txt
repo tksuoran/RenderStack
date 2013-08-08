@@ -10,7 +10,7 @@ void main(void)
     float inside  = c.r;
     float outline = c.g;
     float alpha   = max(inside, outline * 0.25);
-    vec3  color   = global.color.rgb * pow(inside, 0.5);
+    vec3  color   = material.color.rgb * pow(inside, 0.5);
 
     out_color = vec4(color, alpha);
     //out_color = vec4(inside, outline, 0, 1.0);

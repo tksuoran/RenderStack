@@ -36,12 +36,12 @@ gl::buffer_target::value gl_buffer_target(value rs_target)
 
    case uniform_buffer      :
       if (!configuration::can_use.uniform_buffer_object)
-         throw std::runtime_error("uniform buffer not supported");
+         throw runtime_error("uniform buffer not supported");
       return gl::buffer_target::uniform_buffer;
 
    case texture_buffer      :
       if (!configuration::can_use.texture_buffer_object)
-         throw std::runtime_error("texture buffer not supported");
+         throw runtime_error("texture buffer not supported");
       return gl::buffer_target::texture_buffer;
 
    case draw_indirect_buffer:
@@ -49,7 +49,7 @@ gl::buffer_target::value gl_buffer_target(value rs_target)
       return gl::buffer_target::draw_indirect_buffer;
 
    default:
-      throw std::runtime_error("invalid buffer target");
+      throw runtime_error("invalid buffer target");
    }
 }
 
@@ -68,7 +68,7 @@ const char * const desc(value target)
    case draw_indirect_buffer: return "draw_indirect_buffer";
 
    default:
-      throw std::runtime_error("invalid buffer target");
+      throw runtime_error("invalid buffer target");
    }
 }
 
@@ -155,12 +155,12 @@ void buffer::allocate_storage(class renderer &renderer)
    }
 }
 
-void buffer::set_debug_label(std::string const &value)
+void buffer::set_debug_label(string const &value)
 {
    m_debug_label = value;
 }
 
-std::string const &buffer::debug_label() const
+string const &buffer::debug_label() const
 {
    return m_debug_label;
 }
@@ -451,11 +451,11 @@ size_t buffer::free_capacity() const
    return m_capacity - m_next_free;
 }
 
-std::size_t buffer::stride() const
+size_t buffer::stride() const
 {
    return m_stride;
 }
-std::size_t buffer::capacity() const
+size_t buffer::capacity() const
 {
    return m_capacity;
 }

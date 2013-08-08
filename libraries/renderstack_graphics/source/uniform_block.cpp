@@ -1,8 +1,9 @@
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_toolkit/gl.hpp"
+#include "renderstack_graphics/configuration.hpp"
+#include "renderstack_graphics/program.hpp"
 #include "renderstack_graphics/uniform_block.hpp"
 #include "renderstack_graphics/uniform.hpp"
-#include "renderstack_graphics/configuration.hpp"
 #include <cassert>
 #include <stdexcept>
 #include <sstream>
@@ -59,20 +60,31 @@ void uniform_block::set_name(string const &value)
    m_name = value;
 }
 
+uniform_block::uniform_block(string const &name)
+:  m_name         (name)
+,  m_block_name   (name + "_block")
+,  m_default_block(true)
+,  m_binding_point(0)
+,  m_offset       (0)
+{
+}
+
 uniform_block::uniform_block(unsigned int binding_point, string const &name)
-:  m_name(name)
-,  m_block_name(name + "_block")
+:  m_name         (name)
+,  m_block_name   (name + "_block")
+,  m_default_block(false)
 ,  m_binding_point(binding_point)
-,  m_offset(0)
+,  m_offset       (0)
 {
    assert((int)binding_point < configuration::max_uniform_buffer_bindings);
 }
 
 uniform_block::uniform_block(unsigned int binding_point, string const &name, string const &block_name)
-:  m_name(name)
-,  m_block_name(block_name)
+:  m_name         (name)
+,  m_block_name   (block_name)
+,  m_default_block(false)
 ,  m_binding_point(binding_point)
-,  m_offset(0)
+,  m_offset       (0)
 {
    assert((int)binding_point < configuration::max_uniform_buffer_bindings);
 }
@@ -86,12 +98,12 @@ string uniform_block::source(int glsl_version) const
 {
    stringstream ss;
 
-   bool use_uniform_buffers = 
+   bool use_uniform_buffer = !m_default_block && 
       renderstack::graphics::configuration::can_use.uniform_buffer_object && 
       (glsl_version >= 140) &&
       (renderstack::graphics::configuration::shader_model_version >= 4);
 
-   if (use_uniform_buffers)
+   if (use_uniform_buffer)
    {
       ss << "layout(std140) uniform " << m_block_name << "\n{\n";
       for (uniform_collection::const_iterator i = uniforms().cbegin(); i != uniforms().cend(); ++i)
@@ -136,239 +148,237 @@ void uniform_block::seal()
       ++m_offset;
 }
 
-size_t uniform_block::size() const 
+size_t uniform_block::num_uniforms() const 
+{ 
+   return m_uniforms.size();
+}
+
+size_t uniform_block::size_bytes() const 
 { 
    return m_offset;
+}
+
+size_t uniform_block::offset() const 
+{ 
+   return m_offset;
+}
+
+bool uniform_block::default_block() const
+{
+   return m_default_block;
+}
+
+void uniform_block::map_program(shared_ptr<renderstack::graphics::program> p) const
+{
+   for (uniform_collection::const_iterator i = uniforms().cbegin(); i != uniforms().cend(); ++i)
+   {
+      stringstream ss;
+      auto u = *i;
+      ss << m_name << "_" << u->name();
+      p->map_uniform(u->index_in_block(), ss.str());
+   }
 }
 
 shared_ptr<uniform> uniform_block::add_float(string const &name)
 {
    while ((m_offset % 4) != 0) ++m_offset; // align by 4 bytes
-   size_t uniform_offset = m_offset;
-   m_offset += 4;
    auto uniform = make_shared<class uniform>(
       name,
-      static_cast<GLint>(uniforms().size()),
+      shared_from_this(),
       1,
-      gl::active_uniform_type::float_, 
-      uniform_offset
+      gl::active_uniform_type::float_
    );
    uniforms().push_back(uniform);
+   m_offset += 4;
    return uniform;
 }
 
 shared_ptr<uniform> uniform_block::add_float(string const &name, unsigned int dimension)
 {
    while ((m_offset % 4) != 0) ++m_offset; // align by 4 bytes
-   size_t uniform_offset = m_offset;
-   m_offset += dimension * 4;
    auto uniform = make_shared<class uniform>(
       name,
-      static_cast<GLint>(uniforms().size()),
+      shared_from_this(),
       dimension,
-      gl::active_uniform_type::float_, 
-      uniform_offset
+      gl::active_uniform_type::float_
    );
    uniform->set_is_array(true);
    uniforms().push_back(uniform);
+   m_offset += dimension * 4;
    return uniform;
 }
 
 shared_ptr<uniform> uniform_block::add_vec2(string const &name)
 {
    while ((m_offset % (2 * 4)) != 0) ++m_offset; // align by 2 * 4 bytes
-   size_t uniform_offset = m_offset;
-   m_offset += 2 * 4;
    auto uniform = make_shared<class uniform>(
       name,
-      static_cast<GLint>(uniforms().size()),
+      shared_from_this(),
       1,
-      gl::active_uniform_type::float_vec2, 
-      uniform_offset
+      gl::active_uniform_type::float_vec2
    );
    uniforms().push_back(uniform);
+   m_offset += 2 * 4;
    return uniform;
 }
 
 shared_ptr<uniform> uniform_block::add_vec2(string const &name, unsigned int dimension)
 {
    while ((m_offset % (2 * 4)) != 0) ++m_offset; // align by 2 * 4 bytes
-   size_t uniform_offset = m_offset;
-   m_offset += dimension * 2 * 4;
    auto uniform = make_shared<class uniform>(
       name,
-      static_cast<GLint>(uniforms().size()),
+      shared_from_this(),
       dimension,
-      gl::active_uniform_type::float_vec2, 
-      uniform_offset
+      gl::active_uniform_type::float_vec2
    );
    uniform->set_is_array(true);
    uniforms().push_back(uniform);
+   m_offset += dimension * 2 * 4;
    return uniform;
 }
 
 shared_ptr<uniform> uniform_block::add_vec3(string const &name)
 {
    while ((m_offset % (4 * 4)) != 0) ++m_offset; // align by 4 * 4 bytes
-   size_t uniform_offset = m_offset;
-   m_offset += 4 * 4;
    auto uniform = make_shared<class uniform>(
       name,
-      static_cast<GLint>(uniforms().size()),
+      shared_from_this(),
       1,
-      gl::active_uniform_type::float_vec3, 
-      uniform_offset
+      gl::active_uniform_type::float_vec3
    );
    uniforms().push_back(uniform);
+   m_offset += 4 * 4;
    return uniform;
 }
 
 shared_ptr<uniform> uniform_block::add_vec3(string const &name, unsigned int dimension)
 {
    while ((m_offset % (4 * 4)) != 0) ++m_offset; // align by 4 * 4 bytes
-   size_t uniform_offset = m_offset;
-   m_offset += dimension * 4 * 4;
    auto uniform = make_shared<class uniform>(
       name,
-      static_cast<GLint>(uniforms().size()),
+      shared_from_this(),
       dimension,
-      gl::active_uniform_type::float_vec3, 
-      uniform_offset
+      gl::active_uniform_type::float_vec3
    );
    uniform->set_is_array(true);
    uniforms().push_back(uniform);
+   m_offset += dimension * 4 * 4;
    return uniform;
 }
 
 shared_ptr<uniform> uniform_block::add_vec4(string const &name)
 {
    while ((m_offset % (4 * 4)) != 0) ++m_offset; // align by 4 * 4 bytes
-   size_t uniform_offset = m_offset;
-   m_offset += 4 * 4;
    auto uniform = make_shared<class uniform>(
       name,
-      static_cast<GLint>(uniforms().size()),
+      shared_from_this(),
       1,
-      gl::active_uniform_type::float_vec4, 
-      uniform_offset
+      gl::active_uniform_type::float_vec4
    );
    uniforms().push_back(uniform);
+   m_offset += 4 * 4;
    return uniform;
 }
 
 shared_ptr<uniform> uniform_block::add_vec4(string const &name, unsigned int dimension)
 {
    while ((m_offset % (4 * 4)) != 0) ++m_offset; // align by 4 * 4 bytes
-   size_t uniform_offset = m_offset;
-   m_offset += dimension * 4 * 4;
    auto uniform = make_shared<class uniform>(
       name,
-      static_cast<GLint>(uniforms().size()),
+      shared_from_this(),
       dimension,
-      gl::active_uniform_type::float_vec4, 
-      uniform_offset
+      gl::active_uniform_type::float_vec4
    );
    uniform->set_is_array(true);
    uniforms().push_back(uniform);
+   m_offset += dimension * 4 * 4;
    return uniform;
 }
 
 shared_ptr<uniform> uniform_block::add_mat4(string const &name)
 {
    while((m_offset % (4 * 4)) != 0) ++m_offset; // align by 4 * 4 bytes
-   size_t uniform_offset = m_offset;
-   m_offset += 16 * 4;
    auto uniform = make_shared<class uniform>(
       name,
-      static_cast<GLint>(uniforms().size()),
+      shared_from_this(),
       1,
-      gl::active_uniform_type::float_mat4, 
-      uniform_offset
+      gl::active_uniform_type::float_mat4
    );
    uniforms().push_back(uniform);
+   m_offset += 16 * 4;
    return uniform;
 }
 
 shared_ptr<uniform> uniform_block::add_mat4(string const &name, unsigned int dimension)
 {
    while ((m_offset % (4 * 4)) != 0) ++m_offset; // align by 4 * 4 bytes
-   size_t uniform_offset = m_offset;
-   m_offset += dimension * 16 * 4;
    auto uniform = make_shared<class uniform>(
       name,
-      static_cast<GLint>(uniforms().size()),
+      shared_from_this(),
       dimension,
-      gl::active_uniform_type::float_vec4, 
-      uniform_offset
+      gl::active_uniform_type::float_vec4
    );
    uniform->set_is_array(true);
    uniforms().push_back(uniform);
+   m_offset += dimension * 16 * 4;
    return uniform;
 }
 
 shared_ptr<uniform> uniform_block::add_int(string const &name)
 {
    while ((m_offset % 4) != 0) ++m_offset; // align by 4 bytes
-   size_t uniform_offset = m_offset;
-   m_offset += 4;
    auto uniform = make_shared<class uniform>(
       name,
-      static_cast<GLint>(uniforms().size()),
+      shared_from_this(),
       1,
-      gl::active_uniform_type::int_, 
-      uniform_offset
+      gl::active_uniform_type::int_
    );
    uniforms().push_back(uniform);
+   m_offset += 4;
    return uniform;
 }
 
 shared_ptr<uniform> uniform_block::add_int(string const &name, unsigned int dimension)
 {
    while ((m_offset % 4) != 0) ++m_offset; // align by 4 bytes
-   size_t uniform_offset = m_offset;
-   m_offset += dimension * 4;
    auto uniform = make_shared<class uniform>(
       name,
-      static_cast<GLint>(uniforms().size()),
+      shared_from_this(),
       dimension,
-      gl::active_uniform_type::int_, 
-      uniform_offset
+      gl::active_uniform_type::int_
    );
    uniform->set_is_array(true);
    uniforms().push_back(uniform);
+   m_offset += dimension * 4;
    return uniform;
 }
 
 shared_ptr<uniform> uniform_block::add_uint(string const &name)
 {
    while ((m_offset % 4) != 0) ++m_offset; // align by 4 bytes
-   size_t uniform_offset = m_offset;
-   m_offset += 4;
    auto uniform = make_shared<class uniform>(
       name,
-      static_cast<GLint>(uniforms().size()),
+      shared_from_this(),
       1,
-      gl::active_uniform_type::unsigned_int, 
-      uniform_offset
+      gl::active_uniform_type::unsigned_int
    );
    uniforms().push_back(uniform);
+   m_offset += 4;
    return uniform;
 }
 
 shared_ptr<uniform> uniform_block::add_uint(string const &name, unsigned int dimension)
 {
    while ((m_offset % 4) != 0) ++m_offset; // align by 4 bytes
-   size_t uniform_offset = m_offset;
-   m_offset += dimension * 4;
    auto uniform = make_shared<class uniform>(
       name,
-      static_cast<GLint>(uniforms().size()),
+      shared_from_this(),
       dimension,
-      gl::active_uniform_type::unsigned_int, 
-      uniform_offset
+      gl::active_uniform_type::unsigned_int
    );
    uniform->set_is_array(true);
    uniforms().push_back(uniform);
+   m_offset += dimension * 4;
    return uniform;
 }
 

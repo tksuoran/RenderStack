@@ -23,6 +23,8 @@
 #include <sys/stat.h>
 #include <iomanip>
 
+
+using namespace renderstack::toolkit;
 using namespace renderstack::graphics;
 using namespace renderstack::mesh;
 using namespace renderstack;
@@ -35,9 +37,6 @@ id_renderer::id_renderer()
 :  service("id_renderer")
 ,  m_renderer(nullptr)
 ,  m_programs(nullptr)
-
-,  m_id_render_uniform_buffer_range(nullptr)
-
 ,  m_last_render(0)
 ,  m_radius(64)
 {
@@ -63,16 +62,6 @@ void id_renderer::initialize_service()
 {
    assert(m_renderer);
    assert(m_programs);
-
-   auto uniform_buffer = m_programs->uniform_buffer;
-
-   if (m_programs->use_uniform_buffers())
-   {
-      m_id_render_uniform_buffer_range = make_shared<uniform_buffer_range>(
-         m_programs->block,
-         uniform_buffer
-      );
-   }
 
    m_id_render_states.depth.set_enabled(true);
    m_id_render_states.face_cull.set_enabled(true);
@@ -131,21 +120,20 @@ void id_renderer::render_pass(
    t.execute(&m_id_render_states);
    r.set_program(p);
    
-   uniform_offsets &o = m_programs->uniform_offsets;
-
    vec4 white(1.0f, 1.0f, 1.0f, 1.0f);
    if (m_programs->use_uniform_buffers())
    {
-      assert(m_id_render_uniform_buffer_range);
-      r.set_uniform_buffer_range(m_programs->block->binding_point(), m_id_render_uniform_buffer_range);
+      assert(m_programs);
 
-      unsigned char *start = m_id_render_uniform_buffer_range->begin_edit(r);
-      ::memcpy(&start[o.color], value_ptr(white), 4 * sizeof(float));
-      m_id_render_uniform_buffer_range->end_edit(r);
+      unsigned char *start          = m_programs->begin_edit_uniforms();
+      unsigned char *material_start = &start[m_programs->material_ubr->first_byte()];
+      ::memcpy(&material_start[m_programs->material_block_access.color], value_ptr(white), 4 * sizeof(float));
+      m_programs->material_ubr->flush(r);
+      m_programs->end_edit_uniforms();
    }
    else
    {
-      gl::uniform_4fv(p->uniform_at(m_programs->uniform_keys.color), 1, value_ptr(white));
+      gl::uniform_4fv(p->uniform_at(m_programs->material_block_access.color), 1, value_ptr(white));
    }
 
    uint32_t id_offset = 0;
@@ -180,18 +168,16 @@ void id_renderer::render_pass(
 
       if (m_programs->use_uniform_buffers())
       {
-         assert(m_id_render_uniform_buffer_range);
-         r.set_uniform_buffer_range(m_programs->block->binding_point(), m_id_render_uniform_buffer_range);
-
-         unsigned char *start = m_id_render_uniform_buffer_range->begin_edit(r);
-         ::memcpy(&start[o.clip_from_model], value_ptr(clip_from_model),  16 * sizeof(float));
-         ::memcpy(&start[o.id_offset      ], value_ptr(id_offset_vec3),    3 * sizeof(float));
-         m_id_render_uniform_buffer_range->end_edit(r);
+         unsigned char *start = m_programs->begin_edit_uniforms();
+         ::memcpy(&start[m_programs->model_ubr->first_byte() + m_programs->model_block_access.clip_from_model], value_ptr(clip_from_model),  16 * sizeof(float));
+         ::memcpy(&start[m_programs->model_ubr->first_byte() + m_programs->model_block_access.id_offset      ], value_ptr(id_offset_vec3),    3 * sizeof(float));
+         m_programs->model_ubr->flush(r);
+         m_programs->end_edit_uniforms();
       }
       else
       {
-         gl::uniform_matrix_4fv(p->uniform_at(m_programs->uniform_keys.clip_from_model), 1, GL_FALSE, value_ptr(clip_from_model));
-         gl::uniform_3fv(p->uniform_at(m_programs->uniform_keys.id_offset), 1, value_ptr(id_offset_vec3));
+         gl::uniform_matrix_4fv(p->uniform_at(m_programs->model_block_access.clip_from_model), 1, GL_FALSE, value_ptr(clip_from_model));
+         gl::uniform_3fv(p->uniform_at(m_programs->model_block_access.id_offset), 1, value_ptr(id_offset_vec3));
       }
 
       r.draw_elements_base_vertex(

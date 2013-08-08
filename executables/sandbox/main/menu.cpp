@@ -111,21 +111,6 @@ void menu::initialize_service()
    );
 #endif
 
-   if (renderstack::graphics::configuration::can_use.uniform_buffer_object)
-   {
-      m_uniform_buffer = make_shared<buffer>(
-         renderstack::graphics::buffer_target::uniform_buffer,
-         m_programs->block->size(),
-         1
-      );
-      m_uniform_buffer->allocate_storage(*m_renderer);
-
-      m_uniform_buffer_range = make_shared<uniform_buffer_range>(
-         m_programs->block,
-         m_uniform_buffer
-      );
-   }
-
    auto p = m_programs->textured;
    auto m = p->mappings();
    auto gr = m_gui_renderer;
@@ -137,7 +122,7 @@ void menu::initialize_service()
 
    /*  Write indices for one quad  */
    {
-      gr->edit_ibo();
+      gr->set_index_buffer();
       unsigned short *start = static_cast<unsigned short *>(
          m_mesh->index_buffer()->map(
             r,
@@ -240,20 +225,16 @@ void menu::on_resize(int width, int height)
       p->use();
 #endif
 
-      uniform_offsets &o = m_programs->uniform_offsets;
+      auto buffer = m_programs->uniform_buffer;
 
-      auto buffer = m_uniform_buffer_range->uniform_buffer().lock();
-      //m_renderer->set_buffer(buffer->target(), buffer);
-
-      m_renderer->set_uniform_buffer_range(
-         m_programs->block->binding_point(),
-         m_uniform_buffer_range);
-
-      unsigned char *start = m_uniform_buffer_range->begin_edit(r);
-
-      ::memcpy(&start[o.clip_from_model], value_ptr(ortho), 16 * sizeof(float));
-      ::memcpy(&start[o.color],           value_ptr(white),  4 * sizeof(float));
-      m_uniform_buffer_range->end_edit(r);
+      {
+         unsigned char *start = m_programs->begin_edit_uniforms();
+         ::memcpy(&start[m_programs->model_ubr->first_byte() + m_programs->model_block_access.clip_from_model], value_ptr(ortho), 16 * sizeof(float));
+         ::memcpy(&start[m_programs->material_ubr->first_byte() + m_programs->material_block_access.color], value_ptr(white),  4 * sizeof(float));
+         m_programs->model_ubr->flush(r);
+         m_programs->material_ubr->flush(r);
+         m_programs->end_edit_uniforms();
+      }
    }
    else
    {
@@ -262,8 +243,8 @@ void menu::on_resize(int width, int height)
       {
          auto p = m_programs->textured;
          m_renderer->set_program(p);
-         gl::uniform_matrix_4fv(p->uniform_at(m_programs->uniform_keys.clip_from_model ), 1, GL_FALSE, value_ptr(ortho));
-         gl::uniform_4fv       (p->uniform_at(m_programs->uniform_keys.color           ), 1, value_ptr(white));
+         gl::uniform_matrix_4fv(p->uniform_at(m_programs->model_block_access.clip_from_model ), 1, GL_FALSE, value_ptr(ortho));
+         gl::uniform_4fv       (p->uniform_at(m_programs->material_block_access.color        ), 1, value_ptr(white));
       }
 #endif
 
@@ -271,8 +252,8 @@ void menu::on_resize(int width, int height)
       {
          auto p = m_programs->font;
          m_renderer->set_program(p);
-         gl::uniform_matrix_4fv(p->uniform_at(m_programs->uniform_keys.clip_from_model ), 1, GL_FALSE, value_ptr(ortho));
-         gl::uniform_4fv       (p->uniform_at(m_programs->uniform_keys.color           ), 1, value_ptr(white));
+         gl::uniform_matrix_4fv(p->uniform_at(m_programs->model_block_access.clip_from_model ), 1, GL_FALSE, value_ptr(ortho));
+         gl::uniform_4fv       (p->uniform_at(m_programs->material_block_access.color        ), 1, value_ptr(white));
       }
 #endif
    }
@@ -280,7 +261,7 @@ void menu::on_resize(int width, int height)
 #if defined(RENDER_BACKGROUND)
    {
       /*  Write corner vertices for one quad  */
-      gr->edit_vbo();
+      gr->set_vertex_buffer();
       float *ptr = static_cast<float*>(
          m_mesh->vertex_buffer()->map(
             r,
@@ -391,6 +372,7 @@ void menu::render()
    {
       auto p = m_programs->textured;
       m_renderer->set_program(p);
+      m_programs->bind_uniforms();
 
 #if defined(DEBUG_FONT)
       auto t = m_font->texture();

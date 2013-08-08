@@ -7,12 +7,13 @@
 namespace renderstack { namespace geometry {
 
 using namespace glm;
+using namespace std;
 
 void corner::smooth_normalize(
-   std::shared_ptr<property_map<renderstack::geometry::corner*,  vec3> >  corner_attribute,
-   std::shared_ptr<property_map<renderstack::geometry::polygon*, vec3> >  polygon_attribute,
-   std::shared_ptr<property_map<renderstack::geometry::polygon*, vec3> >  polygon_normals,
-   float                                                                   cos_max_smoothing_angle
+   shared_ptr<property_map<renderstack::geometry::corner*,  vec3> >  corner_attribute,
+   shared_ptr<property_map<renderstack::geometry::polygon*, vec3> >  polygon_attribute,
+   shared_ptr<property_map<renderstack::geometry::polygon*, vec3> >  polygon_normals,
+   float                                                             cos_max_smoothing_angle
 )
 {
    if (polygon_normals->has(polygon()) == false)
@@ -62,10 +63,10 @@ void corner::smooth_normalize(
 }
 
 void corner::smooth_average(
-   std::shared_ptr<property_map<corner*,      vec4> >   new_corner_attribute,
-   std::shared_ptr<property_map<corner*,      vec4> >   old_corner_attribute,
-   std::shared_ptr<property_map<corner*,      vec3> >   corner_normals,
-   std::shared_ptr<property_map<class point*, vec3> >   point_normals
+   shared_ptr<property_map<corner*,      vec4> >   new_corner_attribute,
+   shared_ptr<property_map<corner*,      vec4> >   old_corner_attribute,
+   shared_ptr<property_map<corner*,      vec3> >   corner_normals,
+   shared_ptr<property_map<class point*, vec3> >   point_normals
 )
 {
    bool has_corner_normal = corner_normals->has(this);

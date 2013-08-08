@@ -43,7 +43,15 @@ void services::initialize_services()
          {
             ++initialized_count;
             log_info("Initializing service %d / %d: %s...", initialized_count, total_count, s->name().c_str());
-            s->initialize();  
+            try
+            {
+               s->initialize();  
+            }
+            catch (...)
+            {
+               log_info("Fatal error: Initializing service %d / %d: %s failed", initialized_count, total_count, s->name().c_str());
+               throw;
+            }
             remove_set.insert(s);
             --uninitialized_count;
             i = uninitialized.erase(i);
@@ -76,20 +84,20 @@ void services::initialize_services()
 
 #if 0
 template <class T>
-inline void hash_combine(std::size_t & seed, const T & v)
+inline void hash_combine(size_t & seed, const T & v)
 {
-   std::hash<T> hasher;
+   hash<T> hasher;
    seed ^= hasher(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
 }
 
 template<typename T>
-size_t hash(const std::shared_ptr<T> & ptr)
+size_t hash(const shared_ptr<T> & ptr)
 {
    return ((size_t) ptr.get()) / sizeof(T);
 }
 
 template<typename T>
-bool equal_to(const std::shared_ptr<T> & left, const std::shared_ptr<T> & right)
+bool equal_to(const shared_ptr<T> & left, const shared_ptr<T> & right)
 {
    return left.get() == right.get();
 }

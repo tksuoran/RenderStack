@@ -29,6 +29,7 @@
 
 namespace renderstack { namespace mesh {
 
+using namespace renderstack::toolkit;
 using namespace renderstack::geometry;
 using namespace renderstack::graphics;
 using namespace glm;

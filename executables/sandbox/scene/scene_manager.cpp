@@ -1,5 +1,6 @@
 #include "scene/scene_manager.hpp"
 
+using namespace renderstack::toolkit;
 using namespace std;
 
 scene_manager::scene_manager()
@@ -44,13 +45,13 @@ void scene_manager::add_simple_scene()
 void scene_manager::initialize_cameras()
 {
    m_camera = make_shared<renderstack::scene::camera>();
-   m_camera->projection().set_fov_y(renderstack::degrees_to_radians(50.0f));
+   m_camera->projection().set_fov_y(degrees_to_radians(50.0f));
    m_camera->projection().set_projection_type(renderstack::scene::projection_type::perspective_vertical);
    m_camera->projection().set_near(0.02f);
    m_camera->projection().set_far(40.0f);
 
    glm::mat4 m;
-   renderstack::create_look_at(
+   create_look_at(
       glm::vec3(0.0f, 4.0f, 15.0f),
       glm::vec3(0.0f, 0.0f, 0.0f),
       glm::vec3(0.0f, 1.0f, 0.0f),

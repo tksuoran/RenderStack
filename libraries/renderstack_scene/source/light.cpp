@@ -44,7 +44,7 @@ lights_uniforms::lights_uniforms(
 
    m_uniform_buffer = make_shared<buffer>(
       buffer_target::uniform_buffer,
-      m_uniform_block->size(),
+      m_uniform_block->size_bytes(),
       1
    );
    m_uniform_buffer->allocate_storage(renderer);

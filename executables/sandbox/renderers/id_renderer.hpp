@@ -70,11 +70,10 @@ public:
    std::shared_ptr<class model> get(int x, int y);
 
 private:
-   std::shared_ptr<renderstack::graphics::renderer>               m_renderer;
-   std::shared_ptr<programs>                                      m_programs;
+   std::shared_ptr<renderstack::graphics::renderer>   m_renderer;
+   std::shared_ptr<programs>                          m_programs;
 
-   std::shared_ptr<renderstack::graphics::uniform_buffer_range>   m_id_render_uniform_buffer_range;
-   renderstack::graphics::render_states                           m_id_render_states;
+   renderstack::graphics::render_states               m_id_render_states;
 
    // pixel pack buffers
    int         m_last_render;

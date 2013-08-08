@@ -22,6 +22,8 @@
 #include <sys/stat.h>
 #include <iomanip>
 
+
+using namespace renderstack::toolkit;
 using namespace renderstack::graphics;
 using namespace renderstack::mesh;
 using namespace renderstack;
@@ -35,7 +37,6 @@ deferred_renderer::deferred_renderer()
 ,  m_renderer     (nullptr)
 ,  m_programs     (nullptr)
 ,  m_quad_renderer(nullptr)
-,  m_mesh_render_uniform_buffer_range(nullptr)
 ,  m_fbo          (0)
 {
 }
@@ -47,7 +48,7 @@ deferred_renderer::deferred_renderer()
 void deferred_renderer::connect(
    shared_ptr<renderstack::graphics::renderer>  renderer_,
    shared_ptr<programs>                         programs_,
-   std::shared_ptr<quad_renderer>               quad_renderer_
+   shared_ptr<quad_renderer>                    quad_renderer_
 )
 {
    m_renderer = renderer_;
@@ -64,14 +65,6 @@ void deferred_renderer::initialize_service()
    assert(m_programs);
 
    auto uniform_buffer = m_programs->uniform_buffer;
-
-   if (m_programs->use_uniform_buffers())
-   {
-      m_mesh_render_uniform_buffer_range = make_shared<uniform_buffer_range>(
-         m_programs->block,
-         uniform_buffer
-      );
-   }
 
    m_mesh_render_states.depth.set_enabled(true);
    m_mesh_render_states.face_cull.set_enabled(true);
@@ -210,8 +203,6 @@ void deferred_renderer::geometry_pass(
    r.set_program(p);
    vec4 material_parameters(4.0f, 0.0f, 0.0f, 1.0f);
 
-   uniform_offsets &o = m_programs->uniform_offsets;
-
    for (auto i = models.cbegin(); i != models.cend(); ++i)
    {
       auto model              = *i;
@@ -224,22 +215,28 @@ void deferred_renderer::geometry_pass(
 
       if (m_programs->use_uniform_buffers())
       {
-         assert(m_mesh_render_uniform_buffer_range);
-         r.set_uniform_buffer_range(
-            m_programs->block->binding_point(),
-            m_mesh_render_uniform_buffer_range);
+         assert(m_programs->model_ubr);
+         assert(m_programs->material_ubr);
 
-         unsigned char *start = m_mesh_render_uniform_buffer_range->begin_edit(r);
-         ::memcpy(&start[o.clip_from_model      ], value_ptr(clip_from_model),      16 * sizeof(float));
-         ::memcpy(&start[o.view_from_model      ], value_ptr(view_from_model),      16 * sizeof(float));
-         ::memcpy(&start[o.material_parameters  ], value_ptr(material_parameters),  4 * sizeof(float));
-         m_mesh_render_uniform_buffer_range->end_edit(r);
+         r.set_uniform_buffer_range(m_programs->model_block->binding_point(), m_programs->model_ubr);
+         r.set_uniform_buffer_range(m_programs->material_block->binding_point(), m_programs->material_ubr);
+
+         // TODO Allow somehow to start multiple buffer range edits when they point to single uniform buffer?
+
+         unsigned char *model_start = m_programs->model_ubr->begin_edit(r);
+         ::memcpy(&model_start[m_programs->model_block_access.clip_from_model], value_ptr(clip_from_model), 16 * sizeof(float));
+         ::memcpy(&model_start[m_programs->model_block_access.view_from_model], value_ptr(view_from_model), 16 * sizeof(float));
+         m_programs->model_ubr->end_edit(r);
+
+         unsigned char *material_start = m_programs->material_ubr->begin_edit(r);
+         ::memcpy(&material_start[m_programs->material_block_access.material_parameters], value_ptr(material_parameters),  4 * sizeof(float));
+         m_programs->material_ubr->end_edit(r);
       }
       else
       {
-         gl::uniform_matrix_4fv(p->uniform_at(m_programs->uniform_keys.clip_from_model), 1, GL_FALSE, value_ptr(clip_from_model));
-         gl::uniform_matrix_4fv(p->uniform_at(m_programs->uniform_keys.view_from_model), 1, GL_FALSE, value_ptr(view_from_model));
-         gl::uniform_4fv(p->uniform_at(m_programs->uniform_keys.material_parameters),  1, value_ptr(material_parameters));
+         gl::uniform_matrix_4fv(p->uniform_at(m_programs->model_block_access.clip_from_model), 1, GL_FALSE, value_ptr(clip_from_model));
+         gl::uniform_matrix_4fv(p->uniform_at(m_programs->model_block_access.view_from_model), 1, GL_FALSE, value_ptr(view_from_model));
+         gl::uniform_4fv(p->uniform_at(m_programs->material_block_access.material_parameters), 1, value_ptr(material_parameters));
       }
 
       {
@@ -285,21 +282,24 @@ void deferred_renderer::light_pass(mat4 const &world_from_view)
 
    if (m_programs->use_uniform_buffers())
    {
-      assert(m_mesh_render_uniform_buffer_range);
-      r.set_uniform_buffer_range(
-         m_programs->block->binding_point(),
-         m_mesh_render_uniform_buffer_range);
+      assert(m_programs);
+      assert(m_programs->model_ubr);
 
-      uniform_offsets &o = m_programs->uniform_offsets;
-      unsigned char *start = m_mesh_render_uniform_buffer_range->begin_edit(r);
-      ::memcpy(&start[o.clip_from_model], value_ptr(identity),        16 * sizeof(float));
-      ::memcpy(&start[o.world_from_view], value_ptr(world_from_view), 16 * sizeof(float));
-      m_mesh_render_uniform_buffer_range->end_edit(r);
+      r.set_uniform_buffer_range(m_programs->model_block->binding_point(), m_programs->model_ubr);
+
+      unsigned char *model_start = m_programs->model_ubr->begin_edit(r);
+      ::memcpy(&model_start[m_programs->model_block_access.clip_from_model], value_ptr(identity), 16 * sizeof(float));
+      m_programs->model_ubr->end_edit(r);
+
+      r.set_uniform_buffer_range(m_programs->camera_block->binding_point(), m_programs->camera_ubr);
+      unsigned char *camera_start = m_programs->model_ubr->begin_edit(r);
+      ::memcpy(&camera_start[m_programs->camera_block_access.world_from_view], value_ptr(world_from_view), 16 * sizeof(float));
+      m_programs->camera_ubr->end_edit(r);
    }
    else
    {
-      gl::uniform_matrix_4fv(p->uniform_at(m_programs->uniform_keys.clip_from_model), 1, GL_FALSE, value_ptr(identity));
-      gl::uniform_matrix_4fv(p->uniform_at(m_programs->uniform_keys.world_from_view), 1, GL_FALSE, value_ptr(world_from_view));
+      gl::uniform_matrix_4fv(p->uniform_at(m_programs->model_block_access.clip_from_model ), 1, GL_FALSE, value_ptr(identity));
+      gl::uniform_matrix_4fv(p->uniform_at(m_programs->camera_block_access.world_from_view), 1, GL_FALSE, value_ptr(world_from_view));
    }
 
    m_quad_renderer->render_minus_one_to_one();
@@ -353,24 +353,23 @@ void deferred_renderer::show_rt()
 
       if (m_programs->use_uniform_buffers())
       {
-         assert(m_mesh_render_uniform_buffer_range);
-         r.set_uniform_buffer_range(
-            m_programs->block->binding_point(),
-            m_mesh_render_uniform_buffer_range);
+         assert(m_programs->model_ubr);
+         assert(m_programs->debug_ubr);
 
-         uniform_offsets &o = m_programs->uniform_offsets;
-         unsigned char *start = m_mesh_render_uniform_buffer_range->begin_edit(r);
-         ::memcpy(&start[o.clip_from_model],    value_ptr(transform),   16 * sizeof(float));
-         ::memcpy(&start[o.show_rt_transform],  value_ptr(identity),    16 * sizeof(float));
-         m_mesh_render_uniform_buffer_range->end_edit(r);
+         unsigned char *start = m_programs->begin_edit_uniforms();
+         ::memcpy(&start[m_programs->model_ubr->first_byte() + m_programs->model_block_access.clip_from_model], value_ptr(transform), 16 * sizeof(float));
+         ::memcpy(&start[m_programs->debug_ubr->first_byte() + m_programs->debug_block_access.show_rt_transform], value_ptr(identity), 16 * sizeof(float));
+         m_programs->model_ubr->flush(r);
+         m_programs->debug_ubr->flush(r);
+         m_programs->end_edit_uniforms();
       }
       else
       {
          gl::uniform_matrix_4fv(
-            p->uniform_at(m_programs->uniform_keys.clip_from_model),
+            p->uniform_at(m_programs->model_block_access.clip_from_model),
             1, GL_FALSE, value_ptr(transform));
          gl::uniform_matrix_4fv(
-            p->uniform_at(m_programs->uniform_keys.show_rt_transform),
+            p->uniform_at(m_programs->debug_block_access.show_rt_transform),
             1, GL_FALSE, value_ptr(identity));
       }
 

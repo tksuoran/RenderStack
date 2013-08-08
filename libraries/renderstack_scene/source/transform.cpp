@@ -2,6 +2,7 @@
 
 namespace renderstack { namespace scene {
 
+using namespace renderstack::toolkit;
 using namespace glm;
 
 transform::transform(transform const &t)

@@ -10,6 +10,7 @@
 namespace renderstack { namespace geometry {
 
 using namespace glm;
+using namespace std;
 
 polygon::~polygon()
 {
@@ -23,10 +24,10 @@ polygon::~polygon()
 }
 
 void polygon::smooth_normalize(
-   std::shared_ptr<property_map<renderstack::geometry::corner*,  vec3> >  corner_attribute,
-   std::shared_ptr<property_map<renderstack::geometry::polygon*, vec3> >  polygon_attribute,
-   std::shared_ptr<property_map<renderstack::geometry::polygon*, vec3> >  polygon_normals,
-   float                                                                   cos_max_smoothing_angle
+   shared_ptr<property_map<renderstack::geometry::corner*,  vec3> >  corner_attribute,
+   shared_ptr<property_map<renderstack::geometry::polygon*, vec3> >  polygon_attribute,
+   shared_ptr<property_map<renderstack::geometry::polygon*, vec3> >  polygon_normals,
+   float                                                             cos_max_smoothing_angle
 )
 {
    for (auto i = m_corners.begin(); i != m_corners.end(); ++i)
@@ -42,10 +43,10 @@ void polygon::smooth_normalize(
 }
 
 void polygon::smooth_average(
-   std::shared_ptr<property_map<renderstack::geometry::corner*, vec4> >   new_corner_attribute,
-   std::shared_ptr<property_map<renderstack::geometry::corner*, vec4> >   old_corner_attribute,
-   std::shared_ptr<property_map<renderstack::geometry::corner*, vec3> >   normer_normals,
-   std::shared_ptr<property_map<renderstack::geometry::point*,  vec3> >   point_normals   
+   shared_ptr<property_map<renderstack::geometry::corner*, vec4> >   new_corner_attribute,
+   shared_ptr<property_map<renderstack::geometry::corner*, vec4> >   old_corner_attribute,
+   shared_ptr<property_map<renderstack::geometry::corner*, vec3> >   normer_normals,
+   shared_ptr<property_map<renderstack::geometry::point*,  vec3> >   point_normals   
 )
 {
    for (auto i = m_corners.begin(); i != m_corners.end(); ++i)
@@ -61,8 +62,8 @@ void polygon::smooth_average(
 }
 
 void polygon::compute_normal(
-   std::shared_ptr<property_map<polygon*, vec3> > polygon_normals,
-   std::shared_ptr<property_map<point*,   vec3> > point_locations
+   shared_ptr<property_map<polygon*, vec3> > polygon_normals,
+   shared_ptr<property_map<point*,   vec3> > point_locations
 )
 {
    if (m_corners.size() > 2)
@@ -90,14 +91,14 @@ void polygon::compute_normal(
          polygon_normals->put(this, normal);
       }
       else
-         throw std::runtime_error("polygons with duplicate points");
+         throw runtime_error("polygons with duplicate points");
 
    }
 }
 
 void polygon::compute_centroid(
-   std::shared_ptr<property_map<polygon*, vec3> > polygon_centroids,
-   std::shared_ptr<property_map<point*,   vec3> > point_locations
+   shared_ptr<property_map<polygon*, vec3> > polygon_centroids,
+   shared_ptr<property_map<point*,   vec3> > point_locations
 )
 {
    vec3 centroid(0.0f, 0.0f, 0.0f);

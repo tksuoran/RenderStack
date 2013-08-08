@@ -19,10 +19,11 @@ public:
    );
    ~uniform_buffer_range();
 
-   unsigned char  *begin_edit(class renderer &renderer);
-   void           end_edit(class renderer &renderer);
-   std::size_t    first_byte() { return m_first_byte; }
-   std::size_t    byte_count() { return m_byte_count; }
+   unsigned char  *begin_edit (class renderer &renderer);
+   void           end_edit    (class renderer &renderer);
+   std::size_t    first_byte  () { return m_first_byte; }
+   std::size_t    byte_count  () { return m_byte_count; }
+   void           flush       (class renderer &renderer);
 
    std::weak_ptr<class buffer>         uniform_buffer() { return m_uniform_buffer; }
 

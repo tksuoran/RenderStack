@@ -40,7 +40,7 @@ ninepatch::ninepatch(
    m_mesh.allocate_vertex_buffer(gui_renderer->vertex_buffer(), 16);
    m_mesh.allocate_index_buffer(gui_renderer->index_buffer(), 9 * 6);
 
-   gui_renderer->edit_ibo();
+   gui_renderer->set_index_buffer();
    unsigned short *start = static_cast<unsigned short *>(
       m_mesh.index_buffer()->map(
          r,
@@ -93,7 +93,7 @@ void ninepatch::place(
    m_size.x = width;
    m_size.y = height;
 
-   gui_renderer->edit_vbo();
+   gui_renderer->set_vertex_buffer();
 
    auto &r = *gui_renderer->renderer();
 

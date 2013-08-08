@@ -26,20 +26,6 @@ using namespace glm;
 using namespace renderstack::graphics;
 
 
-void gui_renderer::map(shared_ptr<renderstack::graphics::program> program)
-{
-   assert(program);
-
-   if (!use_uniform_buffers())
-   {
-      program->map_uniform(m_uniform_keys.clip_from_model, "gui_clip_from_model");
-      program->map_uniform(m_uniform_keys.color_add      , "gui_color_add"      );
-      program->map_uniform(m_uniform_keys.color_scale    , "gui_color_scale"    );
-      program->map_uniform(m_uniform_keys.hsv_matrix     , "gui_hsv_matrix"     );
-      program->map_uniform(m_uniform_keys.t              , "gui_t"              );
-   }
-}
-
 gui_renderer::gui_renderer()
 :  service("renderstack::ui::gui_renderer")
 ,  m_start(nullptr)
@@ -130,18 +116,12 @@ void gui_renderer::initialize_service()
 
    // Just one uniform block at index 0 for gui_renderer
    m_uniform_block = make_shared<renderstack::graphics::uniform_block>(0, "gui");
-   m_uniform_offsets.clip_from_model   = m_uniform_block->add_mat4 ("clip_from_model")->offset();
-   m_uniform_offsets.color_add         = m_uniform_block->add_vec4 ("color_add"      )->offset();
-   m_uniform_offsets.color_scale       = m_uniform_block->add_vec4 ("color_scale"    )->offset();
-   m_uniform_offsets.hsv_matrix        = m_uniform_block->add_mat4 ("hsv_matrix"     )->offset();
-   m_uniform_offsets.t                 = m_uniform_block->add_float("t"              )->offset();
+   m_uniforms.clip_from_model = m_uniform_block->add_mat4 ("clip_from_model")->access();
+   m_uniforms.color_add       = m_uniform_block->add_vec4 ("color_add"      )->access();
+   m_uniforms.color_scale     = m_uniform_block->add_vec4 ("color_scale"    )->access();
+   m_uniforms.hsv_matrix      = m_uniform_block->add_mat4 ("hsv_matrix"     )->access();
+   m_uniforms.t               = m_uniform_block->add_float("t"              )->access();
    m_uniform_block->seal();
-
-   m_uniform_keys.clip_from_model   = 0;
-   m_uniform_keys.color_add         = 1;
-   m_uniform_keys.color_scale       = 2;
-   m_uniform_keys.hsv_matrix        = 3;
-   m_uniform_keys.t                 = 4;
 
    try
    {
@@ -178,8 +158,9 @@ void gui_renderer::initialize_service()
          log_trace("GUI renderer using uniform buffers");
          m_uniform_buffer = make_shared<buffer>(
             buffer_target::uniform_buffer,
-            m_uniform_block->size(),
-            1);
+            m_uniform_block->size_bytes(),
+            1
+         );
          m_uniform_buffer->allocate_storage(*m_renderer);
 
          m_uniform_buffer_range = make_shared<uniform_buffer_range>(m_uniform_block, m_uniform_buffer);
@@ -197,28 +178,28 @@ void gui_renderer::initialize_service()
       m_ninepatch_program->load_vs(shader_path + "gui.vs.txt");
       m_ninepatch_program->load_fs(shader_path + "gui.fs.txt");
       m_ninepatch_program->link(); 
-      map(m_ninepatch_program);
+      m_uniform_block->map_program(m_ninepatch_program);
 
       m_slider_program = make_shared<renderstack::graphics::program>("slider", m_glsl_version, m_samplers, m_mappings);
       m_slider_program->add(m_uniform_block);
       m_slider_program->load_vs(shader_path + "gui_slider.vs.txt");
       m_slider_program->load_fs(shader_path + "gui_slider.fs.txt");
       m_slider_program->link();
-      map(m_slider_program);
+      m_uniform_block->map_program(m_slider_program);
 
       m_font_program = make_shared<renderstack::graphics::program>("font", m_glsl_version, m_samplers, m_mappings);
       m_font_program->add(m_uniform_block);
       m_font_program->load_vs(shader_path + "gui_font.vs.txt");
       m_font_program->load_fs(shader_path + "gui_font.fs.txt");
       m_font_program->link();
-      map(m_font_program);
+      m_uniform_block->map_program(m_font_program);
 
       m_hsv_program = make_shared<renderstack::graphics::program>("hsv", m_glsl_version, m_samplers, m_mappings);
       m_hsv_program->add(m_uniform_block);
       m_hsv_program->load_vs(shader_path + "gui_hsv.vs.txt");
       m_hsv_program->load_fs(shader_path + "gui_hsv.fs.txt");
       m_hsv_program->link();
-      map(m_hsv_program);
+      m_uniform_block->map_program(m_hsv_program);
    }
    catch (...)
    {
@@ -252,18 +233,18 @@ void gui_renderer::initialize_service()
       1  // texture unit
    );
 
-   glm::vec2 zero(0.0f, 0.0f);
-   glm::vec2 button_padding(26.0f, 6.0f);
-   glm::vec2 menulist_padding(16.0f, 16.0f);
-   glm::vec2 inner_padding(6.0f, 6.0f);
+   vec2 zero(0.0f, 0.0f);
+   vec2 button_padding(26.0f, 6.0f);
+   vec2 menulist_padding(16.0f, 16.0f);
+   vec2 inner_padding(6.0f, 6.0f);
 
    m_default_style = make_shared<style>(
-      glm::vec2(6.0f, 6.0f), 
-      glm::vec2(6.0f, 6.0f)
+      vec2(6.0f, 6.0f), 
+      vec2(6.0f, 6.0f)
    );
    m_null_padding_style = make_shared<style>(
-      glm::vec2(0.0f, 0.0f), 
-      glm::vec2(0.0f, 0.0f)
+      vec2(0.0f, 0.0f), 
+      vec2(0.0f, 0.0f)
    );
 
    // With MSVC this needs _VARIADIC_MAX defined to 6 or more
@@ -321,16 +302,16 @@ void gui_renderer::blend_disable()
    m_renderer->track().blend().execute(&m_blend_disabled);
 }
 
-void gui_renderer::edit_vbo()
+void gui_renderer::set_vertex_buffer()
 {
-   slog_trace("gui_renderer::edit_vbo()");
+   slog_trace("gui_renderer::set_vertex_buffer()");
 
    m_renderer->set_buffer(buffer_target::array_buffer, m_vertex_buffer);
 }
 
-void gui_renderer::edit_ibo()
+void gui_renderer::set_index_buffer()
 {
-   slog_trace("gui_renderer::edit_ibo()");
+   slog_trace("gui_renderer::set_index_buffer()");
 
    // Make sure our VAO is bound, then make sure our IBO is bound
    auto va = m_vertex_stream->vertex_array();
@@ -408,70 +389,68 @@ void gui_renderer::set_texture(unsigned int unit, shared_ptr<class texture> text
 
    (void)m_renderer->set_texture(unit, texture);
 }
-void gui_renderer::set_transform(glm::mat4 const &value)
+void gui_renderer::set_transform(mat4 const &value)
 {
-   // slog_trace("gui_renderer::set_transform(...)"); // TODO format glm::mat4?
+   // slog_trace("gui_renderer::set_transform(...)"); // TODO format mat4?
 
    if (use_uniform_buffers())
    {
       assert(m_start);
-      ::memcpy(&m_start[m_uniform_offsets.clip_from_model], value_ptr(value), 16 * sizeof(float));
+      ::memcpy(&m_start[m_uniforms.clip_from_model], value_ptr(value), 16 * sizeof(float));
    }
    else
    {
       assert(m_program);
       gl::uniform_matrix_4fv(
-         m_program->uniform_at(m_uniform_keys.clip_from_model), 
+         m_program->uniform_at(m_uniforms.clip_from_model), 
          1, 
          GL_FALSE, 
          value_ptr(value)
       );
    }
 }
-void gui_renderer::set_color_add(glm::vec4 const &value)
+void gui_renderer::set_color_add(vec4 const &value)
 {
    if (use_uniform_buffers())
    {
       assert(m_start);
-      ::memcpy(&m_start[m_uniform_offsets.color_add], value_ptr(value), 4 * sizeof(float));
+      ::memcpy(&m_start[m_uniforms.color_add], value_ptr(value), 4 * sizeof(float));
    }
    else
    {
       assert(m_program);
       gl::uniform_4fv(
-         m_program->uniform_at(m_uniform_keys.color_add), 1, value_ptr(value)
+         m_program->uniform_at(m_uniforms.color_add), 1, value_ptr(value)
       );
    }
 }
-void gui_renderer::set_color_scale(glm::vec4 const &value)
+void gui_renderer::set_color_scale(vec4 const &value)
 {
    if (use_uniform_buffers())
    {
       assert(m_start);
-      ::memcpy(&m_start[m_uniform_offsets.color_scale], value_ptr(value), 4 * sizeof(float));
+      ::memcpy(&m_start[m_uniforms.color_scale], value_ptr(value), 4 * sizeof(float));
    }
    else
    {
       assert(m_program);
       gl::uniform_4fv(
-         m_program->uniform_at(m_uniform_keys.color_scale), 1, value_ptr(value)
+         m_program->uniform_at(m_uniforms.color_scale), 1, value_ptr(value)
       );
    }
 }
-void gui_renderer::set_hsv_matrix(glm::mat4 const &value)
+void gui_renderer::set_hsv_matrix(mat4 const &value)
 {
    if (use_uniform_buffers())
    {
       assert(m_start);
-      ::memcpy(&m_start[m_uniform_offsets.hsv_matrix], value_ptr(value), 16 * sizeof(float));
+      ::memcpy(&m_start[m_uniforms.hsv_matrix], value_ptr(value), 16 * sizeof(float));
    }
    else
    {
       assert(m_program);
       gl::uniform_matrix_4fv(
-         m_program->uniform_at(
-         m_uniform_keys.hsv_matrix
-         ), 
+         m_program->uniform_at(m_uniforms.hsv_matrix), 
          1, 
          GL_FALSE, 
          value_ptr(value)
@@ -483,13 +462,13 @@ void gui_renderer::set_t(float value)
    if (use_uniform_buffers())
    {
       assert(m_start);
-      float *data = reinterpret_cast<float*>(&m_start[m_uniform_offsets.t]);
+      float *data = reinterpret_cast<float*>(&m_start[m_uniforms.t]);
       *data = value;
    }
    else
    {
       assert(m_program);
-      gl::uniform_1f(m_program->uniform_at(m_uniform_keys.t), value);
+      gl::uniform_1f(m_program->uniform_at(m_uniforms.t), value);
    }
 }
 

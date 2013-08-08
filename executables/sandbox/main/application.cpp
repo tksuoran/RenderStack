@@ -18,12 +18,12 @@
 #include <iomanip>
 
 
-using namespace gl;
-using namespace glm;
-using namespace std;
 using namespace renderstack::graphics;
 using namespace renderstack::ui;
 using namespace renderstack::toolkit;
+using namespace gl;
+using namespace glm;
+using namespace std;
 
 
 application::application()
@@ -36,7 +36,7 @@ application::~application()
    on_exit(); // TODO figure out how to get ~window call to on_exit() to call derived on_exit?
 }
 
-void application::connect(std::shared_ptr<game> game_, std::shared_ptr<menu> menu_)
+void application::connect(shared_ptr<game> game_, shared_ptr<menu> menu_)
 {
    m_game = game_;
    m_menu = menu_;

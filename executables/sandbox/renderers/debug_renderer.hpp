@@ -57,7 +57,6 @@ private:
    std::shared_ptr<renderstack::graphics::renderer>               m_renderer;
    std::shared_ptr<programs>                                      m_programs;
 
-   std::shared_ptr<renderstack::graphics::uniform_buffer_range>   m_uniform_buffer_range;
    renderstack::graphics::render_states                           m_render_states;
 
    std::shared_ptr<renderstack::graphics::vertex_format>          m_vertex_format;

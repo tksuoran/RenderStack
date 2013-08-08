@@ -22,27 +22,11 @@
 
 #define LOG_CATEGORY &log_programs
 
-using namespace std;
-using namespace renderstack::graphics;
-using namespace renderstack::toolkit;
 
-void programs::map(shared_ptr<renderstack::graphics::program> program)
-{
-   if (!use_uniform_buffers())
-   {
-      //program->dump_shaders();
-      program->map_uniform(uniform_keys.clip_from_model    , "global_clip_from_model"     );
-      program->map_uniform(uniform_keys.world_from_model   , "global_world_from_model"    );
-      program->map_uniform(uniform_keys.world_from_view    , "global_world_from_view"     );
-      program->map_uniform(uniform_keys.view_from_model    , "global_view_from_model"     );
-      program->map_uniform(uniform_keys.viewport           , "global_viewport"            );
-      program->map_uniform(uniform_keys.color              , "global_color"               );
-      program->map_uniform(uniform_keys.line_width         , "global_line_width"          );
-      program->map_uniform(uniform_keys.material_parameters, "global_material_parameters" );
-      program->map_uniform(uniform_keys.show_rt_transform  , "global_show_rt_transform"   );
-      program->map_uniform(uniform_keys.id_offset          , "global_id_offset"           );
-   }
-}
+using namespace renderstack::toolkit;
+using namespace renderstack::graphics;
+using namespace std;
+
 
 int programs::glsl_version() const
 {
@@ -51,19 +35,29 @@ int programs::glsl_version() const
 
 programs::programs()
 :  service("programs")
-,  uniform_buffer   (nullptr)
-,  block            (nullptr)
-,  samplers         (nullptr)
-,  mappings         (nullptr)
-,  font             (nullptr)
-,  basic            (nullptr)
-,  debug_line       (nullptr)
-,  textured         (nullptr)
-,  gbuffer          (nullptr)
-,  light            (nullptr)
-,  show_rt          (nullptr)
-,  show_rt_spherical(nullptr)
-,  id               (nullptr)
+,  uniform_buffer    (nullptr)
+,  default_block     (nullptr)
+,  model_block       (nullptr)
+,  camera_block      (nullptr)
+,  material_block    (nullptr)
+,  debug_block       (nullptr)
+
+,  model_ubr         (nullptr)
+,  camera_ubr        (nullptr)
+,  material_ubr      (nullptr)
+,  debug_ubr         (nullptr)
+
+,  samplers          (nullptr)
+,  mappings          (nullptr)
+,  font              (nullptr)
+,  basic             (nullptr)
+,  debug_line        (nullptr)
+,  textured          (nullptr)
+,  gbuffer           (nullptr)
+,  light             (nullptr)
+,  show_rt           (nullptr)
+,  show_rt_spherical (nullptr)
+,  id                (nullptr)
 {
 }
 
@@ -71,7 +65,7 @@ programs::programs()
 {
 }
 
-void programs::connect(std::shared_ptr<renderstack::graphics::renderer> renderer)
+void programs::connect(shared_ptr<renderstack::graphics::renderer> renderer)
 {
    m_renderer = renderer;
 
@@ -124,40 +118,52 @@ void programs::connect(std::shared_ptr<renderstack::graphics::renderer> renderer
    m_poll_shaders = false;
    m_poll_ticks = 0; 
 
-   block = make_shared<uniform_block>(1, "global");
-   uniform_offsets.clip_from_model     = block->add_mat4("clip_from_model"    )->offset();
-   uniform_offsets.world_from_model    = block->add_mat4("world_from_model"   )->offset();
-   uniform_offsets.world_from_view     = block->add_mat4("world_from_view"    )->offset();
-   uniform_offsets.view_from_model     = block->add_mat4("view_from_model"    )->offset();
-   uniform_offsets.color               = block->add_vec4("color"              )->offset();
-   uniform_offsets.line_width          = block->add_vec4("line_width"         )->offset();
-   uniform_offsets.viewport            = block->add_vec4("viewport"           )->offset();
-   uniform_offsets.material_parameters = block->add_vec4("material_parameters")->offset();
-   uniform_offsets.show_rt_transform   = block->add_vec4("show_rt_transform"  )->offset();
-   uniform_offsets.id_offset           = block->add_vec3("id_offset"          )->offset();
-   block->seal();
+   size_t ubo_size = 0;
 
-   uniform_keys.clip_from_model     = 0;
-   uniform_keys.world_from_model    = 1;
-   uniform_keys.world_from_view     = 2;
-   uniform_keys.view_from_model     = 3;
-   uniform_keys.viewport            = 4;
-   uniform_keys.color               = 5;
-   uniform_keys.line_width          = 6;
-   uniform_keys.material_parameters = 7;
-   uniform_keys.show_rt_transform   = 8;
-   uniform_keys.id_offset           = 9;
+   default_block = make_shared<uniform_block>("");
+   default_block->seal();
+
+   model_block = make_shared<uniform_block>(0, "model");
+   model_block_access.clip_from_model     = model_block->add_mat4("clip_from_model"   )->access();
+   model_block_access.world_from_model    = model_block->add_mat4("world_from_model"  )->access();
+   model_block_access.view_from_model     = model_block->add_mat4("view_from_model"   )->access();
+   model_block_access.id_offset           = model_block->add_vec3("id_offset"         )->access();
+   model_block->seal();
+   ubo_size += model_block->size_bytes();
+
+   camera_block = make_shared<uniform_block>(1, "camera");
+   camera_block_access.world_from_view   = camera_block->add_mat4("world_from_view"   )->access();
+   camera_block_access.viewport          = camera_block->add_vec4("viewport"          )->access();
+   camera_block->seal();
+   ubo_size += camera_block->size_bytes();
+
+   material_block = make_shared<uniform_block>(2, "material");
+   material_block_access.color                 = material_block->add_vec4("color"              )->access();
+   material_block_access.material_parameters   = material_block->add_vec4("material_parameters")->access();
+   material_block->seal();
+   ubo_size += material_block->size_bytes();
+
+   debug_block = make_shared<uniform_block>(3, "debug");
+   debug_block_access.line_width         = debug_block->add_vec4("line_width"         )->access();
+   debug_block_access.show_rt_transform  = debug_block->add_vec4("show_rt_transform"  )->access();
+   ubo_size += debug_block->size_bytes();
 
    auto &r = *m_renderer;
 
-   size_t size = 20; // TODO MUSTFIX
    uniform_buffer = make_shared<buffer>(
       renderstack::graphics::buffer_target::uniform_buffer,
-      block->size() * size,
+      ubo_size,
       1
    );
    uniform_buffer->allocate_storage(r);
 
+   if (renderstack::graphics::configuration::can_use.uniform_buffer_object)
+   {
+      model_ubr      = make_shared<uniform_buffer_range>(model_block,      this->uniform_buffer);
+      camera_ubr     = make_shared<uniform_buffer_range>(camera_block,     this->uniform_buffer);
+      material_ubr   = make_shared<uniform_buffer_range>(material_block,   this->uniform_buffer);
+      debug_ubr      = make_shared<uniform_buffer_range>(debug_block,      this->uniform_buffer);
+   }
 
    auto nearest_sampler = make_shared<sampler>();
    auto show_rt_sampler = make_shared<sampler>();
@@ -221,14 +227,48 @@ void programs::connect(std::shared_ptr<renderstack::graphics::renderer> renderer
    }
 }
 
+void programs::bind_uniforms()
+{
+   auto &r = *m_renderer;
+   r.set_uniform_buffer_range(model_block->binding_point(),    model_ubr);
+   r.set_uniform_buffer_range(camera_block->binding_point(),   camera_ubr);
+   r.set_uniform_buffer_range(material_block->binding_point(), material_ubr);
+   r.set_uniform_buffer_range(debug_block->binding_point(),    debug_ubr);
+}
+
+unsigned char *programs::begin_edit_uniforms()
+{
+   auto &r = *m_renderer;
+   bind_uniforms();
+   void *start = uniform_buffer->map(
+      r, 
+      0, 
+      uniform_buffer->capacity(), 
+      static_cast<gl::buffer_access_mask::value>(
+         gl::buffer_access_mask::map_write_bit | gl::buffer_access_mask::map_flush_explicit_bit
+      )
+   );
+
+   return static_cast<unsigned char*>(start);
+}
+
+void programs::end_edit_uniforms()
+{
+   auto &r = *m_renderer;
+   uniform_buffer->unmap(r);
+}
+
 shared_ptr<renderstack::graphics::program> programs::make_program(string const &name)
 {
    auto p = make_shared<program>(name, m_glsl_version, samplers, mappings);
-   p->add(block);
+   p->add(default_block);
+   p->add(model_block);
+   p->add(camera_block);
+   p->add(material_block);
+   p->add(debug_block);
    p->load_vs(m_shader_path + name + ".vs.txt");
    p->load_fs(m_shader_path + name + ".fs.txt");
    p->link(); 
-   map(p);
    return p;
 }
 

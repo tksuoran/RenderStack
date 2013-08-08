@@ -80,6 +80,8 @@ add_executable(
    scene/scene_manager.hpp
    scene/material_manager.cpp
    scene/material_manager.hpp
+   scene/material.cpp
+   scene/material.hpp
 
    renderers/deferred_renderer.cpp
    renderers/deferred_renderer.hpp

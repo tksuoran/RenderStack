@@ -22,9 +22,9 @@
 
 namespace renderstack { namespace ui {
 
-using namespace std;
-using namespace gl;
 using namespace renderstack::graphics;
+using namespace gl;
+using namespace std;
 
 
 text_buffer::text_buffer(
@@ -37,7 +37,7 @@ text_buffer::text_buffer(
 ,  m_max_chars(2000)
 {
    if (m_mesh.index_count() > std::numeric_limits<unsigned int>::max())
-      throw std::runtime_error("font::prepare_gl_resources: no code path for index types other than unsigned int");
+      throw runtime_error("font::prepare_gl_resources: no code path for index types other than unsigned int");
 
    m_mesh.allocate_vertex_buffer(m_renderer->vertex_buffer(), 4 * m_max_chars);
    m_mesh.allocate_index_buffer(m_renderer->index_buffer(), 6 * m_max_chars);
@@ -46,7 +46,7 @@ text_buffer::text_buffer(
 
    auto &r = *m_renderer->renderer();
 
-   m_renderer->edit_ibo();
+   m_renderer->set_index_buffer();
    unsigned short *start = static_cast<unsigned short *>(
       m_mesh.index_buffer()->map(
          r,
@@ -112,7 +112,7 @@ void text_buffer::begin_print()
    //  We want to write directly to the vertex buffer but
    //  we don't yet know how many char / vertices will be
    //  written - use explicit flushing.
-   m_renderer->edit_vbo();
+   m_renderer->set_vertex_buffer();
 
    auto &r = *m_renderer->renderer();
 

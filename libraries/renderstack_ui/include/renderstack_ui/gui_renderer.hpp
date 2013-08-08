@@ -33,7 +33,7 @@ class style;
 class gui_renderer : public renderstack::toolkit::service
 {
 public:
-   struct uniform_offsets
+   struct gui_uniforms
    {
       std::size_t clip_from_model;  /* mat4 */
       std::size_t color;            /* vec4 */
@@ -62,8 +62,8 @@ public:
    void set_hsv_matrix  (glm::mat4 const &value);
    void set_t           (float value);
 
-   void edit_vbo();
-   void edit_ibo();
+   void set_vertex_buffer();
+   void set_index_buffer();
    void draw_elements_base_vertex(
       unsigned int begin_mode, int count, unsigned int index_type, const void *indices,
       int base_vertex);
@@ -115,8 +115,7 @@ private:
    std::shared_ptr<renderstack::graphics::uniform_block>          m_uniform_block;
    std::shared_ptr<renderstack::graphics::buffer>                 m_uniform_buffer;
    std::shared_ptr<renderstack::graphics::uniform_buffer_range>   m_uniform_buffer_range;
-   struct uniform_offsets                                         m_uniform_offsets;
-   struct uniform_offsets                                         m_uniform_keys;
+   struct gui_uniforms                                            m_uniforms;
    std::shared_ptr<renderstack::graphics::program>                m_program;
 
    std::shared_ptr<renderstack::graphics::samplers>               m_samplers;

@@ -34,8 +34,6 @@ forward_renderer::forward_renderer()
 :  service("forward_renderer")
 ,  m_renderer(nullptr)
 ,  m_programs(nullptr)
-
-,  m_mesh_render_uniform_buffer_range(nullptr)
 {
 }
 
@@ -59,16 +57,6 @@ void forward_renderer::initialize_service()
 {
    assert(m_renderer);
    assert(m_programs);
-  
-   auto uniform_buffer = m_programs->uniform_buffer;
-
-   if (m_programs->use_uniform_buffers())
-   {
-      m_mesh_render_uniform_buffer_range = std::make_shared<uniform_buffer_range>(
-         m_programs->block,
-         uniform_buffer
-      );
-   }
 
    m_mesh_render_states.depth.set_enabled(true);
    m_mesh_render_states.face_cull.set_enabled(true);
@@ -95,22 +83,24 @@ void forward_renderer::render_pass(
    r.set_program(p);
    vec4 material_parameters(4.0f, 0.0f, 0.0f, 1.0f);
 
-   uniform_offsets &o = m_programs->uniform_offsets;
-
    {
       vec4 white(1.0f, 1.0f, 1.0f, 1.0f);
       if (m_programs->use_uniform_buffers())
       {
-         assert(m_mesh_render_uniform_buffer_range);
-         r.set_uniform_buffer_range(m_programs->block->binding_point(), m_mesh_render_uniform_buffer_range);
+         assert(m_programs);
+         assert(m_programs->material_ubr);
 
-         unsigned char *start = m_mesh_render_uniform_buffer_range->begin_edit(r);
-         ::memcpy(&start[o.color], value_ptr(white), 4 * sizeof(float));
-         m_mesh_render_uniform_buffer_range->end_edit(r);
+         r.set_uniform_buffer_range(m_programs->material_block->binding_point(), m_programs->material_ubr);
+
+         unsigned char *start = m_programs->material_ubr->begin_edit(r);
+         ::memcpy(&start[m_programs->material_block_access.color], value_ptr(white), 4 * sizeof(float));
+         m_programs->material_ubr->end_edit(r);
       }
       else
       {
-         gl::uniform_4fv(p->uniform_at(m_programs->uniform_keys.color), 1, value_ptr(white));
+         gl::uniform_4fv(
+            p->uniform_at(m_programs->material_block_access.color),
+            1, value_ptr(white));
       }
    }
 
@@ -128,20 +118,24 @@ void forward_renderer::render_pass(
 
       if (m_programs->use_uniform_buffers())
       {
-         assert(m_mesh_render_uniform_buffer_range);
-         r.set_uniform_buffer_range(m_programs->block->binding_point(), m_mesh_render_uniform_buffer_range);
+         assert(m_programs);
+         assert(m_programs->model_ubr);
 
-         unsigned char *start = m_mesh_render_uniform_buffer_range->begin_edit(r);
-         ::memcpy(&start[o.clip_from_model      ], value_ptr(clip_from_model),      16 * sizeof(float));
-         ::memcpy(&start[o.view_from_model      ], value_ptr(view_from_model),      16 * sizeof(float));
-         ::memcpy(&start[o.material_parameters  ], value_ptr(material_parameters),  4 * sizeof(float));
-         m_mesh_render_uniform_buffer_range->end_edit(r);
+         unsigned char *start          = m_programs->begin_edit_uniforms();
+         unsigned char *model_start    = &start[m_programs->model_ubr->first_byte()];
+         unsigned char *material_start = &start[m_programs->material_ubr->first_byte()];
+         ::memcpy(&model_start[m_programs->model_block_access.clip_from_model], value_ptr(clip_from_model), 16 * sizeof(float));
+         ::memcpy(&model_start[m_programs->model_block_access.view_from_model], value_ptr(view_from_model), 16 * sizeof(float));
+         ::memcpy(&material_start[m_programs->material_block_access.material_parameters], value_ptr(material_parameters), 4 * sizeof(float));
+         m_programs->model_ubr->flush(r);
+         m_programs->material_ubr->flush(r);
+         m_programs->end_edit_uniforms();
       }
       else
       {
-         gl::uniform_matrix_4fv(p->uniform_at(m_programs->uniform_keys.clip_from_model), 1, GL_FALSE, value_ptr(clip_from_model));
-         gl::uniform_matrix_4fv(p->uniform_at(m_programs->uniform_keys.view_from_model), 1, GL_FALSE, value_ptr(view_from_model));
-         gl::uniform_4fv(p->uniform_at(m_programs->uniform_keys.material_parameters),  1, value_ptr(material_parameters));
+         gl::uniform_matrix_4fv(p->uniform_at(m_programs->model_block_access.clip_from_model), 1, GL_FALSE, value_ptr(clip_from_model));
+         gl::uniform_matrix_4fv(p->uniform_at(m_programs->model_block_access.view_from_model), 1, GL_FALSE, value_ptr(view_from_model));
+         gl::uniform_4fv(p->uniform_at(m_programs->material_block_access.material_parameters),  1, value_ptr(material_parameters));
       }
 
       {

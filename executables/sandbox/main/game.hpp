@@ -16,7 +16,7 @@
 #include "util/frame_controller.hpp"
 
 #include <glm/glm.hpp>
-#include <unordered_set>
+//#include <set>
 #include <vector>
 #include <memory>
 
@@ -155,26 +155,25 @@ private: /* services */
    std::shared_ptr<application>                       m_application;
 
 private: /* self owned parts */
-   std::shared_ptr<class group>                                   m_models;
-   std::shared_ptr<renderstack::scene::frame>                     m_manipulator_frame;
-   std::shared_ptr<class group>                                   m_manipulator;
-   std::shared_ptr<renderstack::ui::font>                         m_font;
-   std::shared_ptr<renderstack::ui::text_buffer>                  m_text_buffer;
-   std::shared_ptr<renderstack::ui::layer>                        m_root_layer;
-   std::shared_ptr<renderstack::ui::button>                       m_menu_button;
-   std::shared_ptr<renderstack::ui::slider>                       m_slider;
-   std::shared_ptr<renderstack::graphics::uniform_buffer_range>   m_text_uniform_buffer_range;
+   std::shared_ptr<class group>                       m_models;
+   std::shared_ptr<renderstack::scene::frame>         m_manipulator_frame;
+   std::shared_ptr<class group>                       m_manipulator;
+   std::shared_ptr<renderstack::ui::font>             m_font;
+   std::shared_ptr<renderstack::ui::text_buffer>      m_text_buffer;
+   std::shared_ptr<renderstack::ui::layer>            m_root_layer;
+   std::shared_ptr<renderstack::ui::button>           m_menu_button;
+   std::shared_ptr<renderstack::ui::slider>           m_slider;
 
-   std::vector<std::string>                        m_debug_lines;
-   renderstack::graphics::render_states            m_font_render_states;
-   controls                                        m_controls;
-   glm::mat4                                       m_projection;
+   std::vector<std::string>                           m_debug_lines;
+   renderstack::graphics::render_states               m_font_render_states;
+   controls                                           m_controls;
+   glm::mat4                                          m_projection;
 
-   double                                          m_update_time;
-   double                                          m_frame_dt;
-   double                                          m_min_frame_dt;
-   double                                          m_max_frame_dt;
-   double                                          m_simulation_time;
+   double                                             m_update_time;
+   double                                             m_frame_dt;
+   double                                             m_min_frame_dt;
+   double                                             m_max_frame_dt;
+   double                                             m_simulation_time;
 
    // are we between on_enter() and on_exit()?
    bool m_screen_active;

@@ -52,15 +52,13 @@ private:
    void bind_default_framebuffer();
 
 private:
-   std::shared_ptr<renderstack::graphics::renderer>               m_renderer;
-   std::shared_ptr<programs>                                      m_programs;
-   std::shared_ptr<quad_renderer>                                 m_quad_renderer;
+   std::shared_ptr<renderstack::graphics::renderer>   m_renderer;
+   std::shared_ptr<programs>                          m_programs;
+   std::shared_ptr<quad_renderer>                     m_quad_renderer;
 
-   std::shared_ptr<renderstack::graphics::uniform_buffer_range>   m_mesh_render_uniform_buffer_range;
-
-   renderstack::graphics::render_states                           m_mesh_render_states;
-   renderstack::graphics::render_states                           m_light_render_states;
-   renderstack::graphics::render_states                           m_show_rt_render_states;
+   renderstack::graphics::render_states               m_mesh_render_states;
+   renderstack::graphics::render_states               m_light_render_states;
+   renderstack::graphics::render_states               m_show_rt_render_states;
 
    // framebuffer
    unsigned int                                    m_fbo;

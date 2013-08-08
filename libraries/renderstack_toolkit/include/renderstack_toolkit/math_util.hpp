@@ -5,7 +5,7 @@
 #include <cstdint>
 #include <glm/glm.hpp>
 
-namespace renderstack {
+namespace renderstack { namespace toolkit {
 
 inline int round(float num)
 {
@@ -59,6 +59,24 @@ inline glm::vec3 vec3_from_uint(uint32_t i)
 const glm::vec3 vec3_unit_x(1.0f, 0.0f, 0.0f);
 const glm::vec3 vec3_unit_y(0.0f, 1.0f, 0.0f);
 const glm::vec3 vec3_unit_z(0.0f, 0.0f, 1.0f);
+
+inline glm::vec3 max_axis(glm::vec3 v)
+{
+   if (std::abs(v.x) >= std::abs(v.y) && std::abs(v.x) >= std::abs(v.z))
+      return vec3_unit_x;
+   if (std::abs(v.y) >= std::abs(v.x) && std::abs(v.y) >= std::abs(v.z))
+      return vec3_unit_y;
+   return vec3_unit_z;
+}
+inline glm::vec3 min_axis(glm::vec3 v)
+{
+   if (std::abs(v.x) <= std::abs(v.y) && std::abs(v.x) <= std::abs(v.z))
+      return vec3_unit_x;
+   if (std::abs(v.y) <= std::abs(v.x) && std::abs(v.y) <= std::abs(v.z))
+      return vec3_unit_y;
+   return vec3_unit_z;
+}
+
 const glm::mat4 mat4_identity(1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f);
 const glm::mat4 mat4_swap_xy(
    0.0f, 1.0f, 0.0f, 0.0f,
@@ -91,8 +109,6 @@ glm::vec2 project_to_screen_space(
    float            &depth
 );
 
-extern glm::vec3 const& max_axis(glm::vec3 const &v);
-extern glm::vec3 const& min_axis(glm::vec3 const &v);
 extern void create_frustum(float left, float right, float bottom, float top, float near_, float far_, glm::mat4 &result);
 extern void create_frustum_simple(float width, float height, float near_, float far_, glm::mat4 &result);
 extern void create_perspective(float fov_x, float fov_y, float near_, float far_, glm::mat4 &result);
@@ -118,6 +134,6 @@ extern glm::vec3 linear_rgb_to_srgb(glm::vec3 const linear_rgb);
 extern glm::vec2 cartesian_to_spherical(glm::vec3 v);
 extern glm::vec3 spherical_to_cartesian(glm::vec2 s);
 
-}
+} }
 
 #endif

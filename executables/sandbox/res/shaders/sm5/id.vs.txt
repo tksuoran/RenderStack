@@ -5,6 +5,6 @@ flat out vec3 v_id;
 
 void main()
 {
-    gl_Position = global.clip_from_model * vec4(a_position, 1.0);
-    v_id = a_id + global.id_offset;
+    gl_Position = model.clip_from_model * vec4(a_position, 1.0);
+    v_id = a_id + model.id_offset;
 }

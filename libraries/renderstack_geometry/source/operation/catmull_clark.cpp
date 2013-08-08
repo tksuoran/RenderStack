@@ -62,7 +62,7 @@ corner *catmull_clark::make_new_corner_from_edge_point(polygon *new_polygon, edg
 //                         
 //  For each corner in the old polygon, add one quad
 //  (centroid, previous edge 'edge midpoint', corner, next edge 'edge midpoint')
-catmull_clark::catmull_clark(std::shared_ptr<geometry> src)
+catmull_clark::catmull_clark(shared_ptr<geometry> src)
 {
    //s_point_id.clear();
 
@@ -148,7 +148,7 @@ catmull_clark::catmull_clark(std::shared_ptr<geometry> src)
    }
 
    //  Subdivide polygons, clone (and corners);
-   for (std::size_t polygon_index = 0; polygon_index < src->polygons().size(); ++polygon_index)
+   for (size_t polygon_index = 0; polygon_index < src->polygons().size(); ++polygon_index)
    {
       polygon *src_polygon = m_source->polygons()[polygon_index];
       assert(src_polygon);

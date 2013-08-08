@@ -21,8 +21,8 @@ uniform_buffer_range::uniform_buffer_range(
 
    auto b = block.lock();
 
-   m_first_byte = m_uniform_buffer.lock()->allocate(b->size());
-   m_byte_count = b->size();
+   m_byte_count = b->size_bytes();
+   m_first_byte = m_uniform_buffer.lock()->allocate(m_byte_count);
    m_in_edit = false;
 }
 
@@ -65,6 +65,11 @@ void uniform_buffer_range::end_edit(class renderer &renderer)
 
    m_uniform_buffer.lock()->unmap(renderer);
    m_in_edit = false;
+}
+
+void uniform_buffer_range::flush(class renderer &renderer)
+{
+   m_uniform_buffer.lock()->flush(renderer, first_byte(), byte_count());
 }
 
 } }

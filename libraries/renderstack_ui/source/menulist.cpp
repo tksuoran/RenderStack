@@ -6,6 +6,8 @@
 
 namespace renderstack { namespace ui {
 
+using namespace renderstack::toolkit;
+
 void menulist::update()
 {
    if (m_ninepatch.size() != rect().size())

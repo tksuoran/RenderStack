@@ -8,11 +8,11 @@
 #include <string>
 #include <cctype>
 
-using namespace std;
-using namespace glm;
 using namespace tinyxml2;
+using namespace glm;
+using namespace std;
 
-xml_polyhedron::xml_polyhedron(std::string const &path)
+xml_polyhedron::xml_polyhedron(string const &path)
 {
    string text = renderstack::toolkit::read(path);
 

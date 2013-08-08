@@ -12,13 +12,15 @@
 
 namespace renderstack { namespace ui {
 
+using namespace std;
+
 void glyph::validate(FT_Error error)
 {
    // if (error == FT_Err_Unknown_File_Format)
    //   log() << "FT_Err_Unknown_File_Format\n";
 
    if (error)
-      throw std::runtime_error("freetype error");
+      throw runtime_error("freetype error");
 }
 
 /*

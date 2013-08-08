@@ -6,6 +6,7 @@
 
 namespace renderstack { namespace ui {
 
+using namespace renderstack::toolkit;
 using namespace std;
 using namespace glm;
 

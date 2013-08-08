@@ -56,15 +56,6 @@ void debug_renderer::initialize_service()
    assert(m_programs);
 
    auto &r = *m_renderer;
-   auto uniform_buffer = m_programs->uniform_buffer;
-
-   if (m_programs->use_uniform_buffers())
-   {
-      m_uniform_buffer_range = make_shared<uniform_buffer_range>(
-         m_programs->block,
-         uniform_buffer
-      );
-   }
 
    m_render_states.depth.set_enabled(true);
    m_render_states.face_cull.set_enabled(true);
@@ -367,18 +358,11 @@ void debug_renderer::render()
 
    auto &r = *m_renderer;
    auto &t = r.track();
-   auto &o = m_programs->uniform_offsets;
    auto p = m_programs->debug_line;
 
    t.execute(&m_render_states);
    r.set_program(p);
    r.use_vertex_stream(m_vertex_stream);
-
-   if (m_programs->use_uniform_buffers())
-   {
-      assert(m_uniform_buffer_range);
-      r.set_uniform_buffer_range(m_programs->block->binding_point(), m_uniform_buffer_range);
-   }
 
    for (auto i = m_draws.cbegin(); i != m_draws.cend(); ++i)
    {
@@ -388,13 +372,14 @@ void debug_renderer::render()
 
       if (m_programs->use_uniform_buffers())
       {
-         unsigned char *start = m_uniform_buffer_range->begin_edit(r);
-         ::memcpy(&start[o.clip_from_model], value_ptr(clip_from_model), 16 * sizeof(float));
-         m_uniform_buffer_range->end_edit(r);
+         unsigned char *start = m_programs->begin_edit_uniforms();
+         ::memcpy(&start[m_programs->model_ubr->first_byte() + m_programs->model_block_access.clip_from_model], value_ptr(clip_from_model), 16 * sizeof(float));
+         m_programs->model_ubr->flush(r);
+         m_programs->end_edit_uniforms();
       }
       else
       {
-         gl::uniform_matrix_4fv(p->uniform_at(m_programs->uniform_keys.clip_from_model), 1, GL_FALSE, value_ptr(clip_from_model));
+         gl::uniform_matrix_4fv(p->uniform_at(m_programs->model_block_access.clip_from_model), 1, GL_FALSE, value_ptr(clip_from_model));
       }
 
       gl::draw_elements(

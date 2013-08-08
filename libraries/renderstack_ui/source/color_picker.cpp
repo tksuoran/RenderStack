@@ -12,11 +12,12 @@
 
 namespace renderstack { namespace ui {
 
-using namespace std;
-using namespace glm;
+using namespace renderstack::toolkit;
 using namespace renderstack::geometry;
 using namespace renderstack::graphics;
 using namespace renderstack::mesh;
+using namespace std;
+using namespace glm;
 
 color_picker::color_picker(
    shared_ptr<class gui_renderer> gui_renderer,

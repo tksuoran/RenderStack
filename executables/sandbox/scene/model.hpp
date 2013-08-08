@@ -20,13 +20,19 @@ public:
 
    std::shared_ptr<renderstack::scene::frame> frame() const { return m_frame; }
    std::string const &name() { return m_name; }
+
    std::shared_ptr<class renderstack::mesh::geometry_mesh> geometry_mesh() { return m_geometry_mesh; }
    void set_geometry_mesh(std::shared_ptr<renderstack::mesh::geometry_mesh> value) { m_geometry_mesh = value; }
+
+   bool selected() const { return m_selected; }
+   void select() { m_selected = true; }
+   void deselect() { m_selected = false; }
 
 private:
    std::shared_ptr<renderstack::scene::frame>               m_frame;
    std::shared_ptr<class renderstack::mesh::geometry_mesh>  m_geometry_mesh;
    std::string                                              m_name;
+   bool                                                     m_selected;
 };
 
 

@@ -12,6 +12,7 @@ namespace renderstack { namespace toolkit {
 log_category log_services  (C_WHITE,      C_GRAY, LOG_INFO);
 log_category log_gl        (C_DARK_GREEN, C_GRAY, LOG_TRACE);
 
+using namespace std;
 
 #if defined _WIN32
 void set_text_color(int c)
@@ -117,8 +118,8 @@ void log_write(log_category *cat, int level, const char *format, ...)
          prev = c;
          c = *p;
          *p = 0;
-         std::cout << span;
-         std::cout.flush();
+         cout << span;
+         cout.flush();
          *p = c;
          span = p;
          set_text_color(cat->color[1]);
@@ -129,8 +130,8 @@ void log_write(log_category *cat, int level, const char *format, ...)
          --p;
          c = *p;
          *p = 0;
-         std::cout << span;
-         std::cout.flush();
+         cout << span;
+         cout.flush();
          *p = c;
          span = p;
          set_text_color(cat->color[0]);
@@ -138,8 +139,8 @@ void log_write(log_category *cat, int level, const char *format, ...)
       }
       else if (c == 0)
       {
-         std::cout << span;
-         std::cout.flush();
+         cout << span;
+         cout.flush();
          set_text_color(cat->color[1]);
          break;
       }
