@@ -34,7 +34,7 @@ public:
 
    void              save                  () const;
    float             line_height           () const { return m_line_height; }
-   std::size_t       print                 (std::string const &text, rectangle &bounds, float *&ptr, float x, float y) const;
+   std::size_t       print                 (std::string const &text, rectangle &bounds, float *&ptr, float x, float y, std::size_t max_chars) const;
    void              measure               (std::string const &text, rectangle &bounds) const;
 
    std::shared_ptr<class renderstack::graphics::texture>

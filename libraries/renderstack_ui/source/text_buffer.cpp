@@ -30,13 +30,13 @@ using namespace std;
 text_buffer::text_buffer(
    shared_ptr<class gui_renderer> renderer,
    shared_ptr<class font> font,
-   shared_ptr<renderstack::graphics::vertex_stream_mappings> mappings
+   shared_ptr<vertex_stream_mappings> mappings
 )
 :  m_renderer(renderer)
 ,  m_font(font)
 ,  m_max_chars(2000)
 {
-   if (m_mesh.index_count() > std::numeric_limits<unsigned int>::max())
+   if (m_mesh.index_count() > numeric_limits<unsigned int>::max())
       throw runtime_error("font::prepare_gl_resources: no code path for index types other than unsigned int");
 
    m_mesh.allocate_vertex_buffer(m_renderer->vertex_buffer(), 4 * m_max_chars);
@@ -148,8 +148,11 @@ size_t text_buffer::end_print()
 }
 void text_buffer::print(string const &text, float x, float y)
 {
+   if (m_chars_printed == m_max_chars)
+      return;
+
    int a = 0;
-   m_chars_printed += m_font->print(text, m_bounding_box, m_vertex_ptr, x, y);
+   m_chars_printed += m_font->print(text, m_bounding_box, m_vertex_ptr, x, y, m_max_chars - m_chars_printed);
    ++a;
 }
 void text_buffer::measure(string const &text)

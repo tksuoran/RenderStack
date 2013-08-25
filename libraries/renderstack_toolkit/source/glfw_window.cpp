@@ -146,6 +146,7 @@ bool window::open(int width, int height, string const &title, int major, int min
    ::glfwWindowHint(GLFW_GREEN_BITS,   8);
    ::glfwWindowHint(GLFW_BLUE_BITS,    8);
    ::glfwWindowHint(GLFW_DEPTH_BITS,   24);
+   ::glfwWindowHint(GLFW_SAMPLES,      4);
 
    /*
    if (major >= 3)

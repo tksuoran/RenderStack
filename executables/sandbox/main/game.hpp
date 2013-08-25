@@ -5,6 +5,7 @@
 #include "renderstack_toolkit/service.hpp"
 #include "renderstack_toolkit/window.hpp"
 #include "renderstack_ui/action.hpp"
+#include "renderstack_scene/viewport.hpp"
 
 #include "main/screen.hpp"
 #include "main/programs.hpp"
@@ -16,9 +17,9 @@
 #include "util/frame_controller.hpp"
 
 #include <glm/glm.hpp>
-//#include <set>
 #include <vector>
 #include <memory>
+#include <cstdlib>
 
 namespace renderstack
 {
@@ -40,6 +41,10 @@ namespace renderstack
    {
       class geometry_mesh;
    }
+   namespace scene
+   {
+      class camera;
+   }
    namespace toolkit
    {
       class window;
@@ -60,14 +65,8 @@ struct controls
    bool              right_shift;
    double            mouse_x;
    double            mouse_y;
-   glm::mat4         clip_from_world;
-   glm::mat4         world_from_clip;
    glm::vec3         home;
    frame_controller  camera_controller;
-   float             fov;
-   float             near_;
-   float             far_;
-   float             aspect;
 
 public:
    controls()
@@ -127,7 +126,6 @@ private:
    void toggle_mouse_lock();
 
    void render       ();
-   void render_ui    ();
    void render_meshes();
 
    void update_fixed_steps    ();
@@ -158,16 +156,14 @@ private: /* self owned parts */
    std::shared_ptr<class group>                       m_models;
    std::shared_ptr<renderstack::scene::frame>         m_manipulator_frame;
    std::shared_ptr<class group>                       m_manipulator;
-   std::shared_ptr<renderstack::ui::font>             m_font;
-   std::shared_ptr<renderstack::ui::text_buffer>      m_text_buffer;
    std::shared_ptr<renderstack::ui::layer>            m_root_layer;
    std::shared_ptr<renderstack::ui::button>           m_menu_button;
    std::shared_ptr<renderstack::ui::slider>           m_slider;
 
-   std::vector<std::string>                           m_debug_lines;
-   renderstack::graphics::render_states               m_font_render_states;
    controls                                           m_controls;
-   glm::mat4                                          m_projection;
+   renderstack::scene::viewport                       m_viewport;
+
+   //glm::mat4                                          m_projection;
 
    double                                             m_update_time;
    double                                             m_frame_dt;
@@ -178,6 +174,8 @@ private: /* self owned parts */
    // are we between on_enter() and on_exit()?
    bool m_screen_active;
    bool m_mouse_down;
+
+   std::shared_ptr<renderstack::scene::camera>        m_camera;
 };
 
 #endif

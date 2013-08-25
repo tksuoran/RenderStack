@@ -54,31 +54,25 @@ public:
 class light
 {
 public:
-   light(int light_index);
+   light();
 
-   void update_frame();
-   void update_viewport(viewport &viewport);
+   void update(viewport &viewport);
 
-   std::shared_ptr<class camera> camera      ();
-   std::string const             &name       ();
-   void                          set_name    (std::string const &value);
-   std::shared_ptr<class frame>  frame       ();
-   class projection const        &projection () const;
-   class projection              &projection ();
-
-   int               light_index() const;
-   void              set_light_index(int value);
-   transform const   &shadow_from_world() const;
-   transform         &shadow_from_world();
+   std::shared_ptr<class camera> camera            ();
+   std::string const             &name             ();
+   void                          set_name          (std::string const &value);
+   std::shared_ptr<class frame>  frame             ();
+   class projection const        &projection       () const;
+   class projection              &projection       ();
+   transform const               &shadow_from_world() const;
+   transform                     &shadow_from_world();
 
 private:
    std::shared_ptr<class camera> m_camera;
-
-   int                           m_light_index;
    transform                     m_shadow_from_world;
+
    static glm::mat4              s_texture;
    static glm::mat4              s_texture_inverse;
-
 };
 
 } }

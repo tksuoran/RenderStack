@@ -12,6 +12,7 @@
 #include "renderstack_graphics/vertex_format.hpp"
 #include "renderstack_mesh/geometry_mesh.hpp"
 #include "renderstack_mesh/mesh.hpp"
+#include "renderstack_scene/camera.hpp"
 #include "renderstack_toolkit/gl.hpp"
 #include "renderstack_toolkit/strong_gl_enums.hpp"
 #include "renderstack_toolkit/math_util.hpp"
@@ -93,7 +94,7 @@ void id_renderer::clear()
 
 void id_renderer::render_pass(
    shared_ptr<class group> group,
-   mat4 const &clip_from_world,
+   std::shared_ptr<renderstack::scene::camera> camera,
    double time,
    int x,
    int y
@@ -112,7 +113,7 @@ void id_renderer::render_pass(
    idr.time = time;
    idr.x_offset = std::max(x - (m_radius / 2), 0);
    idr.y_offset = std::max(y - (m_radius / 2), 0);
-   idr.clip_from_world = clip_from_world;
+   idr.clip_from_world = camera->clip_from_world().matrix();
 
    gl::scissor(idr.x_offset, idr.y_offset, m_radius, m_radius);
    gl::enable(GL_SCISSOR_TEST);
@@ -141,7 +142,7 @@ void id_renderer::render_pass(
    {
       auto model              = *i;
       mat4 world_from_model   = model->frame()->world_from_local().matrix();
-      mat4 clip_from_model    = clip_from_world * world_from_model;
+      mat4 clip_from_model    = camera->clip_from_world().matrix() * world_from_model;
       auto geometry_mesh      = model->geometry_mesh();
       auto vertex_stream      = geometry_mesh->vertex_stream();
       auto mesh               = geometry_mesh->get_mesh();

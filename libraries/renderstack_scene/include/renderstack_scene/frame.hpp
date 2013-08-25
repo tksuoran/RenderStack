@@ -14,12 +14,7 @@ namespace renderstack { namespace scene {
 class frame : public std::enable_shared_from_this<frame>
 {
 public:
-   frame()
-   :  m_updated(false)
-   ,  m_last_update_serial(0)
-   ,  m_parent(nullptr)
-   {
-   }
+   frame();
 
    std::string const & name() const { return m_name; }
    void set_name(std::string const &value) { m_name = value; }

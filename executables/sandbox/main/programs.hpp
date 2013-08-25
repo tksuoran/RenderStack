@@ -24,22 +24,36 @@ namespace renderstack
 
 struct model_block_i
 {
-   size_t clip_from_model;       /* mat4 */
-   size_t world_from_model;      /* mat4 */
-   size_t view_from_model;       /* mat4 */
-   size_t id_offset;             /* vec3 */
+   std::size_t clip_from_model;       /* mat4 */
+   std::size_t world_from_model;      /* mat4 */
+   std::size_t view_from_model;       /* mat4 */
+   std::size_t id_offset;             /* vec3 */
 };
 
 struct camera_block_i
 {
-   size_t world_from_view;       /* mat4 */
-   size_t viewport;              /* vec4 */
+   std::size_t world_from_view;       /* mat4 */
+   std::size_t viewport;              /* vec4 */
+};
+
+struct lights_block_i
+{
+   std::size_t exposure;
+   std::size_t ambient_light_radiance;
+   std::size_t position;
+   std::size_t direction;
+   std::size_t radiance;
 };
 
 struct material_block_i
 {
-   size_t color;                 /* vec4 */
-   size_t material_parameters;   /* vec4 */
+   std::size_t color;               /* vec4 */
+   std::size_t roughness;           /* float aka 1.0 - smoothness */
+   std::size_t isotropy;            /* float aka 1.0 - anisotropy */
+   // std::size_t translucency;        /* float */
+   // std::size_t metalness;           /* float */
+   // std::size_t specular_coverage;   /* float */
+   // std::size_t wet_roughness;       /* float */
 };
 
 struct debug_block_i
@@ -67,6 +81,7 @@ public:
    model_block_i                                                  model_block_access;
    camera_block_i                                                 camera_block_access;
    material_block_i                                               material_block_access;
+   lights_block_i                                                 lights_block_access;
    debug_block_i                                                  debug_block_access;
 
    std::shared_ptr<renderstack::graphics::buffer>                 uniform_buffer;
@@ -75,11 +90,13 @@ public:
    std::shared_ptr<renderstack::graphics::uniform_block>          model_block;
    std::shared_ptr<renderstack::graphics::uniform_block>          camera_block;
    std::shared_ptr<renderstack::graphics::uniform_block>          material_block;
+   std::shared_ptr<renderstack::graphics::uniform_block>          lights_block;
    std::shared_ptr<renderstack::graphics::uniform_block>          debug_block;
 
    std::shared_ptr<renderstack::graphics::uniform_buffer_range>   model_ubr;
    std::shared_ptr<renderstack::graphics::uniform_buffer_range>   camera_ubr;
    std::shared_ptr<renderstack::graphics::uniform_buffer_range>   material_ubr;
+   std::shared_ptr<renderstack::graphics::uniform_buffer_range>   lights_ubr;
    std::shared_ptr<renderstack::graphics::uniform_buffer_range>   debug_ubr;
 
 
@@ -87,6 +104,7 @@ public:
    std::shared_ptr<renderstack::graphics::vertex_stream_mappings> mappings;
    std::shared_ptr<renderstack::graphics::program>                font;
    std::shared_ptr<renderstack::graphics::program>                basic;
+   std::shared_ptr<renderstack::graphics::program>                anisotropic;
    std::shared_ptr<renderstack::graphics::program>                debug_line;
    std::shared_ptr<renderstack::graphics::program>                textured;
    std::shared_ptr<renderstack::graphics::program>                gbuffer;

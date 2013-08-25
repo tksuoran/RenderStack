@@ -1,6 +1,7 @@
-#include "renderstack_toolkit/platform.hpp"
 #include "util/frame_controller.hpp"
 #include "util/controller.hpp"
+#include "renderstack_toolkit/platform.hpp"
+#include "renderstack_scene/frame.hpp"
 #include "renderstack_toolkit/math_util.hpp"
 #define GLM_SWIZZLE_XYZW
 #include <glm/glm.hpp>
@@ -23,6 +24,7 @@ void frame_controller::set_elevation(float value)
 void frame_controller::set_heading(float value)
 {
    m_heading = value;
+   create_rotation(m_heading, vec3_unit_y, m_heading_matrix);
 }
 vec3 const &frame_controller::position() const { return m_position; }
 float frame_controller::elevation() const { return m_elevation; }
@@ -37,6 +39,7 @@ controller &frame_controller::translate_z   (){ return m_translate_z; }
 controller &frame_controller::speed_modifier(){ return m_speed_modifier; }
 
 frame_controller::frame_controller()
+:  m_frame(nullptr)
 {
    clear();
    m_rotate_x.set_damp(0.700f);
@@ -55,9 +58,36 @@ frame_controller::frame_controller()
    m_speed_modifier.set_damp(0.92f);
    m_speed_modifier.set_max_delta(0.5f);
 
-   m_elevation = 0.0f;
-   m_heading = 0.0f;
    update();
+}
+
+void frame_controller::set_frame(std::shared_ptr<renderstack::scene::frame> value)
+{
+   m_frame = value;
+
+   if (!m_frame)
+      return;
+
+   //vec3 right  = m_frame->world_from_local().matrix * vec3_unit_x;
+   //vec3 up     = m_frame->world_from_local().matrix * vec3_unit_y;
+   vec3 back(m_frame->world_from_local().matrix() * vec4(vec3_unit_z, 0.0f));
+
+   // Decompose frame transformation matrix to position, theta and phi
+   m_position = vec3(m_frame->world_from_local().matrix() * vec4(0.0f, 0.0f, 0.0f, 0.0f));
+   cartesian_to_spherical(
+      vec3(
+         m_frame->world_from_local().matrix() * vec4(vec3_unit_z, 1.0f)
+      ), 
+      m_heading, m_elevation
+   );
+
+   create_rotation(m_heading, vec3_unit_y, m_heading_matrix);
+
+   update();
+}
+std::shared_ptr<renderstack::scene::frame> frame_controller::frame()
+{
+   return m_frame;
 }
 
 void frame_controller::clear()
@@ -76,7 +106,7 @@ void frame_controller::update()
    create_rotation(m_elevation, vec3_unit_x, elevation_matrix);
    m_rotation_matrix = m_heading_matrix * elevation_matrix;
 
-   m_parent_from_local = m_rotation_matrix;
+   mat4 parent_from_local = m_rotation_matrix;
    //mat4 parent_to_local = transpose(local_to_parent);
 
    // HACK
@@ -84,7 +114,7 @@ void frame_controller::update()
       m_position.y = 0.03f;
 
    /*  Put translation to column 3  */ 
-   m_parent_from_local[3] = vec4(m_position, 1.0f);
+   parent_from_local[3] = vec4(m_position, 1.0f);
 
    /*  Put inverse translation to column 3 */ 
    /*parentToLocal._03 = parentToLocal._00 * -positionInParent.X + parentToLocal._01 * -positionInParent.Y + parentToLocal._02 * - positionInParent.Z;
@@ -92,7 +122,9 @@ void frame_controller::update()
    parentToLocal._23 = parentToLocal._20 * -positionInParent.X + parentToLocal._21 * -positionInParent.Y + parentToLocal._22 * - positionInParent.Z;
    parentToLocal._33 = 1.0f;
    */
-   m_local_from_parent = inverse(m_parent_from_local);
+   //m_local_from_parent = inverse(m_parent_from_local);
+   if (m_frame)
+      m_frame->parent_from_local().set(parent_from_local);
 
    //Frame.LocalToParent.Set(localToParent, parentToLocal);
 }
@@ -146,6 +178,8 @@ void frame_controller::update_fixed_step()
       m_rotation_matrix = m_heading_matrix * elevation_matrix;
    }
 
+   update();
+#if 0
    m_parent_from_local = m_rotation_matrix;
    //Matrix4 parentToLocal;
 
@@ -174,6 +208,7 @@ void frame_controller::update_fixed_step()
 #endif
 
    m_local_from_parent = inverse(m_parent_from_local);
+#endif
 }
 
 

@@ -1,4 +1,5 @@
 #include "renderstack_toolkit/platform.hpp"
+#include "renderers/debug_renderer.hpp"
 #include "renderers/forward_renderer.hpp"
 #include "scene/group.hpp"
 #include "renderstack_graphics/buffer.hpp"
@@ -11,6 +12,7 @@
 #include "renderstack_graphics/vertex_format.hpp"
 #include "renderstack_mesh/geometry_mesh.hpp"
 #include "renderstack_mesh/mesh.hpp"
+#include "renderstack_scene/camera.hpp"
 #include "renderstack_toolkit/gl.hpp"
 #include "renderstack_toolkit/strong_gl_enums.hpp"
 #include "renderstack_toolkit/math_util.hpp"
@@ -43,10 +45,12 @@ forward_renderer::forward_renderer()
 
 void forward_renderer::connect(
    shared_ptr<renderstack::graphics::renderer>  renderer_,
+   shared_ptr<debug_renderer>                   debug_renderer_,
    shared_ptr<programs>                         programs_
 )
 {
    m_renderer = renderer_;
+   m_debug_renderer = debug_renderer_;
    m_programs = programs_;
 
    initialization_depends_on(renderer_);
@@ -62,11 +66,25 @@ void forward_renderer::initialize_service()
    m_mesh_render_states.face_cull.set_enabled(true);
 }
 
+void forward_renderer::print_matrix(mat4 const &m, std::string const &desc)
+{
+   m_debug_renderer->printf(
+      "Matrix %s:\n"
+      "\t% 6.4f  % 6.4f  % 6.4f  % 6.4f\n"
+      "\t% 6.4f  % 6.4f  % 6.4f  % 6.4f\n"
+      "\t% 6.4f  % 6.4f  % 6.4f  % 6.4f\n"
+      "\t% 6.4f  % 6.4f  % 6.4f  % 6.4f\n",
+      desc.c_str(),
+      m[0][0], m[1][0], m[2][0], m[3][0],
+      m[0][1], m[1][1], m[2][1], m[3][1],
+      m[0][2], m[1][2], m[2][2], m[3][2],
+      m[0][3], m[1][3], m[2][3], m[3][3]
+   );
+}
 
 void forward_renderer::render_pass(
    shared_ptr<group> group,
-   mat4 const &clip_from_world,
-   mat4 const &view_from_world
+   std::shared_ptr<renderstack::scene::camera> camera
 )
 {
    auto const &models = group->models();
@@ -81,38 +99,58 @@ void forward_renderer::render_pass(
    t.execute(&m_mesh_render_states);
 
    r.set_program(p);
-   vec4 material_parameters(4.0f, 0.0f, 0.0f, 1.0f);
 
+   vec4  color(1.0f, 1.0f, 1.0f, 1.0f);
+   float roughness = 0.5f;
+   float isotropy = 0.5f;
+
+   mat4 const &world_from_view = camera->frame()->world_from_local().matrix();
+   if (m_programs->use_uniform_buffers())
    {
-      vec4 white(1.0f, 1.0f, 1.0f, 1.0f);
-      if (m_programs->use_uniform_buffers())
-      {
-         assert(m_programs);
-         assert(m_programs->material_ubr);
+      unsigned char *start = m_programs->begin_edit_uniforms();
+      ::memcpy(&start[m_programs->material_ubr->first_byte() + m_programs->material_block_access.color      ], value_ptr(color), 4 * sizeof(float));
+      ::memcpy(&start[m_programs->material_ubr->first_byte() + m_programs->material_block_access.roughness  ], &roughness,       sizeof(float));
+      ::memcpy(&start[m_programs->material_ubr->first_byte() + m_programs->material_block_access.isotropy   ], &isotropy,        sizeof(float));
+      m_programs->material_ubr->flush(r);
 
-         r.set_uniform_buffer_range(m_programs->material_block->binding_point(), m_programs->material_ubr);
+      ::memcpy(&start[m_programs->camera_ubr->first_byte() + m_programs->camera_block_access.world_from_view], value_ptr(world_from_view), 16 * sizeof(float));
+      m_programs->camera_ubr->flush(r);
 
-         unsigned char *start = m_programs->material_ubr->begin_edit(r);
-         ::memcpy(&start[m_programs->material_block_access.color], value_ptr(white), 4 * sizeof(float));
-         m_programs->material_ubr->end_edit(r);
-      }
-      else
-      {
-         gl::uniform_4fv(
-            p->uniform_at(m_programs->material_block_access.color),
-            1, value_ptr(white));
-      }
+      m_programs->end_edit_uniforms();
+   }
+   else
+   {
+      gl::uniform_4fv(p->uniform_at(m_programs->material_block_access.color), 1, value_ptr(color));
+      gl::uniform_1f(p->uniform_at(m_programs->material_block_access.roughness), roughness);
+      gl::uniform_1f(p->uniform_at(m_programs->material_block_access.roughness), isotropy);
+
+      gl::uniform_matrix_4fv(p->uniform_at(m_programs->camera_block_access.world_from_view), 1, GL_FALSE, value_ptr(world_from_view));
    }
 
+   mat4 const &clip_from_world = camera->clip_from_world().matrix();
+   mat4 const &view_from_world = camera->frame()->world_from_local().inverse_matrix();
+   print_matrix(clip_from_world, "clip_from_world");
+   print_matrix(view_from_world, "view_from_world");
+
+   bool print = true;
    for (auto i = models.cbegin(); i != models.cend(); ++i)
    {
-      auto  model             = *i;
-      mat4  world_from_model  = model->frame()->world_from_local().matrix();
-      mat4  clip_from_model   = clip_from_world * world_from_model;
-      mat4  view_from_model   = view_from_world * world_from_model;
-      auto  geometry_mesh     = model->geometry_mesh();
-      auto  vertex_stream     = geometry_mesh->vertex_stream();
-      auto  mesh              = geometry_mesh->get_mesh();
+      auto model              = *i;
+      mat4 world_from_model   = model->frame()->world_from_local().matrix();
+      mat4 clip_from_model    = clip_from_world * world_from_model;
+      mat4 view_from_model    = view_from_world * world_from_model;
+      auto geometry_mesh      = model->geometry_mesh();
+      auto vertex_stream      = geometry_mesh->vertex_stream();
+      auto mesh               = geometry_mesh->get_mesh();
+
+      if (print)
+      {
+         print_matrix(world_from_model,   "world_from_model");
+         print_matrix(clip_from_model,    "clip_from_model ");
+         print_matrix(view_from_model,    "view_from_model");
+
+         print = false;
+      }
 
       model->frame()->update_hierarchical_no_cache(); // TODO
 
@@ -121,21 +159,17 @@ void forward_renderer::render_pass(
          assert(m_programs);
          assert(m_programs->model_ubr);
 
-         unsigned char *start          = m_programs->begin_edit_uniforms();
-         unsigned char *model_start    = &start[m_programs->model_ubr->first_byte()];
-         unsigned char *material_start = &start[m_programs->material_ubr->first_byte()];
+         unsigned char *start       = m_programs->begin_edit_uniforms();
+         unsigned char *model_start = &start[m_programs->model_ubr->first_byte()];
          ::memcpy(&model_start[m_programs->model_block_access.clip_from_model], value_ptr(clip_from_model), 16 * sizeof(float));
          ::memcpy(&model_start[m_programs->model_block_access.view_from_model], value_ptr(view_from_model), 16 * sizeof(float));
-         ::memcpy(&material_start[m_programs->material_block_access.material_parameters], value_ptr(material_parameters), 4 * sizeof(float));
          m_programs->model_ubr->flush(r);
-         m_programs->material_ubr->flush(r);
          m_programs->end_edit_uniforms();
       }
       else
       {
          gl::uniform_matrix_4fv(p->uniform_at(m_programs->model_block_access.clip_from_model), 1, GL_FALSE, value_ptr(clip_from_model));
          gl::uniform_matrix_4fv(p->uniform_at(m_programs->model_block_access.view_from_model), 1, GL_FALSE, value_ptr(view_from_model));
-         gl::uniform_4fv(p->uniform_at(m_programs->material_block_access.material_parameters),  1, value_ptr(material_parameters));
       }
 
       {

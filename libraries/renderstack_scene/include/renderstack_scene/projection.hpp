@@ -9,30 +9,7 @@
 
 namespace renderstack { namespace scene {
 
-class viewport
-{
-private:
-   int m_border;
-   int m_x;
-   int m_y;
-   int m_width;
-   int m_height;
-
-public:
-   int   border      ()          { return m_border; }
-   void  set_border  (int value) { m_border = value; }
-   int   x           ()          { return m_x; }
-   void  set_x       (int value) { m_x = value; }
-   int   y           ()          { return m_y; }
-   void  set_y       (int value) { m_y = value; }
-   int   width       ()          { return m_width; }
-   void  set_width   (int value) { m_width = value; }
-
-   float aspect_ratio()
-   {
-      return m_height != 0.0f ? static_cast<float>(m_width) / static_cast<float>(m_height) : 1.0f;
-   }
-};
+class viewport;
 
 namespace projection_type
 {
@@ -56,7 +33,7 @@ class projection
 public:
    projection();
 
-   void update(transform &transform, viewport &viewport);
+   void update(transform &transform, viewport const &viewport);
 
    projection_type::value  projection_type      () { return m_projection_type; }
    void                    set_projection_type  (projection_type::value value) { m_projection_type = value; }

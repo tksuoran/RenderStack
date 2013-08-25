@@ -33,10 +33,10 @@ void main(void)
     vec3 N = normalize(v_normal);
     vec3 T = normalize(v_tangent);
     out_emission           = vec4(0.0, 0.0, 0.0, 0.0);
-    out_albedo             = vec4(1.0, 1.0, 1.0, 1.0);
+    out_albedo             = material.color;
     out_normal_tangent.xy  = cartesian_to_spherical(N);
     out_normal_tangent.zw  = cartesian_to_spherical(T);
-    out_material.w         = material.material_parameters.x;
+    out_material.w         = material.roughness;
     out_material.xyz       = v_position_in_view.xyz;
 }
 

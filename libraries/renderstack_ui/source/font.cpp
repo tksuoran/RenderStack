@@ -580,7 +580,7 @@ void font::save() const
    printf("   m_bitmap->load_data(&data[0]);\n");
    printf("   post_process();\n");
 }
-size_t font::print(string const &text, rectangle &bounds, float *&ptr, float x, float y) const
+size_t font::print(string const &text, rectangle &bounds, float *&ptr, float x, float y, std::size_t max_chars) const
 {
    slog_trace("font::print(ptr = %p, text = %s, x = % 7.2, y = % 7.2)",
       ptr,
@@ -640,6 +640,8 @@ size_t font::print(string const &text, rectangle &bounds, float *&ptr, float x, 
          bounds.extend_by(x + ox    , y + oy + h);
 
          ++chars_printed;
+         if (chars_printed == max_chars)
+            break;
       }
 
       x += a;

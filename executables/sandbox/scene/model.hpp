@@ -7,6 +7,8 @@
 #include "scene/material.hpp"
 #include <memory>
 
+class material;
+
 class model
 {
 public:
@@ -24,14 +26,18 @@ public:
    std::shared_ptr<class renderstack::mesh::geometry_mesh> geometry_mesh() { return m_geometry_mesh; }
    void set_geometry_mesh(std::shared_ptr<renderstack::mesh::geometry_mesh> value) { m_geometry_mesh = value; }
 
+   std::shared_ptr<class material> material() const { return m_material; }
+   void set_material(std::shared_ptr<class material> value ) { m_material = value; }
+
    bool selected() const { return m_selected; }
    void select() { m_selected = true; }
    void deselect() { m_selected = false; }
 
 private:
+   std::string                                              m_name;
    std::shared_ptr<renderstack::scene::frame>               m_frame;
    std::shared_ptr<class renderstack::mesh::geometry_mesh>  m_geometry_mesh;
-   std::string                                              m_name;
+   std::shared_ptr<class material>                          m_material;
    bool                                                     m_selected;
 };
 

@@ -10,7 +10,7 @@
 #include <memory>
 
 
-class scene
+/*class scene
 {
 private:
    void add(std::shared_ptr<group> group);
@@ -20,7 +20,7 @@ private:
 
 private:
    std::vector<std::shared_ptr<group> >   m_groups;
-};
+};*/
 
 class scene_manager : public renderstack::toolkit::service
 {
@@ -28,7 +28,7 @@ public:
    scene_manager();
    /* virtual */ ~scene_manager();
 
-   void connect(std::shared_ptr<material_manager> material_manager);
+   void connect(/*std::shared_ptr<material_manager> material_manager*/);
 
    /*virtual*/ void initialize_service();
 
@@ -40,7 +40,7 @@ public:
    std::shared_ptr<model> add_model(std::shared_ptr<model> m);
 
 private:
-   std::shared_ptr<material_manager>            m_material_manager;
+   //std::shared_ptr<material_manager>            m_material_manager;
    std::shared_ptr<renderstack::scene::camera>  m_camera;
    std::shared_ptr<frame_controller>            m_camera_controls;
    std::shared_ptr<group>                       m_render_group;

@@ -11,6 +11,7 @@
 #include "renderstack_graphics/vertex_format.hpp"
 #include "renderstack_mesh/geometry_mesh.hpp"
 #include "renderstack_mesh/mesh.hpp"
+#include "renderstack_scene/camera.hpp"
 #include "renderstack_toolkit/gl.hpp"
 #include "renderstack_toolkit/strong_gl_enums.hpp"
 #include "renderstack_toolkit/math_util.hpp"
@@ -165,13 +166,9 @@ void deferred_renderer::fbo_clear()
 
    vec3 N = vec3(0.0f, 0.0f, -1.0f);
    vec3 T = vec3(0.0f, 1.0f, 0.0f); 
-   vec2 sN = cartesian_to_spherical(N);
-   vec2 sT = cartesian_to_spherical(T);
 
-   normal_tangent_clear[0] = sN.x;
-   normal_tangent_clear[1] = sN.y;
-   normal_tangent_clear[2] = sT.x;
-   normal_tangent_clear[3] = sT.y;
+   cartesian_to_spherical(N, normal_tangent_clear[0], normal_tangent_clear[1]);
+   cartesian_to_spherical(T, normal_tangent_clear[2], normal_tangent_clear[3]);
 
    gl::clear_buffer_fv(GL_COLOR, 0, &emission_clear      [0]);
    gl::clear_buffer_fv(GL_COLOR, 1, &albedo_clear        [0]);
@@ -182,8 +179,7 @@ void deferred_renderer::fbo_clear()
 
 void deferred_renderer::geometry_pass(
    shared_ptr<group> group,
-   mat4 const &clip_from_world,
-   mat4 const &view_from_world
+   std::shared_ptr<renderstack::scene::camera> camera
 )
 {
    bind_fbo();
@@ -201,13 +197,16 @@ void deferred_renderer::geometry_pass(
    t.reset();
    t.execute(&m_mesh_render_states);
    r.set_program(p);
-   vec4 material_parameters(4.0f, 0.0f, 0.0f, 1.0f);
+   vec4  color(1.0f, 1.0f, 1.0f, 1.0f);
+   float roughness = 0.2f;
+   float isotropy = 0.5f;
 
+   mat4 const &view_from_world = camera->frame()->world_from_local().inverse_matrix();
    for (auto i = models.cbegin(); i != models.cend(); ++i)
    {
       auto model              = *i;
       mat4 world_from_model   = model->frame()->world_from_local().matrix();
-      mat4 clip_from_model    = clip_from_world * world_from_model;
+      mat4 clip_from_model    = camera->clip_from_world().matrix() * world_from_model;
       mat4 view_from_model    = view_from_world * world_from_model;
       auto geometry_mesh      = model->geometry_mesh();
       auto vertex_stream      = geometry_mesh->vertex_stream();
@@ -229,14 +228,18 @@ void deferred_renderer::geometry_pass(
          m_programs->model_ubr->end_edit(r);
 
          unsigned char *material_start = m_programs->material_ubr->begin_edit(r);
-         ::memcpy(&material_start[m_programs->material_block_access.material_parameters], value_ptr(material_parameters),  4 * sizeof(float));
+         ::memcpy(&material_start[m_programs->material_block_access.color],      value_ptr(color), 4 * sizeof(float));
+         ::memcpy(&material_start[m_programs->material_block_access.roughness],  &roughness, sizeof(float));
+         ::memcpy(&material_start[m_programs->material_block_access.isotropy],   &color,     sizeof(float));
          m_programs->material_ubr->end_edit(r);
       }
       else
       {
          gl::uniform_matrix_4fv(p->uniform_at(m_programs->model_block_access.clip_from_model), 1, GL_FALSE, value_ptr(clip_from_model));
          gl::uniform_matrix_4fv(p->uniform_at(m_programs->model_block_access.view_from_model), 1, GL_FALSE, value_ptr(view_from_model));
-         gl::uniform_4fv(p->uniform_at(m_programs->material_block_access.material_parameters), 1, value_ptr(material_parameters));
+         gl::uniform_4fv(p->uniform_at(m_programs->material_block_access.color), 1, value_ptr(color));
+         gl::uniform_1f(p->uniform_at(m_programs->material_block_access.color), roughness);
+         gl::uniform_1f(p->uniform_at(m_programs->material_block_access.color), isotropy);
       }
 
       {

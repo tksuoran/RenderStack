@@ -19,6 +19,7 @@
 #include "renderstack_ui/layer.hpp"
 #include "renderstack_ui/slider.hpp"
 #include "renderstack_ui/text_buffer.hpp"
+#include "renderstack_scene/camera.hpp"
 
 #include "main/game.hpp"
 #include "main/application.hpp"
@@ -45,73 +46,6 @@ using namespace gl;
 using namespace glm;
 using namespace std;
 
-void game::render_ui()
-{
-   slog_trace("game::render_ui()");
-
-   assert(m_programs);
-   assert(m_text_buffer);
-
-   float w = (float)m_application->width();
-   float h = (float)m_application->height();
-
-   m_text_buffer->begin_print();
-   for (size_t i = 0; i < m_debug_lines.size(); ++i)
-      m_text_buffer->print(m_debug_lines[i], 0.0f, h - (i + 1) * m_font->line_height());
-
-   if (m_controls.mouse_locked)
-      m_text_buffer->print("Mouse locked", 0.0f, 0.0f);
-
-   int chars_printed = m_text_buffer->end_print();
-
-   if (chars_printed > 0)
-   {
-      //auto gr = *m_gui_renderer;
-      auto &r = *m_renderer;
-      auto &t = r.track();
-      t.execute(&m_font_render_states);
-
-      auto p = m_programs->font;
-      r.set_program(p);
-
-      gl::viewport(0, 0, (GLsizei)w, (GLsizei)h);
-      mat4 ortho = glm::ortho(0.0f, (float)w, 0.0f, (float)h);
-      gl::scissor(0, 0, (GLsizei)w, (GLsizei)h);
-
-      glm::vec4 white(1.0f, 1.0f, 1.0f, 0.66f); // gamma in 4th component
-      if (m_programs->use_uniform_buffers())
-      {
-         unsigned char *start = m_programs->begin_edit_uniforms();
-         ::memcpy(&start[m_programs->model_ubr->first_byte() + m_programs->model_block_access.clip_from_model], value_ptr(ortho), 16 * sizeof(float));
-         ::memcpy(&start[m_programs->material_ubr->first_byte() + m_programs->material_block_access.color], value_ptr(white), 4 * sizeof(float));
-         m_programs->model_ubr->flush(r);
-         m_programs->material_ubr->flush(r);
-         m_programs->end_edit_uniforms();
-      }
-      else
-      {
-         int model_to_clip_ui = p->uniform_at(m_programs->model_block_access.clip_from_model);
-         int color_ui         = p->uniform_at(m_programs->material_block_access.color);
-
-         gl::uniform_matrix_4fv(model_to_clip_ui, 1, GL_FALSE, value_ptr(ortho));
-         gl::uniform_4fv(color_ui, 1, value_ptr(white));
-      }
-
-      //int texture_ui = p->uniform("font_texture")->index();
-      //gl::uniform_1i(texture_ui, 0);
-
-      {
-         auto t = m_text_buffer->font()->texture();
-         t->set_min_filter(texture_min_filter::nearest);
-         t->set_mag_filter(texture_mag_filter::nearest);
-         (void)r.set_texture(0, t);
-         t->apply(r, 0);
-      }
-
-      m_text_buffer->render();
-   }
-
-}
 
 void game::render_meshes()
 {
@@ -145,7 +79,7 @@ void game::render_meshes()
       m_id_renderer->clear();
       m_id_renderer->render_pass(
          m_models,
-         m_controls.clip_from_world,
+         m_camera,
          m_application->time(),
          x,
          y
@@ -175,27 +109,13 @@ void game::render_meshes()
    glClearColor(0.05f, 0.1f, 0.15f, 1.0f);
    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-#if 1
-
-   m_forward_renderer->render_pass(
-      m_models,
-      m_controls.clip_from_world,
-      m_controls.camera_controller.local_from_parent()
-   );
-   m_forward_renderer->render_pass(
-      m_manipulator,
-      m_controls.clip_from_world,
-      m_controls.camera_controller.local_from_parent()
-   );
-#endif
+   m_forward_renderer->render_pass(m_models, m_camera);
+   //m_forward_renderer->render_pass(m_manipulator, m_camera);
 
 #if 1
    if (hover_model)
    {
-      m_debug_renderer->set_camera(
-         m_controls.clip_from_world,
-         m_controls.camera_controller.local_from_parent()
-      );
+      m_debug_renderer->set_camera(m_camera);
       m_debug_renderer->begin_edit();
       m_debug_renderer->set_color(vec4(0.0f, 1.0f, 0.0f, 1.0f));
       //for (auto i = m_models.cbegin(); i != m_models.cend(); ++i)
@@ -281,13 +201,13 @@ void game::render()
    }
 
 #if 1
-   if (m_text_buffer)
+   if (m_debug_renderer)
    {
       auto gr = m_gui_renderer;
       gr->prepare();
       gr->on_resize(iw, ih);
 
-      render_ui();
+      m_debug_renderer->render_text_lines(m_viewport);
    }
 #endif
 

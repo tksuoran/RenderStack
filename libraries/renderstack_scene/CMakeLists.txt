@@ -20,6 +20,7 @@ add_library(
    include/renderstack_scene/projection.hpp
    include/renderstack_scene/stereo_parameters.hpp
    include/renderstack_scene/transform.hpp
+   include/renderstack_scene/viewport.hpp
    source/camera.cpp
    source/frame.cpp
    source/light.cpp

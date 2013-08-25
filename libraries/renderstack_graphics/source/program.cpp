@@ -73,6 +73,8 @@ string program::format(string const &source)
    {
       c = *head;
       ++head;
+      if (c == '\r')
+         continue;
       if (c == 0)
          break;
 
@@ -191,6 +193,7 @@ unsigned int program::make_shader(
          cout << flush;
          cerr << flush;
          throw runtime_error("shader compilation failed");
+
       }
    }
    return shader;

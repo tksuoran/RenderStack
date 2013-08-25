@@ -1,4 +1,5 @@
 #include "renderstack_scene/projection.hpp"
+#include "renderstack_scene/viewport.hpp"
 
 namespace renderstack { namespace scene {
 
@@ -13,7 +14,7 @@ projection::projection()
    m_ortho_height    = 1.0f;
 }
 
-void projection::update(transform &transform, viewport &viewport)
+void projection::update(transform &transform, viewport const &viewport)
 {
    switch (m_projection_type)
    {
@@ -25,6 +26,7 @@ void projection::update(transform &transform, viewport &viewport)
          m_far
       );
       break;
+
    case projection_type::perspective_horizontal:
       transform.set_perspective_horizontal(
          m_fov_x,
@@ -33,6 +35,7 @@ void projection::update(transform &transform, viewport &viewport)
          m_far
       );
       break;
+
    case projection_type::perspective_vertical:
       transform.set_perspective_vertical(
          m_fov_y,
@@ -41,6 +44,7 @@ void projection::update(transform &transform, viewport &viewport)
          m_far
       );
       break;
+
    case projection_type::orthogonal_horizontal:
       transform.set_orthographic(
          -0.5f * m_ortho_width,
@@ -51,6 +55,7 @@ void projection::update(transform &transform, viewport &viewport)
          m_far
       );
       break;
+
    case projection_type::orthogonal_vertical:
       transform.set_orthographic(
          -0.5f * m_ortho_height / viewport.aspect_ratio(),
@@ -71,6 +76,7 @@ void projection::update(transform &transform, viewport &viewport)
          m_far
       );
       break;
+
    case projection_type::orthogonal_rectangle:
       transform.set_orthographic(
          m_ortho_left,
@@ -81,6 +87,7 @@ void projection::update(transform &transform, viewport &viewport)
          m_far
       );
       break;
+
    case projection_type::generic_frustum:
       transform.set_frustum(
          m_frustum_left,
@@ -91,6 +98,7 @@ void projection::update(transform &transform, viewport &viewport)
          m_far
       );
       break;
+
    case projection_type::stereoscopic_horizontal:
    case projection_type::stereoscopic_vertical:
    case projection_type::other:

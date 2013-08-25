@@ -40,11 +40,13 @@ programs::programs()
 ,  model_block       (nullptr)
 ,  camera_block      (nullptr)
 ,  material_block    (nullptr)
+,  lights_block      (nullptr)
 ,  debug_block       (nullptr)
 
 ,  model_ubr         (nullptr)
 ,  camera_ubr        (nullptr)
 ,  material_ubr      (nullptr)
+,  lights_ubr        (nullptr)
 ,  debug_ubr         (nullptr)
 
 ,  samplers          (nullptr)
@@ -124,24 +126,34 @@ void programs::connect(shared_ptr<renderstack::graphics::renderer> renderer)
    default_block->seal();
 
    model_block = make_shared<uniform_block>(0, "model");
-   model_block_access.clip_from_model     = model_block->add_mat4("clip_from_model"   )->access();
-   model_block_access.world_from_model    = model_block->add_mat4("world_from_model"  )->access();
-   model_block_access.view_from_model     = model_block->add_mat4("view_from_model"   )->access();
-   model_block_access.id_offset           = model_block->add_vec3("id_offset"         )->access();
+   model_block_access.clip_from_model  = model_block->add_mat4("clip_from_model"   )->access();
+   model_block_access.world_from_model = model_block->add_mat4("world_from_model"  )->access();
+   model_block_access.view_from_model  = model_block->add_mat4("view_from_model"   )->access();
+   model_block_access.id_offset        = model_block->add_vec3("id_offset"         )->access();
    model_block->seal();
    ubo_size += model_block->size_bytes();
 
    camera_block = make_shared<uniform_block>(1, "camera");
-   camera_block_access.world_from_view   = camera_block->add_mat4("world_from_view"   )->access();
-   camera_block_access.viewport          = camera_block->add_vec4("viewport"          )->access();
+   camera_block_access.world_from_view   = camera_block->add_mat4("world_from_view" )->access();
+   camera_block_access.viewport          = camera_block->add_vec4("viewport"        )->access();
    camera_block->seal();
    ubo_size += camera_block->size_bytes();
 
    material_block = make_shared<uniform_block>(2, "material");
-   material_block_access.color                 = material_block->add_vec4("color"              )->access();
-   material_block_access.material_parameters   = material_block->add_vec4("material_parameters")->access();
+   material_block_access.color      = material_block->add_vec4 ("color"    )->access();
+   material_block_access.roughness  = material_block->add_float("roughness")->access();
+   material_block_access.isotropy   = material_block->add_float("isotropy" )->access();
    material_block->seal();
    ubo_size += material_block->size_bytes();
+
+   lights_block = make_shared<uniform_block>(1, "lights");
+   lights_block_access.exposure                 = lights_block->add_float("exposure")->access();
+   lights_block_access.ambient_light_radiance   = lights_block->add_vec3("ambient_light_radiance")->access();
+   lights_block_access.position                 = lights_block->add_vec3("position")->access();
+   lights_block_access.direction                = lights_block->add_vec3("direction")->access();
+   lights_block_access.radiance                 = lights_block->add_vec3("radiance")->access();
+   lights_block->seal();
+   ubo_size += lights_block->size_bytes();
 
    debug_block = make_shared<uniform_block>(3, "debug");
    debug_block_access.line_width         = debug_block->add_vec4("line_width"         )->access();
@@ -162,6 +174,7 @@ void programs::connect(shared_ptr<renderstack::graphics::renderer> renderer)
       model_ubr      = make_shared<uniform_buffer_range>(model_block,      this->uniform_buffer);
       camera_ubr     = make_shared<uniform_buffer_range>(camera_block,     this->uniform_buffer);
       material_ubr   = make_shared<uniform_buffer_range>(material_block,   this->uniform_buffer);
+      lights_ubr     = make_shared<uniform_buffer_range>(lights_block,     this->uniform_buffer);
       debug_ubr      = make_shared<uniform_buffer_range>(debug_block,      this->uniform_buffer);
    }
 
@@ -219,6 +232,7 @@ void programs::connect(shared_ptr<renderstack::graphics::renderer> renderer)
       textured          = make_program("textured");
       id                = make_program("id");
       debug_line        = make_program("debug_line");
+      anisotropic       = make_program("anisotropic");
    }
    catch (...)
    {
@@ -265,6 +279,7 @@ shared_ptr<renderstack::graphics::program> programs::make_program(string const &
    p->add(model_block);
    p->add(camera_block);
    p->add(material_block);
+   p->add(lights_block);
    p->add(debug_block);
    p->load_vs(m_shader_path + name + ".vs.txt");
    p->load_fs(m_shader_path + name + ".fs.txt");

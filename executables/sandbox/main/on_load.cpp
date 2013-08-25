@@ -99,9 +99,9 @@ bool application::initialize_services()
    if (programs_)          programs_->connect(renderer);
    if (textures_)          textures_->connect(renderer);
 
-   if (debug_renderer_)    debug_renderer_->connect(renderer, programs_);
+   if (debug_renderer_)    debug_renderer_->connect(renderer, gui_renderer, programs_);
    if (quad_renderer_)     quad_renderer_->connect(renderer);
-   if (forward_renderer_)  forward_renderer_->connect(renderer, programs_);
+   if (forward_renderer_)  forward_renderer_->connect(renderer, debug_renderer_, programs_);
    if (deferred_renderer_) deferred_renderer_->connect(renderer, programs_, quad_renderer_);
    if (id_renderer_)       id_renderer_->connect(renderer, programs_);
 

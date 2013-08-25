@@ -16,6 +16,10 @@ namespace renderstack
       class uniform_buffer;
       class uniform_buffer_range;
    }
+   namespace scene
+   {
+      class camera;
+   }
 }
 
 class model;
@@ -49,8 +53,8 @@ public:
    /*virtual*/ ~id_renderer();
 
    void connect(
-      std::shared_ptr<renderstack::graphics::renderer>   renderer,
-      std::shared_ptr<programs>                          programs
+      std::shared_ptr<renderstack::graphics::renderer> renderer,
+      std::shared_ptr<programs> programs
    );
 
    /*virtual*/ void initialize_service();
@@ -59,7 +63,7 @@ public:
    void clear();
    void render_pass(
       std::shared_ptr<class group> group,
-      glm::mat4 const &clip_from_world,
+      std::shared_ptr<renderstack::scene::camera> camera,
       double time,
       int x,
       int y

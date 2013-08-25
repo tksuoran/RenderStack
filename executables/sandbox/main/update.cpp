@@ -1,6 +1,7 @@
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_toolkit/window.hpp"
 #include "renderstack_toolkit/math_util.hpp"
+#include "renderstack_scene/camera.hpp"
 
 #include "main/game.hpp"
 #include "main/programs.hpp"
@@ -19,10 +20,14 @@ void game::update()
       printf("new time %f < prev time %f\n", new_time, m_update_time);
    m_update_time = new_time;
    m_frame_dt += m_update_time;
-   if (m_frame_dt < m_min_frame_dt) m_min_frame_dt = m_frame_dt;
-   if (m_frame_dt > m_max_frame_dt) m_max_frame_dt = m_frame_dt;
+   if (m_frame_dt < m_min_frame_dt)
+      m_min_frame_dt = m_frame_dt;
 
-   m_debug_lines.clear();
+   if (m_frame_dt > m_max_frame_dt)
+      
+      m_max_frame_dt = m_frame_dt;
+
+   m_debug_renderer->clear_text_lines();
 
    update_fixed_steps();
    update_once_per_frame();
@@ -40,9 +45,10 @@ void game::update_fixed_steps()
       m_simulation_time += dt;
       ++updates;
 
-      // TODO 
+#if 0 // TODO
       if (updates > 100000)
          throw runtime_error("oh no!");
+#endif
    }
 }
 
@@ -61,24 +67,20 @@ void game::update_once_per_frame()
 {
    m_controls.camera_controller.update();
 
-   m_controls.aspect = (float)m_application->width() / (float)m_application->height();
+   m_camera->update(m_viewport);
 
-   create_perspective_vertical(
-      m_controls.fov,
-      m_controls.aspect,
-      m_controls.near_,
-      m_controls.far_,
-      m_projection
-   );
-
+#if 0
    // local = view
    // parent = world
 
    mat4 const &view_from_world = m_controls.camera_controller.local_from_parent();
-   m_controls.clip_from_world = m_projection * view_from_world;
+   m_controls.clip_from_world = m_camera->clip_from_view().matrix() * view_from_world;
 
    m_controls.world_from_clip = glm::inverse(
       m_controls.clip_from_world
    );
+#endif
+
+   //m_controls.world_from_clip = m_camera->clip_from_world().inverse_matrix();
 
 }

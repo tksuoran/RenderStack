@@ -9,9 +9,14 @@
 #include "renderstack_graphics/uniform.hpp"
 #include "renderstack_graphics/vertex_format.hpp"
 #include "renderstack_graphics/vertex_stream_mappings.hpp"
+#include "renderstack_scene/camera.hpp"
+#include "renderstack_scene/viewport.hpp"
 #include "renderstack_toolkit/gl.hpp"
 #include "renderstack_toolkit/strong_gl_enums.hpp"
 #include "renderstack_toolkit/math_util.hpp"
+#include "renderstack_ui/font.hpp"
+#include "renderstack_ui/gui_renderer.hpp"
+#include "renderstack_ui/text_buffer.hpp"
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -21,16 +26,18 @@
 #include <iomanip>
 
 using namespace renderstack::graphics;
-using namespace renderstack;
+using namespace renderstack::ui;
 using namespace gl;
 using namespace glm;
 using namespace std;
 
 
 debug_renderer::debug_renderer()
-:  service("debug_renderer")
-,  m_renderer(nullptr)
-,  m_programs(nullptr)
+:  service        ("debug_renderer")
+,  m_renderer     (nullptr)
+,  m_programs     (nullptr)
+,  m_font         (nullptr)
+,  m_text_buffer  (nullptr)
 {
 }
 
@@ -40,13 +47,16 @@ debug_renderer::debug_renderer()
 
 void debug_renderer::connect(
    shared_ptr<renderstack::graphics::renderer>  renderer_,
+   shared_ptr<renderstack::ui::gui_renderer>    gui_renderer_,
    shared_ptr<programs>                         programs_
 )
 {
    m_renderer = renderer_;
+   m_gui_renderer = gui_renderer_;
    m_programs = programs_;
 
    initialization_depends_on(renderer_);
+   initialization_depends_on(gui_renderer_);
    initialization_depends_on(programs_);
 }
 
@@ -56,6 +66,19 @@ void debug_renderer::initialize_service()
    assert(m_programs);
 
    auto &r = *m_renderer;
+
+#if defined(RENDERSTACK_USE_FREETYPE)
+   auto p = m_programs->font;
+   auto m = p->mappings();
+
+   m_font = make_shared<font>(r, "res/fonts/Ubuntu-R.ttf", 10);
+   m_text_buffer = make_shared<text_buffer>(m_gui_renderer, m_font, m);
+
+   m_font_render_states.blend.set_enabled(true);
+   m_font_render_states.blend.rgb().set_equation_mode(gl::blend_equation_mode::func_add);
+   m_font_render_states.blend.rgb().set_source_factor(gl::blending_factor_src::one);
+   m_font_render_states.blend.rgb().set_destination_factor(gl::blending_factor_dest::one_minus_src_alpha);
+#endif
 
    m_render_states.depth.set_enabled(true);
    m_render_states.face_cull.set_enabled(true);
@@ -108,13 +131,113 @@ void debug_renderer::initialize_service()
    r.reset_vertex_array();
 }
 
-void debug_renderer::set_camera(
-   glm::mat4 const &clip_from_world,
-   glm::mat4 const &view_from_world
-)
+void debug_renderer::clear_text_lines()
 {
-   m_clip_from_world = clip_from_world;
-   m_view_from_world = view_from_world;
+   m_debug_lines.clear();
+}
+
+void debug_renderer::printf(const char *format, ...)
+{
+   char buffer[1000]; // TODO
+   string::size_type line_begin;
+   string::size_type len;
+   string::size_type pos;
+   va_list args;
+   va_start(args, format);
+   ::memset(buffer, 0, 1000);
+   vsnprintf(buffer, 999, format, args);
+   va_end(args);
+   
+   line_begin = 0;
+   len = 0;
+   for (pos = 0; (buffer[pos] != 0) && (pos < 1000); ++pos)
+   {
+      if (buffer[pos] == '\n')
+      {
+         if (len > 0)
+         {
+            string line(&buffer[line_begin], len);
+            m_debug_lines.push_back(line);
+         }
+         line_begin = pos + 1;
+         len = 0;
+         continue;
+      }
+      ++len;
+   }
+
+   if (len > 0)
+      m_debug_lines.push_back(
+         string(&buffer[line_begin], len)
+      );
+}
+
+void debug_renderer::render_text_lines(renderstack::scene::viewport const &vp)
+{
+   assert(m_programs);
+   assert(m_text_buffer);
+
+   float w = (float)vp.width();
+   float h = (float)vp.height();
+
+   m_text_buffer->begin_print();
+   for (size_t i = 0; i < m_debug_lines.size(); ++i)
+      m_text_buffer->print(m_debug_lines[i], 0.0f, h - (i + 1) * m_font->line_height());
+
+   int chars_printed = m_text_buffer->end_print();
+
+   if (chars_printed > 0)
+   {
+      //auto gr = *m_gui_renderer;
+      auto &r = *m_renderer;
+      auto &t = r.track();
+      t.execute(&m_font_render_states);
+
+      auto p = m_programs->font;
+      r.set_program(p);
+
+      gl::viewport(0, 0, (GLsizei)w, (GLsizei)h);
+      mat4 ortho = glm::ortho(0.0f, (float)w, 0.0f, (float)h);
+      gl::scissor(0, 0, (GLsizei)w, (GLsizei)h);
+
+      glm::vec4 white(1.0f, 1.0f, 1.0f, 0.66f); // gamma in 4th component
+      if (m_programs->use_uniform_buffers())
+      {
+         unsigned char *start = m_programs->begin_edit_uniforms();
+         ::memcpy(&start[m_programs->model_ubr->first_byte() + m_programs->model_block_access.clip_from_model], value_ptr(ortho), 16 * sizeof(float));
+         ::memcpy(&start[m_programs->material_ubr->first_byte() + m_programs->material_block_access.color], value_ptr(white), 4 * sizeof(float));
+         m_programs->model_ubr->flush(r);
+         m_programs->material_ubr->flush(r);
+         m_programs->end_edit_uniforms();
+      }
+      else
+      {
+         int model_to_clip_ui = p->uniform_at(m_programs->model_block_access.clip_from_model);
+         int color_ui         = p->uniform_at(m_programs->material_block_access.color);
+
+         gl::uniform_matrix_4fv(model_to_clip_ui, 1, GL_FALSE, value_ptr(ortho));
+         gl::uniform_4fv(color_ui, 1, value_ptr(white));
+      }
+
+      //int texture_ui = p->uniform("font_texture")->index();
+      //gl::uniform_1i(texture_ui, 0);
+
+      {
+         auto t = m_text_buffer->font()->texture();
+         t->set_min_filter(texture_min_filter::nearest);
+         t->set_mag_filter(texture_mag_filter::nearest);
+         (void)r.set_texture(0, t);
+         t->apply(r, 0);
+      }
+
+      m_text_buffer->render();
+   }
+
+}
+
+void debug_renderer::set_camera(std::shared_ptr<renderstack::scene::camera> camera)
+{
+   m_camera = camera;
 }
 
 void debug_renderer::set_model(glm::mat4 const &world_from_model)
@@ -127,225 +250,6 @@ void debug_renderer::set_model(glm::mat4 const &world_from_model)
 
    m_current_draw.world_from_model = world_from_model;
    m_current_draw.first = m_index_offset;
-}
-
-static void debug_program()
-{
-   GLint current_program;
-   GLint active_attributes;
-   GLint link_status;
-
-   gl::get_integer_v(GL_CURRENT_PROGRAM,        &current_program);
-
-   GLint p = current_program;
-
-   if (p == 0)
-      return;
-
-   gl::get_program_iv(p, GL_ACTIVE_ATTRIBUTES,   &active_attributes);
-   gl::get_program_iv(p, GL_LINK_STATUS,         &link_status);
-
-   printf("Program:           %d\n", p);
-   printf("Link status:       %d\n", link_status);
-   printf("Active attributes: %d\n", active_attributes);
-   for (int i = 0; i < active_attributes; ++i)
-   {
-      GLsizei buf_size = 1024;
-      GLsizei length;
-      GLint   size;
-      GLenum  type;
-      char    buffer[1024];
-
-      gl::get_active_attrib(p, i, buf_size, &length, &size, &type, &buffer[0]);
-      GLint location = gl::get_attrib_location(p, buffer);
-
-      printf("Program attribute %d: %s size = %d, type %d, location = %d\n", i, buffer, size, type, location);
-   }
-}
-static void debug_buffer(GLenum target, GLint buffer, GLenum index_type)
-{
-   GLint64  size;
-   GLint    usage;
-   GLint    access_flags;
-   GLint    mapped;
-   GLvoid   *map_pointer;
-   GLint    map_offset;
-   GLint    map_length;
-
-   GLint    old_binding;
-
-   if (buffer == 0)
-      return;
-
-   switch (target)
-   {
-   case GL_ARRAY_BUFFER:               gl::get_integer_v(GL_ARRAY_BUFFER_BINDING,               &old_binding); break;
-   case GL_ELEMENT_ARRAY_BUFFER:       gl::get_integer_v(GL_ELEMENT_ARRAY_BUFFER_BINDING,       &old_binding); break;
-   case GL_PIXEL_PACK_BUFFER:          gl::get_integer_v(GL_PIXEL_PACK_BUFFER_BINDING,          &old_binding); break;
-   case GL_PIXEL_UNPACK_BUFFER:        gl::get_integer_v(GL_PIXEL_UNPACK_BUFFER_BINDING,        &old_binding); break;
-   case GL_COPY_READ_BUFFER:           gl::get_integer_v(GL_COPY_READ_BUFFER_BINDING,           &old_binding); break;
-   case GL_COPY_WRITE_BUFFER:          gl::get_integer_v(GL_COPY_WRITE_BUFFER_BINDING,          &old_binding); break;
-   case GL_UNIFORM_BUFFER:             gl::get_integer_v(GL_UNIFORM_BUFFER_BINDING,             &old_binding); break;
-   case GL_TRANSFORM_FEEDBACK_BUFFER:  gl::get_integer_v(GL_TRANSFORM_FEEDBACK_BUFFER_BINDING,  &old_binding); break;
-   case GL_DRAW_INDIRECT_BUFFER:       gl::get_integer_v(GL_DRAW_INDIRECT_BUFFER_BINDING,       &old_binding); break;
-   }
-
-   gl::bind_buffer(target, buffer);
-
-   gl::get_buffer_parameter_i64v(target,  GL_BUFFER_SIZE,         &size);
-   gl::get_buffer_parameter_iv(target,    GL_BUFFER_USAGE,        &usage);
-   gl::get_buffer_parameter_iv(target,    GL_BUFFER_ACCESS_FLAGS, &access_flags);
-   gl::get_buffer_parameter_iv(target,    GL_BUFFER_MAPPED,       &mapped);
-   gl::get_buffer_pointer_v   (target,    GL_BUFFER_MAP_POINTER,  &map_pointer);
-   gl::get_buffer_parameter_iv(target,    GL_BUFFER_MAP_OFFSET,   &map_offset);
-   gl::get_buffer_parameter_iv(target,    GL_BUFFER_MAP_LENGTH,   &map_length);
-
-   printf("Buffer %d\n", buffer);
-   printf("Size:           %lu\n", static_cast<unsigned long>(size));
-   printf("Usage:          %d\n", usage);
-   printf("Access flags:   %d\n", access_flags);
-   printf("Mapped:         %d\n", mapped);
-   printf("Map pointer:    %p\n", map_pointer);
-   printf("Map offset:     %d\n", map_offset);
-   printf("Map length:     %d\n", map_length);
-
-   if (!mapped)
-   {
-      switch (index_type)
-      {
-      case GL_NONE:
-         {
-            size_t count = static_cast<size_t>(size) / sizeof(float);
-            float *data = new float[count];
-
-            gl::get_buffer_sub_data(target, 0, count * 4, data);
-
-            for (size_t i = 0; i < count && i < 16; ++i)
-               printf("%f ", data[i]);
-
-            printf("\n");
-
-            delete[] data;
-         }
-         break;
-
-      case GL_UNSIGNED_BYTE:
-         {
-            size_t count = static_cast<size_t>(size) / sizeof(uint8_t);
-            uint8_t *data = new uint8_t[count];
-
-            gl::get_buffer_sub_data(target, 0, count * sizeof(uint8_t), data);
-            for (size_t i = 0; i < count && i < 16; ++i)
-               printf("%u ", data[i]);
-
-            printf("\n");
-
-            delete[] data;
-         }
-         break;
-
-      case GL_UNSIGNED_SHORT:
-         {
-            size_t count = static_cast<size_t>(size) / sizeof(uint16_t);
-            uint16_t *data = new uint16_t[count];
-
-            gl::get_buffer_sub_data(target, 0, count * sizeof(uint16_t), data);
-            for (size_t i = 0; i < count && i < 16; ++i)
-               printf("%u ", data[i]);
-
-            printf("\n");
-
-            delete[] data;
-         }
-         break;
-
-      case GL_UNSIGNED_INT:
-         {
-            size_t count = static_cast<size_t>(size) / sizeof(uint32_t);
-            uint32_t *data = new uint32_t[count];
-
-            gl::get_buffer_sub_data(target, 0, count * sizeof(uint32_t), data);
-            for (size_t i = 0; i < count && i < 16; ++i)
-               printf("%u ", data[i]);
-
-            printf("\n");
-
-            delete[] data;
-         }
-         break;
-
-      default:
-         assert(0);
-      }
-   }
-
-   gl::bind_buffer(target, old_binding);
-}
-static void debug_vao()
-{
-   GLint max_vertex_attribs;
-   GLint vertex_array_binding;
-   GLint element_array_buffer_binding;
-
-   gl::get_integer_v(GL_MAX_VERTEX_ATTRIBS,           &max_vertex_attribs);
-   gl::get_integer_v(GL_VERTEX_ARRAY_BINDING,         &vertex_array_binding);
-   gl::get_integer_v(GL_ELEMENT_ARRAY_BUFFER_BINDING, &element_array_buffer_binding);
-
-   printf("Vertex array binding:          %d\n", vertex_array_binding);
-   printf("Element array buffer binding:  %d\n", element_array_buffer_binding);
-   debug_buffer(GL_ELEMENT_ARRAY_BUFFER, element_array_buffer_binding, GL_UNSIGNED_SHORT);
-
-   for (int i = 0; i < max_vertex_attribs; ++i)
-   {
-      GLint buffer_binding;
-      GLint enabled;
-      GLint size;
-      GLint stride;
-      GLint type;
-      GLint normalized;
-      GLint integer;
-      GLint divisor;
-      GLvoid *pointer;
-
-      gl::get_vertex_attrib_iv(i, GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING,   &buffer_binding);
-      gl::get_vertex_attrib_iv(i, GL_VERTEX_ATTRIB_ARRAY_ENABLED,          &enabled);
-      gl::get_vertex_attrib_iv(i, GL_VERTEX_ATTRIB_ARRAY_SIZE,             &size);
-      gl::get_vertex_attrib_iv(i, GL_VERTEX_ATTRIB_ARRAY_STRIDE,           &stride);
-      gl::get_vertex_attrib_iv(i, GL_VERTEX_ATTRIB_ARRAY_TYPE,             &type);
-      gl::get_vertex_attrib_iv(i, GL_VERTEX_ATTRIB_ARRAY_NORMALIZED,       &normalized);
-      gl::get_vertex_attrib_iv(i, GL_VERTEX_ATTRIB_ARRAY_INTEGER,          &integer);
-      gl::get_vertex_attrib_iv(i, GL_VERTEX_ATTRIB_ARRAY_DIVISOR,          &divisor);
-
-      gl::get_vertex_attrib_pointer_v(i, GL_VERTEX_ATTRIB_ARRAY_POINTER, &pointer);
-
-      if (buffer_binding || enabled)
-      {
-         printf("Vertex attrib %d: buffer = %d, enabled = %d, size = %d, stride = %d, type = %d, normalized = %d, integer = %d, divisor = %d, pointer = %u\n",
-            i,
-            buffer_binding,
-            enabled,
-            size,
-            stride,
-            type,
-            normalized,
-            integer,
-            divisor,
-            static_cast<unsigned int>(
-               reinterpret_cast<uintptr_t>(pointer) & 0xffffffff
-            )		
-         );
-
-         debug_buffer(GL_ARRAY_BUFFER, buffer_binding, GL_NONE);
-      }
-   }
-}
-static void debug()
-{
-   debug_program();
-   debug_vao();
-
-   GLint active_texture;
-   gl::get_integer_v(GL_ACTIVE_TEXTURE, &active_texture);
 }
 
 void debug_renderer::render()
@@ -367,7 +271,7 @@ void debug_renderer::render()
    for (auto i = m_draws.cbegin(); i != m_draws.cend(); ++i)
    {
       auto draw = *i;
-      mat4 clip_from_model = m_clip_from_world * draw.world_from_model;
+      mat4 clip_from_model = m_camera->clip_from_world().matrix() * draw.world_from_model;
       //mat4 clip_from_model(1.0f);
 
       if (m_programs->use_uniform_buffers())

@@ -14,6 +14,7 @@
 #include "renderstack_graphics/renderer.hpp"
 #include "renderstack_mesh/geometry_mesh.hpp"
 #include "renderstack_mesh/build_info.hpp"
+#include "renderstack_scene/camera.hpp"
 #include "renderstack_ui/layer.hpp"
 #include "renderstack_ui/button.hpp"
 #include "renderstack_ui/choice.hpp"
@@ -75,8 +76,6 @@ game::game()
 ,  m_models             (nullptr)
 ,  m_manipulator_frame  (nullptr)
 ,  m_manipulator        (nullptr)
-,  m_font               (nullptr)
-,  m_text_buffer        (nullptr)
 ,  m_root_layer         (nullptr)
 ,  m_menu_button        (nullptr)
 ,  m_slider             (nullptr)
@@ -88,6 +87,8 @@ game::game()
 ,  m_simulation_time    (0.0)
 ,  m_screen_active      (false)
 ,  m_mouse_down         (false)
+
+,  m_camera             (nullptr)
 {
 }
 
@@ -170,7 +171,16 @@ void game::initialize_service()
 
    slog_trace("game::on_load()");
 
+
    m_models = make_shared<group>();
+
+   m_camera = make_shared<renderstack::scene::camera>();
+   m_camera->projection().set_fov_y(1.0f / 1.5f);
+   m_camera->projection().set_near(0.01f);
+   m_camera->projection().set_far(1000.0f);
+
+   m_controls.camera_controller.set_frame(m_camera->frame());
+   m_controls.home = vec3(0.0f, 1.7f, 10.0f);
 
 #if defined(USE_MESHES)
    {
@@ -325,26 +335,7 @@ void game::initialize_service()
    }
 #endif
 
-   // Font
-#if defined(RENDERSTACK_USE_FREETYPE) && defined(USE_FONT)
-   auto p = m_programs->font;
-   auto m = p->mappings();
-   auto &r = *m_renderer;
-
-   m_font = make_shared<font>(r, "res/fonts/Ubuntu-R.ttf", 10);
-   m_text_buffer = make_shared<text_buffer>(m_gui_renderer, m_font, m);
-#endif
-
-   m_controls.home = vec3(0.0f, 1.7f, 10.0f);
-
    reset();
-
-#if defined(USE_FONT)
-   m_font_render_states.blend.set_enabled(true);
-   m_font_render_states.blend.rgb().set_equation_mode(gl::blend_equation_mode::func_add);
-   m_font_render_states.blend.rgb().set_source_factor(gl::blending_factor_src::one);
-   m_font_render_states.blend.rgb().set_destination_factor(gl::blending_factor_dest::one_minus_src_alpha);
-#endif
 
 #if defined(USE_GUI)
    setup_gui();
@@ -437,6 +428,9 @@ void game::on_resize(int width, int height)
    float w = (float)width;   // (float)m_window->width();
    float h = (float)height;  // (float)m_window->height();
 
+   m_viewport.set_width(width);
+   m_viewport.set_height(height);
+
    auto gr = m_gui_renderer;
    gr->on_resize(width, height);
 
@@ -500,9 +494,6 @@ void controls::reset()
    camera_controller.set_elevation(0.0f);
    camera_controller.set_heading(0.0f);
    camera_controller.set_position(home);
-   fov   =    1.0f / 1.5f;
-   near_ =    0.01f;
-   far_  = 1000.0f;
    mouse_locked = true;
 }
 void game::lock_mouse(bool lock)
@@ -566,8 +557,8 @@ void game::on_key(int key, int scancode, int action, int mods)
       {
       case GLFW_KEY_ESCAPE:   toggle_mouse_lock(); break;
       case GLFW_KEY_F1:       m_min_frame_dt = 1.0; m_max_frame_dt = 0.0; break;
-      case GLFW_KEY_B:        m_controls.fov *= 1.1f; break;
-      case GLFW_KEY_N:        m_controls.fov /= 1.1f; break;
+      case GLFW_KEY_B:        /* m_controls.fov *= 1.1f; TODO */ break;
+      case GLFW_KEY_N:        /* m_controls.fov /= 1.1f; TODO */ break;
       case GLFW_KEY_M:        reset(); break;
       }
    }

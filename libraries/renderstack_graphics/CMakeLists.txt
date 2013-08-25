@@ -38,6 +38,7 @@ add_library(
    include/renderstack_graphics/color_mask_state.hpp
    include/renderstack_graphics/renderer.hpp
    include/renderstack_graphics/stencil_state.hpp
+   include/renderstack_graphics/debug.hpp
 
    source/buffer.cpp
    source/configuration.cpp
@@ -65,6 +66,7 @@ add_library(
    source/color_mask_state.cpp
    source/renderer.cpp
    source/stencil_state.cpp
+   source/debug.cpp
 
    include/renderstack_graphics/load_png.hpp
    source/load_png.cpp

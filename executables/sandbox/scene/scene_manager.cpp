@@ -5,7 +5,7 @@ using namespace std;
 
 scene_manager::scene_manager()
 :  service("scene_manager")
-,  m_material_manager(nullptr)
+//,  m_material_manager(nullptr)
 ,  m_camera          (nullptr)
 ,  m_camera_controls (nullptr)
 ,  m_render_group    (nullptr)
@@ -16,11 +16,12 @@ scene_manager::scene_manager()
 {
 }
 
-void scene_manager::connect(shared_ptr<material_manager> material_manager_)
+void scene_manager::connect(/*shared_ptr<material_manager> material_manager_*/)
 {
-   m_material_manager = material_manager_;
+   /*m_material_manager = material_manager_;
 
    initialization_depends_on(material_manager_);
+   */
 }
 
 /*virtual*/ void scene_manager::initialize_service()

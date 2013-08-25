@@ -21,6 +21,10 @@ namespace renderstack
    {
       class geometry_mesh;
    }
+   namespace scene
+   {
+      class camera;
+   }
 }
 
 class deferred_renderer : public renderstack::toolkit::service
@@ -38,8 +42,7 @@ public:
 
    void geometry_pass(
       std::shared_ptr<class group> group,
-      glm::mat4 const &clip_from_world,
-      glm::mat4 const &view_from_world
+      std::shared_ptr<renderstack::scene::camera> camera
    );
    void light_pass(glm::mat4 const &world_from_view);
    void show_rt();
