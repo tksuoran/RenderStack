@@ -94,17 +94,28 @@ void forward_renderer::render_pass(
 
    auto &r = *m_renderer;
    auto &t = r.track();
-   auto p = m_programs->basic;
+   //auto p = m_programs->basic;
+   auto p = m_programs->anisotropic;
 
    t.execute(&m_mesh_render_states);
 
    r.set_program(p);
 
-   vec4  color(1.0f, 1.0f, 1.0f, 1.0f);
-   float roughness = 0.5f;
-   float isotropy = 0.5f;
+   // Material
+   vec4        color(1.0f, 1.0f, 1.0f, 1.0f);
+   float       roughness = 0.5f;
+   float       isotropy = 0.5f;
 
+   // Light
+   float       exposure = 1.0f;
+   glm::vec3   ambient_light_radiance(0.1f, 0.1f, 0.1f);
+   glm::vec3   position(0.0f, 100.0f, 0.0f);
+   glm::vec3   direction(0.0f, 1.0f, 0.0f);
+   float       radiance = 1.0f;
+
+   // Camera
    mat4 const &world_from_view = camera->frame()->world_from_local().matrix();
+
    if (m_programs->use_uniform_buffers())
    {
       unsigned char *start = m_programs->begin_edit_uniforms();
@@ -112,6 +123,13 @@ void forward_renderer::render_pass(
       ::memcpy(&start[m_programs->material_ubr->first_byte() + m_programs->material_block_access.roughness  ], &roughness,       sizeof(float));
       ::memcpy(&start[m_programs->material_ubr->first_byte() + m_programs->material_block_access.isotropy   ], &isotropy,        sizeof(float));
       m_programs->material_ubr->flush(r);
+
+      ::memcpy(&start[m_programs->lights_ubr->first_byte() + m_programs->lights_block_access.exposure                ], &exposure,                          sizeof(float));
+      ::memcpy(&start[m_programs->lights_ubr->first_byte() + m_programs->lights_block_access.ambient_light_radiance  ], value_ptr(ambient_light_radiance),  3 * sizeof(float));
+      ::memcpy(&start[m_programs->lights_ubr->first_byte() + m_programs->lights_block_access.position                ], value_ptr(position),                3 * sizeof(float));
+      ::memcpy(&start[m_programs->lights_ubr->first_byte() + m_programs->lights_block_access.direction               ], value_ptr(direction),               3 * sizeof(float));
+      ::memcpy(&start[m_programs->lights_ubr->first_byte() + m_programs->lights_block_access.radiance                ], &radiance,                          sizeof(float));
+      m_programs->lights_ubr->flush(r);
 
       ::memcpy(&start[m_programs->camera_ubr->first_byte() + m_programs->camera_block_access.world_from_view], value_ptr(world_from_view), 16 * sizeof(float));
       m_programs->camera_ubr->flush(r);
@@ -123,6 +141,12 @@ void forward_renderer::render_pass(
       gl::uniform_4fv(p->uniform_at(m_programs->material_block_access.color), 1, value_ptr(color));
       gl::uniform_1f(p->uniform_at(m_programs->material_block_access.roughness), roughness);
       gl::uniform_1f(p->uniform_at(m_programs->material_block_access.roughness), isotropy);
+
+      gl::uniform_1f(p->uniform_at(m_programs->lights_block_access.exposure), exposure);
+      gl::uniform_3fv(p->uniform_at(m_programs->lights_block_access.ambient_light_radiance), 1, value_ptr(ambient_light_radiance));
+      gl::uniform_3fv(p->uniform_at(m_programs->lights_block_access.position),   1, value_ptr(position));
+      gl::uniform_3fv(p->uniform_at(m_programs->lights_block_access.direction),  1, value_ptr(direction));
+      gl::uniform_1f(p->uniform_at(m_programs->lights_block_access.radiance), radiance);
 
       gl::uniform_matrix_4fv(p->uniform_at(m_programs->camera_block_access.world_from_view), 1, GL_FALSE, value_ptr(world_from_view));
    }

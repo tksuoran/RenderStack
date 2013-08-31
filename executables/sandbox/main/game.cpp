@@ -61,16 +61,17 @@ game::game()
 :  service("game")
 
 /* services */
-,  m_renderer         (nullptr)
-,  m_gui_renderer     (nullptr)
-,  m_programs         (nullptr)
-,  m_textures         (nullptr)
-,  m_debug_renderer   (nullptr)
-,  m_forward_renderer (nullptr)
-,  m_deferred_renderer(nullptr)
-,  m_id_renderer      (nullptr)
-,  m_menu             (nullptr)
-,  m_application      (nullptr)
+,  m_renderer           (nullptr)
+,  m_gui_renderer       (nullptr)
+,  m_programs           (nullptr)
+,  m_textures           (nullptr)
+,  m_debug_renderer     (nullptr)
+,  m_forward_renderer   (nullptr)
+,  m_deferred_renderer  (nullptr)
+,  m_id_renderer        (nullptr)
+,  m_menu               (nullptr)
+,  m_application        (nullptr)
+,  m_shader_monitor     (nullptr)
 
 /* self owned parts */
 ,  m_models             (nullptr)
@@ -97,19 +98,21 @@ game::game()
 }
 
 void game::connect(
-   shared_ptr<renderstack::graphics::renderer>  renderer,
-   shared_ptr<renderstack::ui::gui_renderer>    gui_renderer,
-   shared_ptr<programs>                         programs_,
-   shared_ptr<textures>                         textures_,
-   shared_ptr<debug_renderer>                   debug_renderer_,
-   shared_ptr<forward_renderer>                 forward_renderer_,
-   shared_ptr<deferred_renderer>                deferred_renderer_,
-   shared_ptr<id_renderer>                      id_renderer_,
-   shared_ptr<menu>                             menu_,
-   shared_ptr<application>                      application_
+   shared_ptr<renderstack::graphics::renderer>        renderer,
+   shared_ptr<renderstack::graphics::shader_monitor>  shader_monitor,
+   shared_ptr<renderstack::ui::gui_renderer>          gui_renderer,
+   shared_ptr<programs>                               programs_,
+   shared_ptr<textures>                               textures_,
+   shared_ptr<debug_renderer>                         debug_renderer_,
+   shared_ptr<forward_renderer>                       forward_renderer_,
+   shared_ptr<deferred_renderer>                      deferred_renderer_,
+   shared_ptr<id_renderer>                            id_renderer_,
+   shared_ptr<menu>                                   menu_,
+   shared_ptr<application>                            application_
 )
 {
    m_renderer           = renderer;
+   m_shader_monitor     = shader_monitor;
    m_gui_renderer       = gui_renderer;
    m_application        = application_;
    m_menu               = menu_;

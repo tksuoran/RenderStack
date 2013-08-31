@@ -1,0 +1,64 @@
+in vec3 v_view_direction;
+in vec3 v_color;
+in vec3 v_normal;
+in vec3 v_tangent;
+
+out vec4 out_color;
+
+void main(void)
+{
+   float r              = material.roughness;
+   float p              = material.isotropy;
+   float p2             = p * p;
+   float one_minus_r    = 1.0 - r;
+   float one_minus_p2   = 1.0 - p2;
+
+   vec3  N              = normalize(v_normal);
+   vec3  B              = normalize(v_tangent);
+   vec3  T              = cross(B, N);
+   vec3  V              = normalize(v_view_direction);
+
+   float vn             = dot(V, N);
+   float vn_clamped     = max(vn, 0.0);
+   float gvn_denom      = r + one_minus_r * vn;     //  <=>  r + vn - (r * vn)  <=>  r - (r * vn) + vn
+
+   vec3 C               = v_color * material.color.rgb;
+   vec3 one_minus_C     = vec3(1.0, 1.0, 1.0) - C;
+   vec3 S               = C + one_minus_C * pow(1.0 - vn_clamped, 5.0);
+
+   vec3 exitant_radiance = vec3(0.0);
+
+   vec3  L  = lights.direction.xyz;
+   float ln = dot(L, N);
+
+   if (ln > 0.0 || ln < 1.0)
+   {
+      float ln_clamped  = max(ln, 0.0);
+      vec3  H           = normalize(L + V);
+      float hn          = dot(H, N);
+      float hv          = dot(H, V);
+      float hn_clamped  = max(hn, 0.0);
+      float hv_clamped  = max(hv, 0.0);
+      float ht          = dot(H - hn * N, T);
+      float hn2         = hn * hn;
+      float ht2         = ht * ht;
+      float aht_denom   = sqrt(p2 + one_minus_p2 * ht2);
+      float gln_denom   = (r   + one_minus_r * ln);
+      float zhn0        = (1.0 - one_minus_r * hn * hn);
+      float D           = (ln * r * p2) / (gvn_denom * gln_denom * zhn0 * zhn0 * aht_denom);
+      float light_visibility  = 1.0;
+      vec3  incident_radiance = lights.radiance * light_visibility;
+
+      exitant_radiance += incident_radiance * C * ln_clamped;  //  diffuse
+      exitant_radiance += incident_radiance * S * D;           //  specular
+      //exitant_radiance = vec3(ln_clamped, ln_clamped, ln_clamped);
+      exitant_radiance = 0.5 * vec3(N) - vec3(0.5);
+   }
+
+   //out_color.rgb = exitant_radiance;
+   out_color.rgb = (0.5 * N) + vec3(0.5);
+   //out_color.r = 0.0;
+
+   // out_color.rgb = vec3(1.0) - exp(-exitant_radiance * lights.exposure);
+   // out_color.rgb = pow(out_color.rgb, vec3(1.0 / 2.2));
+}

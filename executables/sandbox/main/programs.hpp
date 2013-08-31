@@ -67,7 +67,10 @@ class programs : public renderstack::toolkit::service
 public:
    programs();
    /*virtual*/ ~programs();
-   void connect(std::shared_ptr<renderstack::graphics::renderer> renderer);
+   void connect(
+      std::shared_ptr<renderstack::graphics::renderer>         renderer_,
+      std::shared_ptr<renderstack::graphics::shader_monitor>   shader_monitor_
+   );
    /*virtual*/ void initialize_service();
 
    void bind_uniforms();
@@ -120,10 +123,10 @@ public:
 
 private:
    std::shared_ptr<renderstack::graphics::renderer>         m_renderer;
+   std::shared_ptr<renderstack::graphics::shader_monitor>   m_shader_monitor;
 
    bool                                                     m_poll_shaders;
    size_t                                                   m_poll_ticks;
-   std::shared_ptr<renderstack::graphics::shader_monitor>   m_monitor;
    int                                                      m_glsl_version;
    std::string                                              m_shader_path;
 };

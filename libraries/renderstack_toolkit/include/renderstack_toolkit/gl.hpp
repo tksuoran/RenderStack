@@ -61,6 +61,7 @@
 #endif
 
 #if defined(RENDERSTACK_GL_API_OPENGL)
+# define GL_GLEXT_PROTOTYPES 1
 # include <GL/glcorearb.h>
 # include "renderstack_toolkit/glext.hpp"
 #endif

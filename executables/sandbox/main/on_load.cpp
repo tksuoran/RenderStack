@@ -6,6 +6,7 @@
 #include "renderstack_graphics/vertex_stream_mappings.hpp"
 #include "renderstack_graphics/uniform_block.hpp"
 #include "renderstack_graphics/renderer.hpp"
+#include "renderstack_graphics/shader_monitor.hpp"
 #include "renderstack_ui/gui_renderer.hpp"
 
 #include "main/application.hpp"
@@ -74,6 +75,8 @@ bool application::initialize_services()
    auto deferred_renderer_ = make_shared<deferred_renderer>();
    auto id_renderer_       = make_shared<id_renderer>();
 
+   auto shader_monitor_    = make_shared<shader_monitor>();
+
    auto game_              = smart_ptr_builder::create_shared_ptr<renderstack::ui::action_sink>(new game());
    auto menu_              = smart_ptr_builder::create_shared_ptr<renderstack::ui::action_sink>(new menu());
 
@@ -89,6 +92,8 @@ bool application::initialize_services()
    m_services.add(deferred_renderer_);
    m_services.add(id_renderer_);
 
+   m_services.add(shader_monitor_);
+
    m_services.add(game_);
    m_services.add(menu_);
 
@@ -96,7 +101,7 @@ bool application::initialize_services()
 
    if (gui_renderer)       gui_renderer->connect(renderer);
 
-   if (programs_)          programs_->connect(renderer);
+   if (programs_)          programs_->connect(renderer, shader_monitor_);
    if (textures_)          textures_->connect(renderer);
 
    if (debug_renderer_)    debug_renderer_->connect(renderer, gui_renderer, programs_);
@@ -108,6 +113,7 @@ bool application::initialize_services()
    if (game_)
       game_->connect(
          renderer,
+         shader_monitor_,
          gui_renderer,
          programs_,
          textures_,

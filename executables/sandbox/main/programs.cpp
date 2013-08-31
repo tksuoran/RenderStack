@@ -67,11 +67,16 @@ programs::programs()
 {
 }
 
-void programs::connect(shared_ptr<renderstack::graphics::renderer> renderer)
+void programs::connect(
+   shared_ptr<renderstack::graphics::renderer>        renderer_,
+   shared_ptr<renderstack::graphics::shader_monitor>  shader_monitor_
+)
 {
-   m_renderer = renderer;
+   m_renderer = renderer_;
+   m_shader_monitor = shader_monitor_;
 
-   initialization_depends_on(renderer);
+   initialization_depends_on(renderer_);
+   initialization_depends_on(shader_monitor_);
 }
 
 /*virtual*/ void programs::initialize_service()
@@ -80,19 +85,31 @@ void programs::connect(shared_ptr<renderstack::graphics::renderer> renderer)
 
    slog_trace("programs::initialize_service()");
 
-#if 0
-   try
+   if (m_shader_monitor)
    {
-      string src_path = read("res/src_path.txt");
-      string dst_path = read("res/dst_path.txt");
-      //auto monitor = context::current()->shader_monitor();
-      //monitor.set_dst_path(dst_path);
-      //monitor.set_src_path(src_path);
+      try
+      {
+         string src_path;
+         string dst_path;
+
+         if (exists("res/src_path.txt"))
+         {
+            src_path = read("res/src_path.txt");
+            dst_path = read("res/dst_path.txt");
+         }
+         else
+         {
+            src_path = "C:/git/RenderStack/executables/sandbox";
+            dst_path = "";
+         }
+
+         m_shader_monitor->set_dst_path(dst_path);
+         m_shader_monitor->set_src_path(src_path);
+      }
+      catch (...)
+      {
+      }
    }
-   catch (...)
-   {
-   }
-#endif
 
    mappings = make_shared<renderstack::graphics::vertex_stream_mappings>();
    mappings->add("a_position",            vertex_attribute_usage::position,   0, 0);
@@ -284,6 +301,12 @@ shared_ptr<renderstack::graphics::program> programs::make_program(string const &
    p->load_vs(m_shader_path + name + ".vs.txt");
    p->load_fs(m_shader_path + name + ".fs.txt");
    p->link(); 
+
+   if (m_shader_monitor)
+   {
+      m_shader_monitor->add(m_shader_path + name + ".vs.txt", p);
+      m_shader_monitor->add(m_shader_path + name + ".fs.txt", p);
+   }
    return p;
 }
 

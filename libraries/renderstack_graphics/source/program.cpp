@@ -289,10 +289,6 @@ void program::load_shader(shader_type::value type, string const &path)
    resource.compiled_src      = compiled_src;
 
    m_loaded_shaders.push_back(resource);
-
-#if 0
-   context::current()->shader_monitor().add(resource.path, this);
-#endif
 }
 void program::reload()
 {
@@ -315,7 +311,7 @@ void program::reload()
          string compiled_src;
          resource.shader = make_shader(resource.type, source, compiled_src);
          resource.compiled_src = compiled_src;
-         cout << "reload attach new" << resource.shader << '\n';
+         cout << "reload attach new " << resource.shader << '\n';
          gl::attach_shader(m_gl_name, resource.shader);
       }
 
@@ -328,7 +324,7 @@ void program::reload()
          loaded_shader &resource = *i;
 
          resource.last_good_shader = resource.shader;
-         cout << "considering " << resource.shader << "last good\n";
+         cout << "considering " << resource.shader << " last good\n";
       }
 
    }

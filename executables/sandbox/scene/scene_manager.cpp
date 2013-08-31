@@ -1,6 +1,8 @@
 #include "scene/scene_manager.hpp"
+#include "renderstack_scene/camera.hpp"
 
 using namespace renderstack::toolkit;
+using namespace renderstack::scene;
 using namespace std;
 
 scene_manager::scene_manager()
@@ -63,12 +65,33 @@ void scene_manager::initialize_cameras()
    //m_camera_controls->s
 }
 
-shared_ptr<model> scene_manager::add_model(shared_ptr<model> m)
+shared_ptr<model> scene_manager::add(shared_ptr<model> m)
 {
    if (!m)
-      throw runtime_error("add_model(nullptr)");
+      throw runtime_error("scene_manager::add() no model to add");
 
    m_render_group->add(m);
 
    return m;
 }
+
+shared_ptr<light> scene_manager::add(shared_ptr<light> light)
+{
+   if (!light)
+      throw runtime_error("scene_manager::add() no light to add");
+
+   m_lights.push_back(light);
+
+   return light;
+}
+
+vector<shared_ptr<light> > &scene_manager::lights()
+{
+   return m_lights;
+}
+
+vector<shared_ptr<light> > const &scene_manager::lights() const
+{
+   return m_lights;
+}
+

@@ -90,16 +90,17 @@ public:
    /*virtual*/ ~game();
 
    void connect(
-      std::shared_ptr<renderstack::graphics::renderer>  renderer,
-      std::shared_ptr<renderstack::ui::gui_renderer>    gui_renderer,
-      std::shared_ptr<programs>                         programs_,
-      std::shared_ptr<textures>                         textures_,
-      std::shared_ptr<debug_renderer>                   debug_renderer_,
-      std::shared_ptr<forward_renderer>                 forward_renderer_,
-      std::shared_ptr<deferred_renderer>                deferred_renderer_,
-      std::shared_ptr<id_renderer>                      id_renderer_,
-      std::shared_ptr<menu>                             menu_,
-      std::shared_ptr<application>                      application_
+      std::shared_ptr<renderstack::graphics::renderer>         renderer,
+      std::shared_ptr<renderstack::graphics::shader_monitor>   shader_monitor_,
+      std::shared_ptr<renderstack::ui::gui_renderer>           gui_renderer,
+      std::shared_ptr<programs>                                programs_,
+      std::shared_ptr<textures>                                textures_,
+      std::shared_ptr<debug_renderer>                          debug_renderer_,
+      std::shared_ptr<forward_renderer>                        forward_renderer_,
+      std::shared_ptr<deferred_renderer>                       deferred_renderer_,
+      std::shared_ptr<id_renderer>                             id_renderer_,
+      std::shared_ptr<menu>                                    menu_,
+      std::shared_ptr<application>                             application_
    );
    void disconnect();
    /*virtual*/ void initialize_service();
@@ -141,16 +142,17 @@ private:
       glm::vec3 position = glm::vec3(0.0f));
 
 private: /* services */
-   std::shared_ptr<renderstack::graphics::renderer>   m_renderer;
-   std::shared_ptr<renderstack::ui::gui_renderer>     m_gui_renderer;
-   std::shared_ptr<programs>                          m_programs;
-   std::shared_ptr<textures>                          m_textures;
-   std::shared_ptr<debug_renderer>                    m_debug_renderer;
-   std::shared_ptr<forward_renderer>                  m_forward_renderer;
-   std::shared_ptr<deferred_renderer>                 m_deferred_renderer;
-   std::shared_ptr<id_renderer>                       m_id_renderer;
-   std::shared_ptr<menu>                              m_menu;
-   std::shared_ptr<application>                       m_application;
+   std::shared_ptr<renderstack::graphics::renderer>         m_renderer;
+   std::shared_ptr<renderstack::graphics::shader_monitor>   m_shader_monitor;
+   std::shared_ptr<renderstack::ui::gui_renderer>           m_gui_renderer;
+   std::shared_ptr<programs>                                m_programs;
+   std::shared_ptr<textures>                                m_textures;
+   std::shared_ptr<debug_renderer>                          m_debug_renderer;
+   std::shared_ptr<forward_renderer>                        m_forward_renderer;
+   std::shared_ptr<deferred_renderer>                       m_deferred_renderer;
+   std::shared_ptr<id_renderer>                             m_id_renderer;
+   std::shared_ptr<menu>                                    m_menu;
+   std::shared_ptr<application>                             m_application;
 
 private: /* self owned parts */
    std::shared_ptr<class group>                       m_models;

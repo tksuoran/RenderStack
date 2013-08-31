@@ -1,6 +1,7 @@
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_toolkit/window.hpp"
 #include "renderstack_toolkit/math_util.hpp"
+#include "renderstack_graphics/shader_monitor.hpp"
 #include "renderstack_scene/camera.hpp"
 
 #include "main/game.hpp"
@@ -65,6 +66,18 @@ void controls::update_fixed_step()
 
 void game::update_once_per_frame()
 {
+   static int counter = 0;
+
+   if (m_shader_monitor)
+   {
+      ++counter;
+      if (counter > 20)
+      {
+         m_shader_monitor->poll();
+         counter = 0;
+      }
+   }
+
    m_controls.camera_controller.update();
 
    m_camera->update(m_viewport);
