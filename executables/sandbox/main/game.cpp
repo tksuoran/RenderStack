@@ -243,6 +243,7 @@ void game::initialize_service()
       m_format_info.set_want_edge_lines(true);
       m_format_info.set_want_position(true);
       m_format_info.set_want_normal(true);
+      m_format_info.set_want_tangent(true);
       m_format_info.set_want_color(true);
       m_format_info.set_want_id(true);
       m_format_info.set_normal_style(normal_style::corner_normals);
@@ -317,6 +318,7 @@ void game::initialize_service()
          m_format_info.set_want_fill_triangles(true);
          m_format_info.set_want_position(true);
          m_format_info.set_want_normal(true);
+         m_format_info.set_want_tangent(true);
          m_format_info.set_want_color(true);
          m_format_info.set_want_id(true);
          m_format_info.set_normal_style(normal_style::corner_normals);

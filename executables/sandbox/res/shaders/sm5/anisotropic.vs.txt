@@ -21,5 +21,8 @@ void main()
    );
    v_view_direction  = view_position_in_world - position.xyz;
    v_color           = a_color;
-   v_normal       = a_normal;
+   vec3 N = v_normal;
+   vec3 B = vec3(0.0, 1.0, 0.0);
+   vec3 T = cross(N, B);
+   v_tangent = T;
 }

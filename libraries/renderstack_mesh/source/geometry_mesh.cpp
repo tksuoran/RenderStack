@@ -99,6 +99,9 @@ void geometry_mesh::prepare_vertex_format(
       if (format_info.want_normal_smooth())
          (void)vf->make_attribute(vertex_attribute_usage::normal, format_info.normal_smooth_type(), format_info.normal_smooth_type(), 2, 3);
 
+      if (format_info.want_tangent())
+         (void)vf->make_attribute(vertex_attribute_usage::tangent, format_info.tangent_type(), format_info.tangent_type(), 0, 3);
+
       if (format_info.want_color())
          (void)vf->make_attribute(vertex_attribute_usage::color, format_info.color_type(), format_info.color_type(), 0, 4);
 
@@ -168,12 +171,14 @@ void geometry_mesh::build_mesh_from_geometry(
    shared_ptr<property_map<polygon*,  vec3> >           polygon_normals;
    shared_ptr<property_map<polygon*,  vec3> >           polygon_centroids;
    shared_ptr<property_map<corner*,   vec3> >           corner_normals;
+   shared_ptr<property_map<corner*,   vec3> >           corner_tangents;
    shared_ptr<property_map<corner*,   vec2> >           corner_texcoords;
    shared_ptr<property_map<corner*,   vec4> >           corner_colors;
    shared_ptr<property_map<corner*,   unsigned int> >   corner_indices;
    shared_ptr<property_map<point*,    vec3> >           point_locations;
    shared_ptr<property_map<point*,    vec3> >           point_normals;
    shared_ptr<property_map<point*,    vec3> >           point_normals_smooth;
+   shared_ptr<property_map<point*,    vec3> >           point_tangents;
    shared_ptr<property_map<point*,    vec2> >           point_texcoords;
    shared_ptr<property_map<point*,    vec4> >           point_colors;
 
@@ -218,6 +223,14 @@ void geometry_mesh::build_mesh_from_geometry(
       point_normals_smooth = m_geometry->point_attributes().find<vec3>("point_normals_smooth");
    }
 
+   if (format_info.want_tangent())
+   {
+      if (m_geometry->corner_attributes().contains<vec3>("corner_tangents"))
+         corner_tangents = m_geometry->corner_attributes().find<vec3>("corner_tangents");
+      if (m_geometry->point_attributes().contains<vec3>("point_tangents"))
+         point_tangents = m_geometry->point_attributes().find<vec3>("point_tangents");
+   }
+
    if (format_info.want_texcoord())
    {
       if (m_geometry->corner_attributes().contains<vec2>("corner_texcoords"))
@@ -246,13 +259,14 @@ void geometry_mesh::build_mesh_from_geometry(
 
    corner_indices = m_geometry->corner_attributes().find_or_create<unsigned int>("corner_indices");
 
-   auto attribute_position      = m_vertex_format->find_attribute_maybe(vertex_attribute_usage::position,   0);
-   auto attribute_normal        = m_vertex_format->find_attribute_maybe(vertex_attribute_usage::normal,     0);   /*  content normals     */
-   auto attribute_normal_flat   = m_vertex_format->find_attribute_maybe(vertex_attribute_usage::normal,     1);   /*  flat normals        */
-   auto attribute_normal_smooth = m_vertex_format->find_attribute_maybe(vertex_attribute_usage::normal,     2);   /*  smooth normals      */
-   auto attribute_color         = m_vertex_format->find_attribute_maybe(vertex_attribute_usage::color,      0);
-   auto attribute_texcoord      = m_vertex_format->find_attribute_maybe(vertex_attribute_usage::tex_coord,  0);
-   auto attribute_id_vec3       = m_vertex_format->find_attribute_maybe(vertex_attribute_usage::id,         0);
+   auto attribute_position       = m_vertex_format->find_attribute_maybe(vertex_attribute_usage::position,   0);
+   auto attribute_normal         = m_vertex_format->find_attribute_maybe(vertex_attribute_usage::normal,     0);   /*  content normals     */
+   auto attribute_normal_flat    = m_vertex_format->find_attribute_maybe(vertex_attribute_usage::normal,     1);   /*  flat normals        */
+   auto attribute_normal_smooth  = m_vertex_format->find_attribute_maybe(vertex_attribute_usage::normal,     2);   /*  smooth normals      */
+   auto attribute_tangent        = m_vertex_format->find_attribute_maybe(vertex_attribute_usage::tangent,    0);
+   auto attribute_color          = m_vertex_format->find_attribute_maybe(vertex_attribute_usage::color,      0);
+   auto attribute_texcoord       = m_vertex_format->find_attribute_maybe(vertex_attribute_usage::tex_coord,  0);
+   auto attribute_id_vec3        = m_vertex_format->find_attribute_maybe(vertex_attribute_usage::id,         0);
 
    shared_ptr<vertex_attribute> attribute_id_uint = nullptr;
    if (configuration::use_integer_polygon_ids)
@@ -263,6 +277,7 @@ void geometry_mesh::build_mesh_from_geometry(
    size_t o_normal        = (attribute_normal       ) ? attribute_normal       ->offset() : 0;
    size_t o_normal_flat   = (attribute_normal_flat  ) ? attribute_normal_flat  ->offset() : 0;
    size_t o_normal_smooth = (attribute_normal_smooth) ? attribute_normal_smooth->offset() : 0;
+   size_t o_tangent       = (attribute_tangent      ) ? attribute_tangent      ->offset() : 0;
    size_t o_color         = (attribute_color        ) ? attribute_color        ->offset() : 0;
    size_t o_texcoord      = (attribute_texcoord     ) ? attribute_texcoord     ->offset() : 0;
    size_t o_id_vec3       = (attribute_id_vec3      ) ? attribute_id_vec3      ->offset() : 0;
@@ -272,6 +287,7 @@ void geometry_mesh::build_mesh_from_geometry(
    auto t_normal        = (attribute_normal       ) ? attribute_normal       ->data_type() : format_info.normal_type();
    auto t_normal_flat   = (attribute_normal_flat  ) ? attribute_normal_flat  ->data_type() : format_info.normal_flat_type();
    auto t_normal_smooth = (attribute_normal_smooth) ? attribute_normal_smooth->data_type() : format_info.normal_smooth_type();
+   auto t_tangent       = (attribute_tangent      ) ? attribute_tangent      ->data_type() : format_info.tangent_type();
    auto t_color         = (attribute_color        ) ? attribute_color        ->data_type() : format_info.color_type();
    auto t_texcoord      = (attribute_texcoord     ) ? attribute_texcoord     ->data_type() : format_info.texcoord_type();
    auto t_id_vec3       = (attribute_id_vec3      ) ? attribute_id_vec3      ->data_type() : format_info.id_vec3_type();
@@ -488,6 +504,18 @@ void geometry_mesh::build_mesh_from_geometry(
 
          if (format_info.want_normal_smooth() && attribute_normal_smooth)
             write(&vertex_data[o_normal_smooth], t_normal_smooth, point_normals_smooth->get(corner->point()));
+
+         //  Tangent
+         if (format_info.want_tangent() && attribute_tangent)
+         {
+            vec3 tangent(1.0f, 0.0f, 0.0f);
+            if (corner_tangents && corner_tangents->has(corner))
+               tangent = corner_tangents->get(corner);
+            else if (point_tangents && point_tangents->has(corner->point()))
+               tangent = point_tangents->get(corner->point());
+
+            write(&vertex_data[o_tangent], t_tangent, tangent);
+         }
 
          //  Texcoord
          if (format_info.want_texcoord() && attribute_texcoord)

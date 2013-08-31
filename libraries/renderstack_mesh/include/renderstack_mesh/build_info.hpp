@@ -35,6 +35,7 @@ public:
    ,  m_normal_type           (gl::vertex_attrib_pointer_type::float_)
    ,  m_normal_flat_type      (gl::vertex_attrib_pointer_type::float_)
    ,  m_normal_smooth_type    (gl::vertex_attrib_pointer_type::float_)
+   ,  m_tangent_type          (gl::vertex_attrib_pointer_type::float_)
    ,  m_color_type            (gl::vertex_attrib_pointer_type::float_)
    ,  m_texcoord_type         (gl::vertex_attrib_pointer_type::float_)
    ,  m_id_vec3_type          (gl::vertex_attrib_pointer_type::float_)  // TODO: Check
@@ -54,6 +55,7 @@ public:
    bool want_normal           () const { return m_want_normal;          }
    bool want_normal_flat      () const { return m_want_normal_flat;     }
    bool want_normal_smooth    () const { return m_want_normal_smooth;   }
+   bool want_tangent          () const { return m_want_tangent;         }
    bool want_color            () const { return m_want_color;           }
    bool want_texcoord         () const { return m_want_texcoord;        }
    bool want_id               () const { return m_want_id;              }
@@ -67,6 +69,7 @@ public:
    void set_want_normal          (bool value) { m_want_normal          = value; }
    void set_want_normal_flat     (bool value) { m_want_normal_flat     = value; }
    void set_want_normal_smooth   (bool value) { m_want_normal_smooth   = value; }
+   void set_want_tangent         (bool value) { m_want_tangent         = value; }
    void set_want_color           (bool value) { m_want_color           = value; }
    void set_want_texcoord        (bool value) { m_want_texcoord        = value; }
    void set_want_id              (bool value) { m_want_id              = value; }
@@ -79,6 +82,7 @@ public:
    gl::vertex_attrib_pointer_type::value normal_type        () const { return m_normal_type;        }
    gl::vertex_attrib_pointer_type::value normal_flat_type   () const { return m_normal_flat_type;   }
    gl::vertex_attrib_pointer_type::value normal_smooth_type () const { return m_normal_smooth_type; }
+   gl::vertex_attrib_pointer_type::value tangent_type       () const { return m_tangent_type;       }
    gl::vertex_attrib_pointer_type::value color_type         () const { return m_color_type;         }
    gl::vertex_attrib_pointer_type::value texcoord_type      () const { return m_texcoord_type;      }
    gl::vertex_attrib_pointer_type::value id_vec3_type       () const { return m_id_vec3_type;       }
@@ -97,6 +101,7 @@ private:
    bool m_want_normal;
    bool m_want_normal_flat;
    bool m_want_normal_smooth;
+   bool m_want_tangent;
    bool m_want_color;
    bool m_want_texcoord;
    bool m_want_id;
@@ -105,6 +110,7 @@ private:
    gl::vertex_attrib_pointer_type::value  m_normal_type;
    gl::vertex_attrib_pointer_type::value  m_normal_flat_type;
    gl::vertex_attrib_pointer_type::value  m_normal_smooth_type;
+   gl::vertex_attrib_pointer_type::value  m_tangent_type;
    gl::vertex_attrib_pointer_type::value  m_color_type;
    gl::vertex_attrib_pointer_type::value  m_texcoord_type;
    gl::vertex_attrib_pointer_type::value  m_id_vec3_type;

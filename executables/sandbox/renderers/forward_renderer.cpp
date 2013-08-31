@@ -153,10 +153,10 @@ void forward_renderer::render_pass(
 
    mat4 const &clip_from_world = camera->clip_from_world().matrix();
    mat4 const &view_from_world = camera->frame()->world_from_local().inverse_matrix();
-   print_matrix(clip_from_world, "clip_from_world");
-   print_matrix(view_from_world, "view_from_world");
+   // print_matrix(clip_from_world, "clip_from_world");
+   // print_matrix(view_from_world, "view_from_world");
 
-   bool print = true;
+   bool print = false;
    for (auto i = models.cbegin(); i != models.cend(); ++i)
    {
       auto model              = *i;
@@ -185,8 +185,9 @@ void forward_renderer::render_pass(
 
          unsigned char *start       = m_programs->begin_edit_uniforms();
          unsigned char *model_start = &start[m_programs->model_ubr->first_byte()];
-         ::memcpy(&model_start[m_programs->model_block_access.clip_from_model], value_ptr(clip_from_model), 16 * sizeof(float));
-         ::memcpy(&model_start[m_programs->model_block_access.view_from_model], value_ptr(view_from_model), 16 * sizeof(float));
+         ::memcpy(&model_start[m_programs->model_block_access.clip_from_model],  value_ptr(clip_from_model), 16 * sizeof(float));
+         ::memcpy(&model_start[m_programs->model_block_access.view_from_model],  value_ptr(view_from_model), 16 * sizeof(float));
+         ::memcpy(&model_start[m_programs->model_block_access.world_from_model], value_ptr(world_from_model), 16 * sizeof(float));
          m_programs->model_ubr->flush(r);
          m_programs->end_edit_uniforms();
       }
@@ -194,6 +195,7 @@ void forward_renderer::render_pass(
       {
          gl::uniform_matrix_4fv(p->uniform_at(m_programs->model_block_access.clip_from_model), 1, GL_FALSE, value_ptr(clip_from_model));
          gl::uniform_matrix_4fv(p->uniform_at(m_programs->model_block_access.view_from_model), 1, GL_FALSE, value_ptr(view_from_model));
+         gl::uniform_matrix_4fv(p->uniform_at(m_programs->model_block_access.world_from_model), 1, GL_FALSE, value_ptr(world_from_model));
       }
 
       {

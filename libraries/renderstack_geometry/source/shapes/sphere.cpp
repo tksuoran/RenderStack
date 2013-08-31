@@ -33,6 +33,7 @@ struct sphere::make_info
 
    shared_ptr<property_map<point*, vec3> >   point_locations;
    shared_ptr<property_map<point*, vec3> >   point_normals;
+   shared_ptr<property_map<point*, vec3> >   point_tangents;
    shared_ptr<property_map<point*, vec2> >   point_texcoords;
    shared_ptr<property_map<corner*, vec2> >  corner_texcoords;
    shared_ptr<property_map<polygon*, vec3> > polygon_centroids;
@@ -60,6 +61,7 @@ sphere::sphere(
 
    info.point_locations    = point_attributes().find_or_create<vec3>("point_locations");
    info.point_normals      = point_attributes().find_or_create<vec3>("point_normals");
+   info.point_tangents     = point_attributes().find_or_create<vec3>("point_tangents");
    info.point_texcoords    = point_attributes().find_or_create<vec2>("point_texcoords");
    info.polygon_centroids  = polygon_attributes().find_or_create<vec3>("polygon_centroids");
    info.polygon_normals    = polygon_attributes().find_or_create<vec3>("polygon_normals");
@@ -175,12 +177,18 @@ point *sphere::sphere_point(make_info &info, double rel_slice, double rel_stack)
    float   s            = 1.0f - (float)(rel_slice);
    float   t            = 1.0f - (float)(0.5 * (1.0 + rel_stack));
 
+   vec3 N(xVN, yVN, zVN);
+   vec3 B(0.0f, 1.0f, 0.0f);
+   //vec3 B = cross(T, N);
+   vec3 T = cross(N, B);
+
    point *point = make_point();
 
    bool uv_discontinuity = (rel_stack == -1.0) || (rel_stack == 1.0) || /*(relSlice == 0.0) ||*/ (rel_slice == 1.0);
 
    info.point_locations->put(point, vec3(xP, yP, zP));
-   info.point_normals->put(point, vec3(xVN, yVN, zVN));
+   info.point_normals->put(point, N);
+   info.point_tangents->put(point, T);
    if (uv_discontinuity == false)
       info.point_texcoords->put(point, vec2(s, t));
 
