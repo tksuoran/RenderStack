@@ -586,8 +586,8 @@ void game::on_key(int key, int scancode, int action, int mods)
       {
       case GLWT_KEY_ESCAPE:   toggle_mouse_lock(); break;
       case GLWT_KEY_F1:       m_min_frame_dt = 1.0; m_max_frame_dt = 0.0; break;
-      case GLWT_KEY_B:        m_controls.fov *= 1.1f; break;
-      case GLWT_KEY_N:        m_controls.fov /= 1.1f; break;
+      case GLWT_KEY_B:        /* m_controls.fov *= 1.1f; TODO */ break;
+      case GLWT_KEY_N:        /* m_controls.fov /= 1.1f; TODO */ break;
       case GLWT_KEY_M:        reset(); break;
       }
    }

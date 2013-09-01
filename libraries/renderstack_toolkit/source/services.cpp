@@ -14,7 +14,9 @@ services::services()
 
 void services::add(shared_ptr<renderstack::toolkit::service>s)
 {
-   m_services.insert(s);   
+   // Silently ignores nullptr services
+   if (s)
+      m_services.insert(s);   
 }
 void services::cleanup_services()
 {
@@ -38,6 +40,9 @@ void services::initialize_services()
       for (auto i = uninitialized.begin(); i != uninitialized.end();)
       {
          auto s = *i;
+
+         if (!s)
+            throw runtime_error("service is nullptr");
 
          if (s->ready())
          {

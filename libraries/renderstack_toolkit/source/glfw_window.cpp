@@ -6,7 +6,7 @@
 #include <cstdlib>
 
 using namespace std;
-#if 0
+#if 1
 # if defined(_WIN32)
 
 #  pragma warning(disable:4074)//initializers put in compiler reserved initialization area
@@ -14,7 +14,7 @@ using namespace std;
 
 struct CrtBreakAllocSetter {
     CrtBreakAllocSetter() {
-        _crtBreakAlloc = 185;
+        _crtBreakAlloc = 1519;
     }
 };
 

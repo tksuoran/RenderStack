@@ -80,6 +80,8 @@ bool application::initialize_services()
    auto game_              = smart_ptr_builder::create_shared_ptr<renderstack::ui::action_sink>(new game());
    auto menu_              = smart_ptr_builder::create_shared_ptr<renderstack::ui::action_sink>(new menu());
 
+   shader_monitor_.reset();
+
    m_services.add(renderer);
    m_services.add(gui_renderer);
 

@@ -15,12 +15,12 @@ uniform::uniform(string const &name, std::shared_ptr<uniform_block> block, size_
 ,  m_precision          (precision::highp)
 ,  m_is_array           (false)
 ,  m_location           (-2)
-,  m_index_in_block     (block->num_uniforms())
 ,  m_block_index        (-1)
-,  m_offset_in_block    (block->offset())
 ,  m_texture_unit_index (0)
 ,  m_sampler            (nullptr)
 ,  m_block              (block)
+,  m_index_in_block     (block->num_uniforms())
+,  m_offset_in_block    (block->offset())
 {
 }
 
@@ -36,7 +36,6 @@ uniform::uniform(string const &name, int location, size_t count, gl::active_unif
 ,  m_offset_in_block    (0)
 ,  m_texture_unit_index (0)
 ,  m_sampler            (nullptr)
-,  m_block              (nullptr)
 {
 }
 
@@ -44,8 +43,9 @@ uniform::uniform(string const &name, int location, size_t count, gl::active_unif
 // If uniform is in non-default block, access is offset to uniform block / buffer range
 size_t uniform::access() const
 {
-   assert(m_block);
-   return m_block->default_block() ? m_index_in_block : m_offset_in_block;
+   auto b = m_block.lock();
+   assert(b);
+   return b->default_block() ? m_index_in_block : m_offset_in_block;
 }
 
 bool uniform::is_array() const

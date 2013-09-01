@@ -53,7 +53,7 @@ public:
    program                          &set_fs             (std::string const &source);
    std::shared_ptr<class uniform>   uniform             (std::string const &name);
    void                             transform_feedback  (std::vector<std::string> varyings, GLenum buffer_mode);
-   void                             add                 (std::weak_ptr<class uniform_block> uniform_block);
+   void                             add                 (std::shared_ptr<class uniform_block> uniform_block);
    void                             link                ();
    void                             reload              ();
 

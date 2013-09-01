@@ -9,6 +9,9 @@ namespace renderstack { namespace toolkit {
 
 class service
 {
+private:
+   service(const service &other);
+
 protected:
    service(std::string const &name);
    virtual ~service();

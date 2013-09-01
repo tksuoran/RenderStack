@@ -32,6 +32,9 @@ class style;
 
 class gui_renderer : public renderstack::toolkit::service
 {
+private:
+   gui_renderer(gui_renderer const &other);
+
 public:
    struct gui_uniforms
    {

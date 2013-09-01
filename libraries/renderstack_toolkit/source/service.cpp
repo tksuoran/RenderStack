@@ -5,6 +5,7 @@ using namespace std;
 
 namespace renderstack { namespace toolkit {
 
+
 service::service(string const &name)
 :  m_name(name)
 ,  m_initialized(false)

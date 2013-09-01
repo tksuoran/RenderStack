@@ -512,9 +512,9 @@ static char const * const attrib_type_str(GLenum type)
    };
 }
 #endif
-void program::add(weak_ptr<class uniform_block> uniform_block)
+void program::add(shared_ptr<class uniform_block> uniform_block)
 {
-   m_uniform_blocks[uniform_block.lock()->block_name()] = uniform_block;
+   m_uniform_blocks[uniform_block->block_name()] = uniform_block;
 }
 void program::link()
 {
@@ -628,7 +628,7 @@ void program::link()
             auto block = fi->second.lock();
             unsigned int binding_point = block->binding_point();
 
-				slog_trace("program::link() uniform block: %s binding point: %u", name.c_str(), binding_point);
+            slog_trace("program::link() uniform block: %s binding point: %u", name.c_str(), binding_point);
             gl::uniform_block_binding(m_gl_name, i, binding_point);
          }
          else

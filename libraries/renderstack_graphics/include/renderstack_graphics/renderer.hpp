@@ -21,6 +21,9 @@ namespace renderstack { namespace graphics {
 
 class renderer : public renderstack::toolkit::service
 {
+private:
+   renderer(renderer const &other);
+
 public:
    renderer();
    /*virtual*/ ~renderer();
