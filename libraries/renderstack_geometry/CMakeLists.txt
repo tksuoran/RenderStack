@@ -28,6 +28,7 @@ add_library(
    include/renderstack_geometry/shapes/sphere.hpp
    include/renderstack_geometry/shapes/triangle.hpp
    include/renderstack_geometry/shapes/cube.hpp
+   include/renderstack_geometry/shapes/torus.hpp
    source/corner.cpp
    source/geometry.cpp
    source/log.cpp
@@ -40,6 +41,7 @@ add_library(
    source/shapes/sphere.cpp
    source/shapes/triangle.cpp
    source/shapes/cube.cpp
+   source/shapes/torus.cpp
 )
 
 source_group(

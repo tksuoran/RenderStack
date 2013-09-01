@@ -8,6 +8,7 @@
 #include "renderstack_geometry/shapes/triangle.hpp"
 #include "renderstack_geometry/shapes/cone.hpp"
 #include "renderstack_geometry/shapes/cube.hpp"
+#include "renderstack_geometry/shapes/torus.hpp"
 #include "renderstack_geometry/operation/clone.hpp"
 #include "renderstack_geometry/operation/catmull_clark.hpp"
 #include "renderstack_graphics/configuration.hpp"
@@ -194,6 +195,7 @@ void game::initialize_service()
       g_collection.push_back(make_shared<renderstack::geometry::shapes::disc>(1.0, 0.8, 32, 2));
       g_collection.push_back(make_shared<renderstack::geometry::shapes::triangle>(0.8f / 0.57735027f));
       g_collection.push_back(make_shared<renderstack::geometry::shapes::sphere>(1.0f, 12 * 4, 4 * 6));
+      g_collection.push_back(make_shared<renderstack::geometry::shapes::torus>(0.6f, 0.3f, 42, 32));
       g_collection.push_back(make_shared<renderstack::geometry::shapes::cuboctahedron>(1.0));
       g_collection.push_back(make_shared<renderstack::geometry::shapes::dodecahedron>(1.0));
       g_collection.push_back(make_shared<renderstack::geometry::shapes::icosahedron>(1.0));
@@ -244,6 +246,7 @@ void game::initialize_service()
       m_format_info.set_want_position(true);
       m_format_info.set_want_normal(true);
       m_format_info.set_want_tangent(true);
+      m_format_info.set_want_texcoord(true);
       m_format_info.set_want_color(true);
       m_format_info.set_want_id(true);
       m_format_info.set_normal_style(normal_style::corner_normals);
@@ -300,7 +303,7 @@ void game::initialize_service()
 #endif
       
       size_t count = g_collection.size();
-      float x = -float(count - 1);
+      float x = -float(count - 1) * 1.5f;
 
       int pos = 0;
       for (auto i = g_collection.begin(); i != g_collection.end(); ++i)
@@ -309,7 +312,7 @@ void game::initialize_service()
          m_models->add(m);
 
          ++pos;
-         x += 2.0f;
+         x += 2.0f * 1.5f;
       }
 
 # if 1
@@ -320,6 +323,7 @@ void game::initialize_service()
          m_format_info.set_want_normal(true);
          m_format_info.set_want_tangent(true);
          m_format_info.set_want_color(true);
+         m_format_info.set_want_texcoord(true);
          m_format_info.set_want_id(true);
          m_format_info.set_normal_style(normal_style::corner_normals);
          m_format_info.set_mappings(m_programs->mappings);

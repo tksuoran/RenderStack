@@ -2,6 +2,7 @@ in vec3 v_view_direction;
 in vec3 v_color;
 in vec3 v_normal;
 in vec3 v_tangent;
+in vec2 v_texcoord;
 
 out vec4 out_color;
 
@@ -31,6 +32,10 @@ void main(void)
 
    //vec3 C               = v_color * material.color.rgb;
    vec3 C               = vec3(0.02, 0.03, 0.05);
+
+   C.r += 0.1 * v_texcoord.x;
+   C.b += 0.1 * v_texcoord.y;
+
    vec3 one_minus_C     = vec3(1.0, 1.0, 1.0) - C;
    vec3 S               = 50.0 * C + one_minus_C * pow(1.0 - vn_clamped, 5.0);
 
@@ -79,5 +84,7 @@ void main(void)
 
    // out_color.rgb = pow(out_color.rgb, vec3(1.0 / 2.2));
 
-   // out_color.rgb = (0.5 * T) + vec3(0.5);
+   //out_color.rgb = (0.5 * T) + vec3(0.5);
+   //out_color.rb += 0.1 * v_texcoord;
+   //out_color.g = 0.0;
 }

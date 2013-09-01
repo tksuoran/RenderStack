@@ -109,6 +109,7 @@ static void s_win_callback(GLWTWindow *window, const GLWTWindowEvent *event, voi
 
 void window::glwt_callback(const GLWTWindowEvent *event)
 {
+#if 0
     double time = glwtGetTime();
 
     switch(event->type)
@@ -167,6 +168,7 @@ void window::glwt_callback(const GLWTWindowEvent *event)
         default:
             break;
     }
+#endif
 
    switch (event->type)
    {
