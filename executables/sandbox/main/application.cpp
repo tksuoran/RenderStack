@@ -73,6 +73,11 @@ void application::on_resize(int width, int height)
    m_screen->on_resize(width, height);
 }
 
+void application::on_focus(bool has_focus)
+{
+   m_screen->on_focus(has_focus);
+}
+
 void application::update()
 {
    if (m_last_screen != m_screen)
@@ -102,3 +107,8 @@ void application::on_scroll(double x, double y)
 {
    m_screen->on_scroll(x, y);
 }
+void application::on_3d_mouse(long tx, long ty, long tz, long rx, long ry, long rz, long period)
+{
+   m_screen->on_3d_mouse(tx, ty, tz, rx, ry, rz, period);
+}
+

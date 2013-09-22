@@ -308,6 +308,11 @@ void menu::on_resize(int width, int height)
    }
 #endif
 }
+void menu::on_focus(bool has_focus)
+{
+   (void)has_focus;
+}
+
 void menu::update()
 {
    slog_trace("menu::update()");
@@ -338,6 +343,17 @@ void menu::on_scroll(double x, double y)
    (void)x;
    (void)y;
 }
+void menu::on_3d_mouse(long tx, long ty, long tz, long rx, long ry, long rz, long period)
+{
+   (void)tx;
+   (void)ty;
+   (void)tz;
+   (void)rx;
+   (void)ry;
+   (void)rz;
+   (void)period;
+}
+
 void menu::on_enter()
 {
    slog_trace("menu::on_enter()");

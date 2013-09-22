@@ -190,7 +190,10 @@ void window::glwt_callback(const GLWTWindowEvent *event)
    case GLWT_WINDOW_HIDE:
       break;
    case GLWT_WINDOW_FOCUS_IN:
+      on_focus(true);
+      break;
    case GLWT_WINDOW_FOCUS_OUT:
+      on_focus(false);
       break;
    case GLWT_WINDOW_KEY_UP:
       on_key(event->key.keysym, event->key.scancode, 0, event->key.mod);

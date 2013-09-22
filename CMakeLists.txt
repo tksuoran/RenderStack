@@ -79,8 +79,6 @@ set(TINYXML_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/libraries/tinyxml2")
 set(TINYXML_LIBS tinyxml2static)
 set(PNG_LIBS png16_static zlibstatic)
 
-message("${CMAKE_BINARY_DIR}/libraries/zlib")
-
 # libpng requires some hacking due to dependency to zlib
 if (MSVC)
    # Prevent libpng from trying to install anything
@@ -217,7 +215,6 @@ if (RENDERSTACK_USE_GLFW)
       add_definitions(-DGLFW_INCLUDE_ES3)
       set(KHRONOS_INCLUDE ${GLESv3_INCLUDE_DIR};${KHRONOS_INCLUDE})
       set(RENDERSTACK_WINDOW_TOOLKIT_LIBRARIES "${GLESv3_LIBRARY}";${RENDERSTACK_WINDOW_TOOLKIT_LIBRARIES})
-      message(${RENDERSTACK_WINDOW_TOOLKIT_LIBRARIES})
    endif ()
 endif()
 

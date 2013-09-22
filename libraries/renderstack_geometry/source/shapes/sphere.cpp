@@ -177,10 +177,14 @@ point *sphere::sphere_point(make_info &info, double rel_slice, double rel_stack)
    float   s            = 1.0f - (float)(rel_slice);
    float   t            = 1.0f - (float)(0.5 * (1.0 + rel_stack));
 
+   // B = T x N
+   // T = N x B
+   // N = B x T
+
    vec3 N(xVN, yVN, zVN);
-   vec3 B(0.0f, 1.0f, 0.0f);
-   //vec3 B = cross(T, N);
-   vec3 T = cross(N, B);
+   vec3 axis(0.0f, 1.0f, 0.0f);
+   vec3 B = normalize(cross(axis, N));
+   vec3 T = normalize(cross(N, B));
 
    point *point = make_point();
 

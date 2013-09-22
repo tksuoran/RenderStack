@@ -110,6 +110,7 @@ public:
 public:
    void on_load         ();
    void on_resize       (int width, int height);
+   void on_focus        (bool has_focus);
    void on_enter        ();
    void on_exit         ();
    void update          ();
@@ -117,6 +118,7 @@ public:
    void on_mouse_moved  (double x, double y);
    void on_mouse_button (int button, int action, int mods);
    void on_scroll       (double x, double y);
+   void on_3d_mouse     (long tx, long ty, long tz, long rx, long ry, long rz, long period);
 
 private:
    void reset();

@@ -164,16 +164,15 @@ void programs::connect(
    material_block->seal();
    ubo_size += material_block->size_bytes();
 
-   lights_block = make_shared<uniform_block>(1, "lights");
-   lights_block_access.exposure                 = lights_block->add_float("exposure")->access();
-   lights_block_access.ambient_light_radiance   = lights_block->add_vec3("ambient_light_radiance")->access();
-   lights_block_access.position                 = lights_block->add_vec3("position")->access();
-   lights_block_access.direction                = lights_block->add_vec3("direction")->access();
-   lights_block_access.radiance                 = lights_block->add_vec3("radiance")->access();
+   lights_block = make_shared<uniform_block>(3, "lights");
+   lights_block_access.exposure  = lights_block->add_float("exposure")->access();
+   lights_block_access.position  = lights_block->add_vec3("position")->access();
+   lights_block_access.direction = lights_block->add_vec3("direction")->access();
+   lights_block_access.radiance  = lights_block->add_vec3("radiance")->access();
    lights_block->seal();
    ubo_size += lights_block->size_bytes();
 
-   debug_block = make_shared<uniform_block>(3, "debug");
+   debug_block = make_shared<uniform_block>(4, "debug");
    debug_block_access.line_width         = debug_block->add_vec4("line_width"         )->access();
    debug_block_access.show_rt_transform  = debug_block->add_vec4("show_rt_transform"  )->access();
    ubo_size += debug_block->size_bytes();
@@ -265,6 +264,7 @@ void programs::bind_uniforms()
    r.set_uniform_buffer_range(model_block->binding_point(),    model_ubr);
    r.set_uniform_buffer_range(camera_block->binding_point(),   camera_ubr);
    r.set_uniform_buffer_range(material_block->binding_point(), material_ubr);
+   r.set_uniform_buffer_range(lights_block->binding_point(),   lights_ubr);
    r.set_uniform_buffer_range(debug_block->binding_point(),    debug_ubr);
 }
 

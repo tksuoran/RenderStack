@@ -6,7 +6,7 @@
 #include <cstdlib>
 
 using namespace std;
-#if 1
+#if 0
 # if defined(_WIN32)
 
 #  pragma warning(disable:4074)//initializers put in compiler reserved initialization area
@@ -105,6 +105,13 @@ static void s_mouse_wheel(GLFWwindow *win, double x, double y)
    class window *window = reinterpret_cast<class window *>(::glfwGetWindowUserPointer(win));
    if (window)
       window->on_scroll(x, y);
+}
+
+static void s_3d_mouse(GLFWwindow *win, long tx, long ty, long tz, long rx, long ry, long rz, long period)
+{
+   class window *window = reinterpret_cast<class window *>(::glfwGetWindowUserPointer(win));
+   if (window)
+      window->on_3d_mouse(tx, ty, tz, rx, ry, rz, period);
 }
 
 static void s_resize(GLFWwindow *win, int width, int height)
@@ -217,6 +224,7 @@ bool window::open(int width, int height, string const &title, int major, int min
    ::glfwSetMouseButtonCallback((GLFWwindow*)m_window, s_mouse_button);
    ::glfwSetScrollCallback     ((GLFWwindow*)m_window, s_mouse_wheel);
    ::glfwSetWindowCloseCallback((GLFWwindow*)m_window, s_window_close);
+   ::glfwSet3DMouseCallback    ((GLFWwindow*)m_window, s_3d_mouse);
 
    ::glfwSetInputMode((GLFWwindow*)m_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
    ::glfwSetInputMode((GLFWwindow*)m_window, GLFW_STICKY_KEYS, GL_FALSE);

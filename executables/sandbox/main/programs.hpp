@@ -39,7 +39,6 @@ struct camera_block_i
 struct lights_block_i
 {
    std::size_t exposure;
-   std::size_t ambient_light_radiance;
    std::size_t position;
    std::size_t direction;
    std::size_t radiance;

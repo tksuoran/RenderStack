@@ -552,6 +552,19 @@ void game::shift(bool left, bool value)
    bool any_shift_pressed = m_controls.left_shift || m_controls.right_shift;
    m_controls.camera_controller.translate_y().set_less(any_shift_pressed);
 }
+void game::on_focus(bool has_focus)
+{
+   if (!has_focus)
+   {
+      m_controls.camera_controller.translate_z().set_more(false);
+      m_controls.camera_controller.translate_z().set_less(false);
+      m_controls.camera_controller.translate_x().set_more(false);
+      m_controls.camera_controller.translate_x().set_less(false);
+   }
+   m_controls.camera_controller.translate_z().set_inhibit(!has_focus);
+   m_controls.camera_controller.translate_x().set_inhibit(!has_focus);
+}
+
 void game::on_key(int key, int scancode, int action, int mods)
 {
    bool pressed = action != 0;
@@ -559,54 +572,28 @@ void game::on_key(int key, int scancode, int action, int mods)
    (void)mods;
    (void)scancode;
 
-#if defined(RENDERSTACK_USE_GLFW)
    if (pressed)
    {
       switch (key)
       {
-      case GLFW_KEY_ESCAPE:   toggle_mouse_lock(); break;
-      case GLFW_KEY_F1:       m_min_frame_dt = 1.0; m_max_frame_dt = 0.0; break;
-      case GLFW_KEY_B:        /* m_controls.fov *= 1.1f; TODO */ break;
-      case GLFW_KEY_N:        /* m_controls.fov /= 1.1f; TODO */ break;
-      case GLFW_KEY_M:        reset(); break;
+      case RS_KEY_ESCAPE:   toggle_mouse_lock(); break;
+      case RS_KEY_F1:       m_min_frame_dt = 1.0; m_max_frame_dt = 0.0; break;
+      case RS_KEY_B:        /* m_controls.fov *= 1.1f; TODO */ break;
+      case RS_KEY_N:        /* m_controls.fov /= 1.1f; TODO */ break;
+      case RS_KEY_M:        reset(); break;
       }
    }
 
    switch (key)
    {
-   case GLFW_KEY_SPACE:  m_controls.camera_controller.translate_y().set_more(pressed); break;
-   case GLFW_KEY_LEFT_SHIFT: shift(true, pressed); break;
-   case GLFW_KEY_RIGHT_SHIFT: shift(false, pressed); break;
-   case GLFW_KEY_W: m_controls.camera_controller.translate_z().set_less(pressed); break;
-   case GLFW_KEY_S: m_controls.camera_controller.translate_z().set_more(pressed); break;
-   case GLFW_KEY_D: m_controls.camera_controller.translate_x().set_more(pressed); break;
-   case GLFW_KEY_A: m_controls.camera_controller.translate_x().set_less(pressed); break;
+   case RS_KEY_SPACE:         m_controls.camera_controller.translate_y().set_more(pressed); break;
+   case RS_KEY_LEFT_SHIFT:    shift(true, pressed); break;
+   case RS_KEY_RIGHT_SHIFT:   shift(false, pressed); break;
+   case RS_KEY_W:             m_controls.camera_controller.translate_z().set_less(pressed); break;
+   case RS_KEY_S:             m_controls.camera_controller.translate_z().set_more(pressed); break;
+   case RS_KEY_D:             m_controls.camera_controller.translate_x().set_more(pressed); break;
+   case RS_KEY_A:             m_controls.camera_controller.translate_x().set_less(pressed); break;
    }
-#endif
-#if defined(RENDERSTACK_USE_GLWT)
-   if (pressed)
-   {
-      switch (key)
-      {
-      case GLWT_KEY_ESCAPE:   toggle_mouse_lock(); break;
-      case GLWT_KEY_F1:       m_min_frame_dt = 1.0; m_max_frame_dt = 0.0; break;
-      case GLWT_KEY_B:        /* m_controls.fov *= 1.1f; TODO */ break;
-      case GLWT_KEY_N:        /* m_controls.fov /= 1.1f; TODO */ break;
-      case GLWT_KEY_M:        reset(); break;
-      }
-   }
-
-   switch (key)
-   {
-   case GLWT_KEY_SPACE:    m_controls.camera_controller.translate_y().set_more(pressed); break;
-   case GLWT_KEY_LSHIFT:   shift(true, pressed); break;
-   case GLWT_KEY_RSHIFT:   shift(false, pressed); break;
-   case GLWT_KEY_W:        m_controls.camera_controller.translate_z().set_less(pressed); break;
-   case GLWT_KEY_S:        m_controls.camera_controller.translate_z().set_more(pressed); break;
-   case GLWT_KEY_D:        m_controls.camera_controller.translate_x().set_more(pressed); break;
-   case GLWT_KEY_A:        m_controls.camera_controller.translate_x().set_less(pressed); break;
-   }
-#endif
 }
 void game::on_mouse_moved(double x, double y)
 {
@@ -647,6 +634,28 @@ void game::on_mouse_moved(double x, double y)
       m_controls.camera_controller.rotate_x().adjust(-value);
       m_controls.mouse_y = y;
    }
+}
+void game::on_3d_mouse(long tx, long ty, long tz, long rx, long ry, long rz, long period)
+{
+   double ts = (double) period / (65536.0 * 16.0);
+   double rs = (double) period / (65536.0 * 256.0);
+   if (tx)
+      m_controls.camera_controller.translate_x().adjust((double)tx * ts);
+
+   if (ty)
+      m_controls.camera_controller.translate_y().adjust((double)ty * ts);
+
+   if (tz)
+      m_controls.camera_controller.translate_z().adjust(-(double)tz * ts);
+
+   if (rx)
+      m_controls.camera_controller.rotate_x().adjust((double)rx * rs);
+
+   if (ry)
+      m_controls.camera_controller.rotate_y().adjust((double)ry * rs);
+
+   if (rz)
+      m_controls.camera_controller.rotate_z().adjust((double)rz * rs);
 }
 void game::on_mouse_button(int button, int action, int mods)
 {

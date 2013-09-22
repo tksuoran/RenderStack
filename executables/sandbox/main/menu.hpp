@@ -65,12 +65,14 @@ public:
    void on_enter        ();
    void on_exit         ();
    void on_resize       (int width, int height);
+   void on_focus        (bool has_focus);
 
    void update          ();
    void on_key          (int key, int scancode, int action, int mods);
    void on_mouse_moved  (double s, double y);
    void on_mouse_button (int button, int action, int mods);
    void on_scroll       (double x, double y);
+   void on_3d_mouse     (long tx, long ty, long tz, long rx, long ry, long rz, long period);
 
 private:
    void render();
