@@ -62,7 +62,7 @@ public:
 
    void clear();
    void render_pass(
-      std::shared_ptr<class group> group,
+      std::shared_ptr<std::vector<std::shared_ptr<model> > > models,
       std::shared_ptr<renderstack::scene::camera> camera,
       double time,
       int x,

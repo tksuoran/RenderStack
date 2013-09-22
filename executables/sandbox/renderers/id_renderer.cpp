@@ -1,7 +1,6 @@
 #include "renderstack_toolkit/platform.hpp"
 #include "renderers/id_renderer.hpp"
 #include "scene/model.hpp"
-#include "scene/group.hpp"
 #include "renderstack_graphics/buffer.hpp"
 #include "renderstack_graphics/configuration.hpp"
 #include "renderstack_graphics/program.hpp"
@@ -93,16 +92,14 @@ void id_renderer::clear()
 }
 
 void id_renderer::render_pass(
-   shared_ptr<class group> group,
-   std::shared_ptr<renderstack::scene::camera> camera,
+   shared_ptr<vector<shared_ptr<model> > > models,
+   shared_ptr<renderstack::scene::camera> camera,
    double time,
    int x,
    int y
 )
 {
-   auto const &models = group->models();
-
-   if (models.size() == 0)
+   if (models->size() == 0)
       return;
 
    auto &r = *m_renderer;
@@ -138,7 +135,7 @@ void id_renderer::render_pass(
    }
 
    uint32_t id_offset = 0;
-   for (auto i = models.cbegin(); i != models.cend(); ++i)
+   for (auto i = models->cbegin(); i != models->cend(); ++i)
    {
       auto model              = *i;
       mat4 world_from_model   = model->frame()->world_from_local().matrix();

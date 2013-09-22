@@ -10,7 +10,6 @@ scene_manager::scene_manager()
 //,  m_material_manager(nullptr)
 ,  m_camera          (nullptr)
 ,  m_camera_controls (nullptr)
-,  m_render_group    (nullptr)
 {
 }
 
@@ -70,27 +69,27 @@ shared_ptr<model> scene_manager::add(shared_ptr<model> m)
    if (!m)
       throw runtime_error("scene_manager::add() no model to add");
 
-   m_render_group->add(m);
+   m_models->push_back(m);
 
    return m;
 }
 
-shared_ptr<light> scene_manager::add(shared_ptr<light> light)
+shared_ptr<light> scene_manager::add(shared_ptr<light> l)
 {
-   if (!light)
+   if (!l)
       throw runtime_error("scene_manager::add() no light to add");
 
-   m_lights.push_back(light);
+   m_lights->push_back(l);
 
-   return light;
+   return l;
 }
 
-vector<shared_ptr<light> > &scene_manager::lights()
+shared_ptr<vector<shared_ptr<light> > > &scene_manager::lights()
 {
    return m_lights;
 }
 
-vector<shared_ptr<light> > const &scene_manager::lights() const
+shared_ptr<vector<shared_ptr<light> > > const &scene_manager::lights() const
 {
    return m_lights;
 }

@@ -74,8 +74,6 @@ add_executable(
 
    scene/model.cpp
    scene/model.hpp
-   scene/group.cpp
-   scene/group.hpp
    scene/scene_manager.cpp
    scene/scene_manager.hpp
    scene/material_manager.cpp

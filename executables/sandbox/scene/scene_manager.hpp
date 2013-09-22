@@ -3,15 +3,17 @@
 
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_toolkit/service.hpp"
-#include "scene/group.hpp"
 #include "scene/material_manager.hpp"
 #include "util/frame_controller.hpp"
 #include <memory>
+#include <vector>
 
 namespace renderstack { namespace scene {
    class camera;
    class light;
 } }
+
+class model;
 
 /*class scene
 {
@@ -41,18 +43,21 @@ public:
    void initialize_cameras();
 
    std::shared_ptr<model> add(std::shared_ptr<model> m);
-   std::shared_ptr<renderstack::scene::light> add(std::shared_ptr<renderstack::scene::light> light);
+   std::shared_ptr<renderstack::scene::light> add(std::shared_ptr<renderstack::scene::light> l);
 
-   std::vector<std::shared_ptr<renderstack::scene::light> >       &lights();
-   std::vector<std::shared_ptr<renderstack::scene::light> > const &lights() const;
+   std::shared_ptr<std::vector<std::shared_ptr<renderstack::scene::light> > >       &models();
+   std::shared_ptr<std::vector<std::shared_ptr<renderstack::scene::light> > > const &models() const;
+
+   std::shared_ptr<std::vector<std::shared_ptr<renderstack::scene::light> > >       &lights();
+   std::shared_ptr<std::vector<std::shared_ptr<renderstack::scene::light> > > const &lights() const;
 
 private:
    //std::shared_ptr<material_manager>            m_material_manager;
-   std::shared_ptr<renderstack::scene::camera>              m_camera;
-   std::shared_ptr<frame_controller>                        m_camera_controls;
-   std::shared_ptr<group>                                   m_render_group;
-   std::vector<std::shared_ptr<renderstack::scene::light> > m_lights;
+   std::shared_ptr<renderstack::scene::camera>                                m_camera;
+   std::shared_ptr<frame_controller>                                          m_camera_controls;
 
+   std::shared_ptr<std::vector<std::shared_ptr<model> > >                     m_models;
+   std::shared_ptr<std::vector<std::shared_ptr<renderstack::scene::light> > > m_lights;
 };
 
 

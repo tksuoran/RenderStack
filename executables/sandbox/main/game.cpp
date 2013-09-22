@@ -32,7 +32,6 @@
 #include "main/programs.hpp"
 #include "main/log.hpp"
 #include "parsers/xml_polyhedron.hpp"
-#include "scene/group.hpp"
 #include <cassert>
 
 #if defined(RENDERSTACK_USE_GLFW)
@@ -75,9 +74,8 @@ game::game()
 ,  m_shader_monitor     (nullptr)
 
 /* self owned parts */
-,  m_models             (nullptr)
+,  m_camera             (nullptr)
 ,  m_manipulator_frame  (nullptr)
-,  m_manipulator        (nullptr)
 ,  m_root_layer         (nullptr)
 ,  m_menu_button        (nullptr)
 ,  m_slider             (nullptr)
@@ -89,8 +87,6 @@ game::game()
 ,  m_simulation_time    (0.0)
 ,  m_screen_active      (false)
 ,  m_mouse_down         (false)
-
-,  m_camera             (nullptr)
 {
 }
 
@@ -176,7 +172,7 @@ void game::initialize_service()
    slog_trace("game::on_load()");
 
 
-   m_models = make_shared<group>();
+   m_models = make_shared<vector<shared_ptr<model> > >();
 
    m_camera = make_shared<renderstack::scene::camera>();
    m_camera->projection().set_fov_y(1.0f / 1.5f);
@@ -309,7 +305,7 @@ void game::initialize_service()
       for (auto i = g_collection.begin(); i != g_collection.end(); ++i)
       {
          auto m = make_model(nullptr, *i, vec3(x, 0.0f, 0.0f));
-         m_models->add(m);
+         m_models->push_back(m);
 
          ++pos;
          x += 2.0f * 1.5f;
@@ -336,9 +332,9 @@ void game::initialize_service()
          auto x_tail_g = make_shared<renderstack::geometry::shapes::cylinder  >(0.00f, 0.75f, 0.03f, true, false, 12, 2);
          auto x_tip_m  = make_model(m_manipulator_frame, x_tip_g);
          auto x_tail_m = make_model(m_manipulator_frame, x_tail_g);
-         m_manipulator = make_shared<group>();
-         m_manipulator->add(x_tip_m);
-         m_manipulator->add(x_tail_m);
+         m_manipulator_models = make_shared<vector<shared_ptr<model> > >();
+         m_manipulator_models->push_back(x_tip_m);
+         m_manipulator_models->push_back(x_tail_m);
       }
 # endif
    }

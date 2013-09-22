@@ -157,29 +157,26 @@ private: /* services */
    std::shared_ptr<application>                             m_application;
 
 private: /* self owned parts */
-   std::shared_ptr<class group>                       m_models;
-   std::shared_ptr<renderstack::scene::frame>         m_manipulator_frame;
-   std::shared_ptr<class group>                       m_manipulator;
-   std::shared_ptr<renderstack::ui::layer>            m_root_layer;
-   std::shared_ptr<renderstack::ui::button>           m_menu_button;
-   std::shared_ptr<renderstack::ui::slider>           m_slider;
+   std::shared_ptr<renderstack::scene::camera>              m_camera;
+   std::shared_ptr<std::vector<std::shared_ptr<model> > >   m_models;
+   std::shared_ptr<renderstack::scene::frame>               m_manipulator_frame;
+   std::shared_ptr<std::vector<std::shared_ptr<model> > >   m_manipulator_models;
+   std::shared_ptr<renderstack::ui::layer>                  m_root_layer;
+   std::shared_ptr<renderstack::ui::button>                 m_menu_button;
+   std::shared_ptr<renderstack::ui::slider>                 m_slider;
 
-   controls                                           m_controls;
-   renderstack::scene::viewport                       m_viewport;
+   controls                                                 m_controls;
+   renderstack::scene::viewport                             m_viewport;
 
-   //glm::mat4                                          m_projection;
-
-   double                                             m_update_time;
-   double                                             m_frame_dt;
-   double                                             m_min_frame_dt;
-   double                                             m_max_frame_dt;
-   double                                             m_simulation_time;
+   double                                                   m_update_time;
+   double                                                   m_frame_dt;
+   double                                                   m_min_frame_dt;
+   double                                                   m_max_frame_dt;
+   double                                                   m_simulation_time;
 
    // are we between on_enter() and on_exit()?
    bool m_screen_active;
    bool m_mouse_down;
-
-   std::shared_ptr<renderstack::scene::camera>        m_camera;
 };
 
 #endif

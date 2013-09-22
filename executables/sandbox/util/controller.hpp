@@ -27,6 +27,7 @@ public:
    void  set_max_delta(float value);
    void  update();
    void  adjust(float delta);
+   void  adjust(double delta) { adjust(static_cast<float>(delta)); }
 
 private:
    void dampen();

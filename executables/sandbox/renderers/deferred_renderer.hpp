@@ -41,10 +41,10 @@ public:
    /*virtual/*/ void initialize_service();
 
    void geometry_pass(
-      std::shared_ptr<class group> group,
+      std::shared_ptr<std::vector<std::shared_ptr<model> > > models,
       std::shared_ptr<renderstack::scene::camera> camera
    );
-   void light_pass(glm::mat4 const &world_from_view);
+   void light_pass(std::shared_ptr<renderstack::scene::camera> camera);
    void show_rt();
 
    void resize(int width, int height);

@@ -93,24 +93,19 @@ void game::render_meshes()
    }
 #endif
 
-#if 0
-   m_deferred_renderer->geometry_pass(
-      m_models,
-      m_controls.clip_from_world,
-      m_controls.camera_controller.local_from_parent()
-   );
-   m_deferred_renderer->light_pass(
-      m_controls.camera_controller.parent_from_local()
-   );
-
+#if 0 // Deferred renderer
+   m_deferred_renderer->geometry_pass(m_models, m_camera);
+   m_deferred_renderer->light_pass(m_camera);
    m_deferred_renderer->show_rt();
 #endif
 
+#if 1 // Forward renderer
    glClearColor(0.05f, 0.1f, 0.15f, 1.0f);
    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
    m_forward_renderer->render_pass(m_models, m_camera);
    //m_forward_renderer->render_pass(m_manipulator, m_camera);
+#endif
 
 #if 1
    if (hover_model)

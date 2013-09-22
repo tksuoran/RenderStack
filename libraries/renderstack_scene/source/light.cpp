@@ -23,6 +23,7 @@ mat4 light::s_texture_inverse = mat4(
    0.0f, 0.0f, 0.0f,  1.0f
 );
 
+#if 0
 lights_uniforms::lights_uniforms(
    renderstack::graphics::renderer &renderer,
    string const &name,
@@ -33,9 +34,9 @@ lights_uniforms::lights_uniforms(
 {
    m_uniform_block = make_shared<uniform_block>(binding_point, name, block_name);
    m_uniform_block->add_int(spec.count);
-   m_uniform_block->add_vec4(spec.exposure);
-   m_uniform_block->add_vec4(spec.bias);
-   m_uniform_block->add_vec4(spec.ambient_light_color);
+   //m_uniform_block->add_vec4(spec.exposure);
+   //m_uniform_block->add_vec4(spec.bias);
+   //m_uniform_block->add_vec4(spec.ambient_light_color);
    m_uniform_block->add_vec4(spec.color,               max_light_count);
    m_uniform_block->add_vec4(spec.direction,           max_light_count);
    m_uniform_block->add_mat4(spec.light_from_world,    max_light_count);
@@ -54,6 +55,7 @@ lights_uniforms::lights_uniforms(
       m_uniform_buffer
    );
 }
+#endif
 
 light::light()
 :  m_camera(nullptr)
@@ -77,6 +79,47 @@ void light::set_name(string const &value)
 shared_ptr<frame> light::frame()
 {
    return m_camera->frame();
+}
+
+light_type::value light::type() const
+{
+   return m_type;
+}
+void light::set_type(light_type::value value)
+{
+   m_type = value;
+}
+glm::vec3 light::color() const
+{
+   return m_color;
+}
+void light::set_color(glm::vec3 value)
+{
+   m_color = value;
+}
+float light::intensity() const
+{
+   return m_intensity;
+}
+void light::set_intensity(float value)
+{
+   m_intensity = value;
+}
+float light::range() const
+{
+   return m_range;
+}
+void light::set_range(float value)
+{
+   m_range = value;
+}
+float light::spot_angle() const
+{
+   return m_spot_angle;
+}
+void light::set_spot_angle(float value)
+{
+   m_spot_angle = value;
 }
 class projection const &light::projection() const
 {

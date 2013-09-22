@@ -1,7 +1,6 @@
 #include "renderstack_toolkit/platform.hpp"
 #include "renderers/debug_renderer.hpp"
 #include "renderers/forward_renderer.hpp"
-#include "scene/group.hpp"
 #include "renderstack_graphics/buffer.hpp"
 #include "renderstack_graphics/configuration.hpp"
 #include "renderstack_graphics/program.hpp"
@@ -83,13 +82,11 @@ void forward_renderer::print_matrix(mat4 const &m, std::string const &desc)
 }
 
 void forward_renderer::render_pass(
-   shared_ptr<group> group,
+   shared_ptr<vector<shared_ptr<model> > > models,
    std::shared_ptr<renderstack::scene::camera> camera
 )
 {
-   auto const &models = group->models();
-
-   if (models.size() == 0)
+   if (models->size() == 0)
       return;
 
    auto &r = *m_renderer;
@@ -156,7 +153,7 @@ void forward_renderer::render_pass(
    // print_matrix(view_from_world, "view_from_world");
 
    bool print = false;
-   for (auto i = models.cbegin(); i != models.cend(); ++i)
+   for (auto i = models->cbegin(); i != models->cend(); ++i)
    {
       auto model              = *i;
       mat4 world_from_model   = model->frame()->world_from_local().matrix();

@@ -1,6 +1,5 @@
 #include "renderstack_toolkit/platform.hpp"
 #include "renderers/deferred_renderer.hpp"
-#include "scene/group.hpp"
 #include "renderstack_graphics/buffer.hpp"
 #include "renderstack_graphics/configuration.hpp"
 #include "renderstack_graphics/program.hpp"
@@ -178,17 +177,15 @@ void deferred_renderer::fbo_clear()
 }
 
 void deferred_renderer::geometry_pass(
-   shared_ptr<group> group,
-   std::shared_ptr<renderstack::scene::camera> camera
+   shared_ptr<vector<shared_ptr<model> > > models,
+   shared_ptr<renderstack::scene::camera> camera
 )
 {
    bind_fbo();
 
    fbo_clear();
 
-   auto const &models = group->models();
-
-   if (models.size() == 0)
+   if (models->size() == 0)
       return;
 
    auto &r = *m_renderer;
@@ -202,7 +199,7 @@ void deferred_renderer::geometry_pass(
    float isotropy = 0.5f;
 
    mat4 const &view_from_world = camera->frame()->world_from_local().inverse_matrix();
-   for (auto i = models.cbegin(); i != models.cend(); ++i)
+   for (auto i = models->cbegin(); i != models->cend(); ++i)
    {
       auto model              = *i;
       mat4 world_from_model   = model->frame()->world_from_local().matrix();
@@ -259,8 +256,10 @@ void deferred_renderer::geometry_pass(
    }
 }
 
-void deferred_renderer::light_pass(mat4 const &world_from_view)
+void deferred_renderer::light_pass(std::shared_ptr<renderstack::scene::camera> camera)
 {
+   mat4 const &world_from_view = camera->frame()->world_from_local().matrix();
+
    // Temp draw directly to screen
    bind_default_framebuffer();
    //bind_fbo();
@@ -288,16 +287,18 @@ void deferred_renderer::light_pass(mat4 const &world_from_view)
       assert(m_programs);
       assert(m_programs->model_ubr);
 
-      r.set_uniform_buffer_range(m_programs->model_block->binding_point(), m_programs->model_ubr);
+      //r.set_uniform_buffer_range(m_programs->model_block->binding_point(), m_programs->model_ubr);
+      //r.set_uniform_buffer_range(m_programs->camera_block->binding_point(), m_programs->camera_ubr);
 
-      unsigned char *model_start = m_programs->model_ubr->begin_edit(r);
-      ::memcpy(&model_start[m_programs->model_block_access.clip_from_model], value_ptr(identity), 16 * sizeof(float));
-      m_programs->model_ubr->end_edit(r);
+      unsigned char *start = m_programs->begin_edit_uniforms();
 
-      r.set_uniform_buffer_range(m_programs->camera_block->binding_point(), m_programs->camera_ubr);
-      unsigned char *camera_start = m_programs->model_ubr->begin_edit(r);
-      ::memcpy(&camera_start[m_programs->camera_block_access.world_from_view], value_ptr(world_from_view), 16 * sizeof(float));
-      m_programs->camera_ubr->end_edit(r);
+      ::memcpy(&start[m_programs->model_ubr->first_byte() + m_programs->model_block_access.clip_from_model], value_ptr(identity), 16 * sizeof(float));
+      m_programs->model_ubr->flush(r);
+
+      ::memcpy(&start[m_programs->camera_ubr->first_byte() + m_programs->camera_block_access.world_from_view], value_ptr(world_from_view), 16 * sizeof(float));
+      m_programs->camera_ubr->flush(r);
+
+      m_programs->end_edit_uniforms();
    }
    else
    {
