@@ -14,6 +14,7 @@
 #include "renderers/id_renderer.hpp"
 #include "renderers/debug_renderer.hpp"
 #include "scene/model.hpp"
+#include "scene/scene_manager.hpp"
 #include "util/frame_controller.hpp"
 
 #include <glm/glm.hpp>
@@ -100,7 +101,8 @@ public:
       std::shared_ptr<deferred_renderer>                       deferred_renderer_,
       std::shared_ptr<id_renderer>                             id_renderer_,
       std::shared_ptr<menu>                                    menu_,
-      std::shared_ptr<application>                             application_
+      std::shared_ptr<application>                             application_,
+      std::shared_ptr<scene_manager>                           scene_manager_
    );
    void disconnect();
    /*virtual*/ void initialize_service();
@@ -135,14 +137,6 @@ private:
    void update_fixed_step     ();
    void update_once_per_frame ();
 
-   renderstack::mesh::geometry_mesh_format_info m_format_info;
-   renderstack::mesh::geometry_mesh_buffer_info m_buffer_info;
-   void reset_build_info();
-   std::shared_ptr<model> make_model(
-      std::shared_ptr<renderstack::scene::frame> parent,
-      std::shared_ptr<renderstack::geometry::geometry> geometry,
-      glm::vec3 position = glm::vec3(0.0f));
-
 private: /* services */
    std::shared_ptr<renderstack::graphics::renderer>         m_renderer;
    std::shared_ptr<renderstack::graphics::shader_monitor>   m_shader_monitor;
@@ -155,10 +149,12 @@ private: /* services */
    std::shared_ptr<id_renderer>                             m_id_renderer;
    std::shared_ptr<menu>                                    m_menu;
    std::shared_ptr<application>                             m_application;
+   std::shared_ptr<scene_manager>                           m_scene_manager;
 
 private: /* self owned parts */
-   std::shared_ptr<renderstack::scene::camera>              m_camera;
-   std::shared_ptr<std::vector<std::shared_ptr<model> > >   m_models;
+   //std::shared_ptr<renderstack::scene::camera>              m_camera;
+   //std::shared_ptr<std::vector<std::shared_ptr<model> > >   m_models;
+
    std::shared_ptr<renderstack::scene::frame>               m_manipulator_frame;
    std::shared_ptr<std::vector<std::shared_ptr<model> > >   m_manipulator_models;
    std::shared_ptr<renderstack::ui::layer>                  m_root_layer;

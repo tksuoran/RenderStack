@@ -80,7 +80,7 @@ void game::update_once_per_frame()
 
    m_controls.camera_controller.update();
 
-   m_camera->update(m_viewport);
+   m_scene_manager->camera()->update(m_viewport);
 
 #if 0
    // local = view

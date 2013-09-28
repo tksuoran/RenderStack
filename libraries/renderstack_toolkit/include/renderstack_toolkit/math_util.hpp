@@ -88,6 +88,11 @@ const glm::mat4 mat4_rotate_xy_cw(
    1.0f,  0.0f,  0.0f,  0.0f,
    0.0f,  0.0f,  1.0f,  0.0f,
    0.0f,  0.0f,  0.0f,  1.0f);
+const glm::mat4 mat4_rotate_xz_cw(
+   0.0f,  0.0f, -1.0f,  0.0f,
+   0.0f,  1.0f,  0.0f,  0.0f,
+   1.0f,  0.0f,  0.0f,  0.0f,
+   0.0f,  0.0f,  0.0f,  1.0f);
 
 glm::vec3 unproject(
    glm::mat4 const &inverse_model_view_projection,

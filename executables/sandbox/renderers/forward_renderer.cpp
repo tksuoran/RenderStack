@@ -1,6 +1,7 @@
 #include "renderstack_toolkit/platform.hpp"
 #include "renderers/debug_renderer.hpp"
 #include "renderers/forward_renderer.hpp"
+#include "renderstack_geometry/shapes/cone.hpp"
 #include "renderstack_graphics/buffer.hpp"
 #include "renderstack_graphics/configuration.hpp"
 #include "renderstack_graphics/program.hpp"
@@ -12,6 +13,7 @@
 #include "renderstack_mesh/geometry_mesh.hpp"
 #include "renderstack_mesh/mesh.hpp"
 #include "renderstack_scene/camera.hpp"
+#include "renderstack_scene/light.hpp"
 #include "renderstack_toolkit/gl.hpp"
 #include "renderstack_toolkit/strong_gl_enums.hpp"
 #include "renderstack_toolkit/math_util.hpp"
@@ -23,8 +25,10 @@
 #include <sys/stat.h>
 #include <iomanip>
 
+using namespace renderstack::toolkit;
 using namespace renderstack::graphics;
 using namespace renderstack::mesh;
+using namespace renderstack::scene;
 using namespace renderstack;
 using namespace gl;
 using namespace glm;
@@ -43,9 +47,9 @@ forward_renderer::forward_renderer()
 }
 
 void forward_renderer::connect(
-   shared_ptr<renderstack::graphics::renderer>  renderer_,
-   shared_ptr<debug_renderer>                   debug_renderer_,
-   shared_ptr<programs>                         programs_
+   shared_ptr<renderer>       renderer_,
+   shared_ptr<debug_renderer> debug_renderer_,
+   shared_ptr<programs>       programs_
 )
 {
    m_renderer = renderer_;
@@ -81,11 +85,88 @@ void forward_renderer::print_matrix(mat4 const &m, std::string const &desc)
    );
 }
 
+void forward_renderer::update_light_model(shared_ptr<light> l)
+{
+   switch (l->type())
+   {
+   case light_type::directional:
+      assert(0);
+      break;
+   case light_type::point:
+      assert(0);
+      break;
+
+   case light_type::spot:
+      {
+         //           Side:                     Bottom:
+         //             .                    ______________
+         //            /|\                  /       |    / \
+         //           / | \                /   apothem  /   \
+         //          /  +--+ alpha        /         | radius \
+         //         /   |   \            /          | /       \
+         //        /    |    \          /           |/         \
+         //       /     |     \         \                      /
+         //      /      |      \         \                    /
+         //     /     length    \         \                  /
+         //    /        |        \         \                /
+         //   /         |         \         \______________/
+         //  +----------+----------+
+
+         int   n        = 16;
+         float alpha    = l->spot_angle(); 
+         float length   = l->range();
+         float apothem  = length * std::sin(alpha);
+         float radius   = apothem / std::cos(glm::pi<float>() / static_cast<float>(n));
+
+         shared_ptr<renderstack::geometry::geometry> g = make_shared<renderstack::geometry::shapes::conical_frustum>(
+            0.0,        // min x
+            length,     // max x
+            0.0,        // bottom radius
+            radius,     // top radius
+            false,      // use bottom
+            true,       // use top (end)
+            n,          // slice count
+            0           // stack division
+         );
+
+         g->transform(mat4_rotate_xz_cw);
+         g->build_edges();
+
+         renderstack::mesh::geometry_mesh_format_info format_info;
+         renderstack::mesh::geometry_mesh_buffer_info buffer_info;
+
+         renderstack::geometry::geometry::mesh_info info;
+
+         //format_info.set_want_fill_triangles(true);
+         format_info.set_want_edge_lines(true);
+         format_info.set_want_position(true);
+         format_info.set_mappings(m_programs->mappings);
+                                                                                                      #
+         geometry_mesh::prepare_vertex_format(g, format_info, buffer_info);
+
+         auto &r = *m_renderer;
+
+         auto gm = make_shared<renderstack::mesh::geometry_mesh>(r, g, format_info, buffer_info);
+
+         m_light_meshes[l] = gm;
+      }
+      break;
+
+   default:
+      assert(0);
+   }
+}
+
 void forward_renderer::render_pass(
    shared_ptr<vector<shared_ptr<model> > > models,
-   std::shared_ptr<renderstack::scene::camera> camera
+   shared_ptr<vector<shared_ptr<light> > > lights,
+   shared_ptr<camera> camera
 )
 {
+   assert(models);
+   assert(lights);
+   assert(camera);
+
    if (models->size() == 0)
       return;
 
@@ -99,15 +180,19 @@ void forward_renderer::render_pass(
    r.set_program(p);
 
    // Material
-   vec4        color(1.0f, 1.0f, 1.0f, 1.0f);
+   vec4        color(0.5f, 0.5f, 0.5f, 1.0f);
    float       roughness = 0.10f;
    float       isotropy = 0.02f;
 
    // Light
+   assert(lights);
+   shared_ptr<light> l = lights->front();
+
    float       exposure = 1.0f;
-   glm::vec3   position (0.0f, 100.0f, 0.0f);
-   glm::vec3   direction(1.0f, 0.4f, 1.0f);
-   glm::vec3   radiance (1.0f, 1.0f, 1.0f);
+
+   glm::vec3   position    = vec3(l->frame()->world_from_local().matrix() * vec4(0.0f, 0.0f, 0.0f, 1.0f));
+   glm::vec3   direction   = vec3(l->frame()->world_from_local().matrix() * vec4(0.0f, 0.0f, 1.0f, 0.0f));
+   glm::vec3   radiance    = l->intensity() * l->color();
 
    direction = normalize(direction);
 
@@ -149,10 +234,7 @@ void forward_renderer::render_pass(
 
    mat4 const &clip_from_world = camera->clip_from_world().matrix();
    mat4 const &view_from_world = camera->frame()->world_from_local().inverse_matrix();
-   // print_matrix(clip_from_world, "clip_from_world");
-   // print_matrix(view_from_world, "view_from_world");
 
-   bool print = false;
    for (auto i = models->cbegin(); i != models->cend(); ++i)
    {
       auto model              = *i;
@@ -162,15 +244,6 @@ void forward_renderer::render_pass(
       auto geometry_mesh      = model->geometry_mesh();
       auto vertex_stream      = geometry_mesh->vertex_stream();
       auto mesh               = geometry_mesh->get_mesh();
-
-      if (print)
-      {
-         print_matrix(world_from_model,   "world_from_model");
-         print_matrix(clip_from_model,    "clip_from_model ");
-         print_matrix(view_from_model,    "view_from_model");
-
-         print = false;
-      }
 
       model->frame()->update_hierarchical_no_cache(); // TODO
 
@@ -206,6 +279,77 @@ void forward_renderer::render_pass(
 
          r.draw_elements_base_vertex(
             model->geometry_mesh()->vertex_stream(),
+            begin_mode, count, index_type, index_pointer, base_vertex);
+      }
+   }
+
+   p = m_programs->debug_light;
+   r.set_program(p);
+
+   for (auto i = lights->cbegin(); i != lights->cend(); ++i)
+   {
+      auto light = *i;
+
+      if (light->type() != light_type::spot)
+         continue;
+
+      if (m_light_meshes.find(light) == m_light_meshes.end())
+         update_light_model(light);
+
+      glm::vec3 radiance = light->color();
+      if (m_programs->use_uniform_buffers())
+      {
+         unsigned char *start = m_programs->begin_edit_uniforms();
+         ::memcpy(&start[m_programs->lights_ubr->first_byte() + m_programs->lights_block_access.radiance  ], value_ptr(radiance),  3 * sizeof(float));
+         m_programs->lights_ubr->flush(r);
+         m_programs->end_edit_uniforms();
+      }
+      else
+      {
+         gl::uniform_3fv(p->uniform_at(m_programs->lights_block_access.radiance), 1, value_ptr(radiance));
+      }
+
+      mat4 world_from_light   = light->frame()->world_from_local().matrix();
+      mat4 clip_from_light    = clip_from_world * world_from_light;
+      mat4 view_from_light    = view_from_world * world_from_light;
+      auto geometry_mesh      = m_light_meshes[light];
+      auto vertex_stream      = geometry_mesh->vertex_stream();
+      auto mesh               = geometry_mesh->get_mesh();
+
+      light->frame()->update_hierarchical_no_cache(); // TODO
+
+      if (m_programs->use_uniform_buffers())
+      {
+         assert(m_programs);
+         assert(m_programs->model_ubr);
+
+         unsigned char *start       = m_programs->begin_edit_uniforms();
+         unsigned char *model_start = &start[m_programs->model_ubr->first_byte()];
+         ::memcpy(&model_start[m_programs->model_block_access.clip_from_model],  value_ptr(clip_from_light), 16 * sizeof(float));
+         ::memcpy(&model_start[m_programs->model_block_access.view_from_model],  value_ptr(view_from_light), 16 * sizeof(float));
+         ::memcpy(&model_start[m_programs->model_block_access.world_from_model], value_ptr(world_from_light), 16 * sizeof(float));
+         m_programs->model_ubr->flush(r);
+         m_programs->end_edit_uniforms();
+      }
+      else
+      {
+         gl::uniform_matrix_4fv(p->uniform_at(m_programs->model_block_access.clip_from_model), 1, GL_FALSE, value_ptr(clip_from_light));
+         gl::uniform_matrix_4fv(p->uniform_at(m_programs->model_block_access.view_from_model), 1, GL_FALSE, value_ptr(view_from_light));
+         gl::uniform_matrix_4fv(p->uniform_at(m_programs->model_block_access.world_from_model), 1, GL_FALSE, value_ptr(world_from_light));
+      }
+
+      {
+         gl::begin_mode::value         begin_mode     = gl::begin_mode::lines;
+         index_range const             &index_range   = geometry_mesh->edge_line_indices();
+         GLsizei                       count          = static_cast<GLsizei>(index_range.index_count);
+         gl::draw_elements_type::value index_type     = gl::draw_elements_type::unsigned_int;
+         GLvoid                        *index_pointer = reinterpret_cast<GLvoid*>((index_range.first_index + mesh->first_index()) * mesh->index_buffer()->stride());
+         GLint                         base_vertex    = configuration::can_use.draw_elements_base_vertex
+            ? static_cast<GLint>(mesh->first_vertex())
+            : 0;
+
+         r.draw_elements_base_vertex(
+            geometry_mesh->vertex_stream(),
             begin_mode, count, index_type, index_pointer, base_vertex);
       }
    }

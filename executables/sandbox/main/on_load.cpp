@@ -40,7 +40,7 @@ bool application::create_gl_window()
       major = version / 10;
       minor = version % 10;
 
-      ok = open(512, 512, "OpenGL", major, minor);
+      ok = open(640, 360, "OpenGL", major, minor);
    }
 
    if (!ok)
@@ -77,6 +77,8 @@ bool application::initialize_services()
 
    auto shader_monitor_    = make_shared<shader_monitor>();
 
+   auto scene_manager_     = make_shared<scene_manager>();
+
    auto game_              = smart_ptr_builder::create_shared_ptr<renderstack::ui::action_sink>(new game());
    auto menu_              = smart_ptr_builder::create_shared_ptr<renderstack::ui::action_sink>(new menu());
 
@@ -94,6 +96,8 @@ bool application::initialize_services()
 
    m_services.add(shader_monitor_);
 
+   m_services.add(scene_manager_);
+
    m_services.add(game_);
    m_services.add(menu_);
 
@@ -110,6 +114,8 @@ bool application::initialize_services()
    if (deferred_renderer_) deferred_renderer_->connect(renderer, programs_, quad_renderer_);
    if (id_renderer_)       id_renderer_->connect(renderer, programs_);
 
+   if (scene_manager_)     scene_manager_->connect(programs_, renderer);
+
    if (game_)
       game_->connect(
          renderer,
@@ -122,7 +128,8 @@ bool application::initialize_services()
          deferred_renderer_,
          id_renderer_,
          menu_,
-         application_
+         application_,
+         scene_manager_
       );
 
    if (menu_)

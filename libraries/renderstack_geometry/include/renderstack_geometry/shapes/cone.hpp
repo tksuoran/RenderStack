@@ -31,6 +31,7 @@ protected:
 };
 
 // Cone is special of conical frustum which is not cut from top
+// top is at max_x, bottom is at min_x
 class cone : public conical_frustum
 {
 public:

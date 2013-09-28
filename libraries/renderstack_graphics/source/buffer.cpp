@@ -199,6 +199,8 @@ size_t buffer::allocate(size_t count)
 
 void *buffer::map(class renderer &renderer, size_t first, size_t count, gl::buffer_access_mask::value access)
 {
+   assert(count > 0);
+
    slog_trace("buffer::map(target = %s first = %u count = %u access = 0x%x) name = %u",
       buffer_target::desc(m_target),
       static_cast<unsigned int>(first),

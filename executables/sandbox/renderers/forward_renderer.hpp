@@ -10,12 +10,16 @@
 #include <vector>
 #include <memory>
 
+namespace renderstack { namespace mesh {
+   class geometry_mesh;
+} }
 namespace renderstack { namespace graphics {
    class uniform_buffer;
    class uniform_buffer_range;
 } }
 namespace renderstack { namespace scene {
    class camera;
+   class light;
 } }
 
 class debug_renderer;
@@ -37,8 +41,12 @@ public:
 
    void render_pass(
       std::shared_ptr<std::vector<std::shared_ptr<model> > > models,
+      std::shared_ptr<std::vector<std::shared_ptr<renderstack::scene::light> > > lights,
       std::shared_ptr<renderstack::scene::camera> camera
    );
+
+private:
+   void update_light_model(std::shared_ptr<renderstack::scene::light> l);
 
 private:
    void print_matrix(glm::mat4 const &m, std::string const &desc);
@@ -49,6 +57,11 @@ private:
    std::shared_ptr<programs>                          m_programs;
 
    renderstack::graphics::render_states               m_mesh_render_states;
+
+   std::map<
+      std::shared_ptr<renderstack::scene::light>,
+      std::shared_ptr<renderstack::mesh::geometry_mesh>
+   >                                                  m_light_meshes; 
 };
 
 

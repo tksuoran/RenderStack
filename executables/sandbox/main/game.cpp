@@ -3,12 +3,6 @@
 #include "renderstack_toolkit/gl.hpp"
 #include "renderstack_toolkit/strong_gl_enums.hpp"
 #include "renderstack_toolkit/math_util.hpp"
-#include "renderstack_geometry/shapes/sphere.hpp"
-#include "renderstack_geometry/shapes/disc.hpp"
-#include "renderstack_geometry/shapes/triangle.hpp"
-#include "renderstack_geometry/shapes/cone.hpp"
-#include "renderstack_geometry/shapes/cube.hpp"
-#include "renderstack_geometry/shapes/torus.hpp"
 #include "renderstack_geometry/operation/clone.hpp"
 #include "renderstack_geometry/operation/catmull_clark.hpp"
 #include "renderstack_graphics/configuration.hpp"
@@ -74,7 +68,6 @@ game::game()
 ,  m_shader_monitor     (nullptr)
 
 /* self owned parts */
-,  m_camera             (nullptr)
 ,  m_manipulator_frame  (nullptr)
 ,  m_root_layer         (nullptr)
 ,  m_menu_button        (nullptr)
@@ -105,7 +98,8 @@ void game::connect(
    shared_ptr<deferred_renderer>                      deferred_renderer_,
    shared_ptr<id_renderer>                            id_renderer_,
    shared_ptr<menu>                                   menu_,
-   shared_ptr<application>                            application_
+   shared_ptr<application>                            application_,
+   shared_ptr<scene_manager>                          scene_manager_
 )
 {
    m_renderer           = renderer;
@@ -119,11 +113,13 @@ void game::connect(
    m_forward_renderer   = forward_renderer_;
    m_id_renderer        = id_renderer_;
    m_debug_renderer     = debug_renderer_;
+   m_scene_manager      = scene_manager_;
 
    initialization_depends_on(renderer);
    initialization_depends_on(gui_renderer);
    initialization_depends_on(programs_);
    initialization_depends_on(textures_);
+   initialization_depends_on(scene_manager_);
 }
 
 void game::disconnect()
@@ -136,32 +132,6 @@ void game::disconnect()
    m_textures.reset();
 }
 
-void game::reset_build_info()
-{
-   m_format_info = geometry_mesh_format_info();
-   m_buffer_info = geometry_mesh_buffer_info();
-}
-
-shared_ptr<model> game::make_model(
-   shared_ptr<renderstack::scene::frame> parent,
-   shared_ptr<renderstack::geometry::geometry> g,
-   vec3 position
-)
-{
-   geometry_mesh::prepare_vertex_format(g, m_format_info, m_buffer_info);
-   mat4 transform;
-   create_translation(position, transform);
-
-   auto gm = make_shared<renderstack::mesh::geometry_mesh>(*m_renderer, g, m_format_info, m_buffer_info);
-   auto m = make_shared<model>();
-   m->set_geometry_mesh(gm);
-   m->frame()->set_parent(parent);
-   m->frame()->parent_from_local().set(transform);
-   m->frame()->update_hierarchical_no_cache();
-
-   return m;
-}
-
 void game::initialize_service()
 {
    assert(m_renderer);
@@ -171,174 +141,10 @@ void game::initialize_service()
 
    slog_trace("game::on_load()");
 
+   auto camera = m_scene_manager->camera();
 
-   m_models = make_shared<vector<shared_ptr<model> > >();
-
-   m_camera = make_shared<renderstack::scene::camera>();
-   m_camera->projection().set_fov_y(1.0f / 1.5f);
-   m_camera->projection().set_near(0.01f);
-   m_camera->projection().set_far(1000.0f);
-
-   m_controls.camera_controller.set_frame(m_camera->frame());
+   m_controls.camera_controller.set_frame(camera->frame());
    m_controls.home = vec3(0.0f, 1.7f, 10.0f);
-
-#if defined(USE_MESHES)
-   {
-      vector<shared_ptr<renderstack::geometry::geometry>> g_collection;
-
-      //g_collection.push_back(make_shared<renderstack::geometry::shapes::sphere>(1.0f, 12, 4));
-#if 1
-      g_collection.push_back(make_shared<renderstack::geometry::shapes::disc>(1.0, 0.8, 32, 2));
-      g_collection.push_back(make_shared<renderstack::geometry::shapes::triangle>(0.8f / 0.57735027f));
-      g_collection.push_back(make_shared<renderstack::geometry::shapes::sphere>(1.0f, 12 * 4, 4 * 6));
-      g_collection.push_back(make_shared<renderstack::geometry::shapes::torus>(0.6f, 0.3f, 42, 32));
-      g_collection.push_back(make_shared<renderstack::geometry::shapes::cuboctahedron>(1.0));
-      g_collection.push_back(make_shared<renderstack::geometry::shapes::dodecahedron>(1.0));
-      g_collection.push_back(make_shared<renderstack::geometry::shapes::icosahedron>(1.0));
-      g_collection.push_back(make_shared<renderstack::geometry::shapes::octahedron>(1.0));
-      g_collection.push_back(make_shared<renderstack::geometry::shapes::tetrahedron>(1.0));
-
-      g_collection.push_back(make_shared<renderstack::geometry::shapes::dodecahedron>(2.0));
-      auto g0 = make_shared<renderstack::geometry::shapes::dodecahedron>(2.0);
-      g0->build_edges();
-
-      auto o1 = make_shared<renderstack::geometry::operation::catmull_clark>(g0);
-      auto g1 = o1->destination();
-
-      auto o2 = make_shared<renderstack::geometry::operation::catmull_clark>(g1);
-      auto g2 = o2->destination();
-
-      g2->compute_polygon_normals();
-      g2->compute_point_normals("point_normals");
-      g_collection.push_back(g2);
-
-      auto xml = make_shared<xml_polyhedron>("res/polyhedra/127.xml");
-      g2->compute_polygon_normals();
-      g_collection.push_back(xml);
-
-#endif
-
-#if 0
-      {
-         auto body = make_shared<cube>(8, 12, 4);
-         //auto head = make_shared<cube>(8,  8, 8);
-         //auto hand = make_shared<cube>(4, 12, 4);
-         //auto foot = make_shared<cube>(4, 12, 4);
-         g_collection.push_back(body->mesh());
-      }
-#endif
-
-      // Count how big VBO and IBO is needed,
-      // and which vertex attributes are needed.
-      // Edges need to be built here in order for buffer size
-      // computations to be able to include line indices.
-#if SHARED_BUFFERS
-      renderstack::geometry::geometry::mesh_info total_info;
-#endif
-      renderstack::geometry::geometry::mesh_info info;
-      reset_build_info();
-      m_format_info.set_want_fill_triangles(true);
-      m_format_info.set_want_edge_lines(true);
-      m_format_info.set_want_position(true);
-      m_format_info.set_want_normal(true);
-      m_format_info.set_want_tangent(true);
-      m_format_info.set_want_texcoord(true);
-      m_format_info.set_want_color(true);
-      m_format_info.set_want_id(true);
-      m_format_info.set_normal_style(normal_style::corner_normals);
-      m_format_info.set_mappings(m_programs->mappings);
-      for (auto i = g_collection.begin(); i != g_collection.end(); ++i)
-      {
-         (*i)->build_edges();
-         (*i)->info(info);
-#if SHARED_BUFFERS
-         total_info += info;
-#endif
-         geometry_mesh::prepare_vertex_format(*i, m_format_info, m_buffer_info);
-      }
-
-#if SHARED_BUFFERS
-      size_t total_vertex_count = 0;
-      size_t total_index_count = 0;
-      total_vertex_count += total_info.vertex_count_corners;
-      if (format_info.want_centroid_points())
-         total_vertex_count += total_info.vertex_count_centroids;
-      
-      if (format_info.want_fill_triangles())
-         total_index_count += total_info.index_count_fill_triangles;
-
-      if (format_info.want_edge_lines())
-         total_index_count += total_info.index_count_edge_lines;
-
-      if (format_info.want_corner_points())
-         total_index_count += total_info.index_count_corner_points;
-
-      if (format_info.want_centroid_points())
-         total_index_count += total_info.index_count_centroid_points;
-
-      // Allocate a single VBO big enough to hold all vertices
-      auto vbo = make_shared<renderstack::graphics::buffer>(
-         renderstack::graphics::buffer_target::array_buffer,
-         total_vertex_count,
-         buffer_info.vertex_format()->stride(),
-         gl::buffer_usage_hint::static_draw
-      );
-      vbo->allocate_storage(*m_renderer);
-      m_buffer_info.set_vertex_buffer(vbo);
-
-      // Allocate a single IBO big enough to hold all indices
-      auto ibo = make_shared<renderstack::graphics::buffer>(
-         renderstack::graphics::buffer_target::element_array_buffer,
-         total_index_count,
-         4,                                  // stride
-         gl::buffer_usage_hint::static_draw
-      );
-      ibo->allocate_storage(*m_renderer);
-
-      m_buffer_info.set_index_buffer(ibo);
-#endif
-      
-      size_t count = g_collection.size();
-      float x = -float(count - 1) * 1.5f;
-
-      int pos = 0;
-      for (auto i = g_collection.begin(); i != g_collection.end(); ++i)
-      {
-         auto m = make_model(nullptr, *i, vec3(x, 0.0f, 0.0f));
-         m_models->push_back(m);
-
-         ++pos;
-         x += 2.0f * 1.5f;
-      }
-
-# if 1
-      {
-         reset_build_info();
-         m_format_info.set_want_fill_triangles(true);
-         m_format_info.set_want_position(true);
-         m_format_info.set_want_normal(true);
-         m_format_info.set_want_tangent(true);
-         m_format_info.set_want_color(true);
-         m_format_info.set_want_texcoord(true);
-         m_format_info.set_want_id(true);
-         m_format_info.set_normal_style(normal_style::corner_normals);
-         m_format_info.set_mappings(m_programs->mappings);
-         m_manipulator_frame = make_shared<renderstack::scene::frame>();
-         m_format_info.set_constant_color(vec4(1.0f, 0.0f, 0.0f, 1.0f));
-         mat4 x_to_y;
-         mat4 x_to_z;
-         
-         auto x_tip_g  = make_shared<renderstack::geometry::shapes::cone      >(0.75f, 1.00f, 0.15f, true, 18, 2);
-         auto x_tail_g = make_shared<renderstack::geometry::shapes::cylinder  >(0.00f, 0.75f, 0.03f, true, false, 12, 2);
-         auto x_tip_m  = make_model(m_manipulator_frame, x_tip_g);
-         auto x_tail_m = make_model(m_manipulator_frame, x_tail_g);
-         m_manipulator_models = make_shared<vector<shared_ptr<model> > >();
-         m_manipulator_models->push_back(x_tip_m);
-         m_manipulator_models->push_back(x_tail_m);
-      }
-# endif
-   }
-#endif
 
    reset();
 

@@ -78,8 +78,8 @@ void game::render_meshes()
 
       m_id_renderer->clear();
       m_id_renderer->render_pass(
-         m_models,
-         m_camera,
+         m_scene_manager->models(),
+         m_scene_manager->camera(),
          m_application->time(),
          x,
          y
@@ -88,7 +88,7 @@ void game::render_meshes()
       // float depth = 1.0f;
       // bool got = m_id_renderer->get(x, y, id, depth);
       hover_model = m_id_renderer->get(x, y);
-      if (hover_model)
+      if (m_manipulator_frame && hover_model)
          m_manipulator_frame->set_parent(hover_model->frame());
    }
 #endif
@@ -103,14 +103,18 @@ void game::render_meshes()
    glClearColor(0.05f, 0.1f, 0.15f, 1.0f);
    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-   m_forward_renderer->render_pass(m_models, m_camera);
+   m_forward_renderer->render_pass(
+      m_scene_manager->models(),
+      m_scene_manager->lights(),
+      m_scene_manager->camera()
+   );
    //m_forward_renderer->render_pass(m_manipulator, m_camera);
 #endif
 
 #if 1
    if (hover_model)
    {
-      m_debug_renderer->set_camera(m_camera);
+      m_debug_renderer->set_camera(m_scene_manager->camera());
       m_debug_renderer->begin_edit();
       m_debug_renderer->set_color(vec4(0.0f, 1.0f, 0.0f, 1.0f));
       //for (auto i = m_models.cbegin(); i != m_models.cend(); ++i)

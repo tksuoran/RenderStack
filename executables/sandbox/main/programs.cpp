@@ -249,6 +249,7 @@ void programs::connect(
       textured          = make_program("textured");
       id                = make_program("id");
       debug_line        = make_program("debug_line");
+      debug_light       = make_program("debug_light");
       anisotropic       = make_program("anisotropic");
    }
    catch (...)
