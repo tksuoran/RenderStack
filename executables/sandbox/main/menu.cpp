@@ -172,12 +172,12 @@ void menu::initialize_service()
    m_quit->set_sink(as);
    d->add(m_quit);
 
-	if (m_game)
-	{
-		m_map_editor = smart_ptr_builder::create_shared_ptr<action_source, area>(new button(gr, "Map Editor", bs));
-	   m_map_editor->set_sink(as);
-	   d->add(m_map_editor);
-	}
+   if (m_game)
+   {
+      m_sandbox_button = smart_ptr_builder::create_shared_ptr<action_source, area>(new button(gr, "Sandbox", bs));
+      m_sandbox_button->set_sink(as);
+      d->add(m_sandbox_button);
+   }
 
    m_root_layer->add(d);
 #endif
@@ -185,7 +185,7 @@ void menu::initialize_service()
 void menu::action(weak_ptr<action_source> source)
 {
    auto s = source.lock();
-   if (s == m_map_editor)
+   if (s == m_sandbox_button)
    {
 		if (m_game)
 	      m_application->set_screen(m_game);

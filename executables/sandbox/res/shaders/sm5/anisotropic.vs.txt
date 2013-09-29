@@ -9,6 +9,8 @@ out vec3 v_tangent;
 out vec3 v_view_direction;
 out vec3 v_color;
 out vec2 v_texcoord;
+out vec3 v_light_direction;
+out vec3 v_light_distance;
 
 void main()
 {
@@ -21,6 +23,7 @@ void main()
       camera.world_from_view[3][1],
       camera.world_from_view[3][2]
    );
+   v_light_direction = lights.position - position.xyz;
    v_view_direction  = view_position_in_world - position.xyz;
    v_color           = a_color;
    v_texcoord = a_texcoord;

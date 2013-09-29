@@ -101,6 +101,7 @@ void scene_manager::add_floor(float size)
 
 void scene_manager::add_simple_scene()
 {
+#if 0
    {
       auto sun = make_shared<light>();
       sun->set_type(light_type::directional);
@@ -118,6 +119,7 @@ void scene_manager::add_simple_scene()
       sun->frame()->update_hierarchical_no_cache();
       add(sun);
    }
+#endif
 
    vector<shared_ptr<renderstack::geometry::geometry>> g_collection;
 

@@ -3,12 +3,13 @@ in vec3 v_color;
 in vec3 v_normal;
 in vec3 v_tangent;
 in vec2 v_texcoord;
+in vec3 v_light_direction;
 
 out vec4 out_color;
 
 void main(void)
 {
-   float r              = material.roughness;
+   float r              = 0.01; //material.roughness;
    float p              = material.isotropy;
    float p2             = p * p;
    float one_minus_r    = 1.0 - r;
@@ -17,9 +18,13 @@ void main(void)
    vec3  T              = normalize(v_tangent);
    vec3  B              = normalize(cross(T, N));
    vec3  V              = normalize(v_view_direction);
-   vec3  L              = normalize(lights.direction.xyz);
+   //vec3  L              = normalize(lights.direction.xyz);
+   vec3  s              = normalize(lights.direction.xyz);
+   vec3  L              = normalize(v_light_direction);
    float vn             = dot(V, N);
    float vn_clamped     = max(vn, 0.0);
+   float ls             = dot(L, s);
+   float ls_clamped     = max(ls, 0.0);
    float gvn_denom      = r + one_minus_r * vn_clamped;
    vec3  C              = v_color * material.color.rgb;
    vec3  one_minus_C    = vec3(1.0, 1.0, 1.0) - C;
@@ -30,27 +35,35 @@ void main(void)
 
    if (ln > 0.0)
    {
-      float ln_clamped  = max(ln, 0.0);
-      vec3  H           = normalize(L + V);
-      float hn          = dot(H, N);
-      float hv          = dot(H, V);
-      float hn_clamped  = max(hn, 0.0);
-      float hv_clamped  = max(hv, 0.0);
-      float ht          = dot(H - hn * N, T);
-      float ht_clamped  = max(ht, 0.0);
-      float hn2         = hn * hn;
-      float ht2         = ht * ht;
-      float aht_denom   = sqrt(p2 + one_minus_p2 * ht2);
-      float gln_denom   = (r   + one_minus_r * ln);
-      float zhn0        = (1.0 - one_minus_r * hn * hn);
-      float D           = (ln_clamped * r * p2) / (gvn_denom * gln_denom * zhn0 * zhn0 * aht_denom);
-      float light_visibility  = 1.0;
-      vec3  incident_radiance = lights.radiance * light_visibility;
+      if (ls_clamped > 0.9340)
+      {
+         float ln_clamped  = max(ln, 0.0);
+         vec3  H           = normalize(L + V);
+         float hn          = dot(H, N);
+         float hv          = dot(H, V);
+         float hn_clamped  = max(hn, 0.0);
+         float hv_clamped  = max(hv, 0.0);
+         float ht          = dot(H - hn * N, T);
+         float ht_clamped  = max(ht, 0.0);
+         float hn2         = hn * hn;
+         float ht2         = ht * ht;
+         float aht_denom   = sqrt(p2 + one_minus_p2 * ht2);
+         float gln_denom   = (r   + one_minus_r * ln);
+         float zhn0        = (1.0 - one_minus_r * hn * hn);
+         float D           = (ln_clamped * r * p2) / (gvn_denom * gln_denom * zhn0 * zhn0 * aht_denom);
 
-      exitant_radiance += incident_radiance * C * ln_clamped;  //  diffuse
-      exitant_radiance += incident_radiance * S * D;           //  specular
+         float light_distance    = length(v_light_direction);
+         float light_attenuation = 1.0 / (light_distance * light_distance);
+         float light_visibility  = 1.0;
+         vec3  incident_radiance = lights.radiance * light_visibility * light_attenuation;
+
+         exitant_radiance += incident_radiance * C * ln_clamped;  //  diffuse
+         exitant_radiance += incident_radiance * S * D;           //  specular
+      }
    }
 
-   out_color.rgb = vec3(1.0) - exp(-exitant_radiance * lights.exposure);
+   float exposure = lights.exposure * 40.0;
+
+   out_color.rgb = vec3(1.0) - exp(-exitant_radiance * exposure);
    out_color.rgb = pow(out_color.rgb, vec3(1.0 / 2.2));
 }

@@ -89,7 +89,7 @@ private: /* services */
    std::shared_ptr<renderstack::ui::text_buffer>                  m_text_buffer;
    std::shared_ptr<renderstack::mesh::mesh>                       m_mesh;
    std::shared_ptr<renderstack::ui::layer>                        m_root_layer;
-   std::shared_ptr<renderstack::ui::button>                       m_map_editor;
+   std::shared_ptr<renderstack::ui::button>                       m_sandbox_button;
    std::shared_ptr<renderstack::ui::button>                       m_quit;
 };
 

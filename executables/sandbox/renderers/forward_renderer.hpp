@@ -52,11 +52,13 @@ private:
    void print_matrix(glm::mat4 const &m, std::string const &desc);
 
 private:
+   // services
    std::shared_ptr<renderstack::graphics::renderer>   m_renderer;
    std::shared_ptr<debug_renderer>                    m_debug_renderer;
    std::shared_ptr<programs>                          m_programs;
 
-   renderstack::graphics::render_states               m_mesh_render_states;
+   renderstack::graphics::render_states               m_first_pass_render_states;
+   renderstack::graphics::render_states               m_other_pass_render_states;
 
    std::map<
       std::shared_ptr<renderstack::scene::light>,
