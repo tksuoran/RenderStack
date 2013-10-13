@@ -21,6 +21,7 @@
 // #define LOG_GL_ATTRIB      1
 // #define LOG_GL_TEXTURE     1
 // #define LOG_GL_PROGRAM     1
+// #define LOG_GL_DRAW        1
 
 // #define LOG_GL_UNIFORM
 // #define LOG_GL_FBO
@@ -488,7 +489,7 @@ void disable(GLenum cap)
 }
 void draw_arrays(GLenum mode, GLint first, GLsizei count)
 {
-#if defined(LOG_GL)
+#if defined(LOG_GL) || defined(LOG_GL_DRAW)
    log_trace("glDrawArrays(%s, %d, %u)",
       enum_string(mode),
       first,
@@ -504,7 +505,7 @@ void draw_arrays(GLenum mode, GLint first, GLsizei count)
 }
 void draw_elements(GLenum mode, GLsizei count, GLenum type, const GLvoid *indices)
 {
-#if defined(LOG_GL)
+#if defined(LOG_GL) || defined(LOG_GL_DRAW)
    log_trace("draw_elements(%s, %u, %s, %p)",
       enum_string(mode),
       static_cast<unsigned int>(count),
@@ -1063,7 +1064,7 @@ void blend_equation(GLenum a)
 #if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
 void draw_range_elements(GLenum mode, GLuint start, GLuint end, GLsizei count, GLenum type, const GLvoid *indices)
 {
-#if defined(LOG_GL)
+#if defined(LOG_GL) || defined(LOG_GL_DRAW)
    log_trace("draw_range_elements(%s, %u, %u, %u, %s, %p)",
       enum_string(mode),
       start,
@@ -3770,7 +3771,7 @@ void framebuffer_texture(GLenum a, GLenum b, GLuint c, GLint d)
 #if defined(RENDERSTACK_GL_API_OPENGL)
 void draw_elements_base_vertex(GLenum mode, GLsizei count, GLenum type, const GLvoid *indices, GLint basevertex)
 {
-#if defined(LOG_GL)
+#if defined(LOG_GL) || defined(LOG_GL_DRAW)
    log_trace("draw_elements_base_vertex(mode = %s, count = %d, type = %s, indices = %p, basevertex = %u)",
       enum_string(mode),
       static_cast<unsigned int>(count),

@@ -152,8 +152,9 @@ void programs::connect(
    ubo_size += model_block->size_bytes();
 
    camera_block = make_shared<uniform_block>(1, "camera");
-   camera_block_access.world_from_view   = camera_block->add_mat4("world_from_view" )->access();
-   camera_block_access.viewport          = camera_block->add_vec4("viewport"        )->access();
+   camera_block_access.world_from_view = camera_block->add_mat4("world_from_view" )->access();
+   camera_block_access.world_from_clip = camera_block->add_mat4("world_from_clip" )->access();
+   camera_block_access.viewport        = camera_block->add_vec4("viewport"        )->access();
    camera_block->seal();
    ubo_size += camera_block->size_bytes();
 
@@ -207,6 +208,7 @@ void programs::connect(
    samplers->add("albedo_texture",           gl::active_uniform_type::sampler_2d, nearest_sampler)->set_texture_unit_index(1);
    samplers->add("normal_tangent_texture",   gl::active_uniform_type::sampler_2d, nearest_sampler)->set_texture_unit_index(2);
    samplers->add("material_texture",         gl::active_uniform_type::sampler_2d, nearest_sampler)->set_texture_unit_index(3);
+   samplers->add("depth_texture",            gl::active_uniform_type::sampler_2d, nearest_sampler)->set_texture_unit_index(4);
    samplers->add("show_rt_texture",          gl::active_uniform_type::sampler_2d, show_rt_sampler)->set_texture_unit_index(0);
 
    try
@@ -252,10 +254,10 @@ void programs::connect(
       debug_light       = make_program("debug_light");
       anisotropic       = make_program("anisotropic");
    }
-   catch (...)
+   catch (runtime_error const &e)
    {
-      log_error("shaders are broken\n");
-      throw runtime_error("shaders are broken");
+      log_error("programs::initialize_service() - aborting");
+      throw e;
    }
 }
 

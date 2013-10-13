@@ -92,7 +92,7 @@ void game::update_once_per_frame()
       auto l = *i;
 
       float rel = static_cast<float>(light_index) / static_cast<float>(n_lights);
-      float t = 1.5f * static_cast<float>(m_simulation_time) + rel * pi<float>() * 2.0f;
+      float t = 0.5f * static_cast<float>(m_simulation_time) + rel * pi<float>() * 2.0f;
       mat4 m;
 
       light_index++;
@@ -100,10 +100,11 @@ void game::update_once_per_frame()
       vec3 eye = vec3(
          l->frame()->world_from_local().matrix() * vec4(0.0f, 0.0f, 0.0f, 1.0f)
       );
+      eye.y = 9.0f + 3.0f * std::sin(t * 1.74837);
       vec3 center = eye + vec3(
-          2.0f * std::sin(t),
+          2.5f * std::sin(t),
          -8.0f,
-          2.0f * std::cos(t)
+          2.5f * std::cos(t)
       );
 
       create_look_at(

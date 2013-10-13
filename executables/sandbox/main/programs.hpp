@@ -33,6 +33,7 @@ struct model_block_i
 struct camera_block_i
 {
    std::size_t world_from_view;       /* mat4 */
+   std::size_t world_from_clip;       /* mat4 */
    std::size_t viewport;              /* vec4 */
 };
 

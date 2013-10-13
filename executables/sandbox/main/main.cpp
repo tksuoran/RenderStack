@@ -1,130 +1,22 @@
 #if 0
 
-#include <algorithm>
-#include <iterator>
-#include <string>
-#include <memory>
-#include <cassert>
-#include <iostream>
-#include <set>
-#include <stdexcept>
+#include <cstdlib>
 
-namespace test {
-
-   class service
-   {  
-   public:
-      service(std::string const& name) : m_name(name), m_initialized(false) { }
-      virtual ~service() { }
-      void initialize()
-      {
-         initialize_service();
-         m_initialized = true;
-      }
-      std::string const &name() const { return m_name; }
-      bool ready() const { return m_dependencies.size() == 0; }
-      virtual void initialize_service() = 0;
-      void initialization_depends_on(std::shared_ptr<service> s)
-      {
-         if (s)
-            m_dependencies.insert(s);
-      }
-      void remove_dependencies(std::set<std::shared_ptr<service> > const &remove_set)
-      {
-         for (auto i = remove_set.cbegin(); i != remove_set.cend(); ++i)
-            m_dependencies.erase(*i);
-      }
-
-   private:
-      std::string m_name;
-      bool m_initialized;
-      std::set<std::shared_ptr<service> > m_dependencies;
-   };
-
-   class renderer : public service
-   {
-   public:
-      renderer() : service("renderer") { }
-      ~renderer() { }
-      void initialize_service() { }
-   };
-
-   class gui_renderer : public service
-   {
-   public:
-      gui_renderer() : service("gui_renderer") { }
-      ~gui_renderer() { }
-      void connect(std::shared_ptr<renderer> renderer_)
-      {
-         m_renderer = renderer_;
-         initialization_depends_on(renderer_);
-      }
-      void initialize_service() { assert(m_renderer); }
-
-   private:
-      std::shared_ptr<renderer> m_renderer;
-   };
-
+template<typename value_type>
+value_type interpolate(float t, value_type a, value_type b)
+{
+   return t * a + (1.0f - t) * b;
 }
-
-using namespace std;
 
 int main(int argc, char *argv[])
 {
    (void)argc;
    (void)argv;
 
-   set<shared_ptr<test::service> > uninitialized;
+   int a = interpolate<int>(0.5f, 10, 20);
+   (void)a;
 
-   auto renderer_ = make_shared<test::renderer>();
-   auto gui_renderer_ = make_shared<test::gui_renderer>();
-   
-   gui_renderer_->connect(renderer_);
-
-   uninitialized.insert(renderer_);
-   uninitialized.insert(gui_renderer_);
-
-   set<shared_ptr<test::service> > remove_set;
-
-   size_t uninitialized_count = uninitialized.size();
-
-   cout << "Initializing " << uninitialized_count << " services:\n";
-
-   while (uninitialized_count > 0)
-   {
-      remove_set.clear();
-
-      for (auto i = uninitialized.begin(); i != uninitialized.end();)
-      {
-         auto s = *i;
-
-         if (s->ready())
-         {
-            cout << "Initializing service: " << s->name() << "\n";
-            s->initialize();  
-            remove_set.insert(s);
-            --uninitialized_count;
-            i = uninitialized.erase(i);
-         }
-         else
-         {
-            ++i;
-         }
-      }
-
-      if (remove_set.size() == 0)
-         throw runtime_error("circular dependencies detected");
-
-      cout << "Removing initialized services from dependencies...\n";
-
-      for (auto i = uninitialized.begin(); i != uninitialized.end(); ++i)
-      {
-         auto s = *i;
-         s->remove_dependencies(remove_set);
-      }
-
-      cout << "Done.\n";
-   }
+   return EXIT_SUCCESS;
 }
 
 #else

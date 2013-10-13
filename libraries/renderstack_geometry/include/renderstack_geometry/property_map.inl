@@ -227,7 +227,8 @@ inline bool property_map<key_type, value_type>::entry::operator<(entry const &ot
 template<typename key_type, typename value_type>
 inline void property_map<key_type, value_type>::interpolate(
    property_map_base<key_type> *destination_base,
-   std::map<key_type, std::vector<std::pair<float, key_type>>> key_new_to_olds
+   std::map<key_type,
+   std::vector<std::pair<float, key_type> > > key_new_to_olds
 ) const
 {
    property_map<key_type, value_type> *destination = dynamic_cast<property_map<key_type, value_type> *>(destination_base);

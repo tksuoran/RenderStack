@@ -1,5 +1,6 @@
 #include "renderstack_toolkit/platform.hpp"
 #include "renderers/deferred_renderer.hpp"
+#include "renderstack_geometry/shapes/cone.hpp"
 #include "renderstack_graphics/buffer.hpp"
 #include "renderstack_graphics/configuration.hpp"
 #include "renderstack_graphics/program.hpp"
@@ -11,6 +12,8 @@
 #include "renderstack_mesh/geometry_mesh.hpp"
 #include "renderstack_mesh/mesh.hpp"
 #include "renderstack_scene/camera.hpp"
+#include "renderstack_scene/light.hpp"
+#include "renderstack_scene/viewport.hpp"
 #include "renderstack_toolkit/gl.hpp"
 #include "renderstack_toolkit/strong_gl_enums.hpp"
 #include "renderstack_toolkit/math_util.hpp"
@@ -26,6 +29,7 @@
 using namespace renderstack::toolkit;
 using namespace renderstack::graphics;
 using namespace renderstack::mesh;
+using namespace renderstack::scene;
 using namespace renderstack;
 using namespace gl;
 using namespace glm;
@@ -72,9 +76,21 @@ void deferred_renderer::initialize_service()
    m_light_render_states.depth.set_enabled(false);
    m_light_render_states.face_cull.set_enabled(false);
    m_light_render_states.blend.set_enabled(true);
+   //m_light_render_states.blend.set_enabled(false);
    m_light_render_states.blend.rgb().set_equation_mode(gl::blend_equation_mode::func_add);
    m_light_render_states.blend.rgb().set_source_factor(gl::blending_factor_src::one);
    m_light_render_states.blend.rgb().set_destination_factor(gl::blending_factor_dest::one);
+
+   m_debug_light_render_states.depth.set_enabled(true);
+   m_debug_light_render_states.depth.set_function(gl::depth_function::l_equal);
+   m_debug_light_render_states.face_cull.set_enabled(true);
+   m_debug_light_render_states.blend.set_enabled(true);
+   m_debug_light_render_states.blend.rgb().set_equation_mode(gl::blend_equation_mode::func_add);
+   m_debug_light_render_states.blend.rgb().set_source_factor(gl::blending_factor_src::src_alpha);
+   m_debug_light_render_states.blend.rgb().set_destination_factor(gl::blending_factor_dest::one);   
+   m_debug_light_render_states.blend.alpha().set_equation_mode(gl::blend_equation_mode::func_add);
+   m_debug_light_render_states.blend.alpha().set_source_factor(gl::blending_factor_src::one);
+   m_debug_light_render_states.blend.alpha().set_destination_factor(gl::blending_factor_dest::one);   
 
    // Nothing to change in, use default render states:
    // m_show_rt_render_states
@@ -150,6 +166,10 @@ void deferred_renderer::resize(int width, int height)
       height,
       0
    );
+   m_depth->set_mag_filter(gl::texture_mag_filter::nearest);
+   m_depth->set_min_filter(gl::texture_min_filter::nearest);
+   m_depth->set_wrap(0, gl::texture_wrap_mode::clamp_to_edge);
+   m_depth->set_wrap(1, gl::texture_wrap_mode::clamp_to_edge);
    m_depth->allocate_storage(*m_renderer);
    gl::framebuffer_texture_2d(GL_DRAW_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_depth->gl_name(), 0);
    gl::bind_framebuffer(GL_DRAW_FRAMEBUFFER, 0);
@@ -157,14 +177,14 @@ void deferred_renderer::resize(int width, int height)
 
 void deferred_renderer::fbo_clear()
 {
-   GLfloat emission_clear        [4] = { 0.2f, 0.1f, 0.1f, 1.0f };
-   GLfloat albedo_clear          [4] = { 0.1f, 0.2f, 0.1f, 0.0f };
-   GLfloat normal_tangent_clear  [4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-   GLfloat material_clear        [4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+   GLfloat emission_clear        [4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+   GLfloat albedo_clear          [4] = { 0.5f, 0.5f, 0.5f, 0.0f };
+   GLfloat normal_tangent_clear  [4];
+   GLfloat material_clear        [4];
    GLfloat one = 1.0f;
 
    vec3 N = vec3(0.0f, 0.0f, -1.0f);
-   vec3 T = vec3(0.0f, 1.0f, 0.0f); 
+   vec3 T = vec3(0.0f, 1.0f,  0.0f); 
 
    cartesian_to_spherical(N, normal_tangent_clear[0], normal_tangent_clear[1]);
    cartesian_to_spherical(T, normal_tangent_clear[2], normal_tangent_clear[3]);
@@ -256,16 +276,91 @@ void deferred_renderer::geometry_pass(
    }
 }
 
-void deferred_renderer::light_pass(std::shared_ptr<renderstack::scene::camera> camera)
+void deferred_renderer::update_light_model(shared_ptr<light> l)
 {
-   mat4 const &world_from_view = camera->frame()->world_from_local().matrix();
+   switch (l->type())
+   {
+   case light_type::directional:
+      assert(0);
+      break;
+   case light_type::point:
+      assert(0);
+      break;
 
+   case light_type::spot:
+      {
+         //           Side:                     Bottom:
+         //             .                    ______________
+         //            /|\                  /       |    / \
+         //           / | \                /   apothem  /   \
+         //          /  +--+ alpha        /         | radius \
+         //         /   |   \            /          | /       \
+         //        /    |    \          /           |/         \
+         //       /     |     \         \                      /
+         //      /      |      \         \                    /
+         //     /     length    \         \                  /
+         //    /        |        \         \                /
+         //   /         |         \         \______________/
+         //  +----------+----------+
+
+         int   n        = 16;
+         float alpha    = l->spot_angle(); 
+         float length   = l->range();
+         float apothem  = length * std::sin(alpha);
+         float radius   = apothem / std::cos(glm::pi<float>() / static_cast<float>(n));
+
+         shared_ptr<renderstack::geometry::geometry> g = make_shared<renderstack::geometry::shapes::conical_frustum>(
+            0.0,        // min x
+            length,     // max x
+            0.0,        // bottom radius
+            radius,     // top radius
+            false,      // use bottom
+            true,       // use top (end)
+            n,          // slice count
+            0           // stack division
+         );
+
+         g->transform(mat4_rotate_xz_cw);
+         g->build_edges();
+
+         renderstack::mesh::geometry_mesh_format_info format_info;
+         renderstack::mesh::geometry_mesh_buffer_info buffer_info;
+
+         renderstack::geometry::geometry::mesh_info info;
+
+         format_info.set_want_fill_triangles(true);
+         format_info.set_want_edge_lines(true);
+         format_info.set_want_position(true);
+         format_info.set_mappings(m_programs->mappings);
+                                                                                                      #
+         geometry_mesh::prepare_vertex_format(g, format_info, buffer_info);
+
+         auto &r = *m_renderer;
+
+         auto gm = make_shared<renderstack::mesh::geometry_mesh>(r, g, format_info, buffer_info);
+
+         m_light_meshes[l] = gm;
+      }
+      break;
+
+   default:
+      assert(0);
+   }
+}
+
+void deferred_renderer::light_pass(
+   shared_ptr<vector<shared_ptr<light> > > lights,
+   shared_ptr<camera> camera,
+   renderstack::scene::viewport const &viewport
+)
+{
    // Temp draw directly to screen
    bind_default_framebuffer();
    //bind_fbo();
 
-   glClearColor(0.0f, 0.0f, 0.15f, 1.0f);
+   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+   glEnable(GL_FRAMEBUFFER_SRGB);
 
    auto &r = *m_renderer;
    auto &t = r.track();
@@ -278,35 +373,183 @@ void deferred_renderer::light_pass(std::shared_ptr<renderstack::scene::camera> c
    r.set_texture(1, m_rt[1]);
    r.set_texture(2, m_rt[2]);
    r.set_texture(3, m_rt[3]);
+   r.set_texture(4, m_depth);
    r.set_program(p);
 
    mat4 identity = mat4(1.0f);
+   mat4 const &clip_from_world = camera->clip_from_world().matrix();
+   mat4 const &world_from_clip = camera->clip_from_world().inverse_matrix();
+   mat4 const &world_from_view = camera->frame()->world_from_local().matrix();
+   mat4 const &view_from_world = camera->frame()->world_from_local().inverse_matrix();
+
+   // viewport (in camera constant buffer)
+   vec4 vp;
+   vp.x = viewport.x();
+   vp.y = viewport.y();
+   vp.z = viewport.width();
+   vp.w = viewport.height();
 
    if (m_programs->use_uniform_buffers())
    {
       assert(m_programs);
-      assert(m_programs->model_ubr);
-
-      //r.set_uniform_buffer_range(m_programs->model_block->binding_point(), m_programs->model_ubr);
-      //r.set_uniform_buffer_range(m_programs->camera_block->binding_point(), m_programs->camera_ubr);
+      assert(m_programs->camera_ubr);
 
       unsigned char *start = m_programs->begin_edit_uniforms();
-
-      ::memcpy(&start[m_programs->model_ubr->first_byte() + m_programs->model_block_access.clip_from_model], value_ptr(identity), 16 * sizeof(float));
-      m_programs->model_ubr->flush(r);
-
       ::memcpy(&start[m_programs->camera_ubr->first_byte() + m_programs->camera_block_access.world_from_view], value_ptr(world_from_view), 16 * sizeof(float));
+      ::memcpy(&start[m_programs->camera_ubr->first_byte() + m_programs->camera_block_access.world_from_clip], value_ptr(world_from_clip), 16 * sizeof(float));
+      ::memcpy(&start[m_programs->camera_ubr->first_byte() + m_programs->camera_block_access.viewport], value_ptr(vp), 4 * sizeof(float));
       m_programs->camera_ubr->flush(r);
-
       m_programs->end_edit_uniforms();
    }
    else
    {
-      gl::uniform_matrix_4fv(p->uniform_at(m_programs->model_block_access.clip_from_model ), 1, GL_FALSE, value_ptr(identity));
       gl::uniform_matrix_4fv(p->uniform_at(m_programs->camera_block_access.world_from_view), 1, GL_FALSE, value_ptr(world_from_view));
+      gl::uniform_matrix_4fv(p->uniform_at(m_programs->camera_block_access.world_from_clip), 1, GL_FALSE, value_ptr(world_from_clip));
+      gl::uniform_4fv(p->uniform_at(m_programs->camera_block_access.viewport), 1, value_ptr(vp));
    }
 
-   m_quad_renderer->render_minus_one_to_one();
+   for (auto i = lights->cbegin(); i != lights->cend(); ++i)
+   {
+      auto l = *i;
+
+      if (l->type() != light_type::spot)
+         continue;
+
+      if (m_light_meshes.find(l) == m_light_meshes.end())
+         update_light_model(l);
+
+      l->frame()->update_hierarchical_no_cache(); // TODO
+
+      mat4 world_from_light   = l->frame()->world_from_local().matrix();
+      mat4 clip_from_light    = clip_from_world * world_from_light;
+      mat4 view_from_light    = view_from_world * world_from_light;
+      auto geometry_mesh      = m_light_meshes[l];
+      auto vertex_stream      = geometry_mesh->vertex_stream();
+      auto mesh               = geometry_mesh->get_mesh();
+
+      glm::vec3 position   = vec3(l->frame()->world_from_local().matrix() * vec4(0.0f, 0.0f, 0.0f, 1.0f));
+      glm::vec3 direction  = vec3(l->frame()->world_from_local().matrix() * vec4(0.0f, 0.0f, 1.0f, 0.0f));
+      glm::vec3 radiance   = l->intensity() * l->color();
+
+      direction = normalize(direction);
+
+      if (m_programs->use_uniform_buffers())
+      {
+         assert(m_programs);
+         assert(m_programs->model_ubr);
+
+         unsigned char *start       = m_programs->begin_edit_uniforms();
+         unsigned char *model_start = &start[m_programs->model_ubr->first_byte()];
+         ::memcpy(&start[m_programs->lights_ubr->first_byte() + m_programs->lights_block_access.position  ], value_ptr(position),  3 * sizeof(float));
+         ::memcpy(&start[m_programs->lights_ubr->first_byte() + m_programs->lights_block_access.direction ], value_ptr(direction), 3 * sizeof(float));
+         ::memcpy(&start[m_programs->lights_ubr->first_byte() + m_programs->lights_block_access.radiance  ], value_ptr(radiance),  3 * sizeof(float));
+         m_programs->lights_ubr->flush(r);
+         ::memcpy(&model_start[m_programs->model_block_access.clip_from_model],  value_ptr(clip_from_light), 16 * sizeof(float));
+         ::memcpy(&model_start[m_programs->model_block_access.view_from_model],  value_ptr(view_from_light), 16 * sizeof(float));
+         ::memcpy(&model_start[m_programs->model_block_access.world_from_model], value_ptr(world_from_light), 16 * sizeof(float));
+         m_programs->model_ubr->flush(r);
+         m_programs->end_edit_uniforms();
+      }
+      else
+      {
+         gl::uniform_3fv(p->uniform_at(m_programs->lights_block_access.position),   1, value_ptr(position));
+         gl::uniform_3fv(p->uniform_at(m_programs->lights_block_access.direction),  1, value_ptr(direction));
+         gl::uniform_3fv(p->uniform_at(m_programs->lights_block_access.radiance),   1, value_ptr(radiance));
+         gl::uniform_matrix_4fv(p->uniform_at(m_programs->model_block_access.clip_from_model), 1, GL_FALSE, value_ptr(clip_from_light));
+         gl::uniform_matrix_4fv(p->uniform_at(m_programs->model_block_access.view_from_model), 1, GL_FALSE, value_ptr(view_from_light));
+         gl::uniform_matrix_4fv(p->uniform_at(m_programs->model_block_access.world_from_model), 1, GL_FALSE, value_ptr(world_from_light));
+      }
+
+      {
+         gl::begin_mode::value         begin_mode     = gl::begin_mode::triangles;
+         index_range const             &index_range   = geometry_mesh->fill_indices();
+         GLsizei                       count          = static_cast<GLsizei>(index_range.index_count);
+         gl::draw_elements_type::value index_type     = gl::draw_elements_type::unsigned_int;
+         GLvoid                        *index_pointer = reinterpret_cast<GLvoid*>((index_range.first_index + mesh->first_index()) * mesh->index_buffer()->stride());
+         GLint                         base_vertex    = configuration::can_use.draw_elements_base_vertex
+            ? static_cast<GLint>(mesh->first_vertex())
+            : 0;
+
+         assert(index_range.index_count > 0);
+
+         r.draw_elements_base_vertex(
+            geometry_mesh->vertex_stream(),
+            begin_mode, count, index_type, index_pointer, base_vertex);
+      }
+   }
+   glDisable(GL_FRAMEBUFFER_SRGB);
+
+
+#if 0
+   t.execute(&m_debug_light_render_states);
+   p = m_programs->debug_light;
+   r.set_program(p);
+   glEnable(GL_FRAMEBUFFER_SRGB);
+
+   for (auto i = lights->cbegin(); i != lights->cend(); ++i)
+   {
+      auto light = *i;
+
+      glm::vec3 radiance = light->color();
+
+      if (light->type() != light_type::spot)
+         continue;
+
+      if (m_light_meshes.find(light) == m_light_meshes.end())
+         update_light_model(light);
+
+      mat4 world_from_light   = light->frame()->world_from_local().matrix();
+      mat4 clip_from_light    = clip_from_world * world_from_light;
+      mat4 view_from_light    = view_from_world * world_from_light;
+      auto geometry_mesh      = m_light_meshes[light];
+      auto vertex_stream      = geometry_mesh->vertex_stream();
+      auto mesh               = geometry_mesh->get_mesh();
+
+      light->frame()->update_hierarchical_no_cache(); // TODO
+
+      if (m_programs->use_uniform_buffers())
+      {
+         assert(m_programs);
+         assert(m_programs->model_ubr);
+
+         unsigned char *start       = m_programs->begin_edit_uniforms();
+         unsigned char *model_start = &start[m_programs->model_ubr->first_byte()];
+         ::memcpy(&start[m_programs->lights_ubr->first_byte() + m_programs->lights_block_access.radiance  ], value_ptr(radiance),  3 * sizeof(float));
+         m_programs->lights_ubr->flush(r);
+         ::memcpy(&model_start[m_programs->model_block_access.clip_from_model],  value_ptr(clip_from_light), 16 * sizeof(float));
+         ::memcpy(&model_start[m_programs->model_block_access.view_from_model],  value_ptr(view_from_light), 16 * sizeof(float));
+         ::memcpy(&model_start[m_programs->model_block_access.world_from_model], value_ptr(world_from_light), 16 * sizeof(float));
+         m_programs->model_ubr->flush(r);
+         m_programs->end_edit_uniforms();
+      }
+      else
+      {
+         gl::uniform_3fv(p->uniform_at(m_programs->lights_block_access.radiance),   1, value_ptr(radiance));
+         gl::uniform_matrix_4fv(p->uniform_at(m_programs->model_block_access.clip_from_model), 1, GL_FALSE, value_ptr(clip_from_light));
+         gl::uniform_matrix_4fv(p->uniform_at(m_programs->model_block_access.view_from_model), 1, GL_FALSE, value_ptr(view_from_light));
+         gl::uniform_matrix_4fv(p->uniform_at(m_programs->model_block_access.world_from_model), 1, GL_FALSE, value_ptr(world_from_light));
+      }
+
+      {
+         gl::begin_mode::value         begin_mode     = gl::begin_mode::lines;
+         index_range const             &index_range   = geometry_mesh->edge_line_indices();
+         GLsizei                       count          = static_cast<GLsizei>(index_range.index_count);
+         gl::draw_elements_type::value index_type     = gl::draw_elements_type::unsigned_int;
+         GLvoid                        *index_pointer = reinterpret_cast<GLvoid*>((index_range.first_index + mesh->first_index()) * mesh->index_buffer()->stride());
+         GLint                         base_vertex    = configuration::can_use.draw_elements_base_vertex
+            ? static_cast<GLint>(mesh->first_vertex())
+            : 0;
+
+         r.draw_elements_base_vertex(
+            geometry_mesh->vertex_stream(),
+            begin_mode, count, index_type, index_pointer, base_vertex);
+      }
+   }
+   glDisable(GL_FRAMEBUFFER_SRGB);
+#endif
+
+
+   // m_quad_renderer->render_minus_one_to_one();
 
    //int iw = m_application->width();
    //int ih = m_application->height();

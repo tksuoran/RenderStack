@@ -83,7 +83,7 @@ shared_ptr<model> scene_manager::make_model(
    create_translation(position, transform);
 
    auto gm = make_shared<renderstack::mesh::geometry_mesh>(r, g, m_format_info, m_buffer_info);
-   auto m = make_shared<model>();
+   auto m = make_shared<model>(g->name());
    m->set_geometry_mesh(gm);
    m->frame()->set_parent(parent);
    m->frame()->parent_from_local().set(transform);
@@ -283,13 +283,13 @@ void scene_manager::add_simple_scene()
 
    }
 
-   int n_lights = 20;
+   int n_lights = 40;
    for (int i = 0; i < n_lights; ++i)
    {
       float rel = static_cast<float>(i) / static_cast<float>(n_lights);
       float h = rel * 360.0f;
       float s = 0.7f;
-      float v = 0.7f;
+      float v = 1.0f;
       float r, g, b;
 
       hsv_to_rgb(h, s, v, r, g, b);
@@ -297,7 +297,7 @@ void scene_manager::add_simple_scene()
       auto l = make_shared<light>();
       l->set_type(light_type::spot);
       l->set_color(vec3(r, g, b));
-      l->set_intensity(1.0f);
+      l->set_intensity(2.0f);
       l->set_name("spot");
       mat4 m;
 
@@ -356,7 +356,7 @@ void scene_manager::initialize_cameras()
    m_camera->projection().set_fov_y(degrees_to_radians(50.0f));
    m_camera->projection().set_projection_type(renderstack::scene::projection_type::perspective_vertical);
    m_camera->projection().set_near(0.02f);
-   m_camera->projection().set_far(40.0f);
+   m_camera->projection().set_far(100.0f);
 
    glm::mat4 m;
    create_look_at(

@@ -239,6 +239,8 @@ void game::on_resize(int width, int height)
    float w = (float)width;   // (float)m_window->width();
    float h = (float)height;  // (float)m_window->height();
 
+   m_viewport.set_x(0);
+   m_viewport.set_y(0);
    m_viewport.set_width(width);
    m_viewport.set_height(height);
 

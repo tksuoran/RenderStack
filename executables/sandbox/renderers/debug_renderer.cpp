@@ -134,6 +134,23 @@ void debug_renderer::initialize_service()
 void debug_renderer::clear_text_lines()
 {
    m_debug_lines.clear();
+   m_debug_print_ats.clear();
+}
+
+void debug_renderer::printf(int x, int y, const char *format, ...)
+{
+   char buffer[1000]; // TODO
+   va_list args;
+   va_start(args, format);
+   ::memset(buffer, 0, 1000);
+   vsnprintf(buffer, 999, format, args);
+   va_end(args);
+   
+   print_at p;
+   p.x = x;
+   p.y = y;
+   p.text = buffer;
+   m_debug_print_ats.push_back(p);
 }
 
 void debug_renderer::printf(const char *format, ...)
@@ -183,6 +200,9 @@ void debug_renderer::render_text_lines(renderstack::scene::viewport const &vp)
    m_text_buffer->begin_print();
    for (size_t i = 0; i < m_debug_lines.size(); ++i)
       m_text_buffer->print(m_debug_lines[i], 0.0f, h - (i + 1) * m_font->line_height());
+
+   for (size_t i = 0; i < m_debug_print_ats.size(); ++i)
+      m_text_buffer->print(m_debug_print_ats[i].text, m_debug_print_ats[i].x, m_debug_print_ats[i].y);
 
    int chars_printed = m_text_buffer->end_print();
 

@@ -84,22 +84,41 @@ void game::render_meshes()
          x,
          y
       );
-      // uint32_t id = 0xffffffffu;
-      // float depth = 1.0f;
-      // bool got = m_id_renderer->get(x, y, id, depth);
+      uint32_t id = 0xffffffffu;
+      float depth = 1.0f;
+      bool got = m_id_renderer->get(x, y, id, depth);
       hover_model = m_id_renderer->get(x, y);
+      if (got)
+      {
+         
+         vec3 pos = unproject(
+            m_scene_manager->camera()->clip_from_world().inverse_matrix(),
+            static_cast<float>(x),
+            static_cast<float>(y),
+            depth,
+            0.0f,
+            0.0f,
+            static_cast<float>(m_application->width()),
+            static_cast<float>(m_application->height())
+         );
+         //m_debug_renderer->printf(x, y, "Hover X: % 7.2f Y: % 7.2f Z: % 7.2f", pos.x, pos.y, pos.z);
+         if (hover_model)
+            m_debug_renderer->printf(x, y, hover_model->name().c_str());
+      }
       if (m_manipulator_frame && hover_model)
          m_manipulator_frame->set_parent(hover_model->frame());
    }
 #endif
+   m_debug_renderer->printf("%s", glGetString(GL_RENDERER));
+   m_debug_renderer->printf("%s", glGetString(GL_VERSION));
 
-#if 0 // Deferred renderer
-   m_deferred_renderer->geometry_pass(m_models, m_camera);
-   m_deferred_renderer->light_pass(m_camera);
+#if 1 // Deferred renderer
+   m_deferred_renderer->geometry_pass(m_scene_manager->models(), m_scene_manager->camera());
+   m_deferred_renderer->light_pass(m_scene_manager->lights(), m_scene_manager->camera(), m_viewport);
    m_deferred_renderer->show_rt();
 #endif
 
-#if 1 // Forward renderer
+#if 0 // Forward renderer
    m_forward_renderer->render_pass(
       m_scene_manager->models(),
       m_scene_manager->lights(),

@@ -31,6 +31,13 @@ struct draw
    int         count;
 };
 
+struct print_at
+{
+   int x;
+   int y;
+   std::string text;
+};
+
 class debug_renderer : public renderstack::toolkit::service
 {
 public:
@@ -51,6 +58,7 @@ public:
 
    void clear_text_lines();
    void printf(const char *format, ...);
+   void printf(int x, int y, const char *format, ...);
    void render_text_lines(renderstack::scene::viewport const &vp);
 
    void set_camera(std::shared_ptr<renderstack::scene::camera> camera);
@@ -79,6 +87,8 @@ private:
 
    // Debug text lines
    std::vector<std::string>                        m_debug_lines;
+   std::vector<print_at>                           m_debug_print_ats;
+
 #if defined(RENDERSTACK_USE_FREETYPE)
    std::shared_ptr<renderstack::ui::font>          m_font;
    std::shared_ptr<renderstack::ui::text_buffer>   m_text_buffer;
