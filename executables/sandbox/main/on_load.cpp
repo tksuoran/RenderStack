@@ -18,6 +18,8 @@
 #include "renderers/deferred_renderer.hpp"
 #include "renderers/id_renderer.hpp"
 
+#include <sstream>
+
 using namespace gl;
 using namespace std;
 using namespace renderstack::toolkit;
@@ -40,7 +42,10 @@ bool application::create_gl_window()
       major = version / 10;
       minor = version % 10;
 
-      ok = open(640, 360, "OpenGL", major, minor);
+      stringstream ss;
+      ss << "RenderStack Sandbox (OpenGL " << major << "." << minor << ")";
+
+      ok = open(1280, 720, ss.str().c_str(), major, minor);
    }
 
    if (!ok)
@@ -142,6 +147,10 @@ bool application::initialize_services()
    {
       m_services.initialize_services();
    }
+   catch (runtime_error const &e)
+   {
+      throw e;
+   }
    catch (...)
    {
       return false;
@@ -165,6 +174,10 @@ bool application::on_load()
          return false;
 
       return true;
+   }
+   catch (runtime_error const &e)
+   {
+      throw e;
    }
    catch (...)
    {

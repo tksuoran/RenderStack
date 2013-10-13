@@ -16,6 +16,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <cassert>
+#include <sstream>
 
 #define LOG_CATEGORY &log_gui_renderer
 
@@ -200,6 +201,12 @@ void gui_renderer::initialize_service()
       m_hsv_program->load_fs(shader_path + "gui_hsv.fs.txt");
       m_hsv_program->link();
       m_uniform_block->map_program(m_hsv_program);
+   }
+   catch (runtime_error const &e)
+   {
+      stringstream ss;
+      ss << "gui_renderer() shaders are broken: " << e.what();
+      throw runtime_error(ss.str());
    }
    catch (...)
    {

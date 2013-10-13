@@ -77,9 +77,20 @@ void forward_renderer::initialize_service()
    m_other_pass_render_states.blend.rgb().set_equation_mode(gl::blend_equation_mode::func_add);
    m_other_pass_render_states.blend.rgb().set_source_factor(gl::blending_factor_src::one);
    m_other_pass_render_states.blend.rgb().set_destination_factor(gl::blending_factor_dest::one);   
-   m_first_pass_render_states.blend.alpha().set_equation_mode(gl::blend_equation_mode::func_add);
-   m_first_pass_render_states.blend.alpha().set_source_factor(gl::blending_factor_src::one);
-   m_first_pass_render_states.blend.alpha().set_destination_factor(gl::blending_factor_dest::one);   
+   m_other_pass_render_states.blend.alpha().set_equation_mode(gl::blend_equation_mode::func_add);
+   m_other_pass_render_states.blend.alpha().set_source_factor(gl::blending_factor_src::one);
+   m_other_pass_render_states.blend.alpha().set_destination_factor(gl::blending_factor_dest::one);   
+
+   m_debug_light_render_states.depth.set_enabled(true);
+   m_debug_light_render_states.depth.set_function(gl::depth_function::l_equal);
+   m_debug_light_render_states.face_cull.set_enabled(true);
+   m_debug_light_render_states.blend.set_enabled(true);
+   m_debug_light_render_states.blend.rgb().set_equation_mode(gl::blend_equation_mode::func_add);
+   m_debug_light_render_states.blend.rgb().set_source_factor(gl::blending_factor_src::src_alpha);
+   m_debug_light_render_states.blend.rgb().set_destination_factor(gl::blending_factor_dest::one);   
+   m_debug_light_render_states.blend.alpha().set_equation_mode(gl::blend_equation_mode::func_add);
+   m_debug_light_render_states.blend.alpha().set_source_factor(gl::blending_factor_src::one);
+   m_debug_light_render_states.blend.alpha().set_destination_factor(gl::blending_factor_dest::one);   
 
 }
 
@@ -320,10 +331,11 @@ void forward_renderer::render_pass(
       }
    }
 
-#if 0
-   t.execute(&m_first_pass_render_states);
+#if 1
+   t.execute(&m_debug_light_render_states);
    p = m_programs->debug_light;
    r.set_program(p);
+   glEnable(GL_FRAMEBUFFER_SRGB);
 
    for (auto i = lights->cbegin(); i != lights->cend(); ++i)
    {
@@ -384,6 +396,7 @@ void forward_renderer::render_pass(
             begin_mode, count, index_type, index_pointer, base_vertex);
       }
    }
+   glDisable(GL_FRAMEBUFFER_SRGB);
 #endif
 
 }

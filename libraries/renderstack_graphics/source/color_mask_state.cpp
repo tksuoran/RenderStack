@@ -3,6 +3,11 @@
 
 namespace renderstack { namespace graphics {
 
+color_mask_state::color_mask_state()
+{
+   reset();
+}
+
 bool color_mask_state::red() const
 {
    return m_red;

@@ -283,13 +283,13 @@ void scene_manager::add_simple_scene()
 
    }
 
-   int n_lights = 10;
+   int n_lights = 20;
    for (int i = 0; i < n_lights; ++i)
    {
       float rel = static_cast<float>(i) / static_cast<float>(n_lights);
       float h = rel * 360.0f;
       float s = 0.7f;
-      float v = 1.0f;
+      float v = 0.7f;
       float r, g, b;
 
       hsv_to_rgb(h, s, v, r, g, b);

@@ -107,12 +107,14 @@ static void s_mouse_wheel(GLFWwindow *win, double x, double y)
       window->on_scroll(x, y);
 }
 
+#if RENDERSTACK_3DMOUSE_SUPPORT
 static void s_3d_mouse(GLFWwindow *win, long tx, long ty, long tz, long rx, long ry, long rz, long period)
 {
    class window *window = reinterpret_cast<class window *>(::glfwGetWindowUserPointer(win));
    if (window)
       window->on_3d_mouse(tx, ty, tz, rx, ry, rz, period);
 }
+#endif
 
 static void s_resize(GLFWwindow *win, int width, int height)
 {
@@ -154,6 +156,7 @@ bool window::open(int width, int height, string const &title, int major, int min
    ::glfwWindowHint(GLFW_BLUE_BITS,    8);
    ::glfwWindowHint(GLFW_DEPTH_BITS,   24);
    ::glfwWindowHint(GLFW_SAMPLES,      4);
+   ::glfwWindowHint(GLFW_SRGB_CAPABLE, GL_TRUE);
 
    /*
    if (major >= 3)
@@ -224,7 +227,9 @@ bool window::open(int width, int height, string const &title, int major, int min
    ::glfwSetMouseButtonCallback((GLFWwindow*)m_window, s_mouse_button);
    ::glfwSetScrollCallback     ((GLFWwindow*)m_window, s_mouse_wheel);
    ::glfwSetWindowCloseCallback((GLFWwindow*)m_window, s_window_close);
+#if RENDERSTACK_3DMOUSE_SUPPORT
    ::glfwSet3DMouseCallback    ((GLFWwindow*)m_window, s_3d_mouse);
+#endif
 
    ::glfwSetInputMode((GLFWwindow*)m_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
    ::glfwSetInputMode((GLFWwindow*)m_window, GLFW_STICKY_KEYS, GL_FALSE);

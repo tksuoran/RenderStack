@@ -1,2 +1,6 @@
+libraries/3dxware
 libraries/freetype-2.5.0/objs/debug
+libraries/freetype-2.5.0/objs/release
+libraries/freetype-2.5.0/objs/release_mt
 libraries/freetype-2.5.0/objs/win32
+/.project

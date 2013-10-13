@@ -199,6 +199,7 @@ size_t buffer::allocate(size_t count)
 
 void *buffer::map(class renderer &renderer, size_t first, size_t count, gl::buffer_access_mask::value access)
 {
+   (void)renderer; // avoid unused warnings in release builds
    assert(count > 0);
 
    slog_trace("buffer::map(target = %s first = %u count = %u access = 0x%x) name = %u",
@@ -265,6 +266,7 @@ void *buffer::map(class renderer &renderer, size_t first, size_t count, gl::buff
 
 void buffer::unmap(class renderer &renderer)
 {
+   (void)renderer; // avoid unused warnings in release builds
    slog_trace(
       "buffer::unmap(target = %s offset = %u size = %u ptr = %p) name = %u",
       buffer_target::desc(m_target),
@@ -281,6 +283,7 @@ void buffer::unmap(class renderer &renderer)
    if (configuration::can_use.map_buffer_range)
    {
       GLboolean res = gl::unmap_buffer(buffer_target::gl_buffer_target(m_target));
+      (void)res;
       assert(res == GL_TRUE);
    }
    else
@@ -325,6 +328,7 @@ void buffer::flush(class renderer &renderer, size_t first, size_t count)
 
    assert(m_gl_name);
    assert(renderer.buffer_is_mapped(m_target, shared_from_this()));
+   (void)renderer;
 
 #if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
    if (configuration::can_use.map_buffer_range)

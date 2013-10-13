@@ -12,9 +12,15 @@ namespace renderstack { namespace toolkit {
 log_category log_services  (C_WHITE,      C_GRAY, LOG_INFO);
 log_category log_gl        (C_DARK_GREEN, C_GRAY, LOG_TRACE);
 
+renderstack::toolkit::log_category log_file(C_CYAN, C_GRAY, LOG_TRACE);
+
 using namespace std;
 
 #if defined _WIN32
+bool print_color()
+{
+   return true;
+}
 void set_text_color(int c)
 {
    HANDLE hConsoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -31,15 +37,24 @@ void console_init()
 
    SendMessage(hwnd, WM_SETICON, ICON_BIG, (LPARAM)(icon));
    SendMessage(hwnd, WM_SETICON, ICON_SMALL, (LPARAM)(icon));
+
+   FILE *l = fopen("log.txt", "wb");
+   if (l)
+   {
+      fprintf(l, "");
+      fclose(l);
+   }
 }
 #else
+bool print_color()
+{
+   return ::isatty(fileno(stdout));
+}
 void set_text_color(int c)
 {
 #if defined(__APPLE__)
    (void)c;
 #else
-   if (!::isatty(fileno(stdout)))
-      return;
    switch(c)
    {
    case C_DARK_BLUE   : printf("\033[22;34m"); break;
@@ -62,6 +77,12 @@ void set_text_color(int c)
 }
 void console_init()
 {
+   FILE *l = fopen("log.txt", "wb");
+   if (l)
+   {
+      fprintf(l, "");
+      fclose(l);
+   }
 }
 #endif
 
@@ -104,53 +125,66 @@ void log_write(log_category *cat, int level, const char *format, ...)
    *p++ = '\n';
    *p   = '\0';
 
-   set_text_color(cat->color[0]);
-   p = span = buf;
-   prev = 0;
-   next = 0;
-   for (;;)
+   // Log to console
+   if (print_color())
    {
-      c = *p;
-      p++;
-      next = (c != 0) ? (*p) : 0;
-      if (c == '(' || (c == ':' && next != ':' && prev != ':'))
+      set_text_color(cat->color[0]);
+      p = span = buf;
+      prev = 0;
+      next = 0;
+      for (;;)
       {
-         prev = c;
          c = *p;
-         *p = 0;
-         cout << span;
-         cout.flush();
-         *p = c;
-         span = p;
-         set_text_color(cat->color[1]);
+         p++;
+         next = (c != 0) ? (*p) : 0;
+         if (c == '(' || (c == ':' && next != ':' && prev != ':'))
+         {
+            prev = c;
+            c = *p;
+            *p = 0;
+            cout << span;
+            cout.flush();
+            *p = c;
+            span = p;
+            set_text_color(cat->color[1]);
+         }
+         else if (c == ')')      
+         {
+            prev = c;
+            --p;
+            c = *p;
+            *p = 0;
+            cout << span;
+            cout.flush();
+            *p = c;
+            span = p;
+            set_text_color(cat->color[0]);
+            ++p;
+         }
+         else if (c == 0)
+         {
+            cout << span;
+            cout.flush();
+            set_text_color(cat->color[1]);
+            break;
+         }
+         else
+         {
+            prev = c;
+         }
       }
-      else if (c == ')')      
-      {
-         prev = c;
-         --p;
-         c = *p;
-         *p = 0;
-         cout << span;
-         cout.flush();
-         *p = c;
-         span = p;
-         set_text_color(cat->color[0]);
-         ++p;
-      }
-      else if (c == 0)
-      {
-         cout << span;
-         cout.flush();
-         set_text_color(cat->color[1]);
-         break;
-      }
-      else
-      {
-         prev = c;
-      }
+      set_text_color(C_GRAY);
    }
-   set_text_color(C_GRAY);
 
+   // Log to file
+   FILE *l = fopen("log.txt", "ab+");
+   if (l)
+   {
+      fprintf(l, buf);
+      fclose(l);
+   }
+
+   // Log to debugger
 # if defined(_WIN32)
    ::OutputDebugStringA(buf);
 # endif

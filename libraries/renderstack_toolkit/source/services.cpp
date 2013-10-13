@@ -1,6 +1,7 @@
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_toolkit/services.hpp"
 #include "renderstack_toolkit/log.hpp"
+#include <sstream>
 
 #define LOG_CATEGORY &log_services
 
@@ -52,10 +53,20 @@ void services::initialize_services()
             {
                s->initialize();  
             }
+            catch (runtime_error const &e)
+            {
+               stringstream ss;
+               ss << "Fatal error: Initializing service " << initialized_count << " / " << total_count;
+               ss << s->name() << " failed: " << e.what();
+               throw ss.str();
+            }
             catch (...)
             {
                log_info("Fatal error: Initializing service %d / %d: %s failed", initialized_count, total_count, s->name().c_str());
-               throw;
+               stringstream ss;
+               ss << "Fatal error: Initializing service " << initialized_count << " / " << total_count;
+               ss << s->name() << " failed";
+               throw runtime_error(ss.str());
             }
             remove_set.insert(s);
             --uninitialized_count;

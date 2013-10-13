@@ -59,6 +59,7 @@ private:
 
    renderstack::graphics::render_states               m_first_pass_render_states;
    renderstack::graphics::render_states               m_other_pass_render_states;
+   renderstack::graphics::render_states               m_debug_light_render_states;
 
    std::map<
       std::shared_ptr<renderstack::scene::light>,

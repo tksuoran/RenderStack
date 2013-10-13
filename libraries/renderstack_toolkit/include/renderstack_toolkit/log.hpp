@@ -44,6 +44,8 @@ public:
    }
 };
 
+extern renderstack::toolkit::log_category log_file;
+
 } }
 
 #define C_DARK_BLUE     1
@@ -78,6 +80,5 @@ public:
 #define slog_info(...)  log_write(LOG_CATEGORY, LOG_INFO,  __VA_ARGS__); renderstack::toolkit::log_indenter scope
 #define slog_warn(...)  log_write(LOG_CATEGORY, LOG_WARN,  __VA_ARGS__); renderstack::toolkit::log_indenter scope
 #define slog_error(...) log_write(LOG_CATEGORY, LOG_ERROR, __VA_ARGS__); renderstack::toolkit::log_indenter scope
-
 
 #endif

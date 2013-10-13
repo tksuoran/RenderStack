@@ -3,6 +3,7 @@
 #include "renderstack_toolkit/math_util.hpp"
 #include "renderstack_graphics/shader_monitor.hpp"
 #include "renderstack_scene/camera.hpp"
+#include "renderstack_scene/light.hpp"
 
 #include "main/game.hpp"
 #include "main/programs.hpp"
@@ -81,6 +82,40 @@ void game::update_once_per_frame()
    m_controls.camera_controller.update();
 
    m_scene_manager->camera()->update(m_viewport);
+
+#if 1
+   auto &lights = m_scene_manager->lights();
+   int n_lights = lights->size();
+   int light_index = 0;
+   for (auto i = lights->cbegin(); i != lights->cend(); ++i)
+   {
+      auto l = *i;
+
+      float rel = static_cast<float>(light_index) / static_cast<float>(n_lights);
+      float t = 1.5f * static_cast<float>(m_simulation_time) + rel * pi<float>() * 2.0f;
+      mat4 m;
+
+      light_index++;
+
+      vec3 eye = vec3(
+         l->frame()->world_from_local().matrix() * vec4(0.0f, 0.0f, 0.0f, 1.0f)
+      );
+      vec3 center = eye + vec3(
+          2.0f * std::sin(t),
+         -8.0f,
+          2.0f * std::cos(t)
+      );
+
+      create_look_at(
+         eye,
+         center,
+         vec3(0.0f, 0.0f, 1.0f), // up
+         m
+      );
+      l->frame()->parent_from_local().set(m);
+      l->frame()->update_hierarchical_no_cache();
+   }
+#endif
 
 #if 0
    // local = view

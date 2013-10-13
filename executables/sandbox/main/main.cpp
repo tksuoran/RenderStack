@@ -185,6 +185,13 @@ int main(int argc, char *argv[])
 
    }
 #  if defined(NDEBUG)
+   catch(runtime_error const &e)
+   {
+      fprintf(stderr, "exception:\n");
+      fprintf(stderr, e.what());
+      fprintf(stderr, "\nPress RETURN\n");
+      fgetc(stdin);
+   }
    catch(...)
    {
       ;

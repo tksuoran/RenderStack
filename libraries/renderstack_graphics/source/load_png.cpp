@@ -1,11 +1,15 @@
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_graphics/renderer.hpp"
 #include "renderstack_graphics/texture.hpp"
+#include "renderstack_graphics/log.hpp"
 #include <png.h>
 #include <cstdio>
 #include <stdexcept>
+#include <sstream>
 
 namespace renderstack { namespace graphics {
+
+#define LOG_CATEGORY &log_load_png
 
 using namespace std;
 
@@ -21,14 +25,19 @@ shared_ptr<renderstack::graphics::texture> load_png(
 
    FILE *fp = ::fopen(path.c_str(), "rb");
    if (fp == 0)
-      throw runtime_error("texture image load failed - no data");
+   {
+      stringstream ss;
+      ss << "load_png(): file not found: " << path;
+      log_error(ss.str().c_str());
+      throw runtime_error(ss.str().c_str());
+   }
 
    ::fread(header, 1, 8, fp);
 
    try
    {
       if (::png_sig_cmp(header, 0, 8))
-         throw runtime_error("not a PNG file");
+         throw runtime_error("png header fail");
 
       png_structp png_ptr = ::png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
       if (!png_ptr)
@@ -171,6 +180,12 @@ shared_ptr<renderstack::graphics::texture> load_png(
       }
       ::png_destroy_read_struct(&png_ptr, (png_infopp)nullptr, (png_infopp)nullptr);
    }
+   catch (runtime_error const &e)
+   {
+      ::fclose(fp);
+      log_error(e.what());
+      throw;
+   }
    catch (...)
    {
       ::fclose(fp);
@@ -178,6 +193,10 @@ shared_ptr<renderstack::graphics::texture> load_png(
       throw;
    }
    ::fclose(fp);
+
+   stringstream ss;
+   ss << "load_png(): file loaded " << path;
+   log_info(ss.str().c_str());
 
    return texture;
 }

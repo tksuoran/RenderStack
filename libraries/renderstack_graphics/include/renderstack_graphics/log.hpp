@@ -12,6 +12,7 @@ extern renderstack::toolkit::log_category log_program;
 extern renderstack::toolkit::log_category log_renderer;
 extern renderstack::toolkit::log_category log_vertex_stream;
 extern renderstack::toolkit::log_category log_vertex_stream_mappings;
+extern renderstack::toolkit::log_category log_load_png;
 
 } }
 

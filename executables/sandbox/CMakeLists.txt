@@ -111,6 +111,8 @@ add_executable(
    ${res_sm0}
    ${res_sm4}
    ${res_sm5}
+
+   icon.rc
 )
 
 foreach(dir "main" "logic" "scene" "renderers" "parsers" "util")
