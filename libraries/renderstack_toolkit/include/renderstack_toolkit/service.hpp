@@ -4,6 +4,7 @@
 #include "renderstack_toolkit/platform.hpp"
 #include <set>
 #include <memory>
+#include <string>
 
 namespace renderstack { namespace toolkit {
 

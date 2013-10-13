@@ -243,8 +243,8 @@ void program::dump_shaders() const
       string   f_source = format(resource.compiled_src);
 
       //  detach old shader, load, compile and attach new
-      log_trace("%s compiled from %s:\n", gl::enum_string(resource.type), resource.path);
-      log_trace("%s", f_source);
+      log_trace("%s compiled from %s:\n", gl::enum_string(resource.type), resource.path.c_str());
+      log_trace("%s", f_source.c_str());
    }
 }
 
