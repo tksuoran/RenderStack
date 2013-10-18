@@ -130,7 +130,8 @@ void deferred_renderer::resize(int width, int height)
       gl::gen_framebuffers(1, &m_fbo);
 
    gl::bind_framebuffer(GL_DRAW_FRAMEBUFFER, m_fbo);
-   GLenum formats[] = { GL_RGBA8, GL_RGBA32F, GL_RGBA32F, GL_RGBA32F };
+   //GLenum formats[] = { GL_RGBA8, GL_RGBA8, GL_RGBA16_SNORM, GL_RGBA8 };
+   GLenum formats[] = { GL_RGBA8, GL_RGBA8, GL_RGBA32F, GL_RGBA8 };
    for (int i = 0; i < 4; ++i)
    {
       m_rt[i].reset();
@@ -189,11 +190,16 @@ void deferred_renderer::fbo_clear()
    cartesian_to_spherical(N, normal_tangent_clear[0], normal_tangent_clear[1]);
    cartesian_to_spherical(T, normal_tangent_clear[2], normal_tangent_clear[3]);
 
-   gl::clear_buffer_fv(GL_COLOR, 0, &emission_clear      [0]);
+   //gl::clear_buffer_fv(GL_COLOR, 0, &emission_clear      [0]);
    gl::clear_buffer_fv(GL_COLOR, 1, &albedo_clear        [0]);
    gl::clear_buffer_fv(GL_COLOR, 2, &normal_tangent_clear[0]);
    gl::clear_buffer_fv(GL_COLOR, 3, &material_clear      [0]);
    gl::clear_buffer_fv(GL_DEPTH, 0, &one);
+}
+
+void deferred_renderer::set_max_lights(int max_lights)
+{
+   m_max_lights = max_lights;
 }
 
 void deferred_renderer::geometry_pass(
@@ -360,7 +366,7 @@ void deferred_renderer::light_pass(
 
    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-   glEnable(GL_FRAMEBUFFER_SRGB);
+   // glEnable(GL_FRAMEBUFFER_SRGB);
 
    auto &r = *m_renderer;
    auto &t = r.track();
@@ -408,9 +414,14 @@ void deferred_renderer::light_pass(
       gl::uniform_4fv(p->uniform_at(m_programs->camera_block_access.viewport), 1, value_ptr(vp));
    }
 
+   int light_index = 0;
    for (auto i = lights->cbegin(); i != lights->cend(); ++i)
    {
       auto l = *i;
+
+      ++light_index;
+      if (light_index > m_max_lights)
+         break;
 
       if (l->type() != light_type::spot)
          continue;
@@ -477,7 +488,7 @@ void deferred_renderer::light_pass(
             begin_mode, count, index_type, index_pointer, base_vertex);
       }
    }
-   glDisable(GL_FRAMEBUFFER_SRGB);
+   //glDisable(GL_FRAMEBUFFER_SRGB);
 
 
 #if 0

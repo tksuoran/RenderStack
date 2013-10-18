@@ -42,6 +42,8 @@ public:
    );
    /*virtual/*/ void initialize_service();
 
+   void set_max_lights(int max_lights);
+
    void geometry_pass(
       std::shared_ptr<std::vector<std::shared_ptr<model> > > models,
       std::shared_ptr<renderstack::scene::camera> camera
@@ -74,14 +76,16 @@ private:
    renderstack::graphics::render_states               m_show_rt_render_states;
 
    // framebuffer
-   unsigned int                                    m_fbo;
-   std::shared_ptr<renderstack::graphics::texture> m_rt[4];
-   std::shared_ptr<renderstack::graphics::texture> m_depth;
+   unsigned int                                       m_fbo;
+   std::shared_ptr<renderstack::graphics::texture>    m_rt[4];
+   std::shared_ptr<renderstack::graphics::texture>    m_depth;
 
    std::map<
       std::shared_ptr<renderstack::scene::light>,
       std::shared_ptr<renderstack::mesh::geometry_mesh>
    >                                                  m_light_meshes; 
+
+   int                                                m_max_lights;
 };
 
 

@@ -16,22 +16,29 @@ using namespace glm;
 
 void game::update()
 {
-   m_frame_dt = -m_update_time;
-   double new_time = m_application->time();
-   if (new_time < m_update_time)
-      printf("new time %f < prev time %f\n", new_time, m_update_time);
-   m_update_time = new_time;
-   m_frame_dt += m_update_time;
-   if (m_frame_dt < m_min_frame_dt)
-      m_min_frame_dt = m_frame_dt;
+   //if (!m_paused)
+   {
+      m_frame_dt = -m_update_time;
+      double new_time = m_application->time();
+      if (new_time < m_update_time)
+         printf("new time %f < prev time %f\n", new_time, m_update_time);
+      m_update_time = new_time;
+      m_frame_dt += m_update_time;
+      if (m_frame_dt < m_min_frame_dt)
+         m_min_frame_dt = m_frame_dt;
 
-   if (m_frame_dt > m_max_frame_dt)
-      
-      m_max_frame_dt = m_frame_dt;
+      if (m_frame_dt > m_max_frame_dt)
+         m_max_frame_dt = m_frame_dt;
+   }
 
    m_debug_renderer->clear_text_lines();
+   m_debug_renderer->record_frame_duration(m_frame_dt);
 
-   update_fixed_steps();
+   //if (!m_paused)
+   {
+      update_fixed_steps();
+   }
+
    update_once_per_frame();
    render();
 }
@@ -84,37 +91,41 @@ void game::update_once_per_frame()
    m_scene_manager->camera()->update(m_viewport);
 
 #if 1
-   auto &lights = m_scene_manager->lights();
-   int n_lights = lights->size();
-   int light_index = 0;
-   for (auto i = lights->cbegin(); i != lights->cend(); ++i)
+   if (!m_paused)
    {
-      auto l = *i;
+      auto &lights = m_scene_manager->lights();
+      int n_lights = lights->size();
+      int light_index = 0;
+      for (auto i = lights->cbegin(); i != lights->cend(); ++i)
+      {
+         auto l = *i;
 
-      float rel = static_cast<float>(light_index) / static_cast<float>(n_lights);
-      float t = 0.5f * static_cast<float>(m_simulation_time) + rel * pi<float>() * 2.0f;
-      mat4 m;
+         float rel = static_cast<float>(light_index) / static_cast<float>(n_lights);
+         float t = 1.8f * static_cast<float>(m_simulation_time) + rel * pi<float>() * 2.0f;
+         mat4 m;
 
-      light_index++;
+         light_index++;
 
-      vec3 eye = vec3(
-         l->frame()->world_from_local().matrix() * vec4(0.0f, 0.0f, 0.0f, 1.0f)
-      );
-      eye.y = 9.0f + 3.0f * std::sin(t * 1.74837);
-      vec3 center = eye + vec3(
-          2.5f * std::sin(t),
-         -8.0f,
-          2.5f * std::cos(t)
-      );
+         vec3 eye = vec3(
+            l->frame()->world_from_local().matrix() * vec4(0.0f, 0.0f, 0.0f, 1.0f)
+         );
+         eye.y = 13.0f + 6.0f * std::sin(t * 1.1f);
+         vec3 center = eye + vec3(
+             3.0f * std::sin(t * 0.9f),
+             0.0f,
+             1.0f * std::cos(t * 0.7f)
+         );
+         center.y = 0.0f;
 
-      create_look_at(
-         eye,
-         center,
-         vec3(0.0f, 0.0f, 1.0f), // up
-         m
-      );
-      l->frame()->parent_from_local().set(m);
-      l->frame()->update_hierarchical_no_cache();
+         create_look_at(
+            eye,
+            center,
+            vec3(0.0f, 0.0f, 1.0f), // up
+            m
+         );
+         l->frame()->parent_from_local().set(m);
+         l->frame()->update_hierarchical_no_cache();
+      }
    }
 #endif
 

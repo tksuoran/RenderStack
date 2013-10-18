@@ -39,6 +39,7 @@ forward_renderer::forward_renderer()
 :  service("forward_renderer")
 ,  m_renderer(nullptr)
 ,  m_programs(nullptr)
+,  m_max_lights(1)
 {
 }
 
@@ -80,18 +81,6 @@ void forward_renderer::initialize_service()
    m_other_pass_render_states.blend.alpha().set_equation_mode(gl::blend_equation_mode::func_add);
    m_other_pass_render_states.blend.alpha().set_source_factor(gl::blending_factor_src::one);
    m_other_pass_render_states.blend.alpha().set_destination_factor(gl::blending_factor_dest::one);   
-
-   m_debug_light_render_states.depth.set_enabled(true);
-   m_debug_light_render_states.depth.set_function(gl::depth_function::l_equal);
-   m_debug_light_render_states.face_cull.set_enabled(true);
-   m_debug_light_render_states.blend.set_enabled(true);
-   m_debug_light_render_states.blend.rgb().set_equation_mode(gl::blend_equation_mode::func_add);
-   m_debug_light_render_states.blend.rgb().set_source_factor(gl::blending_factor_src::src_alpha);
-   m_debug_light_render_states.blend.rgb().set_destination_factor(gl::blending_factor_dest::one);   
-   m_debug_light_render_states.blend.alpha().set_equation_mode(gl::blend_equation_mode::func_add);
-   m_debug_light_render_states.blend.alpha().set_source_factor(gl::blending_factor_src::one);
-   m_debug_light_render_states.blend.alpha().set_destination_factor(gl::blending_factor_dest::one);   
-
 }
 
 void forward_renderer::print_matrix(mat4 const &m, std::string const &desc)
@@ -110,76 +99,9 @@ void forward_renderer::print_matrix(mat4 const &m, std::string const &desc)
    );
 }
 
-void forward_renderer::update_light_model(shared_ptr<light> l)
+void forward_renderer::set_max_lights(int max_lights)
 {
-   switch (l->type())
-   {
-   case light_type::directional:
-      assert(0);
-      break;
-   case light_type::point:
-      assert(0);
-      break;
-
-   case light_type::spot:
-      {
-         //           Side:                     Bottom:
-         //             .                    ______________
-         //            /|\                  /       |    / \
-         //           / | \                /   apothem  /   \
-         //          /  +--+ alpha        /         | radius \
-         //         /   |   \            /          | /       \
-         //        /    |    \          /           |/         \
-         //       /     |     \         \                      /
-         //      /      |      \         \                    /
-         //     /     length    \         \                  /
-         //    /        |        \         \                /
-         //   /         |         \         \______________/
-         //  +----------+----------+
-
-         int   n        = 16;
-         float alpha    = l->spot_angle(); 
-         float length   = l->range();
-         float apothem  = length * std::sin(alpha);
-         float radius   = apothem / std::cos(glm::pi<float>() / static_cast<float>(n));
-
-         shared_ptr<renderstack::geometry::geometry> g = make_shared<renderstack::geometry::shapes::conical_frustum>(
-            0.0,        // min x
-            length,     // max x
-            0.0,        // bottom radius
-            radius,     // top radius
-            false,      // use bottom
-            true,       // use top (end)
-            n,          // slice count
-            0           // stack division
-         );
-
-         g->transform(mat4_rotate_xz_cw);
-         g->build_edges();
-
-         renderstack::mesh::geometry_mesh_format_info format_info;
-         renderstack::mesh::geometry_mesh_buffer_info buffer_info;
-
-         renderstack::geometry::geometry::mesh_info info;
-
-         //format_info.set_want_fill_triangles(true);
-         format_info.set_want_edge_lines(true);
-         format_info.set_want_position(true);
-         format_info.set_mappings(m_programs->mappings);
-                                                                                                      #
-         geometry_mesh::prepare_vertex_format(g, format_info, buffer_info);
-
-         auto &r = *m_renderer;
-
-         auto gm = make_shared<renderstack::mesh::geometry_mesh>(r, g, format_info, buffer_info);
-
-         m_light_meshes[l] = gm;
-      }
-      break;
-
-   default:
-      assert(0);
-   }
+   m_max_lights = max_lights;
 }
 
 void forward_renderer::render_pass(
@@ -245,6 +167,7 @@ void forward_renderer::render_pass(
    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
    bool first_pass = true;
+   int light_index = 0;
    for (auto i = lights->cbegin(); i != lights->cend(); ++i)
    {
       if (first_pass)
@@ -253,6 +176,10 @@ void forward_renderer::render_pass(
       // Light
       assert(lights);
       auto l = *i;
+
+      ++light_index;
+      if (light_index > m_max_lights)
+         break;
 
       glm::vec3 position   = vec3(l->frame()->world_from_local().matrix() * vec4(0.0f, 0.0f, 0.0f, 1.0f));
       glm::vec3 direction  = vec3(l->frame()->world_from_local().matrix() * vec4(0.0f, 0.0f, 1.0f, 0.0f));
@@ -330,73 +257,4 @@ void forward_renderer::render_pass(
          first_pass = false;
       }
    }
-
-#if 1
-   t.execute(&m_debug_light_render_states);
-   p = m_programs->debug_light;
-   r.set_program(p);
-   glEnable(GL_FRAMEBUFFER_SRGB);
-
-   for (auto i = lights->cbegin(); i != lights->cend(); ++i)
-   {
-      auto light = *i;
-
-      glm::vec3 radiance = light->color();
-
-      if (light->type() != light_type::spot)
-         continue;
-
-      if (m_light_meshes.find(light) == m_light_meshes.end())
-         update_light_model(light);
-
-      mat4 world_from_light   = light->frame()->world_from_local().matrix();
-      mat4 clip_from_light    = clip_from_world * world_from_light;
-      mat4 view_from_light    = view_from_world * world_from_light;
-      auto geometry_mesh      = m_light_meshes[light];
-      auto vertex_stream      = geometry_mesh->vertex_stream();
-      auto mesh               = geometry_mesh->get_mesh();
-
-      light->frame()->update_hierarchical_no_cache(); // TODO
-
-      if (m_programs->use_uniform_buffers())
-      {
-         assert(m_programs);
-         assert(m_programs->model_ubr);
-
-         unsigned char *start       = m_programs->begin_edit_uniforms();
-         unsigned char *model_start = &start[m_programs->model_ubr->first_byte()];
-         ::memcpy(&start[m_programs->lights_ubr->first_byte() + m_programs->lights_block_access.radiance  ], value_ptr(radiance),  3 * sizeof(float));
-         m_programs->lights_ubr->flush(r);
-         ::memcpy(&model_start[m_programs->model_block_access.clip_from_model],  value_ptr(clip_from_light), 16 * sizeof(float));
-         ::memcpy(&model_start[m_programs->model_block_access.view_from_model],  value_ptr(view_from_light), 16 * sizeof(float));
-         ::memcpy(&model_start[m_programs->model_block_access.world_from_model], value_ptr(world_from_light), 16 * sizeof(float));
-         m_programs->model_ubr->flush(r);
-         m_programs->end_edit_uniforms();
-      }
-      else
-      {
-         gl::uniform_3fv(p->uniform_at(m_programs->lights_block_access.radiance),   1, value_ptr(radiance));
-         gl::uniform_matrix_4fv(p->uniform_at(m_programs->model_block_access.clip_from_model), 1, GL_FALSE, value_ptr(clip_from_light));
-         gl::uniform_matrix_4fv(p->uniform_at(m_programs->model_block_access.view_from_model), 1, GL_FALSE, value_ptr(view_from_light));
-         gl::uniform_matrix_4fv(p->uniform_at(m_programs->model_block_access.world_from_model), 1, GL_FALSE, value_ptr(world_from_light));
-      }
-
-      {
-         gl::begin_mode::value         begin_mode     = gl::begin_mode::lines;
-         index_range const             &index_range   = geometry_mesh->edge_line_indices();
-         GLsizei                       count          = static_cast<GLsizei>(index_range.index_count);
-         gl::draw_elements_type::value index_type     = gl::draw_elements_type::unsigned_int;
-         GLvoid                        *index_pointer = reinterpret_cast<GLvoid*>((index_range.first_index + mesh->first_index()) * mesh->index_buffer()->stride());
-         GLint                         base_vertex    = configuration::can_use.draw_elements_base_vertex
-            ? static_cast<GLint>(mesh->first_vertex())
-            : 0;
-
-         r.draw_elements_base_vertex(
-            geometry_mesh->vertex_stream(),
-            begin_mode, count, index_type, index_pointer, base_vertex);
-      }
-   }
-   glDisable(GL_FRAMEBUFFER_SRGB);
-#endif
-
 }

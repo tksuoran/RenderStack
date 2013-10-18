@@ -49,7 +49,7 @@ vec3 evaluate_brdf(
 )
 {
    float r              = 0.01; // TODO
-   float p              = 0.02; // TODO
+   float p              = 0.1; // TODO
 
    float light_distance = length(L);
    L                    = normalize(L);
@@ -71,7 +71,8 @@ vec3 evaluate_brdf(
 
    if (ln > 0.0)
    {
-      if (ls_clamped > 0.9340)
+      float spot_cutoff = 0.9340;
+      if (ls_clamped > spot_cutoff)
       {
          float ln_clamped  = max(ln, 0.0);
          vec3  H           = normalize(L + V);
@@ -89,8 +90,16 @@ vec3 evaluate_brdf(
          float D           = (ln_clamped * r * p2) / (gvn_denom * gln_denom * zhn0 * zhn0 * aht_denom);
 
          float light_attenuation = 1.0 / (light_distance * light_distance);
+
+         float t = ls_clamped - spot_cutoff;
+         t /= (1.0 - spot_cutoff);
+         //t = smoothstep(0.0, 1.0, t);
+         t = pow(t, 4.0);
+         light_attenuation *= t; // ls_clamped;
+
          float light_visibility  = 1.0;
          vec3  incident_radiance = lights.radiance * light_visibility * light_attenuation;
+
 
          exitant_radiance += incident_radiance * C * ln_clamped;  //  diffuse
          exitant_radiance += incident_radiance * S * D;           //  specular
@@ -111,7 +120,7 @@ void main(void)
       discard;
 
    vec4  g_albedo          = texelFetch(albedo_texture, tc, 0);
-   vec4  g_normal_tangent  = texelFetch(normal_tangent_texture, tc, 0);
+   vec4  g_normal_tangent  = texelFetch(normal_tangent_texture, tc, 0);// * 3.1415926535897932384626433;
 
    vec3  N                 = spherical_to_cartesian(g_normal_tangent.xy);
    vec3  B                 = spherical_to_cartesian(g_normal_tangent.zw);

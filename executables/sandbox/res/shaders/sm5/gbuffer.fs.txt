@@ -36,6 +36,7 @@ void main(void)
     out_albedo             = material.color;
     out_normal_tangent.xy  = cartesian_to_spherical(N);
     out_normal_tangent.zw  = cartesian_to_spherical(T);
+    //out_normal_tangent /= 3.1415926535897932384626433;
     out_material.w         = material.roughness;
     out_material.xyz       = v_position_in_view.xyz;
 }

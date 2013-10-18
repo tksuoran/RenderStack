@@ -38,6 +38,7 @@ debug_renderer::debug_renderer()
 ,  m_programs     (nullptr)
 ,  m_font         (nullptr)
 ,  m_text_buffer  (nullptr)
+,  m_frame_duration_graph_size(500)
 {
 }
 
@@ -135,6 +136,14 @@ void debug_renderer::clear_text_lines()
 {
    m_debug_lines.clear();
    m_debug_print_ats.clear();
+}
+
+void debug_renderer::record_frame_duration(float frame_duration)
+{
+   if (m_frame_durations.size() == m_frame_duration_graph_size)
+      m_frame_durations.pop_front();
+
+   m_frame_durations.push_back(frame_duration);
 }
 
 void debug_renderer::printf(int x, int y, const char *format, ...)
@@ -268,8 +277,63 @@ void debug_renderer::set_model(glm::mat4 const &world_from_model)
       m_draws.push_back(m_current_draw);
    }
 
-   m_current_draw.world_from_model = world_from_model;
+   m_current_draw.clip_from_model = m_camera->clip_from_world().matrix() * world_from_model;;
    m_current_draw.first = m_index_offset;
+}
+
+void debug_renderer::add_frame_duration_graph(renderstack::scene::viewport const &vp)
+{
+   if (m_index_offset > m_current_draw.first)
+   {
+      m_current_draw.count = m_index_offset - m_current_draw.first;
+      m_draws.push_back(m_current_draw);
+   }
+
+   mat4 ortho = glm::ortho(
+      0.0f,
+      static_cast<float>(vp.width()),
+      0.0f,
+      static_cast<float>(vp.height())
+   );
+
+   m_current_draw.clip_from_model = ortho;
+   m_current_draw.first = m_index_offset;
+
+   begin_edit();
+   float scale = 1000.0f * 4.0f; // 1 ms = 10 pixels
+   float first_frame_duration = m_frame_durations.front();
+   vec3 previous(0.0f, scale * first_frame_duration, 0.0f); 
+   float frame = 0.0f;
+
+   // 32 ms
+   float left = 0.0f;
+   float right = static_cast<float>(m_frame_duration_graph_size);
+   float sixty_fps = scale / 60.0f;
+   float thirty_fps = scale / 30.0f;
+
+   set_color(vec4(0.0f, 1.0f, 0.0f, 1.0f));
+   add_line(
+      vec3(left, sixty_fps, 0.0f),
+      vec3(right, sixty_fps, 0.0f)
+   );
+
+   set_color(vec4(0.0f, 0.0f, 1.0f, 1.0f));
+   add_line(
+      vec3(left, thirty_fps, 0.0f),
+      vec3(right, thirty_fps, 0.0f)
+   );
+
+   set_color(vec4(1.0f, 0.5f, 0.0f, 1.0f));
+   for (auto i = m_frame_durations.cbegin(); i != m_frame_durations.cend(); ++i)
+   {
+      vec3 current(frame, scale * *i, 0.0f);
+      if (frame > 0.0f)
+         add_line(previous, current);
+
+      previous = current;
+      frame += 1.0f;
+   }
+   end_edit();
 }
 
 void debug_renderer::render()
@@ -291,7 +355,7 @@ void debug_renderer::render()
    for (auto i = m_draws.cbegin(); i != m_draws.cend(); ++i)
    {
       auto draw = *i;
-      mat4 clip_from_model = m_camera->clip_from_world().matrix() * draw.world_from_model;
+      mat4 clip_from_model = draw.clip_from_model;
       //mat4 clip_from_model(1.0f);
 
       if (m_programs->use_uniform_buffers())

@@ -283,12 +283,12 @@ void scene_manager::add_simple_scene()
 
    }
 
-   int n_lights = 40;
+   int n_lights = 50;
    for (int i = 0; i < n_lights; ++i)
    {
       float rel = static_cast<float>(i) / static_cast<float>(n_lights);
       float h = rel * 360.0f;
-      float s = 0.7f;
+      float s = 0.5f + 0.4f * fract(rel * 3.0f);
       float v = 1.0f;
       float r, g, b;
 
@@ -301,7 +301,7 @@ void scene_manager::add_simple_scene()
       l->set_name("spot");
       mat4 m;
 
-      x_pos = (rel - 0.5f) * total_width;
+      x_pos = (rel - 0.5f) * total_width * 1.3f;
 
       create_look_at(
          vec3(x_pos, 8.0f, 0.0f), // eye
@@ -309,7 +309,7 @@ void scene_manager::add_simple_scene()
          vec3( 0.0f, 0.0f, 1.0f), // up
          m
       );
-      l->set_range(16.0f);
+      l->set_range(25.0f);
       l->set_spot_angle(glm::pi<float>() / 8.0f);
       l->frame()->parent_from_local().set(m);
       l->frame()->update_hierarchical_no_cache();

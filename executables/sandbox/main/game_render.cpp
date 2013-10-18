@@ -51,7 +51,7 @@ void game::render_meshes()
 {
    slog_trace("game::render_meshes()");
 
-#if 1
+#if 0
    // ID render pass
    shared_ptr<model> hover_model;
    {
@@ -111,23 +111,37 @@ void game::render_meshes()
 #endif
    m_debug_renderer->printf("%s", glGetString(GL_RENDERER));
    m_debug_renderer->printf("%s", glGetString(GL_VERSION));
+   m_debug_renderer->printf("%d lights %s%s", m_max_lights, m_forward ? "forward" : "", m_deferred ? "deferred" : "");
 
-#if 1 // Deferred renderer
-   m_deferred_renderer->geometry_pass(m_scene_manager->models(), m_scene_manager->camera());
-   m_deferred_renderer->light_pass(m_scene_manager->lights(), m_scene_manager->camera(), m_viewport);
-   m_deferred_renderer->show_rt();
-#endif
+   if (m_deferred)
+   {
+      m_deferred_renderer->set_max_lights(m_max_lights);
+      m_deferred_renderer->geometry_pass(m_scene_manager->models(), m_scene_manager->camera());
+      m_deferred_renderer->light_pass(m_scene_manager->lights(), m_scene_manager->camera(), m_viewport);
+      //m_deferred_renderer->show_rt();
+   }
 
-#if 0 // Forward renderer
-   m_forward_renderer->render_pass(
-      m_scene_manager->models(),
-      m_scene_manager->lights(),
-      m_scene_manager->camera()
-   );
-   //m_forward_renderer->render_pass(m_manipulator, m_camera);
-#endif
+   if (m_forward)
+   {
+      m_forward_renderer->set_max_lights(m_max_lights);
+      m_forward_renderer->render_pass(
+         m_scene_manager->models(),
+         m_scene_manager->lights(),
+         m_scene_manager->camera()
+      );
+      //m_forward_renderer->render_pass(m_manipulator, m_camera);
+   }
 
-#if 1
+   if (m_debug_lights)
+   {
+      m_light_debug_renderer->set_max_lights(m_max_lights);
+      m_light_debug_renderer->light_pass(
+         m_scene_manager->lights(),
+         m_scene_manager->camera()
+      );
+   }
+
+#if 0
    if (hover_model)
    {
       m_debug_renderer->set_camera(m_scene_manager->camera());
@@ -149,6 +163,8 @@ void game::render_meshes()
 
 #endif
 
+   m_debug_renderer->add_frame_duration_graph(m_viewport);
+   m_debug_renderer->render();
    //r.track.reset();
 
 #if 0 // just blit one rt to screen

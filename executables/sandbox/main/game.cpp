@@ -55,31 +55,37 @@ game::game()
 :  service("game")
 
 /* services */
-,  m_renderer           (nullptr)
-,  m_gui_renderer       (nullptr)
-,  m_programs           (nullptr)
-,  m_textures           (nullptr)
-,  m_debug_renderer     (nullptr)
-,  m_forward_renderer   (nullptr)
-,  m_deferred_renderer  (nullptr)
-,  m_id_renderer        (nullptr)
-,  m_menu               (nullptr)
-,  m_application        (nullptr)
-,  m_shader_monitor     (nullptr)
+,  m_renderer              (nullptr)
+,  m_gui_renderer          (nullptr)
+,  m_programs              (nullptr)
+,  m_textures              (nullptr)
+,  m_debug_renderer        (nullptr)
+,  m_forward_renderer      (nullptr)
+,  m_deferred_renderer     (nullptr)
+,  m_light_debug_renderer  (nullptr)
+,  m_id_renderer           (nullptr)
+,  m_menu                  (nullptr)
+,  m_application           (nullptr)
+,  m_shader_monitor        (nullptr)
 
 /* self owned parts */
-,  m_manipulator_frame  (nullptr)
-,  m_root_layer         (nullptr)
-,  m_menu_button        (nullptr)
-,  m_slider             (nullptr)
+,  m_manipulator_frame     (nullptr)
+,  m_root_layer            (nullptr)
+,  m_menu_button           (nullptr)
+,  m_slider                (nullptr)
 
-,  m_update_time        (0.0)
-,  m_frame_dt           (0.0)
-,  m_min_frame_dt       (0.0)
-,  m_max_frame_dt       (0.0)
-,  m_simulation_time    (0.0)
-,  m_screen_active      (false)
-,  m_mouse_down         (false)
+,  m_update_time           (0.0)
+,  m_frame_dt              (0.0)
+,  m_min_frame_dt          (0.0)
+,  m_max_frame_dt          (0.0)
+,  m_simulation_time       (0.0)
+,  m_paused                (true)
+,  m_forward               (true)
+,  m_deferred              (false)
+,  m_debug_lights          (false)
+,  m_max_lights            (20)
+,  m_screen_active         (false)
+,  m_mouse_down            (false)
 {
 }
 
@@ -96,24 +102,26 @@ void game::connect(
    shared_ptr<debug_renderer>                         debug_renderer_,
    shared_ptr<forward_renderer>                       forward_renderer_,
    shared_ptr<deferred_renderer>                      deferred_renderer_,
+   shared_ptr<light_debug_renderer>                   light_debug_renderer_,
    shared_ptr<id_renderer>                            id_renderer_,
    shared_ptr<menu>                                   menu_,
    shared_ptr<application>                            application_,
    shared_ptr<scene_manager>                          scene_manager_
 )
 {
-   m_renderer           = renderer;
-   m_shader_monitor     = shader_monitor;
-   m_gui_renderer       = gui_renderer;
-   m_application        = application_;
-   m_menu               = menu_;
-   m_programs           = programs_;
-   m_textures           = textures_;
-   m_deferred_renderer  = deferred_renderer_;
-   m_forward_renderer   = forward_renderer_;
-   m_id_renderer        = id_renderer_;
-   m_debug_renderer     = debug_renderer_;
-   m_scene_manager      = scene_manager_;
+   m_renderer              = renderer;
+   m_shader_monitor        = shader_monitor;
+   m_gui_renderer          = gui_renderer;
+   m_application           = application_;
+   m_menu                  = menu_;
+   m_programs              = programs_;
+   m_textures              = textures_;
+   m_deferred_renderer     = deferred_renderer_;
+   m_forward_renderer      = forward_renderer_;
+   m_light_debug_renderer  = light_debug_renderer_;
+   m_id_renderer           = id_renderer_;
+   m_debug_renderer        = debug_renderer_;
+   m_scene_manager         = scene_manager_;
 
    initialization_depends_on(renderer);
    initialization_depends_on(gui_renderer);
@@ -346,6 +354,15 @@ void game::toggle_mouse_lock()
 
    lock_mouse(!m_controls.mouse_locked);
 }
+void game::toggle_pause()
+{
+   m_paused = !m_paused;
+}
+void game::toggle_deferred()
+{
+   m_forward = !m_forward;
+   m_deferred = !m_deferred;
+}
 void game::shift(bool left, bool value)
 {
    if (left)
@@ -380,11 +397,16 @@ void game::on_key(int key, int scancode, int action, int mods)
    {
       switch (key)
       {
-      case RS_KEY_ESCAPE:   toggle_mouse_lock(); break;
-      case RS_KEY_F1:       m_min_frame_dt = 1.0; m_max_frame_dt = 0.0; break;
-      case RS_KEY_B:        /* m_controls.fov *= 1.1f; TODO */ break;
-      case RS_KEY_N:        /* m_controls.fov /= 1.1f; TODO */ break;
-      case RS_KEY_M:        reset(); break;
+      case RS_KEY_TAB:     toggle_pause(); break;
+      case RS_KEY_ESCAPE:  toggle_mouse_lock(); break;
+      case RS_KEY_F1:      m_min_frame_dt = 1.0; m_max_frame_dt = 0.0; break;
+      case RS_KEY_F2:      toggle_deferred(); break;
+      case RS_KEY_F3:      m_debug_lights = !m_debug_lights; break;
+      case RS_KEY_F4:      --m_max_lights; break;
+      case RS_KEY_F5:      ++m_max_lights; break;
+      case RS_KEY_B:       /* m_controls.fov *= 1.1f; TODO */ break;
+      case RS_KEY_N:       /* m_controls.fov /= 1.1f; TODO */ break;
+      case RS_KEY_M:       reset(); break;
       }
    }
 

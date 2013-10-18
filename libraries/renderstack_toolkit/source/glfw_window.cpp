@@ -155,7 +155,7 @@ bool window::open(int width, int height, string const &title, int major, int min
    ::glfwWindowHint(GLFW_GREEN_BITS,   8);
    ::glfwWindowHint(GLFW_BLUE_BITS,    8);
    ::glfwWindowHint(GLFW_DEPTH_BITS,   24);
-   ::glfwWindowHint(GLFW_SAMPLES,      4);
+   //::glfwWindowHint(GLFW_SAMPLES,      4);
    ::glfwWindowHint(GLFW_SRGB_CAPABLE, GL_TRUE);
 
    /*
@@ -234,13 +234,13 @@ bool window::open(int width, int height, string const &title, int major, int min
    ::glfwSetInputMode((GLFWwindow*)m_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
    ::glfwSetInputMode((GLFWwindow*)m_window, GLFW_STICKY_KEYS, GL_FALSE);
    ::glfwSetInputMode((GLFWwindow*)m_window, GLFW_STICKY_MOUSE_BUTTONS, GL_FALSE);
-   ::glfwSwapInterval(1);
+   ::glfwSwapInterval(0);
 
    ::glfwShowWindow((GLFWwindow*)m_window);
    ::glfwMakeContextCurrent((GLFWwindow*)m_window);
    get_extensions();
 
-   ::glfwSwapInterval(1);
+   ::glfwSwapInterval(0);
 
    return true;
 }

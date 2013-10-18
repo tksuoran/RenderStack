@@ -9,6 +9,7 @@
 #include <vector>
 #include <memory>
 #include <cstdint>
+#include <deque>
 
 namespace renderstack { namespace graphics {
    class uniform_buffer;
@@ -26,7 +27,7 @@ namespace renderstack { namespace ui {
 
 struct draw
 {
-   glm::mat4   world_from_model;
+   glm::mat4   clip_from_model;
    int         first;
    int         count;
 };
@@ -57,6 +58,9 @@ public:
    void render();
 
    void clear_text_lines();
+   void record_frame_duration(float frame_duration);
+   void add_frame_duration_graph(renderstack::scene::viewport const &vp);
+
    void printf(const char *format, ...);
    void printf(int x, int y, const char *format, ...);
    void render_text_lines(renderstack::scene::viewport const &vp);
@@ -97,19 +101,21 @@ private:
 
    renderstack::graphics::render_states            m_render_states;
    
-   bool              m_in_edit;
-   float             *m_vertex_ptr_start;
-   std::uint16_t     *m_index_ptr_start;
-   float             *m_vertex_ptr;
-   std::uint16_t     *m_index_ptr;
-   int               m_capacity_lines;
-   std::uint16_t     m_vertex_offset;
-   int               m_index_offset;
+   bool                 m_in_edit;
+   float                *m_vertex_ptr_start;
+   std::uint16_t        *m_index_ptr_start;
+   float                *m_vertex_ptr;
+   std::uint16_t        *m_index_ptr;
+   int                  m_capacity_lines;
+   std::uint16_t        m_vertex_offset;
+   int                  m_index_offset;
 
-   glm::vec4         m_color;
+   glm::vec4            m_color;
 
-   draw              m_current_draw;
-   std::vector<draw> m_draws;
+   draw                 m_current_draw;
+   std::vector<draw>    m_draws;
+   std::deque<float>    m_frame_durations; // TODO use ringbuffer, implement on top of vector<>
+   std::size_t          m_frame_duration_graph_size;
 };
 
 

@@ -31,6 +31,8 @@ public:
    forward_renderer();
    /*virtual*/ ~forward_renderer();
 
+   void set_max_lights(int max_lights);
+
    void connect(
       std::shared_ptr<renderstack::graphics::renderer> renderer,
       std::shared_ptr<debug_renderer> debug_renderer,
@@ -59,12 +61,8 @@ private:
 
    renderstack::graphics::render_states               m_first_pass_render_states;
    renderstack::graphics::render_states               m_other_pass_render_states;
-   renderstack::graphics::render_states               m_debug_light_render_states;
 
-   std::map<
-      std::shared_ptr<renderstack::scene::light>,
-      std::shared_ptr<renderstack::mesh::geometry_mesh>
-   >                                                  m_light_meshes; 
+   int                                                m_max_lights;
 };
 
 

@@ -16,6 +16,7 @@
 #include "renderers/quad_renderer.hpp"
 #include "renderers/forward_renderer.hpp"
 #include "renderers/deferred_renderer.hpp"
+#include "renderers/light_debug_renderer.hpp"
 #include "renderers/id_renderer.hpp"
 
 #include <sstream>
@@ -79,6 +80,7 @@ bool application::initialize_services()
    auto quad_renderer_     = make_shared<quad_renderer>();
    auto forward_renderer_  = make_shared<forward_renderer>();
    auto deferred_renderer_ = make_shared<deferred_renderer>();
+   auto l_d_renderer_      = make_shared<light_debug_renderer>();
    auto id_renderer_       = make_shared<id_renderer>();
 
    auto shader_monitor_    = make_shared<shader_monitor>();
@@ -98,6 +100,7 @@ bool application::initialize_services()
    m_services.add(quad_renderer_);
    m_services.add(forward_renderer_);
    m_services.add(deferred_renderer_);
+   m_services.add(l_d_renderer_);
    m_services.add(id_renderer_);
 
    m_services.add(shader_monitor_);
@@ -118,6 +121,7 @@ bool application::initialize_services()
    if (quad_renderer_)     quad_renderer_->connect(renderer);
    if (forward_renderer_)  forward_renderer_->connect(renderer, debug_renderer_, programs_);
    if (deferred_renderer_) deferred_renderer_->connect(renderer, programs_, quad_renderer_);
+   if (l_d_renderer_)      l_d_renderer_->connect(renderer, programs_);
    if (id_renderer_)       id_renderer_->connect(renderer, programs_);
 
    if (scene_manager_)     scene_manager_->connect(programs_, renderer);
@@ -132,6 +136,7 @@ bool application::initialize_services()
          debug_renderer_,
          forward_renderer_,
          deferred_renderer_,
+         l_d_renderer_,
          id_renderer_,
          menu_,
          application_,

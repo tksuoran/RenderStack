@@ -11,6 +11,7 @@
 #include "main/programs.hpp"
 #include "renderers/deferred_renderer.hpp"
 #include "renderers/forward_renderer.hpp"
+#include "renderers/light_debug_renderer.hpp"
 #include "renderers/id_renderer.hpp"
 #include "renderers/debug_renderer.hpp"
 #include "scene/model.hpp"
@@ -99,6 +100,7 @@ public:
       std::shared_ptr<debug_renderer>                          debug_renderer_,
       std::shared_ptr<forward_renderer>                        forward_renderer_,
       std::shared_ptr<deferred_renderer>                       deferred_renderer_,
+      std::shared_ptr<light_debug_renderer>                    light_debug_renderer_,
       std::shared_ptr<id_renderer>                             id_renderer_,
       std::shared_ptr<menu>                                    menu_,
       std::shared_ptr<application>                             application_,
@@ -129,6 +131,8 @@ private:
    void shift(bool left, bool value);
    void lock_mouse(bool lock);
    void toggle_mouse_lock();
+   void toggle_pause();
+   void toggle_deferred();
 
    void render       ();
    void render_meshes();
@@ -146,6 +150,7 @@ private: /* services */
    std::shared_ptr<debug_renderer>                          m_debug_renderer;
    std::shared_ptr<forward_renderer>                        m_forward_renderer;
    std::shared_ptr<deferred_renderer>                       m_deferred_renderer;
+   std::shared_ptr<light_debug_renderer>                    m_light_debug_renderer;
    std::shared_ptr<id_renderer>                             m_id_renderer;
    std::shared_ptr<menu>                                    m_menu;
    std::shared_ptr<application>                             m_application;
@@ -169,6 +174,11 @@ private: /* self owned parts */
    double                                                   m_min_frame_dt;
    double                                                   m_max_frame_dt;
    double                                                   m_simulation_time;
+   bool m_paused;
+   bool m_forward;
+   bool m_deferred;
+   bool m_debug_lights;
+   int  m_max_lights;
 
    // are we between on_enter() and on_exit()?
    bool m_screen_active;

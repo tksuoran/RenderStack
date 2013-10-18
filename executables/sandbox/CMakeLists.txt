@@ -85,6 +85,8 @@ add_executable(
    renderers/deferred_renderer.hpp
    renderers/forward_renderer.cpp
    renderers/forward_renderer.hpp
+   renderers/light_debug_renderer.cpp
+   renderers/light_debug_renderer.hpp
    renderers/id_renderer.cpp
    renderers/id_renderer.hpp
    renderers/debug_renderer.cpp
