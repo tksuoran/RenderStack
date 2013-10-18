@@ -129,6 +129,10 @@ source_group(res\\shaders\\sm5 FILES ${res_sm5})
 source_group(res\\shaders\\sm4 FILES ${res_sm4})
 source_group(res\\shaders\\sm0 FILES ${res_sm0})
 
+message("PNG_LIBRARIES = ${PNG_LIBRARIES}")
+message("RENDERSTACK_WINDOW_TOOLKIT_LIBRARIES = ${RENDERSTACK_WINDOW_TOOLKIT_LIBRARIES}")
+message("TINYXML_LIBS = ${TINYXML_LIBS}")
+
 target_link_libraries(
    sandbox
    renderstack_ui 
@@ -140,7 +144,7 @@ target_link_libraries(
    RectangleBinPack
    ${RENDERSTACK_WINDOW_TOOLKIT_LIBRARIES}
    ${TINYXML_LIBS}
-   ${PNG_LIBS}
+   ${PNG_LIBRARIES}
 )
 
 if (RENDERSTACK_USE_FREETYPE)

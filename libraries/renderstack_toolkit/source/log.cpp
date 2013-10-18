@@ -48,7 +48,11 @@ void console_init()
 #else
 bool print_color()
 {
+#if defined(__APPLE__)
+   return false;
+#else
    return ::isatty(fileno(stdout));
+#endif
 }
 void set_text_color(int c)
 {
@@ -150,7 +154,7 @@ void log_write(log_category *cat, int level, const char *format, ...)
          }
          else if (c == ')')      
          {
-            prev = c;
+            prev = c; 
             --p;
             c = *p;
             *p = 0;
@@ -188,6 +192,9 @@ void log_write(log_category *cat, int level, const char *format, ...)
 # if defined(_WIN32)
    ::OutputDebugStringA(buf);
 # endif
+#if defined(__APPLE__)
+   printf("%s", buf);
+#endif
 }
 
 } }

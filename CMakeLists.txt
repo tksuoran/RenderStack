@@ -77,14 +77,16 @@ endif ()
 
 # Slightly hacky
 set(GLM_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/libraries/glm-0.9.4.4")
-set(PNG_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/libraries/lpng163;${CMAKE_BINARY_DIR}/libraries/lpng163")
+# set(PNG_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/libraries/lpng163;${CMAKE_BINARY_DIR}/libraries/lpng163")
 # ${CMAKE_SOURCE_DIR}/libraries/zlib;${CMAKE_BINARY_DIR}/libraries/zlib")
 set(TINYXML_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/libraries/tinyxml2")
 set(TINYXML_LIBS tinyxml2static)
-set(PNG_LIBS png16_static zlibstatic)
 
 # libpng requires some hacking due to dependency to zlib
 if (MSVC)
+   set(PNG_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/libraries/lpng163;${CMAKE_BINARY_DIR}/libraries/lpng163")
+   set(PNG_LIBS png16_static zlibstatic)
+   
    # Prevent libpng from trying to install anything
    set(SKIP_INSTALL_ALL TRUE)
 
@@ -124,6 +126,7 @@ if (MSVC)
    add_subdirectory(libraries/lpng163)
 else ()
    find_package(PNG REQUIRED)
+   message("PNG_LIBRARIES = ${PNG_LIBRARIES}")
    find_package(ZLIB REQUIRED)
 endif ()
 

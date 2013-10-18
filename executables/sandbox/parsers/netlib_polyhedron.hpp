@@ -10,7 +10,7 @@
 class netlib_polyhedron
 {
 public:
-   netlib_polyhedron::netlib_polyhedron(std::string const &path);
+   netlib_polyhedron(std::string const &path);
 
 private:
    bool seek(std::string const &label);

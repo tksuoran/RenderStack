@@ -1,4 +1,4 @@
-// gbuffer.fs.txt (sm5)
+// gbuffer.fs.txt (sm4)
 
 in vec3 v_normal;
 in vec3 v_tangent;
