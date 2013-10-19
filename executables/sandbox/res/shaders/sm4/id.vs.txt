@@ -1,0 +1,10 @@
+in vec3 a_position;
+in vec3 a_id;
+
+flat out vec3 v_id;
+
+void main()
+{
+    gl_Position = model.clip_from_model * vec4(a_position, 1.0);
+    v_id = a_id + model.id_offset;
+}

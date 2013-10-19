@@ -104,15 +104,11 @@ void menu::initialize_service()
 
 #if defined(RENDER_TEXT) || defined(DEBUG_FONT) 
    m_font = make_shared<font>(r, "res/fonts/Ubuntu-R.ttf", 48, 4.0f);
-   m_text_buffer = make_shared<text_buffer>(
-      m_gui_renderer,
-      m_font,
-      m_programs->font->mappings()
-   );
+   m_text_buffer = make_shared<text_buffer>(m_gui_renderer, m_font);
 #endif
 
    auto p = m_programs->textured;
-   auto m = p->mappings();
+   auto m = p->vertex_attribute_mappings();
    auto gr = m_gui_renderer;
 
 #if defined(RENDER_BACKGROUND)

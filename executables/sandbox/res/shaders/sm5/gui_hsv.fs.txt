@@ -4,8 +4,6 @@ in vec3 v_normal;
 in vec4 v_color;
 in vec2 v_texcoord;
 
-out vec4 out_color;
-
 vec3 hsv_to_rgb(vec3 hsv)
 {
     vec3 rgb = hsv.zzz;

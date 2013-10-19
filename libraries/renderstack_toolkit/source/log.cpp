@@ -2,6 +2,7 @@
 #include "renderstack_toolkit/log.hpp"
 #include <iostream>
 #include <cstdarg>
+#include <cassert>
 
 #if defined _WIN32
 # include <windows.h>
@@ -9,10 +10,9 @@
 
 namespace renderstack { namespace toolkit {
 
-log_category log_services  (C_WHITE,      C_GRAY, LOG_INFO);
-log_category log_gl        (C_DARK_GREEN, C_GRAY, LOG_TRACE);
-
-renderstack::toolkit::log_category log_file(C_CYAN, C_GRAY, LOG_TRACE);
+log_category log_services  (LOG_COLORIZER_DEFAULT, C_WHITE,       C_GRAY, LOG_INFO);
+log_category log_gl        (LOG_COLORIZER_DEFAULT, C_DARK_GREEN,  C_GRAY, LOG_TRACE);
+log_category log_file      (LOG_COLORIZER_DEFAULT, C_CYAN,        C_GRAY, LOG_TRACE);
 
 using namespace std;
 
@@ -99,7 +99,7 @@ void log_indent(int indent_amount)
 
 void log_write(log_category *cat, int level, const char *format, ...)
 {
-   char     buf[4096];
+   char     buf[16384];
    char     *p = buf;
    char     *span;
    char     c, next, prev;
@@ -132,50 +132,100 @@ void log_write(log_category *cat, int level, const char *format, ...)
    // Log to console
    if (print_color())
    {
-      set_text_color(cat->color[0]);
-      p = span = buf;
-      prev = 0;
-      next = 0;
-      for (;;)
+      switch (cat->colorizer)
       {
-         c = *p;
-         p++;
-         next = (c != 0) ? (*p) : 0;
-         if (c == '(' || (c == ':' && next != ':' && prev != ':'))
+      case LOG_COLORIZER_DEFAULT:
+         set_text_color(cat->color[0]);
+         p = span = buf;
+         prev = 0;
+         next = 0;
+         for (;;)
          {
-            prev = c;
             c = *p;
-            *p = 0;
-            cout << span;
-            cout.flush();
-            *p = c;
-            span = p;
-            set_text_color(cat->color[1]);
+            p++;
+            next = (c != 0) ? (*p) : 0;
+            if (c == '(' || (c == ':' && next != ':' && prev != ':'))
+            {
+               prev = c;
+               c = *p;
+               *p = 0;
+               cout << span;
+               cout.flush();
+               *p = c;
+               span = p;
+               set_text_color(cat->color[1]);
+            }
+            else if (c == ')')      
+            {
+               prev = c; 
+               --p;
+               c = *p;
+               *p = 0;
+               cout << span;
+               cout.flush();
+               *p = c;
+               span = p;
+               set_text_color(cat->color[0]);
+               ++p;
+            }
+            else if (c == 0)
+            {
+               cout << span;
+               cout.flush();
+               set_text_color(cat->color[1]);
+               break;
+            }
+            else
+            {
+               prev = c;
+            }
          }
-         else if (c == ')')      
+         break;
+
+      case LOG_COLORIZER_GLSL:
+         set_text_color(cat->color[0]);
+         p = span = buf;
+         for (;;)
          {
-            prev = c; 
-            --p;
             c = *p;
-            *p = 0;
-            cout << span;
-            cout.flush();
-            *p = c;
-            span = p;
-            set_text_color(cat->color[0]);
-            ++p;
+            p++;
+            if (c == ':')
+            {
+               c = *p;
+               *p = 0;
+               cout << span;
+               cout.flush();
+               *p = c;
+               span = p;
+               set_text_color(cat->color[1]);
+            }
+            else if (c == '\n')
+            {
+               c = *p;
+               *p = 0;
+               cout << span;
+               cout.flush();
+               *p = c;
+               span = p;
+               set_text_color(cat->color[0]);
+            }
+            else if (c == 0)
+            {
+               cout << span;
+               cout.flush();
+               set_text_color(cat->color[1]);
+               break;
+            }
+            else
+            {
+               prev = c;
+            }
          }
-         else if (c == 0)
-         {
-            cout << span;
-            cout.flush();
-            set_text_color(cat->color[1]);
-            break;
-         }
-         else
-         {
-            prev = c;
-         }
+         break;
+
+      default:
+         assert(0);
+         break;
       }
       set_text_color(C_GRAY);
    }

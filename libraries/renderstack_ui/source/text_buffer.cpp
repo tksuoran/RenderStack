@@ -3,7 +3,7 @@
 #include "renderstack_toolkit/strong_gl_enums.hpp"
 #include "renderstack_graphics/configuration.hpp"
 #include "renderstack_graphics/vertex_format.hpp"
-#include "renderstack_graphics/vertex_stream_mappings.hpp"
+#include "renderstack_graphics/vertex_attribute_mappings.hpp"
 #include "renderstack_mesh/mesh.hpp"
 #include "renderstack_ui/context.hpp"
 #include "renderstack_ui/gui_renderer.hpp"
@@ -28,9 +28,8 @@ using namespace std;
 
 
 text_buffer::text_buffer(
-   shared_ptr<class gui_renderer> renderer,
-   shared_ptr<class font> font,
-   shared_ptr<vertex_stream_mappings> mappings
+   shared_ptr<class gui_renderer>   renderer,
+   shared_ptr<class font>           font
 )
 :  m_renderer(renderer)
 ,  m_font(font)
@@ -146,13 +145,17 @@ size_t text_buffer::end_print()
    m_mesh.vertex_buffer()->flush_and_unmap(r, 4 * m_chars_printed);
    return m_chars_printed;
 }
-void text_buffer::print(string const &text, float x, float y)
+void text_buffer::print(string const &text, int x, int y)
 {
    if (m_chars_printed == m_max_chars)
       return;
 
    int a = 0;
-   m_chars_printed += m_font->print(text, m_bounding_box, m_vertex_ptr, x, y, m_max_chars - m_chars_printed);
+   m_chars_printed += m_font->print(
+      text, m_bounding_box, m_vertex_ptr,
+      static_cast<float>(x), static_cast<float>(y),
+      m_max_chars - m_chars_printed
+   );
    ++a;
 }
 void text_buffer::measure(string const &text)
@@ -168,7 +171,7 @@ void text_buffer::print_center(string const &text, float x, float y)
    measure(text);
    glm::vec2 p(x, y);
    p -= m_bounding_box.half_size();
-   print(text, std::ceil(p.x), std::ceil(p.y));
+   print(text, static_cast<int>(std::ceil(p.x)), static_cast<int>(std::ceil(p.y)));
 }
 
 } }

@@ -7,7 +7,7 @@
 
 namespace renderstack { namespace graphics {
    class renderer;
-   class vertex_stream_mappings;
+   class vertex_attribute_mappings;
    class vertex_format;
    class vertex_stream;
    class buffer;
@@ -28,13 +28,13 @@ public:
    void render_zero_to_one();
 
 private:
-   std::shared_ptr<renderstack::graphics::renderer>               m_renderer;
+   std::shared_ptr<renderstack::graphics::renderer>                     m_renderer;
 
-   std::shared_ptr<renderstack::graphics::vertex_stream_mappings> m_mappings;
-   std::shared_ptr<renderstack::graphics::vertex_format>          m_vertex_format;
-   std::shared_ptr<renderstack::graphics::vertex_stream>          m_vertex_stream;
-   std::shared_ptr<renderstack::graphics::buffer>                 m_vertex_buffer;
-   std::shared_ptr<renderstack::graphics::buffer>                 m_index_buffer;
+   std::shared_ptr<renderstack::graphics::vertex_attribute_mappings>    m_vertex_attribute_mappings;
+   std::shared_ptr<renderstack::graphics::vertex_format>                m_vertex_format;
+   std::shared_ptr<renderstack::graphics::vertex_stream>                m_vertex_stream;
+   std::shared_ptr<renderstack::graphics::buffer>                       m_vertex_buffer;
+   std::shared_ptr<renderstack::graphics::buffer>                       m_index_buffer;
 };
 
 #endif

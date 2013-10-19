@@ -605,13 +605,7 @@ void configuration::initialize()
    if (can_use.gpu_shader5)
       shader_model_version = 5;
 
-#if 0
-   if (shader_model_version > 4)
-      shader_model_version = 4;
-#endif
-
    // can_use.map_buffer_range      = false;
-
    // can_use.uniform_buffer_object = false;
 
 #if 0 // Disable vertex array object

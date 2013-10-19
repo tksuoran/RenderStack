@@ -1,5 +1,5 @@
-#ifndef vertex_stream_mapping_hpp_renderstack_graphics
-#define vertex_stream_mapping_hpp_renderstack_graphics
+#ifndef vertex_attribute_mapping_hpp_renderstack_graphics
+#define vertex_attribute_mapping_hpp_renderstack_graphics
 
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_graphics/vertex_attribute.hpp"
@@ -11,11 +11,11 @@
 
 namespace renderstack { namespace graphics {
 
-class vertex_stream_mapping
+class vertex_attribute_mapping
 {
 public:
-   vertex_stream_mapping(std::string const &name, vertex_attribute_usage::value usage, unsigned int index);
-   vertex_stream_mapping(std::string const &name, vertex_attribute_usage::value src_usage, unsigned int src_index, vertex_attribute_usage::value dst_usage, unsigned int dst_index);
+   vertex_attribute_mapping(std::string const &name, vertex_attribute_usage::value usage, unsigned int index);
+   vertex_attribute_mapping(std::string const &name, vertex_attribute_usage::value src_usage, unsigned int src_index, vertex_attribute_usage::value dst_usage, unsigned int dst_index);
 
    std::string const             &name() const;
    vertex_attribute_usage::value src_usage() const;

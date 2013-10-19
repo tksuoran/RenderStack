@@ -5,14 +5,19 @@
 
 namespace renderstack { namespace toolkit {
 
+#define LOG_COLORIZER_DEFAULT 0
+#define LOG_COLORIZER_GLSL    1
+
 struct log_category
 {
+   int colorizer;
    int color[2];
    int level;
    int indent;
 
-   log_category(int color0, int color1, int level_)
+   log_category(int colorizer_, int color0, int color1, int level_)
    {
+      colorizer = colorizer_;
       color[0] = color0;
       color[1] = color1;
       level = level_;

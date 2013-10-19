@@ -12,7 +12,7 @@
 #include "renderstack_graphics/vertex_attribute.hpp"
 #include "renderstack_graphics/vertex_format.hpp"
 #include "renderstack_graphics/vertex_stream.hpp"
-#include "renderstack_graphics/vertex_stream_mappings.hpp"
+#include "renderstack_graphics/vertex_attribute_mappings.hpp"
 #include "renderstack_graphics/renderer.hpp"
 
 #include "renderstack_mesh/geometry_mesh.hpp"
@@ -361,7 +361,7 @@ void geometry_mesh::build_mesh_from_geometry(
       m_mesh->allocate_index_buffer(renderer, 4, total_index_count);
    }
 
-   format_info.mappings()->add_to_vertex_stream(
+   format_info.vertex_attribute_mappings()->add_to_vertex_stream(
       m_vertex_stream,
       m_mesh->vertex_buffer(),
       m_vertex_format);

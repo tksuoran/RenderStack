@@ -3,7 +3,7 @@
 
 namespace renderstack { namespace geometry {
 
-renderstack::toolkit::log_category log_geometry(C_YELLOW,  C_GRAY, LOG_INFO);
+renderstack::toolkit::log_category log_geometry(LOG_COLORIZER_DEFAULT, C_YELLOW,  C_GRAY, LOG_INFO);
 
 } }
 

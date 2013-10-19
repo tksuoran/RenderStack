@@ -1,4 +1,4 @@
-// textured.vs.txt (sm4)
+// textured_gui.vs.txt (sm4)
 
 in vec4 a_position_texcoord;
 
@@ -6,6 +6,6 @@ out vec2 v_texcoord;
 
 void main()
 {
-    gl_Position = global.clip_from_model * vec4(a_position_texcoord.xy, 0.5, 1.0);
+    gl_Position = model.clip_from_model * vec4(a_position_texcoord.xy, 0.5, 1.0);
     v_texcoord = a_position_texcoord.zw;
 }

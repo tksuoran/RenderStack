@@ -1,0 +1,6 @@
+flat in vec3 v_id;
+
+void main(void)
+{
+    out_id = vec4(v_id, 1.0);
+}

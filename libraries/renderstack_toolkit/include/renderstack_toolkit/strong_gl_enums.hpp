@@ -1020,6 +1020,29 @@ namespace vertex_attrib_pointer_type
     };
 }
 
+namespace fragment_output_type
+{
+    enum value
+    {
+        int_ = ((int)0x1404),
+        int_vec2 = ((int)0x8B53),
+        int_vec3 = ((int)0x8B54),
+        int_vec4 = ((int)0x8B55),
+        unsigned_int = ((int)0x1405),
+        unsigned_int_vec2 = ((int)0x8DC6),
+        unsigned_int_vec3 = ((int)0x8DC7),
+        unsigned_int_vec4 = ((int)0x8DC8),
+        float_ = ((int)0x1406),
+        float_vec2 = ((int)0x8B50),
+        float_vec3 = ((int)0x8B51),
+        float_vec4 = ((int)0x8B52),
+        double_ = ((int)0x140A),
+        double_vec2 = ((int)0x8FFC),
+        double_vec3 = ((int)0x8FFD),
+        double_vec4 = ((int)0x8FFE),
+    };
+}
+
 }
 
 #endif

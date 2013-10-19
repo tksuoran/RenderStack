@@ -101,6 +101,7 @@ public:
    void blend_disable();
 
 private:
+   std::shared_ptr<renderstack::graphics::program> load_program(std::string const &name, std::string const &shader);
    void map(std::shared_ptr<renderstack::graphics::program> program);
 
 private:
@@ -110,41 +111,44 @@ private:
    renderstack::graphics::render_states   m_gui_render_states;
 
 
-   std::shared_ptr<class renderstack::graphics::renderer>         m_renderer;
+   std::shared_ptr<class renderstack::graphics::renderer>            m_renderer;
 
-   glm::mat4                                                      m_ortho;
+   glm::mat4                                                         m_ortho;
 
-   int                                                            m_glsl_version;
-   std::shared_ptr<renderstack::graphics::uniform_block>          m_uniform_block;
-   std::shared_ptr<renderstack::graphics::buffer>                 m_uniform_buffer;
-   std::shared_ptr<renderstack::graphics::uniform_buffer_range>   m_uniform_buffer_range;
-   struct gui_uniforms                                            m_uniforms;
-   std::shared_ptr<renderstack::graphics::program>                m_program;
+   int                                                               m_glsl_version;
+   std::string                                                       m_shader_path;
 
-   std::shared_ptr<renderstack::graphics::samplers>               m_samplers;
-   std::shared_ptr<renderstack::graphics::vertex_stream_mappings> m_mappings;
+   std::shared_ptr<renderstack::graphics::uniform_block>             m_uniform_block;
+   std::shared_ptr<renderstack::graphics::buffer>                    m_uniform_buffer;
+   std::shared_ptr<renderstack::graphics::uniform_buffer_range>      m_uniform_buffer_range;
+   struct gui_uniforms                                               m_uniforms;
+   std::shared_ptr<renderstack::graphics::program>                   m_program;
 
-   std::shared_ptr<renderstack::graphics::vertex_format>          m_vertex_format;
-   std::shared_ptr<renderstack::graphics::vertex_stream>          m_vertex_stream;
-   std::shared_ptr<renderstack::graphics::buffer>                 m_vertex_buffer;
-   std::shared_ptr<renderstack::graphics::buffer>                 m_index_buffer;
+   std::shared_ptr<renderstack::graphics::samplers>                  m_samplers;
+   std::shared_ptr<renderstack::graphics::vertex_attribute_mappings> m_vertex_attribute_mappings;
+   std::shared_ptr<renderstack::graphics::fragment_outputs>          m_fragment_outputs;
 
-   std::shared_ptr<font>                                          m_font;
-   std::shared_ptr<renderstack::ui::style>                        m_default_style;
-   std::shared_ptr<renderstack::ui::style>                        m_null_padding_style;
-   std::shared_ptr<ninepatch_style>                               m_button_ninepatch_style;
-   std::shared_ptr<ninepatch_style>                               m_menulist_ninepatch_style;
-   std::shared_ptr<ninepatch_style>                               m_slider_ninepatch_style;
-   std::shared_ptr<style>                                         m_button_style;
-   std::shared_ptr<style>                                         m_menulist_style;
-   std::shared_ptr<style>                                         m_choice_style;
-   std::shared_ptr<style>                                         m_colorpicker_style;
-   std::shared_ptr<style>                                         m_slider_style;
-   std::shared_ptr<renderstack::graphics::program>                m_ninepatch_program;
-   std::shared_ptr<renderstack::graphics::program>                m_font_program;
-   std::shared_ptr<renderstack::graphics::program>                m_hsv_program;
-   std::shared_ptr<renderstack::graphics::program>                m_slider_program;
-   unsigned char                                                  *m_start;
+   std::shared_ptr<renderstack::graphics::vertex_format>             m_vertex_format;
+   std::shared_ptr<renderstack::graphics::vertex_stream>             m_vertex_stream;
+   std::shared_ptr<renderstack::graphics::buffer>                    m_vertex_buffer;
+   std::shared_ptr<renderstack::graphics::buffer>                    m_index_buffer;
+
+   std::shared_ptr<font>                                             m_font;
+   std::shared_ptr<renderstack::ui::style>                           m_default_style;
+   std::shared_ptr<renderstack::ui::style>                           m_null_padding_style;
+   std::shared_ptr<ninepatch_style>                                  m_button_ninepatch_style;
+   std::shared_ptr<ninepatch_style>                                  m_menulist_ninepatch_style;
+   std::shared_ptr<ninepatch_style>                                  m_slider_ninepatch_style;
+   std::shared_ptr<style>                                            m_button_style;
+   std::shared_ptr<style>                                            m_menulist_style;
+   std::shared_ptr<style>                                            m_choice_style;
+   std::shared_ptr<style>                                            m_colorpicker_style;
+   std::shared_ptr<style>                                            m_slider_style;
+   std::shared_ptr<renderstack::graphics::program>                   m_ninepatch_program;
+   std::shared_ptr<renderstack::graphics::program>                   m_font_program;
+   std::shared_ptr<renderstack::graphics::program>                   m_hsv_program;
+   std::shared_ptr<renderstack::graphics::program>                   m_slider_program;
+   unsigned char                                                     *m_start;
 };
 
 

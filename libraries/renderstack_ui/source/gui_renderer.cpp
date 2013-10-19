@@ -4,13 +4,14 @@
 #include "renderstack_ui/ninepatch.hpp"
 #include "renderstack_ui/ninepatch_style.hpp"
 #include "renderstack_ui/style.hpp"
-#include "renderstack_graphics/renderer.hpp"
 #include "renderstack_graphics/configuration.hpp"
+#include "renderstack_graphics/fragment_outputs.hpp"
 #include "renderstack_graphics/program.hpp"
+#include "renderstack_graphics/renderer.hpp"
+#include "renderstack_graphics/samplers.hpp"
+#include "renderstack_graphics/uniform.hpp"
 #include "renderstack_graphics/uniform_block.hpp"
 #include "renderstack_graphics/uniform_buffer_range.hpp"
-#include "renderstack_graphics/uniform.hpp"
-#include "renderstack_graphics/samplers.hpp"
 #include "renderstack_ui/log.hpp"
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -44,6 +45,17 @@ void gui_renderer::connect(shared_ptr<class renderstack::graphics::renderer> ren
    initialization_depends_on(renderer);
 }
 
+shared_ptr<program> gui_renderer::load_program(string const &name, string const &shader)
+{
+   auto p = make_shared<program>(name, m_glsl_version, m_samplers, m_vertex_attribute_mappings, m_fragment_outputs);
+   p->add(m_uniform_block);
+   p->load_vs(m_shader_path + shader + ".vs.txt");
+   p->load_fs(m_shader_path + shader + ".fs.txt");
+   p->link(); 
+   m_uniform_block->map_program(p);
+   return p;
+}
+
 void gui_renderer::initialize_service()
 {
    slog_trace("gui_renderer::initialize_service()");
@@ -64,14 +76,14 @@ void gui_renderer::initialize_service()
    m_blend_add.alpha().set_source_factor(gl::blending_factor_src::one);
    m_blend_add.alpha().set_destination_factor(gl::blending_factor_dest::one);
 
-   m_mappings = make_shared<renderstack::graphics::vertex_stream_mappings>();
-   m_mappings->add("a_position",       vertex_attribute_usage::position,   0, 0);
-   m_mappings->add("a_normal",         vertex_attribute_usage::normal,     0, 1);
-   m_mappings->add("a_normal_flat",    vertex_attribute_usage::normal,     1, 2);
-   m_mappings->add("a_normal_smooth",  vertex_attribute_usage::normal,     2, 3);
-   m_mappings->add("a_color",          vertex_attribute_usage::color,      0, 4);
-   m_mappings->add("a_texcoord",       vertex_attribute_usage::tex_coord,  1, 5);
-   m_mappings->add("a_position_texcoord",
+   m_vertex_attribute_mappings = make_shared<renderstack::graphics::vertex_attribute_mappings>();
+   m_vertex_attribute_mappings->add("a_position",       vertex_attribute_usage::position,   0, 0);
+   m_vertex_attribute_mappings->add("a_normal",         vertex_attribute_usage::normal,     0, 1);
+   m_vertex_attribute_mappings->add("a_normal_flat",    vertex_attribute_usage::normal,     1, 2);
+   m_vertex_attribute_mappings->add("a_normal_smooth",  vertex_attribute_usage::normal,     2, 3);
+   m_vertex_attribute_mappings->add("a_color",          vertex_attribute_usage::color,      0, 4);
+   m_vertex_attribute_mappings->add("a_texcoord",       vertex_attribute_usage::tex_coord,  1, 5);
+   m_vertex_attribute_mappings->add("a_position_texcoord",
       static_cast<vertex_attribute_usage::value>(
          vertex_attribute_usage::position | vertex_attribute_usage::tex_coord
       ),
@@ -111,9 +123,12 @@ void gui_renderer::initialize_service()
    );
    m_index_buffer->allocate_storage(*m_renderer);
 
-   m_mappings->add_to_vertex_stream(m_vertex_stream, m_vertex_buffer, m_vertex_format);
+   m_vertex_attribute_mappings->add_to_vertex_stream(m_vertex_stream, m_vertex_buffer, m_vertex_format);
    r.setup_attribute_pointers(m_vertex_stream, 0);
    va->set_index_buffer(m_index_buffer);
+
+   m_fragment_outputs = make_shared<fragment_outputs>();
+   m_fragment_outputs->add("out_color", gl::fragment_output_type::float_vec4, 0);
 
    // Just one uniform block at index 0 for gui_renderer
    m_uniform_block = make_shared<renderstack::graphics::uniform_block>(0, "gui");
@@ -126,8 +141,6 @@ void gui_renderer::initialize_service()
 
    try
    {
-      string shader_path;
-
 #if defined(RENDERSTACK_GL_API_OPENGL_ES_3)
       shader_path    = "res/shaders/sm4/";
       m_glsl_version = 300;
@@ -136,20 +149,20 @@ void gui_renderer::initialize_service()
           && (renderstack::graphics::configuration::glsl_version >= 400))
       {
          log_trace("GUI renderer using shader model 5, GLSL 4.00");
-         shader_path = "res/shaders/sm5/";
+         m_shader_path = "res/shaders/sm5/";
          m_glsl_version = 400;
       }
       if ((renderstack::graphics::configuration::shader_model_version >= 4)
           && (renderstack::graphics::configuration::glsl_version >= 150))
       {
          log_trace("GUI renderer using shader model 4, GLSL 1.50");
-         shader_path = "res/shaders/sm4/";
+         m_shader_path = "res/shaders/sm4/";
          m_glsl_version = 150;
       }
       else
       {
          log_trace("GUI renderer using shader model 0, GLSL 1.20");
-         shader_path = "res/shaders/sm0/";
+         m_shader_path = "res/shaders/sm0/";
          m_glsl_version = 120;
       }
 #endif
@@ -174,44 +187,20 @@ void gui_renderer::initialize_service()
       m_samplers->add("font_texture",       gl::active_uniform_type::sampler_2d, nearest_sampler)->set_texture_unit_index(0);
       m_samplers->add("background_texture", gl::active_uniform_type::sampler_2d, nearest_sampler)->set_texture_unit_index(1);
 
-      m_ninepatch_program = make_shared<renderstack::graphics::program>("ninepatch", m_glsl_version, m_samplers, m_mappings);
-      m_ninepatch_program->add(m_uniform_block);
-      m_ninepatch_program->load_vs(shader_path + "gui.vs.txt");
-      m_ninepatch_program->load_fs(shader_path + "gui.fs.txt");
-      m_ninepatch_program->link(); 
-      m_uniform_block->map_program(m_ninepatch_program);
-
-      m_slider_program = make_shared<renderstack::graphics::program>("slider", m_glsl_version, m_samplers, m_mappings);
-      m_slider_program->add(m_uniform_block);
-      m_slider_program->load_vs(shader_path + "gui_slider.vs.txt");
-      m_slider_program->load_fs(shader_path + "gui_slider.fs.txt");
-      m_slider_program->link();
-      m_uniform_block->map_program(m_slider_program);
-
-      m_font_program = make_shared<renderstack::graphics::program>("font", m_glsl_version, m_samplers, m_mappings);
-      m_font_program->add(m_uniform_block);
-      m_font_program->load_vs(shader_path + "gui_font.vs.txt");
-      m_font_program->load_fs(shader_path + "gui_font.fs.txt");
-      m_font_program->link();
-      m_uniform_block->map_program(m_font_program);
-
-      m_hsv_program = make_shared<renderstack::graphics::program>("hsv", m_glsl_version, m_samplers, m_mappings);
-      m_hsv_program->add(m_uniform_block);
-      m_hsv_program->load_vs(shader_path + "gui_hsv.vs.txt");
-      m_hsv_program->load_fs(shader_path + "gui_hsv.fs.txt");
-      m_hsv_program->link();
-      m_uniform_block->map_program(m_hsv_program);
+      m_ninepatch_program = load_program("ninepatch", "gui");
+      m_slider_program = load_program("slider", "gui_slider");
+      m_font_program = load_program("font", "gui_font");
+      m_hsv_program = load_program("hsv", "gui_hsv");
    }
    catch (runtime_error const &e)
    {
-      stringstream ss;
-      ss << "gui_renderer() shaders are broken: " << e.what();
-      throw runtime_error(ss.str());
+      log_error("gui_renderer() shaders are broken: %s", e.what());
+      throw;
    }
    catch (...)
    {
       log_error("shaders are broken");
-      throw runtime_error("gui_renderer() shaders are broken");
+      throw;
    }
 
    m_font = make_shared<font>(

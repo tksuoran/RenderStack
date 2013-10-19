@@ -416,7 +416,7 @@ void renderer::setup_attribute_pointers_new(
       auto &binding  = *i;
       auto vbo       = binding.vertex_buffer().lock();
       auto attribute = binding.vertex_attribute().lock();
-      auto mapping   = binding.vertex_stream_mapping().lock();
+      auto mapping   = binding.vertex_attribute_mapping().lock();
 
       assert(vbo);
       assert(attribute);

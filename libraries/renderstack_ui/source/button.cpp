@@ -17,7 +17,7 @@ button::button(
    shared_ptr<class style>        style
 )
 :  area           (renderer, style)
-,  m_text_buffer  (renderer, style->font(), style->program()->mappings())
+,  m_text_buffer  (renderer, style->font())
 ,  m_ninepatch    (renderer, style->ninepatch_style())
 ,  m_dirty        (true)
 ,  m_trigger      (false)
@@ -54,7 +54,7 @@ void button::update_size()
       if (style()->font())
       {
          m_text_buffer.begin_print();
-         m_text_buffer.print(m_label, 0.0f, 0.0f);
+         m_text_buffer.print(m_label, 0, 0);
          m_text_buffer.end_print();
          m_bounds = m_text_buffer.bounding_box();
 

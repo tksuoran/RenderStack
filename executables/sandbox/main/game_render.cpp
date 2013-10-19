@@ -109,8 +109,10 @@ void game::render_meshes()
          m_manipulator_frame->set_parent(hover_model->frame());
    }
 #endif
+   m_debug_renderer->printf("%s", glGetString(GL_VENDOR));
    m_debug_renderer->printf("%s", glGetString(GL_RENDERER));
    m_debug_renderer->printf("%s", glGetString(GL_VERSION));
+   m_debug_renderer->printf("%s", glGetString(GL_SHADING_LANGUAGE_VERSION));
    m_debug_renderer->printf("%d lights %s%s", m_max_lights, m_forward ? "forward" : "", m_deferred ? "deferred" : "");
 
    if (m_deferred)

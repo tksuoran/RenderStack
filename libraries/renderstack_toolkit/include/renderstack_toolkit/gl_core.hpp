@@ -391,7 +391,7 @@ void vertex_attrib_i4bv(GLuint a, const GLbyte *b);
 void vertex_attrib_i4sv(GLuint a, const GLshort *b);
 void vertex_attrib_i4ubv(GLuint a, const GLubyte *b);
 void vertex_attrib_i4usv(GLuint a, const GLushort *b);
-void bind_frag_data_location(GLuint a, GLuint b, const GLchar *c);
+void bind_frag_data_location(GLuint program, GLuint colorNumber, const GLchar *name);
 void tex_parameter_iiv(GLenum a, GLenum b, const GLint *c);
 void tex_parameter_iuiv(GLenum a, GLenum b, const GLuint *c);
 void get_tex_parameter_iiv(GLenum a, GLenum b, GLint *c);

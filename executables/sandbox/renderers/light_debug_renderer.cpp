@@ -135,8 +135,8 @@ void light_debug_renderer::update_light_model(shared_ptr<light> l)
          format_info.set_want_fill_triangles(true);
          format_info.set_want_edge_lines(true);
          format_info.set_want_position(true);
-         format_info.set_mappings(m_programs->mappings);
-                                                                                                      #
+         format_info.set_vertex_attribute_mappings(m_programs->attribute_mappings);
+
          geometry_mesh::prepare_vertex_format(g, format_info, buffer_info);
 
          auto &r = *m_renderer;
@@ -172,7 +172,7 @@ void light_debug_renderer::light_pass(
    t.execute(&m_debug_light_render_states);
    p = m_programs->debug_light;
    r.set_program(p);
-   glEnable(GL_FRAMEBUFFER_SRGB);
+   //glEnable(GL_FRAMEBUFFER_SRGB);
 
    int light_index = 0;
    for (auto i = lights->cbegin(); i != lights->cend(); ++i)

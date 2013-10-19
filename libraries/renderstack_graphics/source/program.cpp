@@ -2,12 +2,13 @@
 #include "renderstack_toolkit/gl.hpp"
 #include "renderstack_toolkit/file.hpp"
 #include "renderstack_graphics/configuration.hpp"
+#include "renderstack_graphics/fragment_outputs.hpp"
 #include "renderstack_graphics/program.hpp"
 #include "renderstack_graphics/renderer.hpp"
 #include "renderstack_graphics/samplers.hpp"
 #include "renderstack_graphics/uniform_block.hpp"
 #include "renderstack_graphics/uniform.hpp"
-#include "renderstack_graphics/vertex_stream_mappings.hpp"
+#include "renderstack_graphics/vertex_attribute_mappings.hpp"
 #include "renderstack_graphics/log.hpp"
 #include <fstream>
 #include <sstream>
@@ -29,36 +30,6 @@ namespace renderstack { namespace graphics {
 using namespace std;
 using namespace gl;
 using namespace renderstack::toolkit;
-
-static void log_function(char const *format, ...);
-
-static void log_function(char const *format, ...)
-{
-   char    buf[4096];
-   char    *p = buf;
-   va_list args;
-   int     n;
-
-   va_start(args, format);
-   n = ::vsnprintf(p, sizeof buf - 3, format, args);
-   va_end(args);
-
-   p += (n < 0) ? sizeof(buf) - 3 : static_cast<unsigned int>(n);
-
-   while ((p > buf) && isspace(p[-1]))
-      *--p = '\0';
-
-#if defined(_WIN32)
-   *p++ = '\r';
-#endif
-   *p++ = '\n';
-   *p   = '\0';
-
-   ::printf("%s", buf);
-#if defined(_WIN32)
-   ::OutputDebugStringA(buf);
-#endif
-}
 
 string program::format(string const &source)
 {
@@ -116,16 +87,16 @@ unsigned int program::make_shader(
    int shader_type;
 
    stringstream sb;
-	if (m_glsl_version > 0)
-	{
+   if (m_glsl_version > 0)
+   {
 #if defined(RENDERSTACK_GL_API_OPENGL)
-		sb << "#version " << m_glsl_version << "\n";
+      sb << "#version " << m_glsl_version << "\n";
 #endif
-		// No GLSL versions in ES 2 .. ?
+      // No GLSL versions in ES 2 .. ?
 #if defined(RENDERSTACK_GL_API_OPENGL_ES_3)
-	   sb << "#version " << m_glsl_version << " es\n";
+      sb << "#version " << m_glsl_version << " es\n";
 #endif
-	}
+   }
 
    for (auto i = m_defines.cbegin(); i != m_defines.cend(); ++i)
       sb << "#define " << i->first << " " << i->second << "\n";
@@ -134,6 +105,9 @@ unsigned int program::make_shader(
 #if defined(RENDERSTACK_GL_API_OPENGL_ES_2) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
    sb << "precision highp float;\n";
 #endif
+
+   if (type == shader_type::fragment_shader)
+      sb << m_fragment_outputs->source(m_glsl_version);
 
    // TODO If we can not use uniform buffers, replace "block_name." with "block_name_"
    bool use_uniform_buffers = 
@@ -182,14 +156,9 @@ unsigned int program::make_shader(
          vector<char> log(length + 1, 0);
          gl::get_shader_info_log(shader, length, nullptr, &log[0]);
          string f_source = format(*source);
-         log_function("Shader compilation failed: ");
-         log_function(&log[0]);
-         log_function("\n");
-         //if(m_defines.size() > 0)
-         {
-            log_function(f_source.c_str());
-            log_function("\n");
-         }
+         log_error("Shader compilation failed: ");
+         log_error("%s", &log[0]);
+         log_write(&log_glsl, LOG_ERROR, "\n%s\n", f_source.c_str());
          cout << flush;
          cerr << flush;
          throw runtime_error("shader compilation failed");
@@ -200,29 +169,40 @@ unsigned int program::make_shader(
 }
 
 program::program(
-   string const                              &name,
-   int                                       glsl_version,
-   shared_ptr<class samplers>                samplers,
-   shared_ptr<class vertex_stream_mappings>  mappings
+   string const                                 &name,
+   int                                          glsl_version,
+   shared_ptr<class samplers>                   samplers,
+   shared_ptr<class vertex_attribute_mappings>  vertex_attributes,
+   shared_ptr<class fragment_outputs>           fragment_outputs
 )
-:  m_name         (name)
-,  m_glsl_version (glsl_version)
-,  m_gl_name      (~0u)
-,  m_samplers     (samplers)
-,  m_mappings     (mappings)
+:  m_name                     (name)
+,  m_glsl_version             (glsl_version)
+,  m_gl_name                  (~0u)
+,  m_samplers                 (samplers)
+,  m_vertex_attribute_mappings(vertex_attributes)
+,  m_fragment_outputs         (fragment_outputs)
 {
    m_gl_name = gl::create_program();
 
-   assert(mappings);
+   assert(vertex_attributes);
 
 #if 1 // TODO use layout qualifiers
-   mappings->bind_attrib_locations(*this);
+   vertex_attributes->bind_attrib_locations(*this);
 #endif
+
+   assert(fragment_outputs);
+
+   fragment_outputs->bind(*this);
 }
 
 void program::bind_attrib_location(int location, string const name)
 {
    gl::bind_attrib_location(m_gl_name, location, name.c_str());
+}
+
+void program::bind_frag_data_location(int location, std::string const name)
+{
+   gl::bind_frag_data_location(m_gl_name, location, name.c_str());
 }
 
 void program::define(string const &key, string const &value)
@@ -571,9 +551,13 @@ void program::link()
    {
       string log(info_log_length + 1, 0);
       gl::get_program_info_log(m_gl_name, info_log_length, nullptr, &log[0]);
-      log_function("Program linking failed: ");
-      log_function(&log[0]);
-      log_function("\n");
+      for (auto i = m_loaded_shaders.cbegin(); i != m_loaded_shaders.cend(); ++i)
+      {
+         log_error("Program linking failed: ");
+      }
+      log_error("Program linking failed: ");
+      log_error(&log[0]);
+      log_error("\n");
       throw runtime_error("program linking failed");
    }
 
@@ -725,9 +709,9 @@ void program::link()
             );
 
             if (size2 > 1)
-               log_function("transform feedback varying %d %s %s[%d]\n", i, attrib_type_str(type2), &buffer_[0], size2);
+               log_info("transform feedback varying %d %s %s[%d]\n", i, attrib_type_str(type2), &buffer_[0], size2);
             else
-               log_function("transform feedback varying %d %s %s\n", i, attrib_type_str(type2), &buffer_[0]);
+               log_info("transform feedback varying %d %s %s\n", i, attrib_type_str(type2), &buffer_[0]);
 
          }
       }

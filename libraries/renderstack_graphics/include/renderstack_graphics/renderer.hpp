@@ -12,7 +12,7 @@
 #include "renderstack_graphics/texture.hpp"
 #include "renderstack_graphics/uniform_buffer_range.hpp"
 #include "renderstack_graphics/vertex_stream.hpp"
-#include "renderstack_graphics/vertex_stream_mappings.hpp"
+#include "renderstack_graphics/vertex_attribute_mappings.hpp"
 #include <memory>
 #include <stack>
 

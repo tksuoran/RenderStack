@@ -103,19 +103,20 @@ public:
    std::shared_ptr<renderstack::graphics::uniform_buffer_range>   debug_ubr;
 
 
-   std::shared_ptr<renderstack::graphics::samplers>               samplers;
-   std::shared_ptr<renderstack::graphics::vertex_stream_mappings> mappings;
-   std::shared_ptr<renderstack::graphics::program>                font;
-   std::shared_ptr<renderstack::graphics::program>                basic;
-   std::shared_ptr<renderstack::graphics::program>                anisotropic;
-   std::shared_ptr<renderstack::graphics::program>                debug_line;
-   std::shared_ptr<renderstack::graphics::program>                debug_light;
-   std::shared_ptr<renderstack::graphics::program>                textured;
-   std::shared_ptr<renderstack::graphics::program>                gbuffer;
-   std::shared_ptr<renderstack::graphics::program>                light;
-   std::shared_ptr<renderstack::graphics::program>                show_rt;
-   std::shared_ptr<renderstack::graphics::program>                show_rt_spherical;
-   std::shared_ptr<renderstack::graphics::program>                id;
+   std::shared_ptr<renderstack::graphics::samplers>                  samplers;
+   std::shared_ptr<renderstack::graphics::vertex_attribute_mappings> attribute_mappings;
+   std::shared_ptr<renderstack::graphics::fragment_outputs>          fragment_outputs;
+   std::shared_ptr<renderstack::graphics::program>                   font;
+   std::shared_ptr<renderstack::graphics::program>                   basic;
+   std::shared_ptr<renderstack::graphics::program>                   anisotropic;
+   std::shared_ptr<renderstack::graphics::program>                   debug_line;
+   std::shared_ptr<renderstack::graphics::program>                   debug_light;
+   std::shared_ptr<renderstack::graphics::program>                   textured;
+   std::shared_ptr<renderstack::graphics::program>                   gbuffer;
+   std::shared_ptr<renderstack::graphics::program>                   light;
+   std::shared_ptr<renderstack::graphics::program>                   show_rt;
+   std::shared_ptr<renderstack::graphics::program>                   show_rt_spherical;
+   std::shared_ptr<renderstack::graphics::program>                   id;
 
 public:
    void update_fixed_step();

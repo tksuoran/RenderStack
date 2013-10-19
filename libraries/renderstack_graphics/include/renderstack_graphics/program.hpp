@@ -5,7 +5,7 @@
 #include "renderstack_toolkit/gl.hpp"
 #include "renderstack_toolkit/strong_gl_enums.hpp"
 #include "renderstack_toolkit/log.hpp"
-#include "renderstack_graphics/vertex_stream_mappings.hpp"
+#include "renderstack_graphics/vertex_attribute_mappings.hpp"
 #include <map>
 #include <string>
 #include <vector>
@@ -19,15 +19,16 @@ class program : public std::enable_shared_from_this<program>
 {
 public:
    program(
-      std::string const                               &name, 
-      int                                             glsl_version, 
-      std::shared_ptr<class samplers>                 samplers,
-      std::shared_ptr<class vertex_stream_mappings>   mappings
+      std::string const                                  &name, 
+      int                                                glsl_version, 
+      std::shared_ptr<class samplers>                    samplers,
+      std::shared_ptr<class vertex_attribute_mappings>   vertex_attributes,
+      std::shared_ptr<class fragment_outputs>            fragment_output_mappings
    );
 
    std::string const &name() const { return m_name; }
    std::shared_ptr<class samplers> samples() { return m_samplers; }
-   std::shared_ptr<class vertex_stream_mappings> mappings () { return m_mappings; }
+   std::shared_ptr<class vertex_attribute_mappings> vertex_attribute_mappings () { return m_vertex_attribute_mappings; }
 
    void dump_shaders() const;
 
@@ -35,6 +36,7 @@ public:
    int uniform_at(std::size_t index) const;
 
    void                             bind_attrib_location    (int location, std::string const name);
+   void                             bind_frag_data_location (int location, std::string const name);
 
    void                             define              (std::string const &key, std::string const &value);
    int                              get_uniform_location(const char *name);
@@ -78,7 +80,8 @@ private:
    std::map<std::string, std::weak_ptr<class uniform_block > > m_uniform_blocks;
    std::map<std::string, std::shared_ptr<class uniform > >     m_uniforms;
    std::shared_ptr<class samplers>                             m_samplers;
-   std::shared_ptr<class vertex_stream_mappings>               m_mappings;
+   std::shared_ptr<class vertex_attribute_mappings>            m_vertex_attribute_mappings;
+   std::shared_ptr<class fragment_outputs>                     m_fragment_outputs;
    std::vector<loaded_shader>                                  m_loaded_shaders;
    std::vector<std::pair<std::string, std::string> >           m_defines;
    std::vector<GLint>                                          m_uniform_map;

@@ -7,7 +7,7 @@
 #include "renderstack_graphics/buffer.hpp"
 #include "renderstack_graphics/vertex_format.hpp"
 #include "renderstack_graphics/vertex_stream.hpp"
-#include "renderstack_graphics/vertex_stream_mappings.hpp"
+#include "renderstack_graphics/vertex_attribute_mappings.hpp"
 #include "renderstack_mesh/normal_style.hpp"
 #include <glm/glm.hpp>
 #include <cstddef>
@@ -43,7 +43,7 @@ public:
    ,  m_constant_color        (1.0f)
    ,  m_keep_geometry         (false)
    ,  m_normal_style          (normal_style::corner_normals)
-   ,  m_mappings              (nullptr)
+   ,  m_vertex_attribute_mappings(nullptr)
    {
    }
 
@@ -76,7 +76,7 @@ public:
    void set_constant_color       (glm::vec4 value)             { m_constant_color   = value; }
    void set_keep_geometry        (bool value)                  { m_keep_geometry    = value; }
    void set_normal_style         (normal_style::value value)   { m_normal_style     = value; }
-   void set_mappings             (std::shared_ptr<renderstack::graphics::vertex_stream_mappings> value) { m_mappings = value; }
+   void set_vertex_attribute_mappings(std::shared_ptr<renderstack::graphics::vertex_attribute_mappings> value) { m_vertex_attribute_mappings = value; }
 
    gl::vertex_attrib_pointer_type::value position_type      () const { return m_position_type;      }
    gl::vertex_attrib_pointer_type::value normal_type        () const { return m_normal_type;        }
@@ -90,7 +90,7 @@ public:
 
    bool keep_geometry() const { return m_keep_geometry;         }
    normal_style::value normal_style() const { return m_normal_style; }
-   std::shared_ptr<renderstack::graphics::vertex_stream_mappings> mappings() const { return m_mappings; }
+   std::shared_ptr<renderstack::graphics::vertex_attribute_mappings> vertex_attribute_mappings() const { return m_vertex_attribute_mappings; }
 
 private:
    bool m_want_fill_triangles;
@@ -118,9 +118,9 @@ private:
 
    glm::vec4                              m_constant_color;
 
-   bool                                                           m_keep_geometry;
-   normal_style::value                                            m_normal_style;
-   std::shared_ptr<renderstack::graphics::vertex_stream_mappings> m_mappings;
+   bool                                                              m_keep_geometry;
+   normal_style::value                                               m_normal_style;
+   std::shared_ptr<renderstack::graphics::vertex_attribute_mappings> m_vertex_attribute_mappings;
 };
 
 class geometry_mesh_buffer_info

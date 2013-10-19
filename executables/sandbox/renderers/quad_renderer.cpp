@@ -19,11 +19,11 @@ quad_renderer::quad_renderer()
 :  service("quad_renderer")
 ,  m_renderer     (nullptr)
 
-,  m_mappings     (nullptr)
-,  m_vertex_format(nullptr)
-,  m_vertex_stream(nullptr)
-,  m_vertex_buffer(nullptr)
-,  m_index_buffer (nullptr)
+,  m_vertex_attribute_mappings(nullptr)
+,  m_vertex_format            (nullptr)
+,  m_vertex_stream            (nullptr)
+,  m_vertex_buffer            (nullptr)
+,  m_index_buffer             (nullptr)
 {
 }
 
@@ -45,8 +45,8 @@ void quad_renderer::initialize_service()
    assert(m_renderer);
 
    // Specify vertex stream attribute mapping
-   m_mappings = make_shared<renderstack::graphics::vertex_stream_mappings>();
-   m_mappings->add("a_position_texcoord",
+   m_vertex_attribute_mappings = make_shared<renderstack::graphics::vertex_attribute_mappings>();
+   m_vertex_attribute_mappings->add("a_position_texcoord",
       static_cast<vertex_attribute_usage::value>(
          vertex_attribute_usage::position | vertex_attribute_usage::tex_coord
       ),
@@ -79,7 +79,7 @@ void quad_renderer::initialize_service()
    m_vertex_stream = make_shared<renderstack::graphics::vertex_stream>();
    auto va = m_vertex_stream->vertex_array();
    auto old_va = m_renderer->set_vertex_array(va);
-   m_mappings->add_to_vertex_stream(m_vertex_stream, m_vertex_buffer, m_vertex_format);
+   m_vertex_attribute_mappings->add_to_vertex_stream(m_vertex_stream, m_vertex_buffer, m_vertex_format);
    m_renderer->setup_attribute_pointers(m_vertex_stream, 0);
 
    // Create vertex buffer

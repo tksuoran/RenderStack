@@ -1,6 +1,7 @@
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_toolkit/file.hpp"
 #include "renderstack_graphics/configuration.hpp"
+#include "renderstack_graphics/fragment_outputs.hpp"
 #include "renderstack_graphics/program.hpp"
 #include "renderstack_graphics/renderer.hpp"
 #include "renderstack_graphics/sampler.hpp"
@@ -50,7 +51,8 @@ programs::programs()
 ,  debug_ubr         (nullptr)
 
 ,  samplers          (nullptr)
-,  mappings          (nullptr)
+,  attribute_mappings(nullptr)
+,  fragment_outputs  (nullptr)
 ,  font              (nullptr)
 ,  basic             (nullptr)
 ,  debug_line        (nullptr)
@@ -111,16 +113,24 @@ void programs::connect(
       }
    }
 
-   mappings = make_shared<renderstack::graphics::vertex_stream_mappings>();
-   mappings->add("a_position",            vertex_attribute_usage::position,   0, 0);
-   mappings->add("a_normal",              vertex_attribute_usage::normal,     0, 1);
-   mappings->add("a_normal_flat",         vertex_attribute_usage::normal,     1, 2);
-   mappings->add("a_normal_smooth",       vertex_attribute_usage::normal,     2, 3);
-   mappings->add("a_tangent",             vertex_attribute_usage::tangent,    0, 4);
-   mappings->add("a_color",               vertex_attribute_usage::color,      0, 5);
-   mappings->add("a_texcoord",            vertex_attribute_usage::tex_coord,  0, 6);
-   mappings->add("a_id",                  vertex_attribute_usage::id,         0, 7);
-   mappings->add(
+   fragment_outputs = make_shared<class fragment_outputs>();
+   fragment_outputs->add("out_id",              gl::fragment_output_type::float_vec4, 0);
+   fragment_outputs->add("out_color",           gl::fragment_output_type::float_vec4, 0);
+   fragment_outputs->add("out_emission",        gl::fragment_output_type::float_vec4, 0);
+   fragment_outputs->add("out_albedo",          gl::fragment_output_type::float_vec4, 1);
+   fragment_outputs->add("out_normal_tangent",  gl::fragment_output_type::float_vec4, 2);
+   fragment_outputs->add("out_material",        gl::fragment_output_type::float_vec4, 3);
+
+   attribute_mappings = make_shared<renderstack::graphics::vertex_attribute_mappings>();
+   attribute_mappings->add("a_position",            vertex_attribute_usage::position,   0, 0);
+   attribute_mappings->add("a_normal",              vertex_attribute_usage::normal,     0, 1);
+   attribute_mappings->add("a_normal_flat",         vertex_attribute_usage::normal,     1, 2);
+   attribute_mappings->add("a_normal_smooth",       vertex_attribute_usage::normal,     2, 3);
+   attribute_mappings->add("a_tangent",             vertex_attribute_usage::tangent,    0, 4);
+   attribute_mappings->add("a_color",               vertex_attribute_usage::color,      0, 5);
+   attribute_mappings->add("a_texcoord",            vertex_attribute_usage::tex_coord,  0, 6);
+   attribute_mappings->add("a_id",                  vertex_attribute_usage::id,         0, 7);
+   attribute_mappings->add(
       "a_position_texcoord",
       static_cast<vertex_attribute_usage::value>(
          vertex_attribute_usage::position | vertex_attribute_usage::tex_coord
@@ -295,7 +305,7 @@ void programs::end_edit_uniforms()
 
 shared_ptr<renderstack::graphics::program> programs::make_program(string const &name)
 {
-   auto p = make_shared<program>(name, m_glsl_version, samplers, mappings);
+   auto p = make_shared<program>(name, m_glsl_version, samplers, attribute_mappings, fragment_outputs);
    p->add(default_block);
    p->add(model_block);
    p->add(camera_block);

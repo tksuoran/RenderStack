@@ -4,7 +4,7 @@
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_graphics/vertex_stream.hpp"
 #include "renderstack_graphics/vertex_format.hpp"
-#include "renderstack_graphics/vertex_stream_mappings.hpp"
+#include "renderstack_graphics/vertex_attribute_mappings.hpp"
 #include "renderstack_mesh/mesh.hpp"
 #include "renderstack_ui/rectangle.hpp"
 #include "renderstack_ui/font.hpp"
@@ -20,8 +20,7 @@ class text_buffer
 public:
    text_buffer(
       std::shared_ptr<class gui_renderer> renderer,
-      std::shared_ptr<class font> font,
-      std::shared_ptr<renderstack::graphics::vertex_stream_mappings> mappings
+      std::shared_ptr<class font>         font
    );
    ~text_buffer();
 
@@ -29,7 +28,7 @@ public:
    float                         line_height    () const { return m_font->line_height(); }
    void                          begin_print    ();
    std::size_t                   end_print      ();
-   void                          print          (std::string const &text, float x, float y);
+   void                          print          (std::string const &text, int x, int y);
    void                          measure        (std::string const &text);
    void                          print_center   (std::string const &text, float x, float y);
    void                          render         ();

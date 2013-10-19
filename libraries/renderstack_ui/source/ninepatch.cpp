@@ -3,7 +3,7 @@
 #include "renderstack_toolkit/strong_gl_enums.hpp"
 #include "renderstack_graphics/configuration.hpp"
 #include "renderstack_graphics/vertex_format.hpp"
-#include "renderstack_graphics/vertex_stream_mappings.hpp"
+#include "renderstack_graphics/vertex_attribute_mappings.hpp"
 #include "renderstack_ui/context.hpp"
 #include "renderstack_ui/ninepatch.hpp"
 #include "renderstack_ui/ninepatch_style.hpp"

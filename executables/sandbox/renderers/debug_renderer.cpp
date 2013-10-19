@@ -8,7 +8,7 @@
 #include "renderstack_graphics/uniform_buffer_range.hpp"
 #include "renderstack_graphics/uniform.hpp"
 #include "renderstack_graphics/vertex_format.hpp"
-#include "renderstack_graphics/vertex_stream_mappings.hpp"
+#include "renderstack_graphics/vertex_attribute_mappings.hpp"
 #include "renderstack_scene/camera.hpp"
 #include "renderstack_scene/viewport.hpp"
 #include "renderstack_toolkit/gl.hpp"
@@ -70,10 +70,10 @@ void debug_renderer::initialize_service()
 
 #if defined(RENDERSTACK_USE_FREETYPE)
    auto p = m_programs->font;
-   auto m = p->mappings();
+   auto m = p->vertex_attribute_mappings();
 
    m_font = make_shared<font>(r, "res/fonts/Ubuntu-R.ttf", 10);
-   m_text_buffer = make_shared<text_buffer>(m_gui_renderer, m_font, m);
+   m_text_buffer = make_shared<text_buffer>(m_gui_renderer, m_font);
 
    m_font_render_states.blend.set_enabled(true);
    m_font_render_states.blend.rgb().set_equation_mode(gl::blend_equation_mode::func_add);
@@ -119,7 +119,7 @@ void debug_renderer::initialize_service()
    m_index_buffer->allocate_storage(r);
 
    m_vertex_stream = make_shared<renderstack::graphics::vertex_stream>();
-   m_programs->mappings->add_to_vertex_stream(
+   m_programs->attribute_mappings->add_to_vertex_stream(
       m_vertex_stream,
       m_vertex_buffer,
       m_vertex_format);

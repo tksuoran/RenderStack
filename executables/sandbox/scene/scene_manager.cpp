@@ -189,7 +189,7 @@ void scene_manager::add_simple_scene()
    m_format_info.set_want_color(true);
    m_format_info.set_want_id(true);
    m_format_info.set_normal_style(normal_style::corner_normals);
-   m_format_info.set_mappings(m_programs->mappings);
+   m_format_info.set_vertex_attribute_mappings(m_programs->attribute_mappings);
    for (auto i = g_collection.begin(); i != g_collection.end(); ++i)
    {
       (*i)->build_edges();

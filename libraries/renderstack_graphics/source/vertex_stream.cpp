@@ -6,7 +6,7 @@
 #include "renderstack_graphics/vertex_attribute.hpp"
 #include "renderstack_graphics/buffer.hpp"
 #include "renderstack_graphics/vertex_stream_binding.hpp"
-#include "renderstack_graphics/vertex_stream_mapping.hpp"
+#include "renderstack_graphics/vertex_attribute_mapping.hpp"
 #include "renderstack_graphics/vertex_stream.hpp"
 #include <cassert>
 #include <stdexcept>
@@ -40,10 +40,10 @@ vertex_stream::~vertex_stream()
 }
 
 vertex_stream_binding &vertex_stream::add(
-   weak_ptr<class buffer>    vertex_buffer,
-   weak_ptr<vertex_stream_mapping>  mapping, 
-   weak_ptr<vertex_attribute>       attribute,
-   size_t                           stride
+   weak_ptr<class buffer>              vertex_buffer,
+   weak_ptr<vertex_attribute_mapping>  mapping, 
+   weak_ptr<vertex_attribute>          attribute,
+   size_t                              stride
 )
 {
    m_vertex_stream_bindings.push_back(

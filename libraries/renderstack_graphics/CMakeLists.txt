@@ -28,8 +28,10 @@ add_library(
    include/renderstack_graphics/vertex_array.hpp
    include/renderstack_graphics/vertex_stream.hpp
    include/renderstack_graphics/vertex_stream_binding.hpp
-   include/renderstack_graphics/vertex_stream_mapping.hpp
-   include/renderstack_graphics/vertex_stream_mappings.hpp
+   include/renderstack_graphics/vertex_attribute_mapping.hpp
+   include/renderstack_graphics/vertex_attribute_mappings.hpp
+   include/renderstack_graphics/fragment_output.hpp
+   include/renderstack_graphics/fragment_outputs.hpp
 
    include/renderstack_graphics/state_trackers.hpp
    include/renderstack_graphics/blend_state.hpp
@@ -56,8 +58,10 @@ add_library(
    source/vertex_array.cpp
    source/vertex_stream.cpp
    source/vertex_stream_binding.cpp
-   source/vertex_stream_mapping.cpp
-   source/vertex_stream_mappings.cpp
+   source/vertex_attribute_mapping.cpp
+   source/vertex_attribute_mappings.cpp
+   source/fragment_output.cpp
+   source/fragment_outputs.cpp
 
    source/state_trackers.cpp
    source/blend_state.cpp

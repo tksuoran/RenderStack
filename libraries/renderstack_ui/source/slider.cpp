@@ -85,7 +85,7 @@ slider::slider(
    float                            max
 )
 :  area           (renderer, style)
-,  m_text_buffer  (renderer, style->font(), style->program()->mappings())
+,  m_text_buffer  (renderer, style->font())
 ,  m_ninepatch    (renderer, style->ninepatch_style())
 ,  m_label        (label)
 ,  m_min_value    (min)
@@ -148,7 +148,7 @@ void slider::draw_self(ui_context &context)
       stringstream ss;
       ss << m_label << ": " << current_display_value();
       m_text_buffer.begin_print();
-      m_text_buffer.print(ss.str(), 0.0f, 0.0f);
+      m_text_buffer.print(ss.str(), 0, 0);
       m_text_buffer.end_print();
    }
 

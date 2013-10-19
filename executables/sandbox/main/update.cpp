@@ -32,7 +32,7 @@ void game::update()
    }
 
    m_debug_renderer->clear_text_lines();
-   m_debug_renderer->record_frame_duration(m_frame_dt);
+   m_debug_renderer->record_frame_duration(static_cast<float>(m_frame_dt));
 
    //if (!m_paused)
    {

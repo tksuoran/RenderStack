@@ -1,11 +1,11 @@
 #include "renderstack_toolkit/platform.hpp"
-#include "renderstack_graphics/vertex_stream_mapping.hpp"
+#include "renderstack_graphics/vertex_attribute_mapping.hpp"
 
 namespace renderstack { namespace graphics {
 
 using namespace std;
 
-vertex_stream_mapping::vertex_stream_mapping(
+vertex_attribute_mapping::vertex_attribute_mapping(
    string const                  &name,
    vertex_attribute_usage::value usage,
    unsigned int                  index
@@ -18,7 +18,7 @@ vertex_stream_mapping::vertex_stream_mapping(
 {
 }
 
-vertex_stream_mapping::vertex_stream_mapping(
+vertex_attribute_mapping::vertex_attribute_mapping(
    string const                  &name,
    vertex_attribute_usage::value src_usage,
    unsigned int                  src_index,
@@ -33,27 +33,27 @@ vertex_stream_mapping::vertex_stream_mapping(
 {
 }
 
-string const &vertex_stream_mapping::name() const
+string const &vertex_attribute_mapping::name() const
 {
    return m_name;
 }
 
-vertex_attribute_usage::value vertex_stream_mapping::src_usage() const
+vertex_attribute_usage::value vertex_attribute_mapping::src_usage() const
 {
    return m_src_usage;
 }
 
-vertex_attribute_usage::value vertex_stream_mapping::dst_usage() const
+vertex_attribute_usage::value vertex_attribute_mapping::dst_usage() const
 {
    return m_dst_usage;
 }
 
-unsigned int vertex_stream_mapping::src_index() const
+unsigned int vertex_attribute_mapping::src_index() const
 {
    return m_src_index;
 }
 
-unsigned int vertex_stream_mapping::dst_index() const
+unsigned int vertex_attribute_mapping::dst_index() const
 {
    return m_dst_index;
 }

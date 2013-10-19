@@ -2,8 +2,6 @@
 
 in  vec2    v_texcoord;
 
-out vec4    out_color;
-
 void main(void)
 {
     vec2 c = texture(font_texture, v_texcoord.xy).rg;
