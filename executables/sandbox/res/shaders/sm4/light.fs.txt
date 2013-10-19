@@ -47,8 +47,8 @@ vec3 evaluate_brdf(
    vec3 V
 )
 {
-   float r              = 0.01; // TODO
-   float p              = 0.1; // TODO
+   float r              = 0.02; // TODO
+   float p              = 1.0; // TODO
 
    float light_distance = length(L);
    L                    = normalize(L);
@@ -99,7 +99,6 @@ vec3 evaluate_brdf(
          float light_visibility  = 1.0;
          vec3  incident_radiance = lights.radiance * light_visibility * light_attenuation;
 
-
          exitant_radiance += incident_radiance * C * ln_clamped;  //  diffuse
          exitant_radiance += incident_radiance * S * D;           //  specular
       }
@@ -113,13 +112,11 @@ void main(void)
    ivec2 tc                = ivec2(gl_FragCoord.xy);
    float g_depth           = texelFetch(depth_texture, tc, 0).x;
    vec3  g_position        = unproject(gl_FragCoord.xy, g_depth);
-   vec4  g_material        = texelFetch(material_texture, tc, 0);
-
-   if (g_material.w == 0.0)
-      discard;
+   //vec3  g_position        = texelFetch(material_texture, tc, 0).xyz;
+   // vec4  g_material        = texelFetch(material_texture, tc, 0);
 
    vec4  g_albedo          = texelFetch(albedo_texture, tc, 0);
-   vec4  g_normal_tangent  = texelFetch(normal_tangent_texture, tc, 0);// * 3.1415926535897932384626433;
+   vec4  g_normal_tangent  = 4.0 * texelFetch(normal_tangent_texture, tc, 0);// * 3.1415926535897932384626433;
 
    vec3  N                 = spherical_to_cartesian(g_normal_tangent.xy);
    vec3  B                 = spherical_to_cartesian(g_normal_tangent.zw);
@@ -140,7 +137,12 @@ void main(void)
    out_emission.rgb = brdf;
    out_emission.a = 1.0;
 
-   // out_emission.rgb = 0.5 * normalize(V) + vec3(0.5); //(0.5 * N) + vec3(0.5)
+   // out_emission.rgb = vec3(
+   //    2.0 / 
+   //    length(L)
+   // );
+   // 
+   // out_emission.rgb = 0.5 * normalize(T) + vec3(0.5);
 
    // vec3  s              = normalize(lights.direction.xyz);
    // float ls             = dot(L, s);

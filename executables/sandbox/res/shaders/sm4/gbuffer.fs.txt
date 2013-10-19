@@ -1,10 +1,10 @@
-// gbuffer.fs.txt (sm4)
+// gbuffer.fs.txt (sm5)
 
 in vec3 v_normal;
 in vec3 v_tangent;
 in vec4 v_color;
 in vec2 v_texcoord;
-in vec4 v_position_in_view;
+in vec3 v_position;
 
 vec2 cartesian_to_spherical(vec3 v)
 {
@@ -31,8 +31,9 @@ void main(void)
     out_albedo             = material.color;
     out_normal_tangent.xy  = cartesian_to_spherical(N);
     out_normal_tangent.zw  = cartesian_to_spherical(T);
-    //out_normal_tangent /= 3.1415926535897932384626433;
+    out_normal_tangent     *= 0.25;
+
     out_material.w         = material.roughness;
-    out_material.xyz       = v_position_in_view.xyz;
+    //out_material.xyz       = v_position;
 }
 

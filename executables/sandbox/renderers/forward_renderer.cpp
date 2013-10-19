@@ -125,7 +125,7 @@ void forward_renderer::render_pass(
    r.set_program(p);
 
    // Material
-   vec4  color(0.5f, 0.5f, 0.5f, 1.0f);
+   vec4  color(1.0f, 1.0f, 1.0f, 1.0f);
    float roughness = 0.10f;
    float isotropy = 0.02f;
 

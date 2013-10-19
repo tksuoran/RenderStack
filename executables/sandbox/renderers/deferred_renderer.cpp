@@ -132,7 +132,8 @@ void deferred_renderer::resize(int width, int height)
 
    gl::bind_framebuffer(GL_DRAW_FRAMEBUFFER, m_fbo);
    //GLenum formats[] = { GL_RGBA8, GL_RGBA8, GL_RGBA16_SNORM, GL_RGBA8 };
-   GLenum formats[] = { GL_RGBA32F, GL_RGBA32F, GL_RGBA32F, GL_RGBA32F };
+   GLenum formats[] = { GL_RGBA8, GL_RGBA8, GL_RGBA16F, GL_RGBA8 };
+   //GLenum formats[] = { GL_RGBA8, GL_RGBA8, GL_RGBA16_SNORM, GL_RGBA8 };
    for (int i = 0; i < 4; ++i)
    {
       m_rt[i].reset();
@@ -191,7 +192,19 @@ void deferred_renderer::fbo_clear()
    cartesian_to_spherical(N, normal_tangent_clear[0], normal_tangent_clear[1]);
    cartesian_to_spherical(T, normal_tangent_clear[2], normal_tangent_clear[3]);
 
+   auto &r = *m_renderer;
+   r.reset_texture(0, renderstack::graphics::texture_target::texture_2d, nullptr);
+   r.reset_texture(1, renderstack::graphics::texture_target::texture_2d, nullptr);
+   r.reset_texture(2, renderstack::graphics::texture_target::texture_2d, nullptr);
+   r.reset_texture(3, renderstack::graphics::texture_target::texture_2d, nullptr);
+   r.reset_texture(4, renderstack::graphics::texture_target::texture_2d, nullptr);
+
    //gl::clear_buffer_fv(GL_COLOR, 0, &emission_clear      [0]);
+   GLenum a = gl::check_framebuffer_status(GL_FRAMEBUFFER);
+   if (a != GL_FRAMEBUFFER_COMPLETE)
+   {
+      throw runtime_error("FBO is not complete");
+   }
    gl::clear_buffer_fv(GL_COLOR, 1, &albedo_clear        [0]);
    gl::clear_buffer_fv(GL_COLOR, 2, &normal_tangent_clear[0]);
    gl::clear_buffer_fv(GL_COLOR, 3, &material_clear      [0]);
@@ -264,8 +277,8 @@ void deferred_renderer::geometry_pass(
          gl::uniform_matrix_4fv(p->uniform_at(m_programs->model_block_access.view_from_model), 1, GL_FALSE, value_ptr(view_from_model));
          gl::uniform_matrix_4fv(p->uniform_at(m_programs->model_block_access.world_from_model), 1, GL_FALSE, value_ptr(world_from_model));
          gl::uniform_4fv(p->uniform_at(m_programs->material_block_access.color), 1, value_ptr(color));
-         gl::uniform_1f(p->uniform_at(m_programs->material_block_access.color), roughness);
-         gl::uniform_1f(p->uniform_at(m_programs->material_block_access.color), isotropy);
+         gl::uniform_1f(p->uniform_at(m_programs->material_block_access.roughness), roughness);
+         gl::uniform_1f(p->uniform_at(m_programs->material_block_access.isotropy), isotropy);
       }
 
       {
