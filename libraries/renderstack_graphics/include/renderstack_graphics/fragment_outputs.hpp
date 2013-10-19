@@ -21,7 +21,7 @@ public:
 
    void bind(program &program);
 
-   std::string fragment_outputs::source(int glsl_version) const;
+   std::string source(int glsl_version) const;
 
 private:
    std::vector<std::shared_ptr<fragment_output> > m_outputs;

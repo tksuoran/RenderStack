@@ -111,7 +111,7 @@ vec3 evaluate_brdf(
 void main(void)
 {
    ivec2 tc                = ivec2(gl_FragCoord.xy);
-   float g_depth           = texelFetch(depth_texture, tc, 0);
+   float g_depth           = texelFetch(depth_texture, tc, 0).x;
    vec3  g_position        = unproject(gl_FragCoord.xy, g_depth);
    vec4  g_material        = texelFetch(material_texture, tc, 0);
 

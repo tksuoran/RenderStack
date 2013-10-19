@@ -2,10 +2,12 @@
 
 in vec3 a_position;
 in vec3 a_normal;
+in vec3 a_tangent;
 in vec4 a_color;
 in vec2 a_texcoord;
 
 out vec3 v_normal;
+out vec3 v_tangent;
 out vec4 v_color;
 out vec2 v_texcoord;
 out vec4 v_position_in_view;
@@ -14,7 +16,8 @@ void main()
 {
     gl_Position         = model.clip_from_model * vec4(a_position.xyz, 1.0);
     v_position_in_view  = model.view_from_model * vec4(a_position.xyz, 1.0);
-    v_normal            = a_normal;
+    v_normal            = a_normal;  // TODO transform
+    v_tangent           = a_tangent; // TODO transform
     v_color             = a_color;
     v_texcoord          = a_texcoord;
 }

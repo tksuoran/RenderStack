@@ -551,13 +551,16 @@ void program::link()
    {
       string log(info_log_length + 1, 0);
       gl::get_program_info_log(m_gl_name, info_log_length, nullptr, &log[0]);
-      for (auto i = m_loaded_shaders.cbegin(); i != m_loaded_shaders.cend(); ++i)
-      {
-         log_error("Program linking failed: ");
-      }
       log_error("Program linking failed: ");
       log_error(&log[0]);
       log_error("\n");
+      for (auto i = m_loaded_shaders.begin(); i != m_loaded_shaders.end(); ++i)
+      {
+         auto &s = *i;
+         
+         string f_source = format(s.compiled_src);
+         log_write(&log_glsl, LOG_ERROR, "\n%s\n", f_source.c_str());
+      }      
       throw runtime_error("program linking failed");
    }
 

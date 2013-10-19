@@ -14,7 +14,8 @@ void main()
 {
     gl_Position         = model.clip_from_model * vec4(a_position.xyz, 1.0);
     v_position_in_view  = model.view_from_model * vec4(a_position.xyz, 1.0);
-    v_normal            = a_normal;
+    v_normal            = a_normal;  // TODO transform
+    v_tangent           = a_tangent; // TODO transform
     v_color             = a_color;
     v_texcoord          = a_texcoord;
 }
