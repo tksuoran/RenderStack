@@ -74,7 +74,8 @@ void deferred_renderer::initialize_service()
    m_mesh_render_states.face_cull.set_enabled(true);
 
    m_light_render_states.depth.set_enabled(false);
-   m_light_render_states.face_cull.set_enabled(false);
+   m_light_render_states.face_cull.set_enabled(true);
+   m_light_render_states.face_cull.set_cull_face_mode(gl::cull_face_mode::front);
    m_light_render_states.blend.set_enabled(true);
    //m_light_render_states.blend.set_enabled(false);
    m_light_render_states.blend.rgb().set_equation_mode(gl::blend_equation_mode::func_add);
@@ -131,7 +132,7 @@ void deferred_renderer::resize(int width, int height)
 
    gl::bind_framebuffer(GL_DRAW_FRAMEBUFFER, m_fbo);
    //GLenum formats[] = { GL_RGBA8, GL_RGBA8, GL_RGBA16_SNORM, GL_RGBA8 };
-   GLenum formats[] = { GL_RGBA8, GL_RGBA8, GL_RGBA32F, GL_RGBA8 };
+   GLenum formats[] = { GL_RGBA32F, GL_RGBA32F, GL_RGBA32F, GL_RGBA32F };
    for (int i = 0; i < 4; ++i)
    {
       m_rt[i].reset();
@@ -248,6 +249,7 @@ void deferred_renderer::geometry_pass(
          unsigned char *model_start = m_programs->model_ubr->begin_edit(r);
          ::memcpy(&model_start[m_programs->model_block_access.clip_from_model], value_ptr(clip_from_model), 16 * sizeof(float));
          ::memcpy(&model_start[m_programs->model_block_access.view_from_model], value_ptr(view_from_model), 16 * sizeof(float));
+         ::memcpy(&model_start[m_programs->model_block_access.world_from_model], value_ptr(world_from_model), 16 * sizeof(float));
          m_programs->model_ubr->end_edit(r);
 
          unsigned char *material_start = m_programs->material_ubr->begin_edit(r);
@@ -260,6 +262,7 @@ void deferred_renderer::geometry_pass(
       {
          gl::uniform_matrix_4fv(p->uniform_at(m_programs->model_block_access.clip_from_model), 1, GL_FALSE, value_ptr(clip_from_model));
          gl::uniform_matrix_4fv(p->uniform_at(m_programs->model_block_access.view_from_model), 1, GL_FALSE, value_ptr(view_from_model));
+         gl::uniform_matrix_4fv(p->uniform_at(m_programs->model_block_access.world_from_model), 1, GL_FALSE, value_ptr(world_from_model));
          gl::uniform_4fv(p->uniform_at(m_programs->material_block_access.color), 1, value_ptr(color));
          gl::uniform_1f(p->uniform_at(m_programs->material_block_access.color), roughness);
          gl::uniform_1f(p->uniform_at(m_programs->material_block_access.color), isotropy);
