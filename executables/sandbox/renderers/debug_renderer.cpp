@@ -230,7 +230,7 @@ void debug_renderer::render_text_lines(renderstack::scene::viewport const &vp)
       gl::scissor(0, 0, (GLsizei)w, (GLsizei)h);
 
       glm::vec4 white(1.0f, 1.0f, 1.0f, 0.66f); // gamma in 4th component
-      if (m_programs->use_uniform_buffers())
+      if (p->use_uniform_buffers())
       {
          unsigned char *start = m_programs->begin_edit_uniforms();
          ::memcpy(&start[m_programs->model_ubr->first_byte() + m_programs->model_block_access.clip_from_model], value_ptr(ortho), 16 * sizeof(float));
@@ -358,7 +358,7 @@ void debug_renderer::render()
       mat4 clip_from_model = draw.clip_from_model;
       //mat4 clip_from_model(1.0f);
 
-      if (m_programs->use_uniform_buffers())
+      if (p->use_uniform_buffers())
       {
          unsigned char *start = m_programs->begin_edit_uniforms();
          ::memcpy(&start[m_programs->model_ubr->first_byte() + m_programs->model_block_access.clip_from_model], value_ptr(clip_from_model), 16 * sizeof(float));

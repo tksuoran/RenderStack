@@ -195,6 +195,15 @@ program::program(
    fragment_outputs->bind(*this);
 }
 
+bool program::use_uniform_buffers() const
+{
+   bool u = 
+      renderstack::graphics::configuration::can_use.uniform_buffer_object &&
+      (m_glsl_version >= 140) &&
+      (renderstack::graphics::configuration::shader_model_version >= 4);
+   return u;
+}
+
 void program::bind_attrib_location(int location, string const name)
 {
    gl::bind_attrib_location(m_gl_name, location, name.c_str());

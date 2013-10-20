@@ -180,7 +180,6 @@ void deferred_renderer::resize(int width, int height)
 
 void deferred_renderer::fbo_clear()
 {
-   GLfloat emission_clear        [4] = { 0.0f, 0.0f, 0.0f, 1.0f };
    GLfloat albedo_clear          [4] = { 0.5f, 0.5f, 0.5f, 0.0f };
    GLfloat normal_tangent_clear  [4];
    GLfloat material_clear        [4];
@@ -249,7 +248,7 @@ void deferred_renderer::geometry_pass(
       auto vertex_stream      = geometry_mesh->vertex_stream();
       auto mesh               = geometry_mesh->get_mesh();
 
-      if (m_programs->use_uniform_buffers())
+      if (p->use_uniform_buffers())
       {
          assert(m_programs->model_ubr);
          assert(m_programs->material_ubr);
@@ -411,7 +410,7 @@ void deferred_renderer::light_pass(
    vp.z = static_cast<float>(viewport.width());
    vp.w = static_cast<float>(viewport.height());
 
-   if (m_programs->use_uniform_buffers())
+   if (p->use_uniform_buffers())
    {
       assert(m_programs);
       assert(m_programs->camera_ubr);
@@ -460,7 +459,7 @@ void deferred_renderer::light_pass(
 
       direction = normalize(direction);
 
-      if (m_programs->use_uniform_buffers())
+      if (p->use_uniform_buffers())
       {
          assert(m_programs);
          assert(m_programs->model_ubr);
@@ -555,7 +554,7 @@ void deferred_renderer::show_rt()
       transform = to_bottom_left * transform;
       transform = offset * transform;
 
-      if (m_programs->use_uniform_buffers())
+      if (p->use_uniform_buffers())
       {
          assert(m_programs->model_ubr);
          assert(m_programs->debug_ubr);

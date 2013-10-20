@@ -75,6 +75,7 @@ public:
    void on_3d_mouse     (long tx, long ty, long tz, long rx, long ry, long rz, long period);
 
 private:
+   void resize(float w, float h);
    void render();
 
 private: /* services */
@@ -91,6 +92,8 @@ private: /* services */
    std::shared_ptr<renderstack::ui::layer>                        m_root_layer;
    std::shared_ptr<renderstack::ui::button>                       m_sandbox_button;
    std::shared_ptr<renderstack::ui::button>                       m_quit;
+
+   bool m_resize;
 };
 
 #endif

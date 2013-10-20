@@ -35,6 +35,8 @@ public:
    void map_uniform(size_t key, std::string const &name);
    int uniform_at(std::size_t index) const;
 
+   bool use_uniform_buffers() const;
+
    void                             bind_attrib_location    (int location, std::string const name);
    void                             bind_frag_data_location (int location, std::string const name);
 

@@ -119,7 +119,7 @@ void id_renderer::render_pass(
    r.set_program(p);
    
    vec4 white(1.0f, 1.0f, 1.0f, 1.0f);
-   if (m_programs->use_uniform_buffers())
+   if (p->use_uniform_buffers())
    {
       assert(m_programs);
 
@@ -164,7 +164,7 @@ void id_renderer::render_pass(
 
       vec3 id_offset_vec3 = vec3_from_uint(id_offset);
 
-      if (m_programs->use_uniform_buffers())
+      if (p->use_uniform_buffers())
       {
          unsigned char *start = m_programs->begin_edit_uniforms();
          ::memcpy(&start[m_programs->model_ubr->first_byte() + m_programs->model_block_access.clip_from_model], value_ptr(clip_from_model),  16 * sizeof(float));

@@ -10,18 +10,15 @@
 #include <memory>
 
 namespace renderstack { namespace graphics {
+   class buffer;
    class program;
+   class renderer;
    class samplers;
+   class shader_monitor;
    class uniform_block;
    class uniform_buffer_range;
-   class buffer;
    class vertex_format;
    class vertex_stream;
-   class vertex_stream_mappings;
-} }
-
-namespace renderstack { namespace renderer {
-   class renderer;
 } }
 
 namespace renderstack { namespace ui {
@@ -49,7 +46,10 @@ public:
    gui_renderer();
    /*virtual*/ ~gui_renderer();
 
-   void connect(std::shared_ptr<class renderstack::graphics::renderer> renderer);
+   void connect(
+      std::shared_ptr<renderstack::graphics::renderer>         renderer_,
+      std::shared_ptr<renderstack::graphics::shader_monitor>   shader_monitor_
+   );
    /*virtual*/ void initialize_service();
 
    void prepare();
@@ -90,7 +90,7 @@ public:
       // Test all conditions; can_use.uniform_buffer_object can be forced to false
       bool use_uniform_buffers = 
          renderstack::graphics::configuration::can_use.uniform_buffer_object && 
-         (m_glsl_version >= 140) &&
+         //(m_glsl_version >= 140) &&
          (renderstack::graphics::configuration::shader_model_version >= 4);
 
       return use_uniform_buffers;
@@ -111,12 +111,13 @@ private:
    renderstack::graphics::render_states   m_gui_render_states;
 
 
-   std::shared_ptr<class renderstack::graphics::renderer>            m_renderer;
+   std::shared_ptr<renderstack::graphics::renderer>                  m_renderer;
+   std::shared_ptr<renderstack::graphics::shader_monitor>            m_shader_monitor;
 
    glm::mat4                                                         m_ortho;
 
-   int                                                               m_glsl_version;
    std::string                                                       m_shader_path;
+   std::vector<std::pair<std::string, int> >                         m_shader_versions;
 
    std::shared_ptr<renderstack::graphics::uniform_block>             m_uniform_block;
    std::shared_ptr<renderstack::graphics::buffer>                    m_uniform_buffer;

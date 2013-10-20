@@ -1,7 +1,0 @@
-in  vec2 v_texcoord;
-
-void main(void)
-{
-   //out_color = debug.show_rt_transform * texture(show_rt_texture, v_texcoord.xy);
-   out_color = abs(texture(show_rt_texture, v_texcoord.xy));
-}

@@ -200,7 +200,7 @@ void light_debug_renderer::light_pass(
 
       light->frame()->update_hierarchical_no_cache(); // TODO
 
-      if (m_programs->use_uniform_buffers())
+      if (p->use_uniform_buffers())
       {
          assert(m_programs);
          assert(m_programs->model_ubr);

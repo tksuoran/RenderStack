@@ -113,7 +113,7 @@ bool application::initialize_services()
 
    m_services.add(application_);
 
-   if (gui_renderer)       gui_renderer->connect(renderer);
+   if (gui_renderer)       gui_renderer->connect(renderer, shader_monitor_);
 
    if (programs_)          programs_->connect(renderer, shader_monitor_);
    if (textures_)          textures_->connect(renderer);

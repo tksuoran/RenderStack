@@ -19,6 +19,7 @@
 #include <fstream>
 #include <stdexcept>
 #include <sstream>
+#include <utility>
 #include <sys/stat.h>
 
 #define LOG_CATEGORY &log_programs
@@ -28,11 +29,6 @@ using namespace renderstack::toolkit;
 using namespace renderstack::graphics;
 using namespace std;
 
-
-int programs::glsl_version() const
-{
-   return m_glsl_version;
-}
 
 programs::programs()
 :  service("programs")
@@ -110,6 +106,7 @@ void programs::connect(
       }
       catch (...)
       {
+         slog_warn("programs::initialize_service() setting up shader monitor failed");
       }
    }
 
@@ -221,37 +218,28 @@ void programs::connect(
    samplers->add("depth_texture",            gl::active_uniform_type::sampler_2d, nearest_sampler)->set_texture_unit_index(4);
    samplers->add("show_rt_texture",          gl::active_uniform_type::sampler_2d, show_rt_sampler)->set_texture_unit_index(0);
 
-   try
-   {
+   m_shader_path = "res/shaders/";
+
 #if defined(RENDERSTACK_GL_API_OPENGL_ES_3)
-      m_shader_path  = "res/shaders/sm4/";
-      m_glsl_version = 300;
+      m_shader_versions.push_back(make_pair("4", 300));
 #else
-      if ((renderstack::graphics::configuration::shader_model_version >= 5)
-          && (renderstack::graphics::configuration::glsl_version >= 400))
-      {
-         log_trace("Using shader model 5, GLSL 4.00");
+   if (
+      (renderstack::graphics::configuration::shader_model_version >= 5) &&
+      (renderstack::graphics::configuration::glsl_version >= 400)
+   )
+      m_shader_versions.push_back(make_pair("5", 400));
 
-         m_shader_path  = "res/shaders/sm5/";
-         m_glsl_version = 400;
-      }
-      else if ((renderstack::graphics::configuration::shader_model_version >= 4)
-          && (renderstack::graphics::configuration::glsl_version >= 150))
-      {
-         log_trace("Using shader model 4, GLSL 1.50");
+   if (
+      (renderstack::graphics::configuration::shader_model_version >= 4) &&
+      (renderstack::graphics::configuration::glsl_version >= 150)
+   )
+      m_shader_versions.push_back(make_pair("4", 150));
 
-         m_shader_path  = "res/shaders/sm4/";
-         m_glsl_version = 150;
-      }
-      else
-      {
-         log_trace("Using shader model 0, GLSL 1.20");
-
-         m_shader_path  = "res/shaders/sm0/";
-         m_glsl_version = 120;
-      }
+   m_shader_versions.push_back(make_pair("0", 120));
 #endif
 
+   try
+   {
       font              = make_program("font");
       basic             = make_program("basic");
       gbuffer           = make_program("gbuffer");
@@ -305,33 +293,37 @@ void programs::end_edit_uniforms()
 
 shared_ptr<renderstack::graphics::program> programs::make_program(string const &name)
 {
-   auto p = make_shared<program>(name, m_glsl_version, samplers, attribute_mappings, fragment_outputs);
-   p->add(default_block);
-   p->add(model_block);
-   p->add(camera_block);
-   p->add(material_block);
-   p->add(lights_block);
-   p->add(debug_block);
-   p->load_vs(m_shader_path + name + ".vs.txt");
-   p->load_fs(m_shader_path + name + ".fs.txt");
-   p->link(); 
-
-   if (m_shader_monitor)
+   for (auto i = m_shader_versions.cbegin(); i != m_shader_versions.cend(); ++i)
    {
-      m_shader_monitor->add(m_shader_path + name + ".vs.txt", p);
-      m_shader_monitor->add(m_shader_path + name + ".fs.txt", p);
-   }
-   return p;
-}
+      string vs_path = m_shader_path + name + ".vs" + i->first + ".txt";
+      string fs_path = m_shader_path + name + ".fs" + i->first + ".txt";
 
-bool programs::use_uniform_buffers() const
-{
-   // Test all conditions; can_use.uniform_buffer_object can be forced to false
-   bool use_uniform_buffers = 
-      renderstack::graphics::configuration::can_use.uniform_buffer_object &&
-      (glsl_version() >= 140) &&
-      (renderstack::graphics::configuration::shader_model_version >= 4);
-   return use_uniform_buffers;
+      if (!exists(vs_path) || !exists(fs_path))
+         continue;
+
+      auto p = make_shared<program>(name, i->second, samplers, attribute_mappings, fragment_outputs);
+      p->add(default_block);
+      p->add(model_block);
+      p->add(camera_block);
+      p->add(material_block);
+      p->add(lights_block);
+      p->add(debug_block);
+      p->load_vs(vs_path);
+      p->load_fs(fs_path);
+      p->link(); 
+
+      if (m_shader_monitor)
+      {
+         m_shader_monitor->add(vs_path, p);
+         m_shader_monitor->add(fs_path, p);
+      }
+      return p;
+   }
+
+   stringstream ss;
+   ss << "programs::make_program(" << name << ") failed";
+   log_error("%s", ss.str().c_str());
+   throw runtime_error(ss.str());
 }
 
 void programs::update_fixed_step()

@@ -120,8 +120,6 @@ public:
 
 public:
    void update_fixed_step();
-   int glsl_version() const;
-   bool use_uniform_buffers() const;
 
 private:
    std::shared_ptr<renderstack::graphics::renderer>         m_renderer;
@@ -129,6 +127,8 @@ private:
 
    bool                                                     m_poll_shaders;
    size_t                                                   m_poll_ticks;
+
+   std::vector<std::pair<std::string, int> >                m_shader_versions;
    int                                                      m_glsl_version;
    std::string                                              m_shader_path;
 };

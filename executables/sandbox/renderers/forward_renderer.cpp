@@ -133,7 +133,7 @@ void forward_renderer::render_pass(
    mat4 const &world_from_view = camera->frame()->world_from_local().matrix();
    float exposure = 0.1f;
 
-   if (m_programs->use_uniform_buffers())
+   if (p->use_uniform_buffers())
    {
       unsigned char *start = m_programs->begin_edit_uniforms();
       ::memcpy(&start[m_programs->material_ubr->first_byte() + m_programs->material_block_access.color      ], value_ptr(color), 4 * sizeof(float));
@@ -187,7 +187,7 @@ void forward_renderer::render_pass(
 
       direction = normalize(direction);
 
-      if (m_programs->use_uniform_buffers())
+      if (p->use_uniform_buffers())
       {
          unsigned char *start = m_programs->begin_edit_uniforms();
          ::memcpy(&start[m_programs->lights_ubr->first_byte() + m_programs->lights_block_access.position  ], value_ptr(position),  3 * sizeof(float));
@@ -215,7 +215,7 @@ void forward_renderer::render_pass(
 
          model->frame()->update_hierarchical_no_cache(); // TODO
 
-         if (m_programs->use_uniform_buffers())
+         if (p->use_uniform_buffers())
          {
             assert(m_programs);
             assert(m_programs->model_ubr);

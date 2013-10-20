@@ -1,5 +1,3 @@
-//#define DEBUG_FONT 1
-
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_toolkit/gl.hpp"
 #include "renderstack_toolkit/window.hpp"
@@ -44,14 +42,16 @@ using namespace renderstack::toolkit;
 #define RENDER_TEXT        1
 #define RENDER_BACKGROUND  1
 #define RENDER_GUI         1
+//#define DEBUG_FONT 1
 
 menu::menu()
-:  service("menu")
-,  m_renderer    (nullptr)
-,  m_gui_renderer(nullptr)
-,  m_programs    (nullptr)
-,  m_textures    (nullptr)
-,  m_game        (nullptr)
+:  service        ("menu")
+,  m_renderer     (nullptr)
+,  m_gui_renderer (nullptr)
+,  m_programs     (nullptr)
+,  m_textures     (nullptr)
+,  m_game         (nullptr)
+,  m_resize       (true)
 {
 }
 
@@ -102,16 +102,14 @@ void menu::initialize_service()
 
    auto &r = *m_renderer;
 
-#if defined(RENDER_TEXT) || defined(DEBUG_FONT) 
    m_font = make_shared<font>(r, "res/fonts/Ubuntu-R.ttf", 48, 4.0f);
    m_text_buffer = make_shared<text_buffer>(m_gui_renderer, m_font);
-#endif
 
    auto p = m_programs->textured;
    auto m = p->vertex_attribute_mappings();
    auto gr = m_gui_renderer;
 
-#if defined(RENDER_BACKGROUND)
+   // Background
    m_mesh = make_shared<renderstack::mesh::mesh>();
    m_mesh->allocate_vertex_buffer(gr->vertex_buffer(), 4);
    m_mesh->allocate_index_buffer(gr->index_buffer(), 6);
@@ -144,9 +142,8 @@ void menu::initialize_service()
       *ptr++ = 2 + base_vertex;
       m_mesh->index_buffer()->unmap(r);
    }
-#endif
 
-#if defined(RENDER_GUI)
+   // GUI
    auto bs = gr->button_style();
    auto ms = gr->menulist_style();
 
@@ -176,15 +173,14 @@ void menu::initialize_service()
    }
 
    m_root_layer->add(d);
-#endif
 }
 void menu::action(weak_ptr<action_source> source)
 {
    auto s = source.lock();
    if (s == m_sandbox_button)
    {
-		if (m_game)
-	      m_application->set_screen(m_game);
+      if (m_game)
+         m_application->set_screen(m_game);
    }
 
    if (s == m_quit)
@@ -193,68 +189,18 @@ void menu::action(weak_ptr<action_source> source)
 
 void menu::on_resize(int width, int height)
 {
+   (void)width;
+   (void)height;
+   m_resize = true;
    slog_trace("menu::on_resize()");
+}
 
-   // Test all conditions; can_use.uniform_buffer_object can be forced to false
-   float w = (float)width;   // (float)m_window->width();
-   float h = (float)height;  // (float)m_window->height();
-
-#if defined(RENDER_GUI)
+void menu::resize(float w, float h)
+{
    auto gr = m_gui_renderer;
-   gr->on_resize(width, height);
    auto &r = *m_renderer;
 
-   m_root_layer->set_layer_size(w, h);
-   m_root_layer->update();
-#endif
-
-   //  viewport
-   gl::viewport(0, 0, (GLsizei)w, (GLsizei)h);
-
-   mat4        ortho = glm::ortho(0.0f, (float)w, 0.0f, (float)h);
-   glm::vec4   white(1.0f, 1.0f, 1.0f, 1.0f);
-
-   if (m_programs->use_uniform_buffers())
-   {
-#if 0	 // Work around for ARM Ltd. / OpenGL ES Emulator Revision r2p0-00rel0
-      auto p = m_programs->textured;
-      p->use();
-#endif
-
-      auto buffer = m_programs->uniform_buffer;
-
-      {
-         unsigned char *start = m_programs->begin_edit_uniforms();
-         ::memcpy(&start[m_programs->model_ubr->first_byte() + m_programs->model_block_access.clip_from_model], value_ptr(ortho), 16 * sizeof(float));
-         ::memcpy(&start[m_programs->material_ubr->first_byte() + m_programs->material_block_access.color], value_ptr(white),  4 * sizeof(float));
-         m_programs->model_ubr->flush(r);
-         m_programs->material_ubr->flush(r);
-         m_programs->end_edit_uniforms();
-      }
-   }
-   else
-   {
-
-#if defined(RENDER_BACKGROUND)
-      {
-         auto p = m_programs->textured;
-         m_renderer->set_program(p);
-         gl::uniform_matrix_4fv(p->uniform_at(m_programs->model_block_access.clip_from_model ), 1, GL_FALSE, value_ptr(ortho));
-         gl::uniform_4fv       (p->uniform_at(m_programs->material_block_access.color        ), 1, value_ptr(white));
-      }
-#endif
-
-#if (defined(RENDER_TEXT) || defined(RENDER_GUI))
-      {
-         auto p = m_programs->font;
-         m_renderer->set_program(p);
-         gl::uniform_matrix_4fv(p->uniform_at(m_programs->model_block_access.clip_from_model ), 1, GL_FALSE, value_ptr(ortho));
-         gl::uniform_4fv       (p->uniform_at(m_programs->material_block_access.color        ), 1, value_ptr(white));
-      }
-#endif
-   }
-
-#if defined(RENDER_BACKGROUND)
+   // Background
    {
       /*  Write corner vertices for one quad  */
       gr->set_vertex_buffer();
@@ -286,9 +232,7 @@ void menu::on_resize(int width, int height)
 
       m_mesh->vertex_buffer()->unmap(r);
    }
-#endif
 
-#if defined(RENDER_TEXT)
    if (m_text_buffer)
    {
       string title = "Hello, World!";
@@ -302,7 +246,8 @@ void menu::on_resize(int width, int height)
       m_text_buffer->print_center(title, x, y);
       m_text_buffer->end_print();
    }
-#endif
+
+   m_resize = false;
 }
 void menu::on_focus(bool has_focus)
 {
@@ -370,21 +315,59 @@ void menu::render()
 {
    slog_trace("menu::render()");
 
-   auto gr = m_gui_renderer;
-
-   gl::clear_color(0.5f, 0.0f, 0.0f, 1.0f);
-   gl::clear(clear_buffer_mask::color_buffer_bit | clear_buffer_mask::depth_buffer_bit);
-
    assert(m_application);
    assert(m_programs);
 
-   //  background
-#if defined(RENDER_BACKGROUND) || defined(DEBUG_FONT)
+   float w = static_cast<float>(m_application->width());   // (float)m_window->width();
+   float h = static_cast<float>(m_application->height());  // (float)m_window->height();
+
+   auto gr = m_gui_renderer;
+   auto &r = *m_renderer;
+
+   if (m_resize)
+   {
+      gr->on_resize(w, h);
+      resize(w, h);
+      m_root_layer->set_layer_size(w, h);
+      m_root_layer->update();
+   }
+
+   //  viewport
+   gl::viewport(0, 0, (GLsizei)w, (GLsizei)h);
+
+   mat4        ortho = glm::ortho(0.0f, (float)w, 0.0f, (float)h);
+   glm::vec4   white(1.0f, 1.0f, 1.0f, 1.0f);
+
+   gl::clear_color(0.5f, 0.0f, 0.0f, 1.0f);
+   gl::clear(clear_buffer_mask::color_buffer_bit | clear_buffer_mask::depth_buffer_bit | clear_buffer_mask::depth_buffer_bit);
+
+   auto buffer = m_programs->uniform_buffer;
+
+   //  Background
    if (m_textures)
    {
       auto p = m_programs->textured;
       m_renderer->set_program(p);
       m_programs->bind_uniforms();
+
+      if (p->use_uniform_buffers())
+      {
+   #if 0	 // Work around for ARM Ltd. / OpenGL ES Emulator Revision r2p0-00rel0
+         auto p = m_programs->textured;
+         p->use();
+   #endif
+         unsigned char *start = m_programs->begin_edit_uniforms();
+         ::memcpy(&start[m_programs->model_ubr->first_byte() + m_programs->model_block_access.clip_from_model], value_ptr(ortho), 16 * sizeof(float));
+         ::memcpy(&start[m_programs->material_ubr->first_byte() + m_programs->material_block_access.color], value_ptr(white),  4 * sizeof(float));
+         m_programs->model_ubr->flush(r);
+         m_programs->material_ubr->flush(r);
+         m_programs->end_edit_uniforms();
+      }
+      else
+      {
+         gl::uniform_matrix_4fv(p->uniform_at(m_programs->model_block_access.clip_from_model ), 1, GL_FALSE, value_ptr(ortho));
+         gl::uniform_4fv       (p->uniform_at(m_programs->material_block_access.color        ), 1, value_ptr(white));
+      }
 
 #if defined(DEBUG_FONT)
       auto t = m_font->texture();
@@ -416,18 +399,31 @@ void menu::render()
       
       gr->draw_elements_base_vertex(begin_mode, count, index_type, index_pointer, base_vertex);
    }
-#endif
 
-#if defined(RENDER_TEXT)
+   // Label text
    if (m_text_buffer)
    {
+      assert(m_font);
+
       auto p = m_programs->font;
 
       m_renderer->set_program(p);
-
-      assert(m_font);
-
       m_gui_renderer->blend_alpha();
+
+      if (p->use_uniform_buffers())
+      {
+         unsigned char *start = m_programs->begin_edit_uniforms();
+         ::memcpy(&start[m_programs->model_ubr->first_byte() + m_programs->model_block_access.clip_from_model], value_ptr(ortho), 16 * sizeof(float));
+         ::memcpy(&start[m_programs->material_ubr->first_byte() + m_programs->material_block_access.color], value_ptr(white),  4 * sizeof(float));
+         m_programs->model_ubr->flush(r);
+         m_programs->material_ubr->flush(r);
+         m_programs->end_edit_uniforms();
+      }
+      else
+      {
+         gl::uniform_matrix_4fv(p->uniform_at(m_programs->model_block_access.clip_from_model ), 1, GL_FALSE, value_ptr(ortho));
+         gl::uniform_4fv       (p->uniform_at(m_programs->material_block_access.color        ), 1, value_ptr(white));
+      }
 
       auto t = m_font->texture();
       (void)m_renderer->set_texture(0, t);
@@ -438,12 +434,10 @@ void menu::render()
       t->apply(*m_renderer, 0);
 
       m_text_buffer->render();
-
       m_gui_renderer->blend_disable();
    }
-#endif
 
-#if defined(RENDER_GUI) 
+   // GUI
    {
       ui_context c;
       int iw = m_application->width();
@@ -460,7 +454,6 @@ void menu::render()
       m_gui_renderer->prepare();
       m_root_layer->draw(c);
    }
-#endif
 
    m_application->swap_buffers();
 }

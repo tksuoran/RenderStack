@@ -1,18 +1,20 @@
+#include "renderstack_toolkit/file.hpp"
 #include "renderstack_ui/context.hpp"
 #include "renderstack_ui/font.hpp"
 #include "renderstack_ui/gui_renderer.hpp"
 #include "renderstack_ui/ninepatch.hpp"
 #include "renderstack_ui/ninepatch_style.hpp"
+#include "renderstack_ui/log.hpp"
 #include "renderstack_ui/style.hpp"
 #include "renderstack_graphics/configuration.hpp"
 #include "renderstack_graphics/fragment_outputs.hpp"
 #include "renderstack_graphics/program.hpp"
 #include "renderstack_graphics/renderer.hpp"
 #include "renderstack_graphics/samplers.hpp"
+#include "renderstack_graphics/shader_monitor.hpp"
 #include "renderstack_graphics/uniform.hpp"
 #include "renderstack_graphics/uniform_block.hpp"
 #include "renderstack_graphics/uniform_buffer_range.hpp"
-#include "renderstack_ui/log.hpp"
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -26,7 +28,7 @@ namespace renderstack { namespace ui {
 using namespace std;
 using namespace glm;
 using namespace renderstack::graphics;
-
+using namespace renderstack::toolkit;
 
 gui_renderer::gui_renderer()
 :  service("renderstack::ui::gui_renderer")
@@ -38,22 +40,48 @@ gui_renderer::gui_renderer()
 {
 }
 
-void gui_renderer::connect(shared_ptr<class renderstack::graphics::renderer> renderer)
+void gui_renderer::connect(
+   shared_ptr<renderstack::graphics::renderer>        renderer_,
+   shared_ptr<renderstack::graphics::shader_monitor>  shader_monitor_
+)
 {
-   m_renderer = renderer;
+   m_renderer = renderer_;
+   m_shader_monitor = shader_monitor_;
 
-   initialization_depends_on(renderer);
+   initialization_depends_on(renderer_);
+   initialization_depends_on(shader_monitor_);
 }
 
-shared_ptr<program> gui_renderer::load_program(string const &name, string const &shader)
+shared_ptr<program> gui_renderer::load_program(string const &name, string const &path)
 {
-   auto p = make_shared<program>(name, m_glsl_version, m_samplers, m_vertex_attribute_mappings, m_fragment_outputs);
-   p->add(m_uniform_block);
-   p->load_vs(m_shader_path + shader + ".vs.txt");
-   p->load_fs(m_shader_path + shader + ".fs.txt");
-   p->link(); 
-   m_uniform_block->map_program(p);
-   return p;
+   for (auto i = m_shader_versions.cbegin(); i != m_shader_versions.cend(); ++i)
+   {
+      string vs_path = m_shader_path + path + ".vs" + i->first + ".txt";
+      string fs_path = m_shader_path + path + ".fs" + i->first + ".txt";
+
+      if (!exists(vs_path) || !exists(fs_path))
+         continue;
+
+      auto p = make_shared<program>(name, i->second, m_samplers, m_vertex_attribute_mappings, m_fragment_outputs);
+      p->add(m_uniform_block);
+      p->load_vs(vs_path);
+      p->load_fs(fs_path);
+      p->link(); 
+      m_uniform_block->map_program(p);
+
+      if (m_shader_monitor)
+      {
+         m_shader_monitor->add(vs_path, p);
+         m_shader_monitor->add(fs_path, p);
+      }
+
+      return p;
+   }
+
+   stringstream ss;
+   ss << "gui_renderer::load_program(" << name << ") failed";
+   log_error("%s", ss.str().c_str());
+   throw runtime_error(ss.str());
 }
 
 void gui_renderer::initialize_service()
@@ -139,54 +167,48 @@ void gui_renderer::initialize_service()
    m_uniforms.t               = m_uniform_block->add_float("t"              )->access();
    m_uniform_block->seal();
 
-   try
-   {
+   m_shader_path = "res/shaders/";
+
 #if defined(RENDERSTACK_GL_API_OPENGL_ES_3)
-      shader_path    = "res/shaders/sm4/";
-      m_glsl_version = 300;
+      m_shader_versions.push_back(make_pair("4", 300));
 #else
-      if ((renderstack::graphics::configuration::shader_model_version >= 5)
-          && (renderstack::graphics::configuration::glsl_version >= 400))
-      {
-         log_trace("GUI renderer using shader model 5, GLSL 4.00");
-         m_shader_path = "res/shaders/sm5/";
-         m_glsl_version = 400;
-      }
-      if ((renderstack::graphics::configuration::shader_model_version >= 4)
-          && (renderstack::graphics::configuration::glsl_version >= 150))
-      {
-         log_trace("GUI renderer using shader model 4, GLSL 1.50");
-         m_shader_path = "res/shaders/sm4/";
-         m_glsl_version = 150;
-      }
-      else
-      {
-         log_trace("GUI renderer using shader model 0, GLSL 1.20");
-         m_shader_path = "res/shaders/sm0/";
-         m_glsl_version = 120;
-      }
+   if (
+      (renderstack::graphics::configuration::shader_model_version >= 5) &&
+      (renderstack::graphics::configuration::glsl_version >= 400)
+   )
+      m_shader_versions.push_back(make_pair("5", 400));
+
+   if (
+      (renderstack::graphics::configuration::shader_model_version >= 4) &&
+      (renderstack::graphics::configuration::glsl_version >= 150)
+   )
+      m_shader_versions.push_back(make_pair("4", 150));
+
+   m_shader_versions.push_back(make_pair("0", 120));
 #endif
 
-      if (use_uniform_buffers())
-      {
-         log_trace("GUI renderer using uniform buffers");
-         m_uniform_buffer = make_shared<buffer>(
-            buffer_target::uniform_buffer,
-            m_uniform_block->size_bytes(),
-            1
-         );
-         m_uniform_buffer->allocate_storage(*m_renderer);
+   if (use_uniform_buffers())
+   {
+      log_trace("GUI renderer using uniform buffers");
+      m_uniform_buffer = make_shared<buffer>(
+         buffer_target::uniform_buffer,
+         m_uniform_block->size_bytes(),
+         1
+      );
+      m_uniform_buffer->allocate_storage(*m_renderer);
 
-         m_uniform_buffer_range = make_shared<uniform_buffer_range>(m_uniform_block, m_uniform_buffer);
-      }
-      else
-         log_trace("GUI renderer NOT using uniform buffers");
+      m_uniform_buffer_range = make_shared<uniform_buffer_range>(m_uniform_block, m_uniform_buffer);
+   }
+   else
+      log_trace("GUI renderer NOT using uniform buffers");
 
-      auto nearest_sampler = make_shared<sampler>();
-      m_samplers = make_shared<samplers>();
-      m_samplers->add("font_texture",       gl::active_uniform_type::sampler_2d, nearest_sampler)->set_texture_unit_index(0);
-      m_samplers->add("background_texture", gl::active_uniform_type::sampler_2d, nearest_sampler)->set_texture_unit_index(1);
+   auto nearest_sampler = make_shared<sampler>();
+   m_samplers = make_shared<samplers>();
+   m_samplers->add("font_texture",       gl::active_uniform_type::sampler_2d, nearest_sampler)->set_texture_unit_index(0);
+   m_samplers->add("background_texture", gl::active_uniform_type::sampler_2d, nearest_sampler)->set_texture_unit_index(1);
 
+   try
+   {
       m_ninepatch_program = load_program("ninepatch", "gui");
       m_slider_program = load_program("slider", "gui_slider");
       m_font_program = load_program("font", "gui_font");
