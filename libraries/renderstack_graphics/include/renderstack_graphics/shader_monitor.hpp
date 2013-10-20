@@ -30,8 +30,8 @@ private:
    {
       time_t                     last_time;
       std::string                src_path;
-      std::string                dst_path;
-      std::shared_ptr<program>   program;
+      std::string       dst_path;
+      std::shared_ptr<class program>   program;
    };
 
    std::vector<file> m_files;

@@ -65,7 +65,6 @@ public:
 #endif
 
 friend class renderer;
-friend class buffer;
 friend class vertex_array;
 friend class texture;
 private:

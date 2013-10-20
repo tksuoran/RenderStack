@@ -6,6 +6,8 @@
 
 #if defined _WIN32
 # include <windows.h>
+#else
+# include <unistd.h>
 #endif
 
 namespace renderstack { namespace toolkit {
@@ -83,10 +85,7 @@ void console_init()
 {
    FILE *l = fopen("log.txt", "wb");
    if (l)
-   {
-      fprintf(l, "");
       fclose(l);
-   }
 }
 #endif
 
@@ -234,7 +233,7 @@ void log_write(log_category *cat, int level, const char *format, ...)
    FILE *l = fopen("log.txt", "ab+");
    if (l)
    {
-      fprintf(l, buf);
+      fprintf(l, "%s", buf);
       fclose(l);
    }
 

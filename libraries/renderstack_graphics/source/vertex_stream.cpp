@@ -21,6 +21,8 @@ using namespace std;
 vertex_stream::vertex_stream()
 {
 #if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
+   m_vertex_array = make_shared<class vertex_array>();
+#elif 0
    if (
       configuration::must_use_vertex_array_object || 
       (
@@ -31,6 +33,7 @@ vertex_stream::vertex_stream()
    {
       m_vertex_array = make_shared<class vertex_array>();
    }
+#else
 #endif
 }
 
