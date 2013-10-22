@@ -55,7 +55,7 @@ void renderer::trash()
    m_effective.current_program.reset();
    gl::use_program(0);
 
-   for (int i = 0; i < buffer_target::non_indexed_context_buffer_target_count; ++i)
+   for (int i = 0; i < buffer_target::count_in_context(); ++i)
    {
       buffer_target::value target = static_cast<buffer_target::value>(i);
       m_effective.buffer_binding[i].reset();
@@ -303,7 +303,7 @@ shared_ptr<uniform_buffer_range> renderer::set_uniform_buffer_range(
 
 shared_ptr<class buffer> renderer::set_buffer(buffer_target::value target, shared_ptr<class buffer> buffer)
 {
-   if (target >= buffer_target::non_indexed_context_buffer_target_count)
+   if (target >= buffer_target::count_in_context())
       throw runtime_error("invalid buffer target");
 
    shared_ptr<class buffer> old = m_effective.buffer_binding[target];
@@ -351,10 +351,22 @@ shared_ptr<class vertex_array> renderer::set_vertex_array(shared_ptr<class verte
             // This helps us validate that VAO is really bound when we try to bind IBO
             if (m_effective.vertex_array_binding)
                m_effective.vertex_array_binding->set_bound(false);
-            if (vertex_array)
-               vertex_array->set_bound(true);
+         }
+         else
+         {
+            if (vertex_array->m_effective.element_array_buffer_binding)
+               gl::bind_buffer(
+                  gl::buffer_target::element_array_buffer,
+                  vertex_array->m_effective.element_array_buffer_binding->gl_name()
+               );
+            else
+               gl::bind_buffer(
+                  gl::buffer_target::element_array_buffer,
+                  0
+               );
          }
 #endif
+         vertex_array->set_bound(true);
       }
 
       m_effective.vertex_array_binding = m_requested.vertex_array_binding;
@@ -446,15 +458,7 @@ void renderer::use_vertex_stream(shared_ptr<class vertex_stream> vertex_stream)
 {
    assert(vertex_stream);
 
-   bool use_vao =
-      configuration::must_use_vertex_array_object || 
-      (
-         configuration::can_use.vertex_array_object && 
-         configuration::use_vertex_array_object
-      );
-
-   if (use_vao)
-      set_vertex_array(vertex_stream->vertex_array());
+   set_vertex_array(vertex_stream->vertex_array());
 }
 
 void renderer::draw_elements_base_vertex(
@@ -471,10 +475,7 @@ void renderer::draw_elements_base_vertex(
          configuration::use_vertex_array_object
       );
 
-   if (use_vao)
-      set_vertex_array(vertex_stream->vertex_array());
-
-   auto va = m_effective.vertex_array_binding;
+   set_vertex_array(vertex_stream->vertex_array());
 
    if (use_vao)
    {
@@ -517,7 +518,7 @@ bool renderer::map_buffer(buffer_target::value target, shared_ptr<class buffer> 
 }
 bool renderer::buffer_is_bound(buffer_target::value target, shared_ptr<class buffer> buffer)
 {
-   assert(target < buffer_target::non_indexed_context_buffer_target_count);
+   assert(target < buffer_target::count_in_context());
    bool ok = (m_effective.buffer_binding[target] == buffer) && (buffer->target() == target);
    return ok;
 }

@@ -30,9 +30,9 @@ bool application::create_gl_window()
 {
 
 #if defined(RENDERSTACK_GL_API_OPENGL)
-   //int versions[] = {44, 43, 42, 41, 40, 33, 32, 31, 30, 21, 20, 15, 14, 13, 12, 11, 10, 0 };
+   int versions[] = {44, 43, 42, 41, 40, 33, 32, 31, 30, 21, 20, 15, 14, 13, 12, 11, 10, 0 };
    //int versions[] = {32, 31, 30, 21, 20, 15, 14, 13, 12, 11, 10, 0 };
-   int versions[] = {21, 20, 15, 14, 13, 12, 11, 10, 0 };
+   //int versions[] = {21, 20, 15, 14, 13, 12, 11, 10, 0 };
    int *v = versions;
 
    bool ok = false;

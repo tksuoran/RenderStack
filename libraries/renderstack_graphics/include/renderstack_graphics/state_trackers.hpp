@@ -45,7 +45,7 @@ public:
    state(state const &other);
 
    // Buffer binding points in context, non indexed
-   std::shared_ptr<buffer>                buffer_binding[buffer_target::non_indexed_context_buffer_target_count];
+   std::shared_ptr<buffer>                buffer_binding[buffer_target::all_buffer_target_count];
 
    // Buffer binding points in context, indexed
 #if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)

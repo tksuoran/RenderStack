@@ -609,11 +609,12 @@ void configuration::initialize()
    // can_use.uniform_buffer_object = false;
 
 #if 0 // Disable vertex array object
-   // TODOif (!configuration::must_use_vertex_array_object)
+   if (!configuration::must_use_vertex_array_object)
    {
       can_use.vertex_array_object = false;
       gl::detail::glGenVertexArrays = nullptr;
       gl::detail::glBindVertexArray = nullptr;
+      use_vertex_array_object = false;
    }
    else
    {

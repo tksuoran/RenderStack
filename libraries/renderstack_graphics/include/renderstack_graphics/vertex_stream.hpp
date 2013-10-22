@@ -13,9 +13,10 @@
 
 namespace renderstack { namespace graphics {
 
-class vertex_array;
 class buffer;
+class renderer;
 class vertex_attribute_mapping;
+class vertex_array;
 
 class vertex_stream : public std::enable_shared_from_this<vertex_stream>
 {
@@ -27,7 +28,8 @@ public:
       std::weak_ptr<class buffer>               vertex_buffer,
       std::weak_ptr<vertex_attribute_mapping>   vertex_attribute_mapping,
       std::weak_ptr<vertex_attribute>           attribute,
-      std::size_t                               stride);
+      std::size_t                               stride
+   );
 
    void        clear();
    std::size_t count() const { return m_vertex_stream_bindings.size(); }

@@ -302,7 +302,8 @@ void gui_renderer::initialize_service()
       m_hsv_program
    );
 
-   r.set_vertex_array(old_va);
+   if (renderstack::graphics::configuration::use_vertex_array_object)
+      r.set_vertex_array(old_va);
 }
 
 void gui_renderer::blend_alpha()
@@ -357,7 +358,7 @@ void gui_renderer::prepare()
 
    m_renderer->use_vertex_stream(m_vertex_stream);
    m_renderer->set_buffer(buffer_target::array_buffer, m_vertex_buffer);
-   m_vertex_stream->vertex_array()->set_index_buffer(m_index_buffer);
+   m_renderer->vertex_array()->set_index_buffer(m_index_buffer);
 
    if (use_uniform_buffers())
    {

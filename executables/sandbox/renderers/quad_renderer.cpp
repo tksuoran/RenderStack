@@ -77,7 +77,7 @@ void quad_renderer::initialize_service()
 
    // Create vertex stream
    m_vertex_stream = make_shared<renderstack::graphics::vertex_stream>();
-   auto va = m_vertex_stream->vertex_array();
+   auto va     = m_vertex_stream->vertex_array();
    auto old_va = m_renderer->set_vertex_array(va);
    m_vertex_attribute_mappings->add_to_vertex_stream(m_vertex_stream, m_vertex_buffer, m_vertex_format);
    m_renderer->setup_attribute_pointers(m_vertex_stream, 0);

@@ -40,7 +40,7 @@ state::state()
    // for (int i = 0; i < RS_TEXTURE_UNIT_COUNT; ++i)
    // texture_unit[i]
 
-   for (int i = 0; i < buffer_target::non_indexed_context_buffer_target_count; ++i)
+   for (int i = 0; i < buffer_target::count_in_context(); ++i)
       buffer_binding[i].reset();
 
    for (int i = 0; i < RS_UNIFORM_BINDING_POINT_COUNT; ++i)
@@ -59,7 +59,7 @@ state::state(state const &other)
    for (int i = 0; i < RS_TEXTURE_UNIT_COUNT; ++i)
       texture_unit[i] = other.texture_unit[i];
 
-   for (int i = 0; i < buffer_target::non_indexed_context_buffer_target_count; ++i)
+   for (int i = 0; i < buffer_target::count_in_context(); ++i)
       buffer_binding[i] = other.buffer_binding[i];
 
    for (int i = 0; i < RS_UNIFORM_BINDING_POINT_COUNT; ++i)

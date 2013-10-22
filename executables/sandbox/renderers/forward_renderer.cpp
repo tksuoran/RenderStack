@@ -119,7 +119,6 @@ void forward_renderer::render_pass(
 
    auto &r = *m_renderer;
    auto &t = r.track();
-   //auto p = m_programs->basic;
    auto p = m_programs->anisotropic;
 
    r.set_program(p);

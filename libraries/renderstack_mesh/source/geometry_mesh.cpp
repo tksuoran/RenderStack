@@ -294,7 +294,7 @@ void geometry_mesh::build_mesh_from_geometry(
    auto t_id_uint       = (attribute_id_uint      ) ? attribute_id_uint      ->data_type() : format_info.id_uint_type();
 
    m_vertex_stream = make_shared<renderstack::graphics::vertex_stream>();
-   auto va = m_vertex_stream->vertex_array();
+   auto va     = m_vertex_stream->vertex_array();
    auto old_va = renderer.set_vertex_array(va);
 
    renderstack::geometry::geometry::mesh_info mi;

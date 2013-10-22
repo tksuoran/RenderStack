@@ -14,7 +14,7 @@
 
 #define LOG_CATEGORY &log_gl
 
-// #define LOG_GL             1
+#define LOG_GL             1
 // #define LOG_GL_VAO         1
 // #define LOG_GL_BUFFER      1
 // #define LOG_GL_MAP_BUFFER  1

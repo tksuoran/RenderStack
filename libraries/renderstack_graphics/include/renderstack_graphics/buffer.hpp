@@ -25,10 +25,12 @@ namespace buffer_target
       copy_read_buffer        = 5,  // 6.36
       copy_write_buffer       = 6,  // 6.36
       draw_indirect_buffer    = 7,  // TODO
-      non_indexed_context_buffer_target_count = 8,
       element_array_buffer    = 8,
+      non_indexed_context_buffer_target_count = 8, // TODO Badly named
       all_buffer_target_count = 9,
    };
+
+   int count_in_context();
 
    gl::buffer_target::value gl_buffer_target(value rs_target);
 

@@ -23,6 +23,15 @@ using namespace std;
 namespace buffer_target
 {
 
+int count_in_context()
+{
+   // TODO This is a bit messed up
+   if (configuration::use_vertex_array_object)
+      return value::non_indexed_context_buffer_target_count;
+
+   return value::all_buffer_target_count;
+}
+
 gl::buffer_target::value gl_buffer_target(value rs_target)
 {
    switch (rs_target)
@@ -144,14 +153,17 @@ void buffer::allocate_storage(class renderer &renderer)
       ::memset(&m_data_copy[0], 0xcd, new_size);
    }
 
-   if (m_target == buffer_target::element_array_buffer)
+   if (renderstack::graphics::configuration::use_vertex_array_object)
    {
-      auto va = renderer.vertex_array();
-      (void)va->set_index_buffer(old);
-   }
-   else
-   {
-      (void)renderer.set_buffer(m_target, old);
+      if (m_target == buffer_target::element_array_buffer)
+      {
+         auto va = renderer.vertex_array();
+         (void)va->set_index_buffer(old);
+      }
+      else
+      {
+         (void)renderer.set_buffer(m_target, old);
+      }
    }
 }
 
@@ -232,6 +244,7 @@ void *buffer::map(class renderer &renderer, size_t first, size_t count, gl::buff
          m_mapped_size,
          access
       );
+      assert(m_mapped_ptr);
    } 
    else 
 #endif
