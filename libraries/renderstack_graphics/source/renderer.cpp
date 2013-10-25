@@ -240,10 +240,13 @@ void renderer::restore_texture(texture_target::value target, shared_ptr<class te
    }
 }
 
+#if 0
 #if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
 shared_ptr<uniform_buffer_range> renderer::set_uniform_buffer_range(
    unsigned int binding_point,
-   shared_ptr<uniform_buffer_range> buffer_range)
+   shared_ptr<uniform_buffer_range> buffer_range,
+   std::size_t offset
+)
 {
    unsigned int count = std::min(RS_UNIFORM_BINDING_POINT_COUNT, configuration::max_uniform_buffer_bindings);
 
@@ -278,7 +281,7 @@ shared_ptr<uniform_buffer_range> renderer::set_uniform_buffer_range(
             binding_point, 
             buffer_range->uniform_buffer().lock()->gl_name(),
             static_cast<GLsizeiptr>(buffer_range->first_byte()), 
-            static_cast<GLsizeiptr>(buffer_range->byte_count())
+            static_cast<GLsizeiptr>(buffer_range->> byte_count())
          );
       }
       else
@@ -299,6 +302,7 @@ shared_ptr<uniform_buffer_range> renderer::set_uniform_buffer_range(
 
    return old;
 }
+#endif
 #endif
 
 shared_ptr<class buffer> renderer::set_buffer(buffer_target::value target, shared_ptr<class buffer> buffer)

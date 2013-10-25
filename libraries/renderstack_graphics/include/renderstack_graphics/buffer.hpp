@@ -60,12 +60,12 @@ public:
    void           flush          (class renderer &renderer, ::std::size_t first, ::std::size_t count);
    void           flush_and_unmap(class renderer &renderer, ::std::size_t count);
    ::std::size_t  free_capacity  () const;
-   void           bind_range     (unsigned int binding_point, ::std::size_t offset, ::std::size_t size);
    buffer_target::value target() const { return m_target; }
 #if defined(RENDERSTACK_GL_API_OPENGL)
    void           dump           () const;
 #endif
-
+   void           bind_range     (unsigned int binding_point, ::std::size_t offset, ::std::size_t size);
+   
 friend class renderer;
 friend class vertex_array;
 friend class texture;

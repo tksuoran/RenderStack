@@ -479,4 +479,15 @@ size_t buffer::capacity() const
    return m_capacity;
 }
 
+void buffer::bind_range(unsigned int binding_point, size_t offset, size_t size)
+{
+   gl::bind_buffer_range(
+      buffer_target::gl_buffer_target(m_target),
+      binding_point,
+      m_gl_name,
+      offset,
+      size
+   );
+}
+   
 } }

@@ -10,18 +10,14 @@ namespace renderstack { namespace graphics {
 using namespace std;
 
 uniform_buffer_range::uniform_buffer_range(
-   weak_ptr<class uniform_block> block,
-   weak_ptr<class buffer> uniform_buffer
+   shared_ptr<class uniform_block> block,
+   shared_ptr<class buffer> uniform_buffer,
+   size_t count
 )
 :  m_uniform_block   (block)
 ,  m_uniform_buffer  (uniform_buffer)
 {
-   assert(block.lock());
-   assert(uniform_buffer.lock());
-
-   auto b = block.lock();
-
-   m_byte_count = b->size_bytes();
+   m_byte_count = block->size_bytes() * count;
    m_first_byte = m_uniform_buffer.lock()->allocate(m_byte_count);
    m_in_edit = false;
 }
@@ -70,6 +66,11 @@ void uniform_buffer_range::end_edit(class renderer &renderer)
 void uniform_buffer_range::flush(class renderer &renderer)
 {
    m_uniform_buffer.lock()->flush(renderer, first_byte(), byte_count());
+}
+
+void uniform_buffer_range::flush(class renderer &renderer, size_t bytes)
+{
+   m_uniform_buffer.lock()->flush(renderer, first_byte(), bytes);
 }
 
 } }

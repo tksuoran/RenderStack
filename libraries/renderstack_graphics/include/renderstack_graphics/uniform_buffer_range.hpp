@@ -14,8 +14,9 @@ class uniform_buffer_range
 {
 public:
    uniform_buffer_range(
-      std::weak_ptr<class uniform_block>  block,
-      std::weak_ptr<class buffer>         uniform_buffer
+      std::shared_ptr<class uniform_block>   block,
+      std::shared_ptr<class buffer>          uniform_buffer,
+      std::size_t                            count
    );
    ~uniform_buffer_range();
 
@@ -24,6 +25,7 @@ public:
    std::size_t    first_byte  () { return m_first_byte; }
    std::size_t    byte_count  () { return m_byte_count; }
    void           flush       (class renderer &renderer);
+   void           flush       (class renderer &renderer, std::size_t bytes);
 
    std::weak_ptr<class buffer>         uniform_buffer() { return m_uniform_buffer; }
 

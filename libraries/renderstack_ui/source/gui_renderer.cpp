@@ -197,7 +197,7 @@ void gui_renderer::initialize_service()
       );
       m_uniform_buffer->allocate_storage(*m_renderer);
 
-      m_uniform_buffer_range = make_shared<uniform_buffer_range>(m_uniform_block, m_uniform_buffer);
+      m_uniform_buffer_range = make_shared<uniform_buffer_range>(m_uniform_block, m_uniform_buffer, 1); /* TODO !!! */
    }
    else
       log_trace("GUI renderer NOT using uniform buffers");
@@ -363,10 +363,7 @@ void gui_renderer::prepare()
    if (use_uniform_buffers())
    {
       assert(m_uniform_buffer_range);
-      m_renderer->set_uniform_buffer_range(
-         m_uniform_block->binding_point(), 
-         m_uniform_buffer_range
-      );
+      m_renderer->set_buffer(buffer_target::uniform_buffer, m_uniform_buffer);
    }
 }
 void gui_renderer::on_resize(int width, int height)

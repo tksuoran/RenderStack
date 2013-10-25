@@ -70,6 +70,13 @@ private:
    std::shared_ptr<programs>                          m_programs;
    std::shared_ptr<quad_renderer>                     m_quad_renderer;
 
+   std::shared_ptr<renderstack::graphics::buffer>                 m_uniform_buffer;
+   ubr_pos                                                        m_ubr_sizes;
+   std::shared_ptr<renderstack::graphics::uniform_buffer_range>   m_model_ubr;
+   std::shared_ptr<renderstack::graphics::uniform_buffer_range>   m_camera_ubr;
+   std::shared_ptr<renderstack::graphics::uniform_buffer_range>   m_material_ubr;
+   std::shared_ptr<renderstack::graphics::uniform_buffer_range>   m_lights_ubr;
+
    renderstack::graphics::render_states               m_mesh_render_states;
    renderstack::graphics::render_states               m_light_render_states;
    renderstack::graphics::render_states               m_debug_light_render_states;

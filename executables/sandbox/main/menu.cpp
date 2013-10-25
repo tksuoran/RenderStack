@@ -313,6 +313,7 @@ void menu::on_exit()
 }
 void menu::render()
 {
+#if 0
    slog_trace("menu::render()");
 
    assert(m_application);
@@ -343,12 +344,24 @@ void menu::render()
 
    auto buffer = m_programs->uniform_buffer;
 
+   ubr_pos offsets;
+   ubr_ptr start;
+   if (renderstack::graphics::configuration::can_use.uniform_buffer_object)
+      start = m_programs->begin_edit_uniforms(true);
+
+#if 0
+   m_programs->uniform_buffer->bind_range(m_programs->model_block->binding_point(),    offsets.model,     m_programs->model_block   ->size_bytes());
+   m_programs->uniform_buffer->bind_range(m_programs->camera_block->binding_point(),   offsets.camera,    m_programs->camera_block  ->size_bytes());
+   m_programs->uniform_buffer->bind_range(m_programs->material_block->binding_point(), offsets.material,  m_programs->material_block->size_bytes());
+   m_programs->uniform_buffer->bind_range(m_programs->lights_block->binding_point(),   offsets.lights,    m_programs->lights_block  ->size_bytes());
+   m_programs->uniform_buffer->bind_range(m_programs->debug_block->binding_point(),    offsets.debug,     m_programs->debug_block   ->size_bytes());
+#endif
+
    //  Background
    if (m_textures)
    {
       auto p = m_programs->textured;
-      m_renderer->set_program(p);
-      m_programs->bind_uniforms();
+      r.set_program(p);
 
       if (p->use_uniform_buffers())
       {
@@ -356,12 +369,8 @@ void menu::render()
          auto p = m_programs->textured;
          p->use();
    #endif
-         unsigned char *start = m_programs->begin_edit_uniforms();
-         ::memcpy(&start[m_programs->model_ubr->first_byte() + m_programs->model_block_access.clip_from_model], value_ptr(ortho), 16 * sizeof(float));
-         ::memcpy(&start[m_programs->material_ubr->first_byte() + m_programs->material_block_access.color], value_ptr(white),  4 * sizeof(float));
-         m_programs->model_ubr->flush(r);
-         m_programs->material_ubr->flush(r);
-         m_programs->end_edit_uniforms();
+         ::memcpy(start.model    + m_programs->model_block_access.clip_from_model, value_ptr(ortho), 16 * sizeof(float));
+         ::memcpy(start.material + m_programs->material_block_access.color,        value_ptr(white),  4 * sizeof(float));
       }
       else
       {
@@ -379,12 +388,12 @@ void menu::render()
       t->apply(*m_renderer, 1);
 #else
       auto t = m_textures->background_texture;
-      (void)m_renderer->set_texture(1, t);
+      (void)r.set_texture(1, t);
       t->set_min_filter(texture_min_filter::linear);
       t->set_mag_filter(texture_mag_filter::linear);
       t->set_wrap(0, gl::texture_wrap_mode::clamp_to_edge);
       t->set_wrap(1, gl::texture_wrap_mode::clamp_to_edge);
-      t->apply(*m_renderer, 1);
+      t->apply(r, 1);
 #endif
       assert(m_mesh);
 
@@ -407,31 +416,27 @@ void menu::render()
 
       auto p = m_programs->font;
 
-      m_renderer->set_program(p);
+      r.set_program(p);
       m_gui_renderer->blend_alpha();
 
       if (p->use_uniform_buffers())
       {
-         unsigned char *start = m_programs->begin_edit_uniforms();
-         ::memcpy(&start[m_programs->model_ubr->first_byte() + m_programs->model_block_access.clip_from_model], value_ptr(ortho), 16 * sizeof(float));
-         ::memcpy(&start[m_programs->material_ubr->first_byte() + m_programs->material_block_access.color], value_ptr(white),  4 * sizeof(float));
-         m_programs->model_ubr->flush(r);
-         m_programs->material_ubr->flush(r);
-         m_programs->end_edit_uniforms();
+         ::memcpy(start.model    + m_programs->model_block_access.clip_from_model, value_ptr(ortho), 16 * sizeof(float));
+         ::memcpy(start.material + m_programs->material_block_access.color,        value_ptr(white),  4 * sizeof(float));
       }
       else
       {
-         gl::uniform_matrix_4fv(p->uniform_at(m_programs->model_block_access.clip_from_model ), 1, GL_FALSE, value_ptr(ortho));
-         gl::uniform_4fv       (p->uniform_at(m_programs->material_block_access.color        ), 1, value_ptr(white));
+         gl::uniform_matrix_4fv(p->uniform_at(m_programs->model_block_access.clip_from_model), 1, GL_FALSE, value_ptr(ortho));
+         gl::uniform_4fv       (p->uniform_at(m_programs->material_block_access.color       ), 1, value_ptr(white));
       }
 
       auto t = m_font->texture();
-      (void)m_renderer->set_texture(0, t);
+      (void)r.set_texture(0, t);
       t->set_min_filter(texture_min_filter::nearest);
       t->set_mag_filter(texture_mag_filter::nearest);
       t->set_wrap(0, gl::texture_wrap_mode::clamp_to_edge);
       t->set_wrap(1, gl::texture_wrap_mode::clamp_to_edge);
-      t->apply(*m_renderer, 0);
+      t->apply(r, 0);
 
       m_text_buffer->render();
       m_gui_renderer->blend_disable();
@@ -456,4 +461,5 @@ void menu::render()
    }
 
    m_application->swap_buffers();
+#endif
 }

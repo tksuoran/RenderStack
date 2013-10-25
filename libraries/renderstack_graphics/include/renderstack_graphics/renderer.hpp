@@ -49,8 +49,14 @@ public:
    // Restores old texture to effective texture unit and then restores effective texture unit to old_unit
    void                                   restore_texture         (texture_target::value target, std::shared_ptr<class texture> old_texture, unsigned int old_unit);
 
+#if 0
 #if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
-   std::shared_ptr<uniform_buffer_range>  set_uniform_buffer_range(unsigned int binding_point, std::shared_ptr<uniform_buffer_range> buffer_range);
+   std::shared_ptr<uniform_buffer_range>  set_uniform_buffer_range(
+      unsigned int binding_point,
+      std::shared_ptr<uniform_buffer_range> buffer_range,
+      std::size_t offset
+   );
+#endif
 #endif
 
    std::shared_ptr<class buffer>          set_buffer              (buffer_target::value target, std::shared_ptr<class buffer> buffer);

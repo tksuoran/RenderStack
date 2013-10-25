@@ -62,6 +62,7 @@ void light_debug_renderer::connect(
 
 void light_debug_renderer::initialize_service()
 {
+#if 0
    assert(m_renderer);
    assert(m_programs);
 
@@ -77,6 +78,7 @@ void light_debug_renderer::initialize_service()
    m_debug_light_render_states.blend.alpha().set_equation_mode(gl::blend_equation_mode::func_add);
    m_debug_light_render_states.blend.alpha().set_source_factor(gl::blending_factor_src::one);
    m_debug_light_render_states.blend.alpha().set_destination_factor(gl::blending_factor_dest::one);   
+#endif
 }
 
 
@@ -162,6 +164,7 @@ void light_debug_renderer::light_pass(
    shared_ptr<camera> camera
 )
 {
+#if 0
    auto &r = *m_renderer;
    auto &t = r.track();
    auto p = m_programs->light;
@@ -238,6 +241,6 @@ void light_debug_renderer::light_pass(
             begin_mode, count, index_type, index_pointer, base_vertex);
       }
    }
-
+#endif
 }
 

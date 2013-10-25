@@ -99,6 +99,12 @@ void id_renderer::render_pass(
    int y
 )
 {
+   (void)models;
+   (void)camera;
+   (void)time;
+   (void)x;
+   (void)y;
+#if 0
    if (models->size() == 0)
       return;
 
@@ -202,6 +208,7 @@ void id_renderer::render_pass(
    ++m_last_render;
    if (m_last_render == 4)
       m_last_render = 0;
+#endif
 }
 
 bool id_renderer::get(int x, int y, uint32_t &id, float &depth)

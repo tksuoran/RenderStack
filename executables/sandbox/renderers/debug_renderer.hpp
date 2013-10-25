@@ -30,6 +30,7 @@ struct draw
    glm::mat4   clip_from_model;
    int         first;
    int         count;
+   int         model_index;
 };
 
 struct print_at
@@ -67,12 +68,15 @@ public:
 
    void set_camera(std::shared_ptr<renderstack::scene::camera> camera);
    void set_model(glm::mat4 const &world_from_model);
+   void set_clip_from_model(glm::mat4 const &clip_from_model);
+   void set_ortho(renderstack::scene::viewport const &vp);
    void set_color(glm::vec4 color);
 
    void add_line(glm::vec3 start, glm::vec3 end);
    void add_box(glm::vec3 min_, glm::vec3 max_);
 
 private:
+
    std::uint16_t add_point(glm::vec3 p);
 
 private:
@@ -98,6 +102,13 @@ private:
    std::shared_ptr<renderstack::ui::text_buffer>   m_text_buffer;
    renderstack::graphics::render_states            m_font_render_states;
 #endif
+
+   std::shared_ptr<renderstack::graphics::buffer>                 m_uniform_buffer;
+   ubr_pos                                                        m_ubr_sizes;
+   std::shared_ptr<renderstack::graphics::uniform_buffer_range>   m_model_ubr;
+   std::shared_ptr<renderstack::graphics::uniform_buffer_range>   m_material_ubr;
+   ubr_ptr                                                        m_uniform_start;
+   ubr_pos                                                        m_uniform_offsets;
 
    renderstack::graphics::render_states            m_render_states;
    

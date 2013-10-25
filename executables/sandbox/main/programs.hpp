@@ -35,11 +35,11 @@ struct camera_block_i
    std::size_t world_from_view;       /* mat4 */
    std::size_t world_from_clip;       /* mat4 */
    std::size_t viewport;              /* vec4 */
+   std::size_t exposure;
 };
 
 struct lights_block_i
 {
-   std::size_t exposure;
    std::size_t position;
    std::size_t direction;
    std::size_t radiance;
@@ -62,6 +62,42 @@ struct debug_block_i
    size_t show_rt_transform;     /* mat4 */
 };
 
+struct ubr_pos
+{
+   ubr_pos()
+   :  model(0)
+   ,  camera(0)
+   ,  material(0)
+   ,  lights(0)
+   ,  debug(0)
+   {
+   }
+   int model;
+   int camera;
+   int material;
+   int lights;
+   int debug;
+};
+
+struct ubr_ptr
+{
+   unsigned char *model;
+   unsigned char *camera;
+   unsigned char *material;
+   unsigned char *lights;
+   unsigned char *debug;
+};
+
+/*struct draw_v1
+{
+   std::shared_ptr<renderstack::graphics::vertex_stream> vertex_stream;
+   gl::begin_mode::value                                 begin_mode;
+   GLsizei                                               count;
+   gl::draw_elements_type::value                         index_type;
+   GLvoid                                                *index_pointer;
+   GLint                                                 base_vertex
+};*/
+
 class programs : public renderstack::toolkit::service
 {
 public:
@@ -73,35 +109,21 @@ public:
    );
    /*virtual*/ void initialize_service();
 
-   void bind_uniforms();
-   unsigned char *begin_edit_uniforms();
-   void end_edit_uniforms();
-
 private:
    std::shared_ptr<renderstack::graphics::program> make_program(std::string const &name);
 
 public:
-   model_block_i                                                  model_block_access;
-   camera_block_i                                                 camera_block_access;
-   material_block_i                                               material_block_access;
-   lights_block_i                                                 lights_block_access;
-   debug_block_i                                                  debug_block_access;
+   model_block_i                                                     model_block_access;
+   camera_block_i                                                    camera_block_access;
+   material_block_i                                                  material_block_access;
+   lights_block_i                                                    lights_block_access;
+   debug_block_i                                                     debug_block_access;
 
-   std::shared_ptr<renderstack::graphics::buffer>                 uniform_buffer;
-
-   std::shared_ptr<renderstack::graphics::uniform_block>          default_block;
-   std::shared_ptr<renderstack::graphics::uniform_block>          model_block;
-   std::shared_ptr<renderstack::graphics::uniform_block>          camera_block;
-   std::shared_ptr<renderstack::graphics::uniform_block>          material_block;
-   std::shared_ptr<renderstack::graphics::uniform_block>          lights_block;
-   std::shared_ptr<renderstack::graphics::uniform_block>          debug_block;
-
-   std::shared_ptr<renderstack::graphics::uniform_buffer_range>   model_ubr;
-   std::shared_ptr<renderstack::graphics::uniform_buffer_range>   camera_ubr;
-   std::shared_ptr<renderstack::graphics::uniform_buffer_range>   material_ubr;
-   std::shared_ptr<renderstack::graphics::uniform_buffer_range>   lights_ubr;
-   std::shared_ptr<renderstack::graphics::uniform_buffer_range>   debug_ubr;
-
+   std::shared_ptr<renderstack::graphics::uniform_block>             model_block;
+   std::shared_ptr<renderstack::graphics::uniform_block>             camera_block;
+   std::shared_ptr<renderstack::graphics::uniform_block>             material_block;
+   std::shared_ptr<renderstack::graphics::uniform_block>             lights_block;
+   std::shared_ptr<renderstack::graphics::uniform_block>             debug_block;
 
    std::shared_ptr<renderstack::graphics::samplers>                  samplers;
    std::shared_ptr<renderstack::graphics::vertex_attribute_mappings> attribute_mappings;
