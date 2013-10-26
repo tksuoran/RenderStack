@@ -151,7 +151,6 @@ private:
    size_t                                                   m_poll_ticks;
 
    std::vector<std::pair<std::string, int> >                m_shader_versions;
-   int                                                      m_glsl_version;
    std::string                                              m_shader_path;
 };
 

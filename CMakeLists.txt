@@ -81,7 +81,7 @@ set(TINYXML_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/libraries/tinyxml2")
 set(TINYXML_LIBS tinyxml2static)
 
 # libpng requires some hacking due to dependency to zlib
-if (MSVC OR APPLE)
+if (MSVC)
    set(PNG_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/libraries/lpng163" "${CMAKE_BINARY_DIR}/libraries/lpng163")
    set(PNG_LIBRARIES png16_static zlibstatic)
    

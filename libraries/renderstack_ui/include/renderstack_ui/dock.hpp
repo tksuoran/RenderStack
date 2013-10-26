@@ -19,13 +19,6 @@ namespace renderstack { namespace ui {
 
 class dock : public area
 {
-private:
-   orientation::value       m_orientation;
-   glm::vec2                m_cursor_start;
-   glm::vec2                m_cursor_end;
-   glm::vec2                m_grow_direction;
-   area_layout_style::value m_child_layout_style;
-
 public:
    dock(
       std::shared_ptr<class gui_renderer> renderer,
@@ -33,7 +26,9 @@ public:
       orientation::value                  orientation, 
       area_layout_style::value            child_layout_style = area_layout_style::normal
    );
-   virtual ~dock(){}
+   virtual ~dock()
+   {
+   }
 
    orientation::value orientation() const { return m_orientation; }
    void set_orientation(orientation::value value){ m_orientation = value; }
@@ -46,6 +41,13 @@ public:
    void end_size();
    void begin_place(rectangle const &reference, glm::vec2 const &container_grow_direction);
    void call_place(std::shared_ptr<class area> area);
+
+private:
+   orientation::value       m_orientation;
+   glm::vec2                m_cursor_start;
+   glm::vec2                m_cursor_end;
+   glm::vec2                m_grow_direction;
+   area_layout_style::value m_child_layout_style;
 };
 
 } }

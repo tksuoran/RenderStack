@@ -63,26 +63,26 @@ public:
    typedef std::vector<std::shared_ptr<area> >  area_collection;
 
 public:
-   std::string const             &name() const { return m_name; }
+   std::string const &           name() const { return m_name; }
    void                          set_name(std::string const &value){ m_name = value; }
    bool                          hidden() const { return m_hidden; }
    void                          set_hidden(bool value){ m_hidden = value; }
-   glm::vec2 const               &offset_pixels() const { return m_offset_pixels; }
+   glm::vec2 const &             offset_pixels() const { return m_offset_pixels; }
    void                          set_offset_pixels(glm::vec2 const &value){ m_offset_pixels = value; }
-   glm::vec2 const               &offset_self_size_relative() const { return m_offset_self_size_relative; }
+   glm::vec2 const &             offset_self_size_relative() const { return m_offset_self_size_relative; }
    void                          set_offset_self_size_relative(glm::vec2 const &value){ m_offset_self_size_relative = value; }
-   glm::vec2 const               &offset_free_size_relative() const { return m_offset_free_size_relative; }
+   glm::vec2 const &             offset_free_size_relative() const { return m_offset_free_size_relative; }
    void                          set_offset_free_size_relative(glm::vec2 const &value){ m_offset_free_size_relative = value; }
-   glm::vec2 const               &fill_base_pixels() const { return m_fill_base_pixels; }
+   glm::vec2 const &             fill_base_pixels() const { return m_fill_base_pixels; }
    void                          set_fill_base_pixels(glm::vec2 const &value){ m_fill_base_pixels = value; }
-   glm::vec2 const               &fill_free_size_relative() const { return m_fill_free_size_relative; }
+   glm::vec2 const &             fill_free_size_relative() const { return m_fill_free_size_relative; }
    void                          fill_free_size_relative(glm::vec2 const &value){ m_fill_free_size_relative = value; }
-   glm::vec2 const               &size() const { return m_size; }
-   glm::vec2                     &size(){ return m_size; }
+   glm::vec2 const &             size() const { return m_size; }
+   glm::vec2 &                   size(){ return m_size; }
    void                          set_size(glm::vec2 const &value){ m_size = value; }
-   rectangle const               &rect() const { return m_rect; }
-   rectangle const               &in_rect() const { return m_in_rect; }
-   area_collection const         &children() const { return m_children; }
+   rectangle const &             rect() const { return m_rect; }
+   rectangle const &             in_rect() const { return m_in_rect; }
+   area_collection const &       children() const { return m_children; }
    bool                          clip_to_reference() const { return m_clip_to_reference; }
    void                          set_clip_to_reference(bool value){ m_clip_to_reference = value; }
    std::weak_ptr<area>           link() const { return m_link; }
@@ -103,7 +103,7 @@ public:
 
 protected:
    std::shared_ptr<class renderstack::ui::gui_renderer>   renderer() { return m_renderer; }
-   rectangle                           &rect(){ return m_rect; }
+   rectangle &                         rect(){ return m_rect; }
    void                                set_rect(rectangle const &value){ m_rect = value; }
    void                                update_in_rect(){ m_in_rect = rect().shrink(style()->padding()); }
 
@@ -121,14 +121,14 @@ public:
    virtual void                end_size();
    // Do not make this virtual.
    // Derived classes should override begin_size() instead
-   glm::vec2 const             &do_size(glm::vec2 const &free_size_reference);
+   glm::vec2 const &           do_size(glm::vec2 const &free_size_reference);
 
    virtual void                begin_place(rectangle const &reference, glm::vec2 const &container_grow_direction);
    virtual void                call_place(std::shared_ptr<class area> area);
    virtual void                end_place();
    // Do not make this virtual.
    // Derived classes should override begin_place() instead
-   glm::vec2 const             &do_place(rectangle const &reference_location, glm::vec2 const &grow_direction);
+   glm::vec2 const &           do_place(rectangle const &reference_location, glm::vec2 const &grow_direction);
 
 private:
    std::string                   m_name;

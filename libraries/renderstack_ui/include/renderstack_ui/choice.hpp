@@ -25,8 +25,8 @@ private:
    std::string                   m_label;
 
 public:
-   std::string const &label() const { return m_label; }
-   void set_label(std::string const &value){ m_label = value; }
+   std::string const & label() const { return m_label; }
+   void                set_label(std::string const &value){ m_label = value; }
 
 public:
    choice_item(
@@ -51,9 +51,9 @@ private:
    std::shared_ptr<class style>                 m_choice_item_style;
 
 public:
-   std::vector<std::shared_ptr<choice_item> >  const  &items() const { return m_items; }
-   std::weak_ptr<choice_item>                         selected() const { return m_selected; }
-   void                                               set_selected(std::weak_ptr<choice_item> value);
+   std::vector<std::shared_ptr<choice_item> >  const & items() const { return m_items; }
+   std::weak_ptr<choice_item>                          selected() const { return m_selected; }
+   void                                                set_selected(std::weak_ptr<choice_item> value);
 
    choice(
       std::shared_ptr<class gui_renderer> renderer,

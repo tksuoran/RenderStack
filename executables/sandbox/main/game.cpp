@@ -56,6 +56,7 @@ game::game()
 
 /* services */
 ,  m_renderer              (nullptr)
+,  m_shader_monitor        (nullptr)
 ,  m_gui_renderer          (nullptr)
 ,  m_programs              (nullptr)
 ,  m_textures              (nullptr)
@@ -66,7 +67,6 @@ game::game()
 ,  m_id_renderer           (nullptr)
 ,  m_menu                  (nullptr)
 ,  m_application           (nullptr)
-,  m_shader_monitor        (nullptr)
 
 /* self owned parts */
 ,  m_manipulator_frame     (nullptr)
