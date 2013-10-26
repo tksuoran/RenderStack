@@ -88,10 +88,10 @@ void forward_renderer::initialize_service()
 
       size_t ubo_size = 0;
 
-      m_ubr_sizes.camera   = 100;
-      m_ubr_sizes.model    = 100;
+      m_ubr_sizes.camera   =  20;
+      m_ubr_sizes.model    = 200;
       m_ubr_sizes.material = 100;
-      m_ubr_sizes.lights   = 100;
+      m_ubr_sizes.lights   = 200;
       m_ubr_sizes.debug    = 100;
 
       ubo_size += m_programs->model_block   ->size_bytes() * m_ubr_sizes.model;
@@ -360,11 +360,15 @@ void forward_renderer::render_pass(
       glm::vec3 direction  = vec3(l->frame()->world_from_local().matrix() * vec4(0.0f, 0.0f, 1.0f, 0.0f));
       glm::vec3 radiance   = l->intensity() * l->color();
 
+      float spot_angle     = l->spot_angle() * 0.5f;
+      float spot_cutoff    = std::cos(spot_angle);
+
       direction = normalize(direction);
 
       ::memcpy(start.lights + offsets.lights + m_programs->lights_block_access.position , value_ptr(position),  3 * sizeof(float));
       ::memcpy(start.lights + offsets.lights + m_programs->lights_block_access.direction, value_ptr(direction), 3 * sizeof(float));
       ::memcpy(start.lights + offsets.lights + m_programs->lights_block_access.radiance , value_ptr(radiance),  3 * sizeof(float));
+      ::memcpy(start.lights + offsets.lights + m_programs->lights_block_access.spot_cutoff , &spot_cutoff,           1 * sizeof(float));
 
       offsets.lights += m_programs->lights_block->size_bytes();
       ++light_index;
@@ -407,6 +411,7 @@ void forward_renderer::render_pass(
 
    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+   glEnable(GL_FRAMEBUFFER_SRGB);
 
    /*int */light_index = 0;
    for (auto i = lights->cbegin(); i != lights->cend(); ++i)
@@ -467,4 +472,5 @@ void forward_renderer::render_pass(
 
       ++light_index;
    }
+   glDisable(GL_FRAMEBUFFER_SRGB);
 }

@@ -43,6 +43,7 @@ struct lights_block_i
    std::size_t position;
    std::size_t direction;
    std::size_t radiance;
+   std::size_t spot_cutoff;
 };
 
 struct material_block_i

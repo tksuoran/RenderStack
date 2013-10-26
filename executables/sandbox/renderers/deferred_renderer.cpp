@@ -20,6 +20,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <cmath>
 #include <fstream>
 #include <sstream>
 #include <sys/stat.h>
@@ -100,10 +101,10 @@ void deferred_renderer::initialize_service()
 
       size_t ubo_size = 0;
 
-      m_ubr_sizes.camera   = 100;
-      m_ubr_sizes.model    = 100;
+      m_ubr_sizes.camera   = 20;
+      m_ubr_sizes.model    = 400;
       m_ubr_sizes.material = 100;
-      m_ubr_sizes.lights   = 100;
+      m_ubr_sizes.lights   = 400;
       m_ubr_sizes.debug    = 100;
 
       ubo_size += m_programs->model_block   ->size_bytes() * m_ubr_sizes.model;
@@ -124,7 +125,6 @@ void deferred_renderer::initialize_service()
       m_material_ubr   = make_shared<uniform_buffer_range>(m_programs->material_block, m_uniform_buffer, m_ubr_sizes.material);
       m_lights_ubr     = make_shared<uniform_buffer_range>(m_programs->lights_block,   m_uniform_buffer, m_ubr_sizes.lights);
    }
-
 }
 
 void deferred_renderer::bind_fbo()
@@ -404,7 +404,7 @@ void deferred_renderer::update_light_model(shared_ptr<light> l)
          int   n        = 16;
          float alpha    = l->spot_angle(); 
          float length   = l->range();
-         float apothem  = length * std::sin(alpha);
+         float apothem  = length * std::tan(alpha * 0.5f);
          float radius   = apothem / std::cos(glm::pi<float>() / static_cast<float>(n));
 
          shared_ptr<renderstack::geometry::geometry> g = make_shared<renderstack::geometry::shapes::conical_frustum>(
@@ -458,7 +458,7 @@ void deferred_renderer::light_pass(
 
    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-   // glEnable(GL_FRAMEBUFFER_SRGB);
+   glEnable(GL_FRAMEBUFFER_SRGB);
 
    auto &r = *m_renderer;
    auto &t = r.track();
@@ -528,15 +528,19 @@ void deferred_renderer::light_pass(
       glm::vec3 direction  = vec3(l->frame()->world_from_local().matrix() * vec4(0.0f, 0.0f, 1.0f, 0.0f));
       glm::vec3 radiance   = l->intensity() * l->color();
 
+      float spot_angle     = l->spot_angle() * 0.5f;
+      float spot_cutoff    = std::cos(spot_angle);
+
       direction = normalize(direction);
 
-      ::memcpy(start.model + offsets.model + m_programs->model_block_access.clip_from_model,  value_ptr(clip_from_light), 16 * sizeof(float));
+      ::memcpy(start.model + offsets.model + m_programs->model_block_access.clip_from_model,  value_ptr(clip_from_light),  16 * sizeof(float));
       ::memcpy(start.model + offsets.model + m_programs->model_block_access.world_from_model, value_ptr(world_from_light), 16 * sizeof(float));
-      ::memcpy(start.model + offsets.model + m_programs->model_block_access.view_from_model,  value_ptr(view_from_light), 16 * sizeof(float));
+      ::memcpy(start.model + offsets.model + m_programs->model_block_access.view_from_model,  value_ptr(view_from_light),  16 * sizeof(float));
 
-      ::memcpy(start.lights + offsets.lights + m_programs->lights_block_access.position , value_ptr(position),  3 * sizeof(float));
-      ::memcpy(start.lights + offsets.lights + m_programs->lights_block_access.direction, value_ptr(direction), 3 * sizeof(float));
-      ::memcpy(start.lights + offsets.lights + m_programs->lights_block_access.radiance , value_ptr(radiance),  3 * sizeof(float));
+      ::memcpy(start.lights + offsets.lights + m_programs->lights_block_access.position ,    value_ptr(position),    3 * sizeof(float));
+      ::memcpy(start.lights + offsets.lights + m_programs->lights_block_access.direction,    value_ptr(direction),   3 * sizeof(float));
+      ::memcpy(start.lights + offsets.lights + m_programs->lights_block_access.radiance ,    value_ptr(radiance),    3 * sizeof(float));
+      ::memcpy(start.lights + offsets.lights + m_programs->lights_block_access.spot_cutoff , &spot_cutoff,           1 * sizeof(float));
 
       offsets.model += m_programs->model_block->size_bytes();
       offsets.lights += m_programs->lights_block->size_bytes();
@@ -602,7 +606,7 @@ void deferred_renderer::light_pass(
 
       ++light_index;
    }
-   //glDisable(GL_FRAMEBUFFER_SRGB);
+   glDisable(GL_FRAMEBUFFER_SRGB);
 
    // m_quad_renderer->render_minus_one_to_one();
 

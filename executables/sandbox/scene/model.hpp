@@ -33,6 +33,8 @@ public:
    void select() { m_selected = true; }
    void deselect() { m_selected = false; }
 
+   glm::vec3 position() const;
+
 private:
    std::string                                              m_name;
    std::shared_ptr<renderstack::scene::frame>               m_frame;

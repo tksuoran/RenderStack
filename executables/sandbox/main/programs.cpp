@@ -158,9 +158,10 @@ void programs::connect(
    material_block->seal();
 
    lights_block = make_shared<uniform_block>(3, "lights");
-   lights_block_access.position  = lights_block->add_vec3("position" )->access();
-   lights_block_access.direction = lights_block->add_vec3("direction")->access();
-   lights_block_access.radiance  = lights_block->add_vec3("radiance" )->access();
+   lights_block_access.position     = lights_block->add_vec3("position" )->access();
+   lights_block_access.direction    = lights_block->add_vec3("direction")->access();
+   lights_block_access.radiance     = lights_block->add_vec3("radiance" )->access();
+   lights_block_access.spot_cutoff  = lights_block->add_vec3("spot_cutoff")->access();
    lights_block->seal();
 
    debug_block = make_shared<uniform_block>(4, "debug");

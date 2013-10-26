@@ -53,6 +53,8 @@ public:
       geometry_mesh_buffer_info const &buffer_info
    );
 
+   std::shared_ptr<renderstack::geometry::geometry> geometry() { return m_geometry; }
+
    std::shared_ptr<renderstack::graphics::vertex_format> vertex_format() { return m_vertex_format; }
    std::shared_ptr<renderstack::graphics::vertex_stream> vertex_stream() { return m_vertex_stream; }
    

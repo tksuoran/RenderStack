@@ -68,22 +68,41 @@ void scene_manager::reset_build_info()
    m_buffer_info = geometry_mesh_buffer_info();
 }
 
+std::shared_ptr<renderstack::mesh::geometry_mesh> scene_manager::make_geometry_mesh(
+   std::shared_ptr<renderstack::geometry::geometry> geometry
+)
+{
+   geometry_mesh::prepare_vertex_format(
+      geometry,
+      m_format_info,
+      m_buffer_info
+   );
+
+   auto &r = *m_renderer;
+
+   auto gm = make_shared<renderstack::mesh::geometry_mesh>(
+      r,
+      geometry,
+      m_format_info,
+      m_buffer_info
+   );
+
+   return gm;
+}
+
 shared_ptr<model> scene_manager::make_model(
-   shared_ptr<renderstack::scene::frame> parent,
-   shared_ptr<renderstack::geometry::geometry> g,
+   std::string const &                                name,
+   shared_ptr<renderstack::scene::frame>              parent,
+   std::shared_ptr<renderstack::mesh::geometry_mesh>  gm,
    vec3 position
 )
 {
    assert(m_renderer);
 
-   auto &r = *m_renderer;
-
-   geometry_mesh::prepare_vertex_format(g, m_format_info, m_buffer_info);
    mat4 transform;
    create_translation(position, transform);
 
-   auto gm = make_shared<renderstack::mesh::geometry_mesh>(r, g, m_format_info, m_buffer_info);
-   auto m = make_shared<model>(g->name());
+   auto m = make_shared<model>(name);
    m->set_geometry_mesh(gm);
    m->frame()->set_parent(parent);
    m->frame()->parent_from_local().set(transform);
@@ -245,50 +264,56 @@ void scene_manager::add_simple_scene()
    m_buffer_info.set_index_buffer(ibo);
 #endif
       
+   float min_x = 0.0f;
+   float max_x = 0.0f;
+   float gap = 0.5f;
    for (auto i = g_collection.begin(); i != g_collection.end(); ++i)
    {
-      auto m = make_model(nullptr, *i, vec3(0, 0.0f, 0.0f));
-      m_models->push_back(m);
-   }
+      auto g = *i;
+      auto gm = make_geometry_mesh(g);
 
-   float total_width = 0.0f;
-   for (auto i = m_models->cbegin(); i != m_models->cend(); ++i)
-   {
-      auto m = *i;
-      auto gm = m->geometry_mesh();
-      vec3 min = gm->min();
-      vec3 max = gm->max();
-      float width = max.x - min.x;
-      total_width += width;
-   }
-
-   float gap = 0.5f;
-   float x_pos = -total_width + m_models->size() * gap;
-   for (auto i = m_models->cbegin(); i != m_models->cend(); ++i)
-   {
-      auto m = *i;
-      auto gm = m->geometry_mesh();
-      vec3 min = gm->min();
-      vec3 max = gm->max();
+      vec3  min   = gm->min();
+      vec3  max   = gm->max();
       float width = max.x - min.x;
 
-      mat4 transform;
+      float x;
+      if (fabs(min_x) < fabs(max_x))
+      {
+         min_x -= 0.5f *   gap;
+         x = min_x;
+         min_x -= width;
+         min_x -= 0.5f * gap;
+      }
+      else
+      {
+         max_x += 0.5f * gap;
+         x = max_x;
+         max_x += width;
+         max_x += 0.5f * gap;
+      }
 
-      x_pos += 0.5f * (width + gap);
-      create_translation(x_pos, -min.y, 0.0f, transform);
-      x_pos += 0.5f * (width + gap);
-
-      m->frame()->parent_from_local().set(transform);
-      m->frame()->update_hierarchical_no_cache();
-
+      for (float z = -15.0f; z < 15.1f; z += 5.0f)
+      {
+         auto m = make_model(
+            g->name(),
+            nullptr,
+            gm,
+            vec3(x, -min.y, z)
+         );
+         m_models->push_back(m);
+      }
    }
 
-   int n_lights = 50;
+   float total_width = fabs(min_x) + fabs(max_x) + 4.0f;
+
+   int n_lights = 75;
    for (int i = 0; i < n_lights; ++i)
    {
       float rel = static_cast<float>(i) / static_cast<float>(n_lights);
-      float h = rel * 360.0f;
-      float s = 0.5f + 0.4f * fract(rel * 3.0f);
+      float t = std::pow(rel, 0.5f);
+      float R = 0.5f + 20.0f * t;
+      float h = fract(rel * 6.0f) * 360.0f;
+      float s = 0.9f;
       float v = 1.0f;
       float r, g, b;
 
@@ -297,28 +322,33 @@ void scene_manager::add_simple_scene()
       auto l = make_shared<light>();
       l->set_type(light_type::spot);
       l->set_color(vec3(r, g, b));
-      l->set_intensity(2.0f);
+      l->set_intensity(20.0f);
       l->set_name("spot");
+
+      float x_pos = R * sin(t * 6.0f * 2.0f * glm::pi<float>());
+      float z_pos = R * cos(t * 6.0f * 2.0f * glm::pi<float>());
+
       mat4 m;
-
-      x_pos = (rel - 0.5f) * total_width * 1.3f;
-
       create_look_at(
-         vec3(x_pos, 8.0f, 0.0f), // eye
-         vec3(x_pos, 0.0f, 0.0f), // center
-         vec3( 0.0f, 0.0f, 1.0f), // up
+         vec3(x_pos, 10.0f, z_pos), // eye
+         vec3(x_pos,  0.0f, z_pos), // center
+         vec3( 0.0f,  0.0f, 1.0f),  // up
          m
       );
       l->set_range(25.0f);
-      l->set_spot_angle(glm::pi<float>() / 8.0f);
+      l->set_spot_angle(glm::pi<float>() / 6.0f);
       l->frame()->parent_from_local().set(m);
       l->frame()->update_hierarchical_no_cache();
       add(l);
    } 
 
-
    m_format_info.set_normal_style(normal_style::polygon_normals);
-   auto floor_m = make_model(nullptr, floor_g, vec3(0, -0.5f, 0.0f));
+   auto floor_m = make_model(
+      "floor",
+      nullptr,
+      make_geometry_mesh(floor_g),
+      vec3(0, -0.5f, 0.0f)
+   );
    m_models->push_back(floor_m);
 
 # if 0

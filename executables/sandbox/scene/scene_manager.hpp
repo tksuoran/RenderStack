@@ -13,6 +13,11 @@ namespace renderstack { namespace geometry {
    class geometry;
 } }
 
+namespace renderstack { namespace mesh {
+   class geometry_mesh;
+   class mesh;
+} }
+
 namespace renderstack { namespace scene {
    class camera;
    class light;
@@ -52,9 +57,15 @@ public:
 
 private:
    void reset_build_info();
+
+   std::shared_ptr<renderstack::mesh::geometry_mesh> make_geometry_mesh(
+      std::shared_ptr<renderstack::geometry::geometry>   geometry
+   );
+
    std::shared_ptr<model> make_model(
+      std::string const &                                name,
       std::shared_ptr<renderstack::scene::frame>         parent,
-      std::shared_ptr<renderstack::geometry::geometry>   geometry,
+      std::shared_ptr<renderstack::mesh::geometry_mesh>  gm,
       glm::vec3                                          position = glm::vec3(0.0f)
    );
 

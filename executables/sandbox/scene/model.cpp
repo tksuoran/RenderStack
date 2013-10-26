@@ -36,3 +36,10 @@ model::model(
    m_frame = make_shared<renderstack::scene::frame>();
    m_frame->parent_from_local().set(transform);
 }
+
+glm::vec3 model::position() const
+{
+   return vec3(
+      m_frame->world_from_local().matrix() * vec4(0.0f, 0.0f, 0.0f, 1.0f)
+   );
+}
