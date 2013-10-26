@@ -55,8 +55,6 @@ public:
    void prepare();
    void on_resize(int width, int height);
    glm::mat4 const &ortho() const { return m_ortho; }
-   void begin_edit();
-   void end_edit();
    void set_program     (std::shared_ptr<renderstack::graphics::program> value);
    void set_texture     (unsigned int unit, std::shared_ptr<renderstack::graphics::texture> texture);
    void set_transform   (glm::mat4 const &value);
@@ -120,8 +118,6 @@ private:
    std::vector<std::pair<std::string, int> >                         m_shader_versions;
 
    std::shared_ptr<renderstack::graphics::uniform_block>             m_uniform_block;
-   std::shared_ptr<renderstack::graphics::buffer>                    m_uniform_buffer;
-   std::shared_ptr<renderstack::graphics::uniform_buffer_range>      m_uniform_buffer_range;
    struct gui_uniforms                                               m_uniforms;
    std::shared_ptr<renderstack::graphics::program>                   m_program;
 

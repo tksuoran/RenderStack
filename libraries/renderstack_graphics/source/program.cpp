@@ -120,7 +120,7 @@ unsigned int program::make_shader(
       auto block = i->second.lock();
       sb << block->source(m_glsl_version);
 
-      if (!use_uniform_buffers)
+      if (!use_uniform_buffers || block->default_block())
       {
          source_str = string_replace_all(
             source_str,

@@ -158,7 +158,6 @@ void slider::draw_self(ui_context &context)
 
    gr->set_program(style()->ninepatch_style()->program());
    gr->set_texture(style()->ninepatch_style()->texture_unit(), style()->ninepatch_style()->texture());
-   gr->begin_edit();
    gr->set_transform(m_background_frame);
    gr->set_color_scale(vec4(1.0f, 1.0f, 1.0f, 1.0f));
 
@@ -196,20 +195,17 @@ void slider::draw_self(ui_context &context)
 
    gr->set_t(pixel_x);
 
-   gr->end_edit();
    m_ninepatch.render(gr);
 
    /*  Then draw text  */ 
    if (style()->font())
    {
       gr->blend_alpha();
-      gr->begin_edit();
       gr->set_program(style()->program());
       gr->set_texture(style()->texture_unit(), style()->font()->texture());
       gr->set_color_add  (vec4(0.00f, 0.00f, 0.00f, 0.0f));
       gr->set_color_scale(vec4(0.72f, 0.72f, 0.72f, 2.0f));
       gr->set_transform(m_text_frame);
-      gr->end_edit();
       m_text_buffer.render();
       gr->blend_disable();
    }

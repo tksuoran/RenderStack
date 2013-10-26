@@ -107,7 +107,6 @@ void button::draw_self(ui_context &context)
    r.set_texture(style()->ninepatch_style()->texture_unit(), t);
    //t->apply(rr, style()->ninepatch_style()->texture_unit());
 
-   gr->begin_edit();
    gr->set_transform(m_background_frame);
    gr->set_color_scale(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
    if (rect().hit(context.mouse))
@@ -135,14 +134,12 @@ void button::draw_self(ui_context &context)
       gr->set_color_add(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
    }
 
-   gr->end_edit();
    m_ninepatch.render(gr);
 
    /*  Then draw text  */ 
    if (style()->font())
    {
       gr->blend_alpha();
-      gr->begin_edit();
       gr->set_program(style()->program());
       auto t = style()->font()->texture();
       gr->set_texture(style()->texture_unit(), t);
@@ -151,7 +148,6 @@ void button::draw_self(ui_context &context)
       gr->set_color_add  (glm::vec4(0.00f, 0.00f, 0.00f, 0.0f));
       gr->set_color_scale(glm::vec4(0.72f, 0.72f, 0.72f, 2.0f));
       gr->set_transform(m_text_frame);
-      gr->end_edit();
       m_text_buffer.render();
       gr->blend_disable();
    }

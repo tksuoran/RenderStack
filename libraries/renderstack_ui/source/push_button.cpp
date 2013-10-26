@@ -23,7 +23,6 @@ void push_button::draw_self(ui_context &context)
    //  First draw ninepatch
    gr->set_program(style()->ninepatch_style()->program());
    gr->set_texture(style()->ninepatch_style()->texture_unit(), style()->ninepatch_style()->texture());
-   gr->begin_edit();
    gr->set_transform(background_frame());
    gr->set_color_scale(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 
@@ -66,14 +65,12 @@ void push_button::draw_self(ui_context &context)
          gr->set_color_add(glm::vec4(0.72f, 0.72f, 0.72f, 0.0f));
    }
 
-   gr->end_edit();
    ninepatch().render(gr);
 
    /*  Then draw text  */ 
    if (style()->font())
    {
       gr->blend_alpha();
-      gr->begin_edit();
       gr->set_program(style()->program());
       gr->set_texture(style()->texture_unit(), style()->font()->texture());
       gr->set_color_add(glm::vec4(0.00f, 0.00f, 0.00f, 0.0f));
@@ -84,7 +81,6 @@ void push_button::draw_self(ui_context &context)
          gr->set_color_scale(glm::vec4(0.0f, 0.0f, 0.0f, 2.0f));
 
       gr->set_transform(text_frame());
-      gr->end_edit();
       text_buffer().render();
       gr->blend_disable();
    }

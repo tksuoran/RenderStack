@@ -48,8 +48,11 @@ bool application::create_gl_window()
       stringstream ss;
       ss << "RenderStack Sandbox (OpenGL " << major << "." << minor << ")";
 
-      //ok = open(1280, 720, ss.str().c_str(), major, minor);
-      ok = open(854, 480, ss.str().c_str(), major, minor);
+      // Youtube 720p
+      ok = open(1280, 720, ss.str().c_str(), major, minor);
+
+      // Youtube 480p
+      //ok = open(854, 480, ss.str().c_str(), major, minor);
       version = version;
    }
 

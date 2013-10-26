@@ -112,7 +112,6 @@ void forward_renderer::initialize_service()
       m_material_ubr   = make_shared<uniform_buffer_range>(m_programs->material_block, m_uniform_buffer, m_ubr_sizes.material);
       m_lights_ubr     = make_shared<uniform_buffer_range>(m_programs->lights_block,   m_uniform_buffer, m_ubr_sizes.lights);
    }
-
 }
 
 void forward_renderer::print_matrix(mat4 const &m, std::string const &desc)

@@ -86,6 +86,7 @@ private: /* services */
    std::shared_ptr<class game>                                    m_game;
    std::shared_ptr<application>                                   m_application;
 
+   std::shared_ptr<renderstack::graphics::buffer>                 m_uniform_buffer;
    std::shared_ptr<renderstack::ui::font>                         m_font;
    std::shared_ptr<renderstack::ui::text_buffer>                  m_text_buffer;
    std::shared_ptr<renderstack::mesh::mesh>                       m_mesh;

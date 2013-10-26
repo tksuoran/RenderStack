@@ -87,11 +87,9 @@ void color_picker::draw_self(ui_context &context)
 
    gr->set_program(style()->ninepatch_style()->program());
    gr->set_texture(style()->ninepatch_style()->texture_unit(), style()->ninepatch_style()->texture());
-   gr->begin_edit();
    gr->set_transform(m_background_frame);
    gr->set_color_scale(vec4(1.0f, 1.0f, 1.0f, 1.0f));
    gr->set_color_add(vec4(0.0f, 0.0f, 0.0f, 0.0f));
-   gr->end_edit();
    m_ninepatch.render(gr);
 
    {
@@ -138,28 +136,20 @@ void color_picker::draw_self(ui_context &context)
       // TODO must access VAO instead!
       auto old_ibo = r.set_buffer(buffer_target::element_array_buffer, m_color_mesh->get_mesh()->index_buffer());
 
-      gr->begin_edit();
       gr->set_transform(m_hsv_transform);
       gr->set_hsv_matrix(c);
       gr->set_color_scale(vec4(1.0f, 1.0f, 1.0f, 1.0f));
       gr->set_color_add(vec4(0.0f, 0.0f, 0.0f, 1.0f));
-      gr->end_edit();
       //m_color_mesh->render(m_color_mesh->fill_indices());
 
-      gr->begin_edit();
       gr->set_hsv_matrix(d);
-      gr->end_edit();
       //m_hsv_disc_mesh->render(gl::begin_mode::triangles, m_hsv_disc_mesh->fill_indices());
 
-      gr->begin_edit();
       gr->set_hsv_matrix(d2);
-      gr->end_edit();
       //m_hsv_disc2_mesh->render(gl::begin_mode::triangles, m_hsv_disc2_mesh->fill_indices());
 
-      gr->begin_edit();
       gr->set_hsv_matrix(t);
       gr->set_color_add(vec4(0.0f, 0.0f, 0.0f, 0.5f));
-      gr->end_edit();
       //m_hsv_quad_mesh->render(gl::begin_mode::triangles, m_hsv_quad_mesh->fill_indices());
 
       if (rect().hit(context.mouse))

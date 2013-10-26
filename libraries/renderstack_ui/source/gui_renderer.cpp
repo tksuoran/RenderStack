@@ -14,7 +14,6 @@
 #include "renderstack_graphics/shader_monitor.hpp"
 #include "renderstack_graphics/uniform.hpp"
 #include "renderstack_graphics/uniform_block.hpp"
-#include "renderstack_graphics/uniform_buffer_range.hpp"
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -140,14 +139,16 @@ void gui_renderer::initialize_service()
    m_vertex_buffer = make_shared<renderstack::graphics::buffer>(
       buffer_target::array_buffer,
       128 * 1024,
-      4 * sizeof(float)
+      4 * sizeof(float),
+      gl::buffer_usage_hint::dynamic_draw
    );
    m_vertex_buffer->allocate_storage(*m_renderer);
 
    m_index_buffer = make_shared<renderstack::graphics::buffer>(
       buffer_target::element_array_buffer,
       512 * 1024,
-      sizeof(unsigned short)
+      sizeof(unsigned short),
+      gl::buffer_usage_hint::dynamic_draw
    );
    m_index_buffer->allocate_storage(*m_renderer);
 
@@ -158,8 +159,9 @@ void gui_renderer::initialize_service()
    m_fragment_outputs = make_shared<fragment_outputs>();
    m_fragment_outputs->add("out_color", gl::fragment_output_type::float_vec4, 0);
 
-   // Just one uniform block at index 0 for gui_renderer
-   m_uniform_block = make_shared<renderstack::graphics::uniform_block>(0, "gui");
+   // gui_renderer does not use uniform blocks / buffers.
+   // constructor without block index creates uniforms to the default block
+   m_uniform_block = make_shared<renderstack::graphics::uniform_block>("gui");
    m_uniforms.clip_from_model = m_uniform_block->add_mat4 ("clip_from_model")->access();
    m_uniforms.color_add       = m_uniform_block->add_vec4 ("color_add"      )->access();
    m_uniforms.color_scale     = m_uniform_block->add_vec4 ("color_scale"    )->access();
@@ -186,21 +188,6 @@ void gui_renderer::initialize_service()
 
    m_shader_versions.push_back(make_pair("0", 120));
 #endif
-
-   if (use_uniform_buffers())
-   {
-      log_trace("GUI renderer using uniform buffers");
-      m_uniform_buffer = make_shared<buffer>(
-         buffer_target::uniform_buffer,
-         m_uniform_block->size_bytes(),
-         1
-      );
-      m_uniform_buffer->allocate_storage(*m_renderer);
-
-      m_uniform_buffer_range = make_shared<uniform_buffer_range>(m_uniform_block, m_uniform_buffer, 1); /* TODO !!! */
-   }
-   else
-      log_trace("GUI renderer NOT using uniform buffers");
 
    auto nearest_sampler = make_shared<sampler>();
    m_samplers = make_shared<samplers>();
@@ -359,37 +346,10 @@ void gui_renderer::prepare()
    m_renderer->use_vertex_stream(m_vertex_stream);
    m_renderer->set_buffer(buffer_target::array_buffer, m_vertex_buffer);
    m_renderer->vertex_array()->set_index_buffer(m_index_buffer);
-
-   if (use_uniform_buffers())
-   {
-      assert(m_uniform_buffer_range);
-      m_renderer->set_buffer(buffer_target::uniform_buffer, m_uniform_buffer);
-   }
 }
 void gui_renderer::on_resize(int width, int height)
 {
    m_ortho = glm::ortho(0.0f, (float)width, 0.0f, (float)height);
-}
-void gui_renderer::begin_edit()
-{
-   if (use_uniform_buffers())
-   {
-      log_trace("gui_renderer::begin_edit() - using uniform buffers");
-
-      assert(m_uniform_buffer_range);
-      m_renderer->set_buffer(buffer_target::uniform_buffer, m_uniform_buffer);
-      m_start = m_uniform_buffer_range->begin_edit(*m_renderer);
-   }
-}
-void gui_renderer::end_edit()
-{
-   if (use_uniform_buffers())
-   {
-      log_trace("gui_renderer::end_edit() - using uniform buffers");
-      assert(m_uniform_buffer_range);
-      m_uniform_buffer_range->end_edit(*m_renderer);
-      m_start = nullptr;
-   }
 }
 void gui_renderer::set_program(shared_ptr<program> value)
 {
@@ -407,85 +367,42 @@ void gui_renderer::set_texture(unsigned int unit, shared_ptr<class texture> text
 }
 void gui_renderer::set_transform(mat4 const &value)
 {
-   // slog_trace("gui_renderer::set_transform(...)"); // TODO format mat4?
-
-   if (use_uniform_buffers())
-   {
-      assert(m_start);
-      ::memcpy(&m_start[m_uniforms.clip_from_model], value_ptr(value), 16 * sizeof(float));
-   }
-   else
-   {
-      assert(m_program);
-      gl::uniform_matrix_4fv(
-         m_program->uniform_at(m_uniforms.clip_from_model), 
-         1, 
-         GL_FALSE, 
-         value_ptr(value)
-      );
-   }
+   assert(m_program);
+   gl::uniform_matrix_4fv(
+      m_program->uniform_at(m_uniforms.clip_from_model), 
+      1, 
+      GL_FALSE, 
+      value_ptr(value)
+   );
 }
 void gui_renderer::set_color_add(vec4 const &value)
 {
-   if (use_uniform_buffers())
-   {
-      assert(m_start);
-      ::memcpy(&m_start[m_uniforms.color_add], value_ptr(value), 4 * sizeof(float));
-   }
-   else
-   {
-      assert(m_program);
-      gl::uniform_4fv(
-         m_program->uniform_at(m_uniforms.color_add), 1, value_ptr(value)
-      );
-   }
+   assert(m_program);
+   gl::uniform_4fv(
+      m_program->uniform_at(m_uniforms.color_add), 1, value_ptr(value)
+   );
 }
 void gui_renderer::set_color_scale(vec4 const &value)
 {
-   if (use_uniform_buffers())
-   {
-      assert(m_start);
-      ::memcpy(&m_start[m_uniforms.color_scale], value_ptr(value), 4 * sizeof(float));
-   }
-   else
-   {
-      assert(m_program);
-      gl::uniform_4fv(
-         m_program->uniform_at(m_uniforms.color_scale), 1, value_ptr(value)
-      );
-   }
+   assert(m_program);
+   gl::uniform_4fv(
+      m_program->uniform_at(m_uniforms.color_scale), 1, value_ptr(value)
+   );
 }
 void gui_renderer::set_hsv_matrix(mat4 const &value)
 {
-   if (use_uniform_buffers())
-   {
-      assert(m_start);
-      ::memcpy(&m_start[m_uniforms.hsv_matrix], value_ptr(value), 16 * sizeof(float));
-   }
-   else
-   {
-      assert(m_program);
-      gl::uniform_matrix_4fv(
-         m_program->uniform_at(m_uniforms.hsv_matrix), 
-         1, 
-         GL_FALSE, 
-         value_ptr(value)
-      );
-   }
+   assert(m_program);
+   gl::uniform_matrix_4fv(
+      m_program->uniform_at(m_uniforms.hsv_matrix), 
+      1, 
+      GL_FALSE, 
+      value_ptr(value)
+   );
 }
 void gui_renderer::set_t(float value)
 {
-   if (use_uniform_buffers())
-   {
-      assert(m_start);
-      float *data = reinterpret_cast<float*>(&m_start[m_uniforms.t]);
-      *data = value;
-   }
-   else
-   {
-      assert(m_program);
-      gl::uniform_1f(m_program->uniform_at(m_uniforms.t), value);
-   }
+   assert(m_program);
+   gl::uniform_1f(m_program->uniform_at(m_uniforms.t), value);
 }
 
 void gui_renderer::draw_elements_base_vertex(
