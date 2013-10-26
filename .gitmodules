@@ -6,7 +6,7 @@
 	url = git://github.com/rikusalminen/glwt.git
 [submodule "libraries/tinyxml2"]
 	path = libraries/tinyxml2
-	url = https://github.com/leethomason/tinyxml2.git
+	url = git://github.com/leethomason/tinyxml2.git
 [submodule "libraries/zlib"]
 	path = libraries/zlib
-	url = git@github.com:madler/zlib.git
+	url = git://github.com/madler/zlib.git

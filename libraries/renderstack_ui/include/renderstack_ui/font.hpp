@@ -21,15 +21,12 @@ class bitmap;
 class font
 {
 public:
-   //font();
-#if defined(RENDERSTACK_USE_FREETYPE)
    font(
       renderstack::graphics::renderer  &renderer,
       std::string const                &path,
       unsigned int                     size,
       float                            outline_thickness = 0.0f
    );
-#endif
    ~font();
 
    void              save                  () const;

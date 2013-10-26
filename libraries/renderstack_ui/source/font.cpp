@@ -60,7 +60,6 @@ font::~font()
 {
 }
 
-#if defined(RENDERSTACK_USE_FREETYPE)
 font::font(
    renderstack::graphics::renderer  &renderer,
    string const                     &path,
@@ -84,8 +83,10 @@ font::font(
       //m_hint_mode = FT_LOAD_FORCE_AUTOHINT | FT_LOAD_TARGET_LIGHT;
       //m_hint_mode = FT_LOAD_FORCE_AUTOHINT;
       m_hint_mode = 0;
+#if defined(RENDERSTACK_USE_FREETYPE)
    else
       m_hint_mode = FT_LOAD_NO_HINTING;
+#endif
 
 #if 0
    m_chars = "volumetric"; 
@@ -101,8 +102,11 @@ font::font(
 
    m_pixel_size = size;
 
+#if defined(RENDERSTACK_USE_FREETYPE)
    render(renderer);
+#endif
 }
+#if defined(RENDERSTACK_USE_FREETYPE)
 void font::validate(FT_Error error)
 {
    if (error == FT_Err_Unknown_File_Format) 

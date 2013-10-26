@@ -37,8 +37,10 @@ debug_renderer::debug_renderer()
 :  service        ("debug_renderer")
 ,  m_renderer     (nullptr)
 ,  m_programs     (nullptr)
+#if defined(RENDERSTACK_USE_FREETYPE)
 ,  m_font         (nullptr)
 ,  m_text_buffer  (nullptr)
+#endif
 ,  m_frame_duration_graph_size(500)
 {
 }
@@ -226,6 +228,7 @@ void debug_renderer::printf(const char *format, ...)
 
 void debug_renderer::render_text_lines(renderstack::scene::viewport const &vp)
 {
+#if defined(RENDERSTACK_USE_FREETYPE)
    assert(m_programs);
    assert(m_text_buffer);
 
@@ -302,6 +305,7 @@ void debug_renderer::render_text_lines(renderstack::scene::viewport const &vp)
    }
 
    m_text_buffer->render();
+#endif
 }
 
 void debug_renderer::set_camera(std::shared_ptr<renderstack::scene::camera> camera)
