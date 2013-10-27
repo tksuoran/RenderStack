@@ -95,7 +95,7 @@ void shader_monitor::poll()
       int res = stat(f.src_path.c_str(), &st);
       if (res == 0)
       {
-         if (f.last_time != st.st_mtime)
+         //if (f.last_time != st.st_mtime)
          {
             if (f.program)
                f.program->reload();
@@ -106,7 +106,7 @@ void shader_monitor::poll()
       res = stat(f.dst_path.c_str(), &st);
       if (res == 0)
       {
-         if (f.last_time != st.st_mtime)
+         //if (f.last_time != st.st_mtime)
          {
             if (f.program)
                f.program->reload();

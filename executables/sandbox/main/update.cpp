@@ -79,7 +79,7 @@ void game::update_once_per_frame()
    if (m_shader_monitor)
    {
       ++counter;
-      if (counter > 20)
+      //if (counter > 20)
       {
          m_shader_monitor->poll();
          counter = 0;

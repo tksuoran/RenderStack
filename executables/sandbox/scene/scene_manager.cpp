@@ -312,8 +312,8 @@ void scene_manager::add_simple_scene()
       float rel = static_cast<float>(i) / static_cast<float>(n_lights);
       float t = std::pow(rel, 0.5f);
       float R = 0.5f + 20.0f * t;
-      float h = fract(rel * 6.0f) * 360.0f;
-      float s = 0.9f;
+      float h = fract(rel * 1.0f) * 360.0f;
+      float s = 0.8f;
       float v = 1.0f;
       float r, g, b;
 
@@ -322,7 +322,7 @@ void scene_manager::add_simple_scene()
       auto l = make_shared<light>();
       l->set_type(light_type::spot);
       l->set_color(vec3(r, g, b));
-      l->set_intensity(20.0f);
+      l->set_intensity(30.0f);
       l->set_name("spot");
 
       float x_pos = R * sin(t * 6.0f * 2.0f * glm::pi<float>());

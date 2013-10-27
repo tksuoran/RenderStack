@@ -52,8 +52,7 @@ bool application::create_gl_window()
       ok = open(1280, 720, ss.str().c_str(), major, minor);
 
       // Youtube 480p
-      //ok = open(854, 480, ss.str().c_str(), major, minor);
-      version = version;
+      // ok = open(854, 480, ss.str().c_str(), major, minor);
    }
 
    if (!ok)
