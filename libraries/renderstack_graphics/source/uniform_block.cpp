@@ -247,7 +247,7 @@ shared_ptr<uniform> uniform_block::add_vec3(string const &name)
       gl::active_uniform_type::float_vec3
    );
    uniforms().push_back(uniform);
-   m_offset += 4 * 4;
+   m_offset += 3 * 4;
    return uniform;
 }
 

@@ -108,9 +108,7 @@ add_executable(
    ${res_images}
    ${res_fonts}
    ${res_polyhedra}
-   ${res_sm0}
-   ${res_sm4}
-   ${res_sm5}
+   ${res_shaders}
 
    icon.rc
 )
@@ -120,12 +118,11 @@ foreach(dir "main" "logic" "scene" "renderers" "parsers" "util")
 endforeach() 
 source_group("Source Files" REGULAR_EXPRESSION ".hpp|.cpp")
 
-source_group(res\\images       FILES ${res_images})
-source_group(res\\fonts        FILES ${res_fonts})
-source_group(res\\polyhedra    FILES ${res_polyhedra})
-source_group(res\\shaders\\sm5 FILES ${res_sm5})
-source_group(res\\shaders\\sm4 FILES ${res_sm4})
-source_group(res\\shaders\\sm0 FILES ${res_sm0})
+source_group(res\\images      FILES ${res_images})
+source_group(res\\fonts       FILES ${res_fonts})
+source_group(res\\polyhedra   FILES ${res_polyhedra})
+source_group(res\\shaders     FILES ${res_shaders})
+
 
 message("PNG_LIBRARIES = ${PNG_LIBRARIES}")
 message("RENDERSTACK_WINDOW_TOOLKIT_LIBRARIES = ${RENDERSTACK_WINDOW_TOOLKIT_LIBRARIES}")
