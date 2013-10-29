@@ -15,7 +15,7 @@ public:
 class quad : public geometry
 {
 public:
-   quad(double radius);
+   quad(double edge);
 };
 
 class cuboctahedron : public geometry

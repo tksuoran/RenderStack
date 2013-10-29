@@ -28,10 +28,12 @@ public:
 private:
    struct file
    {
-      time_t                     last_time;
-      std::string                src_path;
-      std::string       dst_path;
-      std::shared_ptr<class program>   program;
+      time_t                           last_time;
+      std::string                      src_path;
+      std::string                      dst_path;
+      std::set<
+         std::shared_ptr<class program>
+      >                                programs;
    };
 
    std::vector<file> m_files;

@@ -88,7 +88,18 @@ inline std::shared_ptr<property_map_base<key_type> >
    if (i == m_maps.end())
       throw property_map_not_found_exception(name);
 
-   assert(i != m_maps.end());
+   return i->second;
+}
+
+template<typename key_type>
+inline std::shared_ptr<property_map_base<key_type> >
+   property_map_collection<key_type>::maybe_find_any(std::string const &name) const
+{
+   const_iterator i = m_maps.find(name);
+
+   if (i == m_maps.end())
+      return nullptr;;
+
    return i->second;
 }
 
@@ -144,7 +155,10 @@ template<typename value_type>
 inline std::shared_ptr<property_map<key_type, value_type> >
    property_map_collection<key_type>::maybe_find(std::string const &name) const
 {
-   std::shared_ptr<property_map_base<key_type> > p = find_any(name);
+   std::shared_ptr<property_map_base<key_type> > p = maybe_find_any(name);
+
+   if (!p)
+      return nullptr;
 
    if (
       std::shared_ptr<property_map<key_type, value_type> > 

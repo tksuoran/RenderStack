@@ -33,6 +33,7 @@ public:
    template<typename value_type> bool contains(std::string const &name) const;
 
    std::shared_ptr<property_map_base<key_type> > find_any(std::string const &name) const;
+   std::shared_ptr<property_map_base<key_type> > maybe_find_any(std::string const &name) const;
 
    template<typename value_type> std::shared_ptr<property_map<key_type, value_type> > find(std::string const &name) const;
    template<typename value_type> std::shared_ptr<property_map<key_type, value_type> > maybe_find(std::string const &name) const;

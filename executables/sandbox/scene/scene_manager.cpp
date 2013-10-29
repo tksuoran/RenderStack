@@ -304,15 +304,35 @@ void scene_manager::add_simple_scene()
       }
    }
 
-   float total_width = fabs(min_x) + fabs(max_x) + 4.0f;
+   {
+      auto l = make_shared<light>();
+      l->set_type(light_type::directional);
+      l->set_color(vec3(1.0f, 1.0f, 1.0f));
+      l->set_intensity(20.0f);
+      l->set_name("sun");
+
+      mat4 m;
+      create_look_at(
+         vec3(0.0f, 10.0f, 0.0f),   // eye
+         vec3(0.0f,  0.0f, 0.0f),   // center
+         vec3(0.0f,  0.0f, 1.0f),   // up
+         m
+      );
+      l->set_range(1000.0f);
+      l->set_spot_angle(glm::pi<float>() * 1.0f);
+      l->frame()->parent_from_local().set(m);
+      l->frame()->update_hierarchical_no_cache();
+      add(l);
+   }
 
    int n_lights = 75;
    for (int i = 0; i < n_lights; ++i)
    {
       float rel = static_cast<float>(i) / static_cast<float>(n_lights);
       float t = std::pow(rel, 0.5f);
+      float theta = t * 6.0f;
       float R = 0.5f + 20.0f * t;
-      float h = fract(rel * 6.0f) * 360.0f;
+      float h = fract(theta) * 360.0f;
       float s = 0.9f;
       float v = 1.0f;
       float r, g, b;
@@ -336,7 +356,7 @@ void scene_manager::add_simple_scene()
          m
       );
       l->set_range(25.0f);
-      l->set_spot_angle(glm::pi<float>() / 6.0f);
+      l->set_spot_angle(glm::pi<float>() / 3.0f);
       l->frame()->parent_from_local().set(m);
       l->frame()->update_hierarchical_no_cache();
       add(l);

@@ -62,7 +62,8 @@ private:
 
 private:
    void fbo_clear();
-   void bind_fbo();
+   void bind_gbuffer_fbo();
+   void bind_linear_fbo();
    void bind_default_framebuffer();
 
 private:
@@ -79,13 +80,16 @@ private:
 
    renderstack::graphics::render_states               m_mesh_render_states;
    renderstack::graphics::render_states               m_light_render_states;
-   renderstack::graphics::render_states               m_debug_light_render_states;
    renderstack::graphics::render_states               m_show_rt_render_states;
+   renderstack::graphics::render_states               m_camera_render_states;
 
    // framebuffer
-   unsigned int                                       m_fbo;
-   std::shared_ptr<renderstack::graphics::texture>    m_rt[4];
+   unsigned int                                       m_gbuffer_fbo;
+   std::shared_ptr<renderstack::graphics::texture>    m_gbuffer_rt[3];
    std::shared_ptr<renderstack::graphics::texture>    m_depth;
+
+   unsigned int                                       m_linear_fbo;
+   std::shared_ptr<renderstack::graphics::texture>    m_linear_rt[3];
 
    std::map<
       std::shared_ptr<renderstack::scene::light>,

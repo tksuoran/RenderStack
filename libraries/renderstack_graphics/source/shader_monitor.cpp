@@ -68,7 +68,7 @@ void shader_monitor::add(string const &path, shared_ptr<program> program_)
       f.src_path = "";
       f.dst_path = path;
    }
-   f.program = program_;
+   f.programs.insert(program_);
 
    if (m_src_path.length() > 0)
    {
@@ -97,8 +97,9 @@ void shader_monitor::poll()
       {
          if (f.last_time != st.st_mtime)
          {
-            if (f.program)
-               f.program->reload();
+            for (auto i = f.programs.cbegin(); i != f.programs.cend(); ++i)
+               (*i)->reload();
+
             f.last_time = st.st_mtime;
             continue;
          }
@@ -108,8 +109,9 @@ void shader_monitor::poll()
       {
          if (f.last_time != st.st_mtime)
          {
-            if (f.program)
-               f.program->reload();
+            for (auto i = f.programs.cbegin(); i != f.programs.cend(); ++i)
+               (*i)->reload();
+
             f.last_time = st.st_mtime;
             continue;
          }

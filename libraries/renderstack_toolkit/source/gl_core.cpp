@@ -277,7 +277,7 @@ const char *enum_string(GLenum e)
 }
 }
 
-static bool enable_error_checking = true;
+static bool enable_error_checking = false;
 
 void set_error_checking(bool enable)
 {

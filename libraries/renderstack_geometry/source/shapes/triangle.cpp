@@ -15,14 +15,21 @@ triangle::triangle(double r)
    make_polygon(0, 1, 2);
 }
 
-quad::quad(double r)
+quad::quad(double edge)
 :  geometry("quad")
 {
+   // 
    //  0.707106781 = sqrt(2) / 2
-   make_point((float)(r * -0.707106781f), (float)(r * -0.707106781f), 0.0f, 0.0f, 0.0f);
-   make_point((float)(r *  0.707106781f), (float)(r * -0.707106781f), 0.0f, 1.0f, 0.0f);
-   make_point((float)(r *  0.707106781f), (float)(r *  0.707106781f), 0.0f, 1.0f, 1.0f);
-   make_point((float)(r * -0.707106781f), (float)(r *  0.707106781f), 0.0f, 0.0f, 1.0f);
+   // radius version:
+   // make_point((float)(r * -0.707106781f), (float)(r * -0.707106781f), 0.0f, 0.0f, 0.0f);
+   // make_point((float)(r *  0.707106781f), (float)(r * -0.707106781f), 0.0f, 1.0f, 0.0f);
+   // make_point((float)(r *  0.707106781f), (float)(r *  0.707106781f), 0.0f, 1.0f, 1.0f);
+   // make_point((float)(r * -0.707106781f), (float)(r *  0.707106781f), 0.0f, 0.0f, 1.0f);
+
+   make_point((float)(edge * -0.5f), (float)(edge * -0.5f), 0.0f, 0.0f, 0.0f);
+   make_point((float)(edge *  0.5f), (float)(edge * -0.5f), 0.0f, 1.0f, 0.0f);
+   make_point((float)(edge *  0.5f), (float)(edge *  0.5f), 0.0f, 1.0f, 1.0f);
+   make_point((float)(edge * -0.5f), (float)(edge *  0.5f), 0.0f, 0.0f, 1.0f);
 
    make_polygon(0, 1, 2, 3);
 }

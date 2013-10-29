@@ -1,6 +1,7 @@
 #include "renderstack_toolkit/platform.hpp"
 #include "renderers/deferred_renderer.hpp"
 #include "renderstack_geometry/shapes/cone.hpp"
+#include "renderstack_geometry/shapes/triangle.hpp" // quad is currently here...
 #include "renderstack_graphics/buffer.hpp"
 #include "renderstack_graphics/configuration.hpp"
 #include "renderstack_graphics/program.hpp"
@@ -42,7 +43,8 @@ deferred_renderer::deferred_renderer()
 ,  m_renderer     (nullptr)
 ,  m_programs     (nullptr)
 ,  m_quad_renderer(nullptr)
-,  m_fbo          (0)
+,  m_gbuffer_fbo  (0)
+,  m_linear_fbo   (0)
 {
 }
 
@@ -73,6 +75,7 @@ void deferred_renderer::initialize_service()
    m_mesh_render_states.face_cull.set_enabled(true);
 
    m_light_render_states.depth.set_enabled(false);
+   m_light_render_states.depth.set_depth_mask(false);
    m_light_render_states.face_cull.set_enabled(true);
    m_light_render_states.face_cull.set_cull_face_mode(gl::cull_face_mode::front);
    m_light_render_states.blend.set_enabled(true);
@@ -80,17 +83,6 @@ void deferred_renderer::initialize_service()
    m_light_render_states.blend.rgb().set_equation_mode(gl::blend_equation_mode::func_add);
    m_light_render_states.blend.rgb().set_source_factor(gl::blending_factor_src::one);
    m_light_render_states.blend.rgb().set_destination_factor(gl::blending_factor_dest::one);
-
-   m_debug_light_render_states.depth.set_enabled(true);
-   m_debug_light_render_states.depth.set_function(gl::depth_function::l_equal);
-   m_debug_light_render_states.face_cull.set_enabled(true);
-   m_debug_light_render_states.blend.set_enabled(true);
-   m_debug_light_render_states.blend.rgb().set_equation_mode(gl::blend_equation_mode::func_add);
-   m_debug_light_render_states.blend.rgb().set_source_factor(gl::blending_factor_src::src_alpha);
-   m_debug_light_render_states.blend.rgb().set_destination_factor(gl::blending_factor_dest::one);   
-   m_debug_light_render_states.blend.alpha().set_equation_mode(gl::blend_equation_mode::func_add);
-   m_debug_light_render_states.blend.alpha().set_source_factor(gl::blending_factor_src::one);
-   m_debug_light_render_states.blend.alpha().set_destination_factor(gl::blending_factor_dest::one);   
 
    // Nothing to change in, use default render states:
    // m_show_rt_render_states
@@ -127,18 +119,24 @@ void deferred_renderer::initialize_service()
    }
 }
 
-void deferred_renderer::bind_fbo()
+void deferred_renderer::bind_gbuffer_fbo()
 {
-   gl::bind_framebuffer(GL_DRAW_FRAMEBUFFER, m_fbo);
+   gl::bind_framebuffer(GL_DRAW_FRAMEBUFFER, m_gbuffer_fbo);
 
    GLenum draw_buffers[] =
    {
       GL_COLOR_ATTACHMENT0,
       GL_COLOR_ATTACHMENT1,
-      GL_COLOR_ATTACHMENT2,
-      GL_COLOR_ATTACHMENT3
+      GL_COLOR_ATTACHMENT2
    };
-   gl::draw_buffers(4, draw_buffers);
+   gl::draw_buffers(3, draw_buffers);
+}
+void deferred_renderer::bind_linear_fbo()
+{
+   gl::bind_framebuffer(GL_DRAW_FRAMEBUFFER, m_linear_fbo);
+
+   GLenum draw_buffers[] = { GL_COLOR_ATTACHMENT0 };
+   gl::draw_buffers(1, draw_buffers);
 }
 
 void deferred_renderer::bind_default_framebuffer()
@@ -157,54 +155,116 @@ void deferred_renderer::bind_default_framebuffer()
 
 void deferred_renderer::resize(int width, int height)
 {
-   if (m_fbo == 0)
-      gl::gen_framebuffers(1, &m_fbo);
-
-   gl::bind_framebuffer(GL_DRAW_FRAMEBUFFER, m_fbo);
-   //GLenum formats[] = { GL_RGBA8, GL_RGBA8, GL_RGBA16_SNORM, GL_RGBA8 };
-   GLenum formats[] = { GL_RGBA8, GL_RGBA8, GL_RGBA16F, GL_RGBA8 };
-   //GLenum formats[] = { GL_RGBA8, GL_RGBA8, GL_RGBA16_SNORM, GL_RGBA8 };
-   for (int i = 0; i < 4; ++i)
    {
-      m_rt[i].reset();
+      if (m_gbuffer_fbo == 0)
+         gl::gen_framebuffers(1, &m_gbuffer_fbo);
 
-      m_rt[i] = make_shared<renderstack::graphics::texture>(
+      gl::bind_framebuffer(GL_DRAW_FRAMEBUFFER, m_gbuffer_fbo);
+      GLenum formats[] = {
+         GL_RGBA16F,    // normal tangent
+         GL_RGBA8,      // albedo
+         GL_RGBA8       // material
+      };
+
+      for (int i = 0; i < 3; ++i)
+      {
+         m_gbuffer_rt[i].reset();
+
+         m_gbuffer_rt[i] = make_shared<renderstack::graphics::texture>(
+            renderstack::graphics::texture_target::texture_2d,
+            formats[i],
+            false,
+            width,
+            height,
+            0
+         );
+         m_gbuffer_rt[i]->allocate_storage(*m_renderer);
+         m_gbuffer_rt[i]->set_mag_filter(gl::texture_mag_filter::nearest);
+         m_gbuffer_rt[i]->set_min_filter(gl::texture_min_filter::nearest);
+         m_gbuffer_rt[i]->set_wrap(0, gl::texture_wrap_mode::clamp_to_edge);
+         m_gbuffer_rt[i]->set_wrap(1, gl::texture_wrap_mode::clamp_to_edge);
+
+         gl::framebuffer_texture_2d(
+            GL_DRAW_FRAMEBUFFER,
+            GL_COLOR_ATTACHMENT0 + i,
+            GL_TEXTURE_2D,
+            m_gbuffer_rt[i]->gl_name(),
+            0
+         );
+         gl::framebuffer_texture_2d(
+            GL_DRAW_FRAMEBUFFER,
+            GL_COLOR_ATTACHMENT0 + i,
+            GL_TEXTURE_2D,
+            m_gbuffer_rt[i]->gl_name(),
+            0
+         );
+      }
+
+      m_depth.reset();
+      m_depth = make_shared<renderstack::graphics::texture>(
          renderstack::graphics::texture_target::texture_2d,
-         formats[i],
+         GL_DEPTH_COMPONENT32F,
          false,
          width,
          height,
          0
       );
-      m_rt[i]->allocate_storage(*m_renderer);
-      m_rt[i]->set_mag_filter(gl::texture_mag_filter::nearest);
-      m_rt[i]->set_min_filter(gl::texture_min_filter::nearest);
-      m_rt[i]->set_wrap(0, gl::texture_wrap_mode::clamp_to_edge);
-      m_rt[i]->set_wrap(1, gl::texture_wrap_mode::clamp_to_edge);
-
+      m_depth->set_mag_filter(gl::texture_mag_filter::nearest);
+      m_depth->set_min_filter(gl::texture_min_filter::nearest);
+      m_depth->set_wrap(0, gl::texture_wrap_mode::clamp_to_edge);
+      m_depth->set_wrap(1, gl::texture_wrap_mode::clamp_to_edge);
+      m_depth->allocate_storage(*m_renderer);
       gl::framebuffer_texture_2d(
          GL_DRAW_FRAMEBUFFER,
-         GL_COLOR_ATTACHMENT0 + i,
+         GL_DEPTH_ATTACHMENT,
          GL_TEXTURE_2D,
-         m_rt[i]->gl_name(),
-         0);
+         m_depth->gl_name(),
+         0
+      );
    }
 
-   m_depth.reset();
-   m_depth = make_shared<renderstack::graphics::texture>(
-      renderstack::graphics::texture_target::texture_2d,
-      GL_DEPTH_COMPONENT32F,
-      false,
-      width,
-      height,
-      0
-   );
-   m_depth->set_mag_filter(gl::texture_mag_filter::nearest);
-   m_depth->set_min_filter(gl::texture_min_filter::nearest);
-   m_depth->set_wrap(0, gl::texture_wrap_mode::clamp_to_edge);
-   m_depth->set_wrap(1, gl::texture_wrap_mode::clamp_to_edge);
-   m_depth->allocate_storage(*m_renderer);
-   gl::framebuffer_texture_2d(GL_DRAW_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_depth->gl_name(), 0);
+   {
+      if (m_linear_fbo == 0)
+         gl::gen_framebuffers(1, &m_linear_fbo);
+
+      gl::bind_framebuffer(GL_DRAW_FRAMEBUFFER, m_linear_fbo);
+      GLenum formats[] = { GL_RGBA16F };
+
+      for (int i = 0; i < 1; ++i)
+      {
+         m_linear_rt[i].reset();
+
+         m_linear_rt[i] = make_shared<renderstack::graphics::texture>(
+            renderstack::graphics::texture_target::texture_2d,
+            formats[i],
+            false,
+            width,
+            height,
+            0
+         );
+         m_linear_rt[i]->allocate_storage(*m_renderer);
+         m_linear_rt[i]->set_mag_filter(gl::texture_mag_filter::nearest);
+         m_linear_rt[i]->set_min_filter(gl::texture_min_filter::nearest);
+         m_linear_rt[i]->set_wrap(0, gl::texture_wrap_mode::clamp_to_edge);
+         m_linear_rt[i]->set_wrap(1, gl::texture_wrap_mode::clamp_to_edge);
+
+         gl::framebuffer_texture_2d(
+            GL_DRAW_FRAMEBUFFER,
+            GL_COLOR_ATTACHMENT0 + i,
+            GL_TEXTURE_2D,
+            m_linear_rt[i]->gl_name(),
+            0
+         );
+         gl::framebuffer_texture_2d(
+            GL_DRAW_FRAMEBUFFER,
+            GL_COLOR_ATTACHMENT0 + i,
+            GL_TEXTURE_2D,
+            m_linear_rt[i]->gl_name(),
+            0
+         );
+      }
+   }
+
    gl::bind_framebuffer(GL_DRAW_FRAMEBUFFER, 0);
 }
 
@@ -231,12 +291,11 @@ void deferred_renderer::fbo_clear()
    //gl::clear_buffer_fv(GL_COLOR, 0, &emission_clear      [0]);
    GLenum a = gl::check_framebuffer_status(GL_FRAMEBUFFER);
    if (a != GL_FRAMEBUFFER_COMPLETE)
-   {
       throw runtime_error("FBO is not complete");
-   }
+
+   gl::clear_buffer_fv(GL_COLOR, 0, &normal_tangent_clear[0]);
    gl::clear_buffer_fv(GL_COLOR, 1, &albedo_clear        [0]);
-   gl::clear_buffer_fv(GL_COLOR, 2, &normal_tangent_clear[0]);
-   gl::clear_buffer_fv(GL_COLOR, 3, &material_clear      [0]);
+   gl::clear_buffer_fv(GL_COLOR, 2, &material_clear      [0]);
    gl::clear_buffer_fv(GL_DEPTH, 0, &one);
 }
 
@@ -250,7 +309,7 @@ void deferred_renderer::geometry_pass(
    shared_ptr<renderstack::scene::camera> camera
 )
 {
-   bind_fbo();
+   bind_gbuffer_fbo();
 
    fbo_clear();
 
@@ -379,8 +438,38 @@ void deferred_renderer::update_light_model(shared_ptr<light> l)
    switch (l->type())
    {
    case light_type::directional:
-      assert(0);
+      {
+         // -1 .. 1
+         shared_ptr<renderstack::geometry::geometry> g = make_shared<renderstack::geometry::shapes::quad>(2.0f);
+
+         g->transform(mat4_rotate_xz_cw);
+         g->build_edges();
+
+         renderstack::mesh::geometry_mesh_format_info format_info;
+         renderstack::mesh::geometry_mesh_buffer_info buffer_info;
+
+         renderstack::geometry::geometry::mesh_info info;
+
+         format_info.set_want_fill_triangles(true);
+         format_info.set_want_edge_lines(true);
+         format_info.set_want_position(true);
+         format_info.set_vertex_attribute_mappings(m_programs->attribute_mappings);
+
+         geometry_mesh::prepare_vertex_format(g, format_info, buffer_info);
+
+         auto &r = *m_renderer;
+
+         auto gm = make_shared<renderstack::mesh::geometry_mesh>(
+            r,
+            g,
+            format_info,
+            buffer_info
+         );
+
+         m_light_meshes[l] = gm;
+      }
       break;
+
    case light_type::point:
       assert(0);
       break;
@@ -435,7 +524,12 @@ void deferred_renderer::update_light_model(shared_ptr<light> l)
 
          auto &r = *m_renderer;
 
-         auto gm = make_shared<renderstack::mesh::geometry_mesh>(r, g, format_info, buffer_info);
+         auto gm = make_shared<renderstack::mesh::geometry_mesh>(
+            r,
+            g,
+            format_info,
+            buffer_info
+         );
 
          m_light_meshes[l] = gm;
       }
@@ -452,27 +546,23 @@ void deferred_renderer::light_pass(
    renderstack::scene::viewport const &viewport
 )
 {
-   // Temp draw directly to screen
-   bind_default_framebuffer();
-   //bind_fbo();
+   bind_linear_fbo();
 
    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-   glEnable(GL_FRAMEBUFFER_SRGB);
 
    auto &r = *m_renderer;
    auto &t = r.track();
-   auto p = m_programs->light;
 
    // Don't bind emission texture for now
    //t.reset();
    t.execute(&m_light_render_states);
-   r.reset_texture(0, renderstack::graphics::texture_target::texture_2d, nullptr);
-   r.set_texture(1, m_rt[1]);
-   r.set_texture(2, m_rt[2]);
-   r.set_texture(3, m_rt[3]);
+   r.set_texture(0, m_gbuffer_rt[0]); // normal tangent
+   r.set_texture(1, m_gbuffer_rt[1]); // albedo
+   r.set_texture(2, m_gbuffer_rt[2]); // material
+   r.reset_texture(3, renderstack::graphics::texture_target::texture_2d, nullptr);
    r.set_texture(4, m_depth);
-   r.set_program(p);
+   r.set_program(m_programs->light_spot);
 
    r.set_buffer(renderstack::graphics::buffer_target::uniform_buffer, m_uniform_buffer);
    void *start0 = m_uniform_buffer->map(
@@ -506,10 +596,11 @@ void deferred_renderer::light_pass(
    mat4 const &world_from_view = camera->frame()->world_from_local().matrix();
    mat4 const &clip_from_world = camera->clip_from_world().matrix();
    mat4 const &view_from_world = camera->frame()->world_from_local().inverse_matrix();
-   //float exposure = 0.1f;
+   float exposure = 1.0f;
    ::memcpy(start.camera + offsets.camera + m_programs->camera_block_access.world_from_view, value_ptr(world_from_view), 16 * sizeof(float));
    ::memcpy(start.camera + offsets.camera + m_programs->camera_block_access.world_from_clip, value_ptr(world_from_clip), 16 * sizeof(float));
    ::memcpy(start.camera + offsets.camera + m_programs->camera_block_access.viewport, value_ptr(vp), 4 * sizeof(float));
+   ::memcpy(start.camera + offsets.camera + m_programs->camera_block_access.exposure, &exposure, sizeof(float));
    offsets.camera += m_programs->camera_block->size_bytes();
    m_camera_ubr->flush(r, offsets.camera);
 
@@ -521,17 +612,34 @@ void deferred_renderer::light_pass(
       l->frame()->update_hierarchical_no_cache(); // TODO
 
       mat4 world_from_light   = l->frame()->world_from_local().matrix();
-      mat4 clip_from_light    = clip_from_world * world_from_light;
       mat4 view_from_light    = view_from_world * world_from_light;
+      mat4 clip_from_light;
+
+      switch (l->type())
+      {
+      case light_type::spot:
+         clip_from_light = clip_from_world * world_from_light;
+         break;
+
+      case light_type::directional:
+         clip_from_light = mat4(1.0f);
+         break;
+
+      default:
+         assert(0);
+         break;
+      }
+
 
       glm::vec3 position   = vec3(l->frame()->world_from_local().matrix() * vec4(0.0f, 0.0f, 0.0f, 1.0f));
       glm::vec3 direction  = vec3(l->frame()->world_from_local().matrix() * vec4(0.0f, 0.0f, 1.0f, 0.0f));
       glm::vec3 radiance   = l->intensity() * l->color();
 
-      float spot_angle     = l->spot_angle() * 0.5f;
-      float spot_cutoff    = std::cos(spot_angle);
-
       direction = normalize(direction);
+
+      // Somewhat unneeded for other than point lights
+      float spot_angle  = l->spot_angle() * 0.5f;
+      float spot_cutoff = std::cos(spot_angle);
 
       ::memcpy(start.model + offsets.model + m_programs->model_block_access.clip_from_model,  value_ptr(clip_from_light),  16 * sizeof(float));
       ::memcpy(start.model + offsets.model + m_programs->model_block_access.world_from_model, value_ptr(world_from_light), 16 * sizeof(float));
@@ -540,7 +648,7 @@ void deferred_renderer::light_pass(
       ::memcpy(start.lights + offsets.lights + m_programs->lights_block_access.position ,    value_ptr(position),    3 * sizeof(float));
       ::memcpy(start.lights + offsets.lights + m_programs->lights_block_access.direction,    value_ptr(direction),   3 * sizeof(float));
       ::memcpy(start.lights + offsets.lights + m_programs->lights_block_access.radiance ,    value_ptr(radiance),    3 * sizeof(float));
-      ::memcpy(start.lights + offsets.lights + m_programs->lights_block_access.spot_cutoff , &spot_cutoff,           1 * sizeof(float));
+      ::memcpy(start.lights + offsets.lights + m_programs->lights_block_access.spot_cutoff,  &spot_cutoff,           1 * sizeof(float));
 
       offsets.model += m_programs->model_block->size_bytes();
       offsets.lights += m_programs->lights_block->size_bytes();
@@ -568,7 +676,19 @@ void deferred_renderer::light_pass(
       if (light_index == m_max_lights)
          break;
 
-      assert(l->type() == light_type::spot);
+      switch (l->type())
+      {
+      case light_type::spot:
+         r.set_program(m_programs->light_spot);
+         break;
+
+      case light_type::directional:
+         r.set_program(m_programs->light_directional);
+         break;
+
+      default:
+         assert(0);
+      }
 
       if (m_light_meshes.find(l) == m_light_meshes.end())
          update_light_model(l);
@@ -606,9 +726,24 @@ void deferred_renderer::light_pass(
 
       ++light_index;
    }
-   glDisable(GL_FRAMEBUFFER_SRGB);
 
-   // m_quad_renderer->render_minus_one_to_one();
+
+   bind_default_framebuffer();
+
+   t.execute(&m_camera_render_states);
+   r.set_texture(0, m_linear_rt[0]);
+   r.reset_texture(1, renderstack::graphics::texture_target::texture_2d, nullptr);
+   r.reset_texture(2, renderstack::graphics::texture_target::texture_2d, nullptr);
+   r.reset_texture(3, renderstack::graphics::texture_target::texture_2d, nullptr);
+   r.reset_texture(4, renderstack::graphics::texture_target::texture_2d, nullptr);
+   r.set_program(m_programs->camera);
+
+   glClearColor(0.0f, 0.5f, 0.0f, 1.0f);
+   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+   glEnable(GL_FRAMEBUFFER_SRGB);
+
+   m_quad_renderer->render_minus_one_to_one();
+   glDisable(GL_FRAMEBUFFER_SRGB);
 
    //int iw = m_application->width();
    //int ih = m_application->height();

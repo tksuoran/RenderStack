@@ -111,7 +111,13 @@ public:
    /*virtual*/ void initialize_service();
 
 private:
-   std::shared_ptr<renderstack::graphics::program> make_program(std::string const &name);
+   std::shared_ptr<renderstack::graphics::program> make_program(
+      std::string const &name,
+      std::vector<std::string> const &defines
+   );
+   std::shared_ptr<renderstack::graphics::program> make_program(
+      std::string const &name
+   );
 
 public:
    model_block_i                                                     model_block_access;
@@ -136,10 +142,12 @@ public:
    std::shared_ptr<renderstack::graphics::program>                   debug_light;
    std::shared_ptr<renderstack::graphics::program>                   textured;
    std::shared_ptr<renderstack::graphics::program>                   gbuffer;
-   std::shared_ptr<renderstack::graphics::program>                   light;
+   std::shared_ptr<renderstack::graphics::program>                   light_spot;
+   std::shared_ptr<renderstack::graphics::program>                   light_directional;
    std::shared_ptr<renderstack::graphics::program>                   show_rt;
    std::shared_ptr<renderstack::graphics::program>                   show_rt_spherical;
    std::shared_ptr<renderstack::graphics::program>                   id;
+   std::shared_ptr<renderstack::graphics::program>                   camera;
 
 public:
    void update_fixed_step();

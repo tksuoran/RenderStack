@@ -46,7 +46,8 @@ programs::programs()
 ,  debug_line        (nullptr)
 ,  textured          (nullptr)
 ,  gbuffer           (nullptr)
-,  light             (nullptr)
+,  light_spot        (nullptr)
+,  light_directional (nullptr)
 ,  show_rt           (nullptr)
 ,  show_rt_spherical (nullptr)
 ,  id                (nullptr)
@@ -105,10 +106,13 @@ void programs::connect(
    fragment_outputs = make_shared<class fragment_outputs>();
    fragment_outputs->add("out_id",              gl::fragment_output_type::float_vec4, 0);
    fragment_outputs->add("out_color",           gl::fragment_output_type::float_vec4, 0);
-   fragment_outputs->add("out_emission",        gl::fragment_output_type::float_vec4, 0);
+
+   fragment_outputs->add("out_normal_tangent",  gl::fragment_output_type::float_vec4, 0);
    fragment_outputs->add("out_albedo",          gl::fragment_output_type::float_vec4, 1);
-   fragment_outputs->add("out_normal_tangent",  gl::fragment_output_type::float_vec4, 2);
-   fragment_outputs->add("out_material",        gl::fragment_output_type::float_vec4, 3);
+   fragment_outputs->add("out_material",        gl::fragment_output_type::float_vec4, 2);
+   fragment_outputs->add("out_emission",        gl::fragment_output_type::float_vec4, 3);
+
+   fragment_outputs->add("out_linear",          gl::fragment_output_type::float_vec4, 0);
 
    attribute_mappings = make_shared<renderstack::graphics::vertex_attribute_mappings>();
    attribute_mappings->add("a_position",            vertex_attribute_usage::position,   0, 0);
@@ -176,12 +180,17 @@ void programs::connect(
    samplers = make_shared<class samplers>();
    samplers->add("font_texture",             gl::active_uniform_type::sampler_2d, nearest_sampler)->set_texture_unit_index(0);
    samplers->add("background_texture",       gl::active_uniform_type::sampler_2d, nearest_sampler)->set_texture_unit_index(1);
-   samplers->add("emission_texture",         gl::active_uniform_type::sampler_2d, nearest_sampler)->set_texture_unit_index(0);
+
+   samplers->add("normal_tangent_texture",   gl::active_uniform_type::sampler_2d, nearest_sampler)->set_texture_unit_index(0);
    samplers->add("albedo_texture",           gl::active_uniform_type::sampler_2d, nearest_sampler)->set_texture_unit_index(1);
-   samplers->add("normal_tangent_texture",   gl::active_uniform_type::sampler_2d, nearest_sampler)->set_texture_unit_index(2);
-   samplers->add("material_texture",         gl::active_uniform_type::sampler_2d, nearest_sampler)->set_texture_unit_index(3);
+   samplers->add("material_texture",         gl::active_uniform_type::sampler_2d, nearest_sampler)->set_texture_unit_index(2);
+   samplers->add("emission_texture",         gl::active_uniform_type::sampler_2d, nearest_sampler)->set_texture_unit_index(3);
+
    samplers->add("depth_texture",            gl::active_uniform_type::sampler_2d, nearest_sampler)->set_texture_unit_index(4);
+
    samplers->add("show_rt_texture",          gl::active_uniform_type::sampler_2d, show_rt_sampler)->set_texture_unit_index(0);
+
+   samplers->add("linear_texture",           gl::active_uniform_type::sampler_2d, show_rt_sampler)->set_texture_unit_index(0);
 
    m_shader_path = "res/shaders/";
 
@@ -205,10 +214,16 @@ void programs::connect(
 
    try
    {
+      vector<string> light_type_spot;
+      light_type_spot.push_back("LIGHT_TYPE_SPOT");
+      vector<string> light_type_directional;
+      light_type_directional.push_back("LIGHT_TYPE_DIRECTIONAL");
+
       font              = make_program("font");
       basic             = make_program("basic");
       gbuffer           = make_program("gbuffer");
-      light             = make_program("light");
+      light_spot        = make_program("light", light_type_spot);
+      light_directional = make_program("light", light_type_directional);
       show_rt           = make_program("show_rt");
       show_rt_spherical = make_program("show_rt_spherical");
       textured          = make_program("textured");
@@ -216,6 +231,7 @@ void programs::connect(
       debug_line        = make_program("debug_line");
       debug_light       = make_program("debug_light");
       anisotropic       = make_program("anisotropic");
+      camera            = make_program("camera");
    }
    catch (runtime_error const &e)
    {
@@ -224,8 +240,21 @@ void programs::connect(
    }
 }
 
-shared_ptr<renderstack::graphics::program> programs::make_program(string const &name)
+shared_ptr<renderstack::graphics::program> programs::make_program(
+   string const &name
+)
 {
+   vector<string> no_defines;
+   return make_program(name, no_defines);
+}
+
+shared_ptr<renderstack::graphics::program> programs::make_program(
+   string const &name,
+   vector<string> const &defines
+)
+{
+   log_info("programs::make_program(%s)\n", name.c_str());
+
    for (auto i = m_shader_versions.cbegin(); i != m_shader_versions.cend(); ++i)
    {
       string vs_path = m_shader_path + name + ".vs" + i->first + ".txt";
@@ -240,6 +269,8 @@ shared_ptr<renderstack::graphics::program> programs::make_program(string const &
       p->add(material_block);
       p->add(lights_block);
       p->add(debug_block);
+      for (auto i = defines.cbegin(); i != defines.cend(); ++i)
+         p->define(*i, "1");
       p->load_vs(vs_path);
       p->load_fs(fs_path);
       p->link(); 
