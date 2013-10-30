@@ -32,6 +32,9 @@ quad::quad(double edge)
    make_point((float)(edge * -0.5f), (float)(edge *  0.5f), 0.0f, 0.0f, 1.0f);
 
    make_polygon(0, 1, 2, 3);
+
+   // Double sided
+   make_polygon(3, 2, 1, 0);
 }
 
 cuboctahedron::cuboctahedron(double r)

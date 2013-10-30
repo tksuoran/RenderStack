@@ -442,7 +442,6 @@ void deferred_renderer::update_light_model(shared_ptr<light> l)
          // -1 .. 1
          shared_ptr<renderstack::geometry::geometry> g = make_shared<renderstack::geometry::shapes::quad>(2.0f);
 
-         g->transform(mat4_rotate_xz_cw);
          g->build_edges();
 
          renderstack::mesh::geometry_mesh_format_info format_info;

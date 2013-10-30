@@ -100,32 +100,47 @@ void game::update_once_per_frame()
       {
          auto l = *i;
 
-         float rel = static_cast<float>(light_index) / static_cast<float>(n_lights);
-         float t = 1.8f * static_cast<float>(m_simulation_time) + rel * pi<float>() * 2.0f;
-         mat4 m;
+         if (light_index == 1)
+         {
+            mat4 m;
+            float t = static_cast<float>(m_simulation_time) * 0.46f;
+            create_look_at(
+               vec3(0.0f, 0.2f, 9.0f),   // eye
+               vec3(10.0f * cos(t), 0.2f, 9.0f + 10.0f * sin(t)),   // center
+               vec3(0.0f,  0.0f, 1.0f),   // up
+               m
+            );
+            l->frame()->parent_from_local().set(m);
+            l->frame()->update_hierarchical_no_cache();
+         }
+         else if (light_index > 1)
+         {
+            float rel = static_cast<float>(light_index) / static_cast<float>(n_lights);
+            float t = 1.8f * static_cast<float>(m_simulation_time) + rel * pi<float>() * 2.0f;
+            mat4 m;
 
+            vec3 eye = vec3(
+               l->frame()->world_from_local().matrix() * vec4(0.0f, 0.0f, 0.0f, 1.0f)
+            );
+            eye.y = 16.0f + 5.0f * std::sin(t * 2.5f);
+            float R = std::sin(t * 2.5f);
+            vec3 center = eye + vec3(
+                R * std::sin(rel + t * 1.0f),
+                0.0f,
+                R * std::cos(rel + t * 1.0f)
+            );
+            center.y = 0.0f;
+
+            create_look_at(
+               eye,
+               center,
+               vec3(0.0f, 0.0f, 1.0f), // up
+               m
+            );
+            l->frame()->parent_from_local().set(m);
+            l->frame()->update_hierarchical_no_cache();
+         }
          light_index++;
-
-         vec3 eye = vec3(
-            l->frame()->world_from_local().matrix() * vec4(0.0f, 0.0f, 0.0f, 1.0f)
-         );
-         eye.y = 16.0f + 5.0f * std::sin(t * 2.5f);
-         float R = std::sin(t * 2.5f);
-         vec3 center = eye + vec3(
-             R * std::sin(rel + t * 1.0f),
-             0.0f,
-             R * std::cos(rel + t * 1.0f)
-         );
-         center.y = 0.0f;
-
-         create_look_at(
-            eye,
-            center,
-            vec3(0.0f, 0.0f, 1.0f), // up
-            m
-         );
-         l->frame()->parent_from_local().set(m);
-         l->frame()->update_hierarchical_no_cache();
       }
    }
 #endif

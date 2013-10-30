@@ -307,9 +307,9 @@ void scene_manager::add_simple_scene()
    {
       auto l = make_shared<light>();
       l->set_type(light_type::directional);
-      l->set_color(vec3(1.0f, 1.0f, 1.0f));
-      l->set_intensity(20.0f);
-      l->set_name("sun");
+      l->set_color(vec3(0.11f, 0.23f, 1.00f));
+      l->set_intensity(0.03f);
+      l->set_name("atmosphere");
 
       mat4 m;
       create_look_at(
@@ -320,6 +320,27 @@ void scene_manager::add_simple_scene()
       );
       l->set_range(1000.0f);
       l->set_spot_angle(glm::pi<float>() * 1.0f);
+      l->frame()->parent_from_local().set(m);
+      l->frame()->update_hierarchical_no_cache();
+      add(l);
+   }
+
+   {
+      auto l = make_shared<light>();
+      l->set_type(light_type::spot);
+      l->set_color(vec3(1.0f, 1.0f, 1.0f));
+      l->set_intensity(20.0f);
+      l->set_name("white spot");
+
+      mat4 m;
+      create_look_at(
+         vec3(0.0f, 0.2f, 9.0f), // eye
+         vec3(0.0f, 0.0f, 0.0f), // center
+         vec3(0.0f, 0.0f, 1.0f),  // up
+         m
+      );
+      l->set_range(35.0f);
+      l->set_spot_angle(glm::pi<float>() / 4.0f);
       l->frame()->parent_from_local().set(m);
       l->frame()->update_hierarchical_no_cache();
       add(l);

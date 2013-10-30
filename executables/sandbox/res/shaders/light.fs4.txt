@@ -150,7 +150,4 @@ void main(void)
    vec3 brdf = evaluate_brdf(g_albedo.xyz, g_material, N, T, B, L, V);
 
    out_linear.rgb = brdf;
-
-   //out_linear.rgb = 0.5 * normalize(N) + vec3(0.5);
-   //out_linear.rgb = 0.5 * normalize(L) + vec3(0.5);
 }
