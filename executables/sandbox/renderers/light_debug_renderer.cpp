@@ -1,5 +1,6 @@
 #include "renderstack_toolkit/platform.hpp"
 #include "renderers/light_debug_renderer.hpp"
+#include "renderers/light_mesh.hpp"
 #include "renderstack_geometry/shapes/cone.hpp"
 #include "renderstack_graphics/buffer.hpp"
 #include "renderstack_graphics/configuration.hpp"
@@ -50,11 +51,13 @@ light_debug_renderer::light_debug_renderer()
 
 void light_debug_renderer::connect(
    shared_ptr<renderstack::graphics::renderer>  renderer_,
-   shared_ptr<programs>                         programs_
+   shared_ptr<programs>                         programs_,
+   shared_ptr<light_mesh>                       light_mesh_
 )
 {
    m_renderer = renderer_;
    m_programs = programs_;
+   m_light_mesh = light_mesh_;
 
    initialization_depends_on(m_renderer);
    initialization_depends_on(m_programs);
@@ -105,79 +108,6 @@ void light_debug_renderer::initialize_service()
       m_camera_ubr     = make_shared<uniform_buffer_range>(m_programs->camera_block,   m_uniform_buffer, m_ubr_sizes.camera);
       m_material_ubr   = make_shared<uniform_buffer_range>(m_programs->material_block, m_uniform_buffer, m_ubr_sizes.material);
       m_lights_ubr     = make_shared<uniform_buffer_range>(m_programs->lights_block,   m_uniform_buffer, m_ubr_sizes.lights);
-   }
-}
-
-
-void light_debug_renderer::update_light_model(shared_ptr<light> l)
-{
-   switch (l->type())
-   {
-   case light_type::directional:
-      assert(0);
-      break;
-   case light_type::point:
-      assert(0);
-      break;
-
-   case light_type::spot:
-      {
-         //           Side:                     Bottom:
-         //             .                    ______________
-         //            /|\                  /       |    / \
-         //           / | \                /   apothem  /   \
-         //          /  +--+ alpha        /         | radius \
-         //         /   |   \            /          | /       \
-         //        /    |    \          /           |/         \
-         //       /     |     \         \                      /
-         //      /      |      \         \                    /
-         //     /     length    \         \                  /
-         //    /        |        \         \                /
-         //   /         |         \         \______________/
-         //  +----------+----------+
-
-         int   n        = 16;
-         float alpha    = l->spot_angle(); 
-         float length   = l->range();
-         float apothem  = length * std::tan(alpha * 0.5f);
-         float radius   = apothem / std::cos(glm::pi<float>() / static_cast<float>(n));
-
-         shared_ptr<renderstack::geometry::geometry> g = make_shared<renderstack::geometry::shapes::conical_frustum>(
-            0.0,        // min x
-            length,     // max x
-            0.0,        // bottom radius
-            radius,     // top radius
-            false,      // use bottom
-            true,       // use top (end)
-            n,          // slice count
-            0           // stack division
-         );
-
-         g->transform(mat4_rotate_xz_cw);
-         g->build_edges();
-
-         renderstack::mesh::geometry_mesh_format_info format_info;
-         renderstack::mesh::geometry_mesh_buffer_info buffer_info;
-
-         renderstack::geometry::geometry::mesh_info info;
-
-         format_info.set_want_fill_triangles(true);
-         format_info.set_want_edge_lines(true);
-         format_info.set_want_position(true);
-         format_info.set_vertex_attribute_mappings(m_programs->attribute_mappings);
-
-         geometry_mesh::prepare_vertex_format(g, format_info, buffer_info);
-
-         auto &r = *m_renderer;
-
-         auto gm = make_shared<renderstack::mesh::geometry_mesh>(r, g, format_info, buffer_info);
-
-         m_light_meshes[l] = gm;
-      }
-      break;
-
-   default:
-      assert(0);
    }
 }
 
@@ -237,7 +167,8 @@ void light_debug_renderer::light_pass(
 
       l->frame()->update_hierarchical_no_cache(); // TODO
 
-      mat4 world_from_light   = l->frame()->world_from_local().matrix();
+      mat4 scale              = m_light_mesh->get_light_transform(l);
+      mat4 world_from_light   = l->frame()->world_from_local().matrix() * scale;
       mat4 clip_from_light    = clip_from_world * world_from_light;
       mat4 view_from_light    = view_from_world * world_from_light;
 
@@ -281,12 +212,7 @@ void light_debug_renderer::light_pass(
       if (light_index == m_max_lights)
          break;
 
-      assert(l->type() == light_type::spot);
-
-      if (m_light_meshes.find(l) == m_light_meshes.end())
-         update_light_model(l);
-
-      auto geometry_mesh   = m_light_meshes[l];
+      auto geometry_mesh   = m_light_mesh->get_light_mesh(l);
       auto vertex_stream   = geometry_mesh->vertex_stream();
       auto mesh            = geometry_mesh->get_mesh();
 

@@ -10,6 +10,7 @@
 #include "renderstack_geometry/operation/clone.hpp"
 #include "renderstack_geometry/operation/catmull_clark.hpp"
 #include "renderstack_mesh/geometry_mesh.hpp"
+#include "scene/material.hpp"
 #include "scene/model.hpp"
 #include "main/programs.hpp"
 #include "parsers/xml_polyhedron.hpp"
@@ -47,6 +48,8 @@ void scene_manager::connect(
 
 /*virtual*/ void scene_manager::initialize_service()
 {
+   m_materials = make_shared<vector<shared_ptr<material> > >();
+
    m_models = make_shared<vector<shared_ptr<model> > >();
 
    m_camera = make_shared<renderstack::scene::camera>();
@@ -91,9 +94,10 @@ std::shared_ptr<renderstack::mesh::geometry_mesh> scene_manager::make_geometry_m
 }
 
 shared_ptr<model> scene_manager::make_model(
-   std::string const &                                name,
-   shared_ptr<renderstack::scene::frame>              parent,
-   std::shared_ptr<renderstack::mesh::geometry_mesh>  gm,
+   string const &                               name,
+   shared_ptr<renderstack::scene::frame>        parent,
+   shared_ptr<renderstack::mesh::geometry_mesh> gm,
+   shared_ptr<material>                         material,
    vec3 position
 )
 {
@@ -104,6 +108,7 @@ shared_ptr<model> scene_manager::make_model(
 
    auto m = make_shared<model>(name);
    m->set_geometry_mesh(gm);
+   m->set_material(material);
    m->frame()->set_parent(parent);
    m->frame()->parent_from_local().set(transform);
    m->frame()->update_hierarchical_no_cache();
@@ -120,6 +125,24 @@ void scene_manager::add_floor(float size)
 
 void scene_manager::add_simple_scene()
 {
+   auto material_default = make_shared<material>(
+      m_materials->size(),
+      "default",
+      vec4(1.0f, 1.0f, 1.0f, 1.0f),
+      0.5f,
+      0.5f
+   );
+   m_materials->push_back(material_default);
+
+   auto material_floor = make_shared<material>(
+      m_materials->size(),
+      "floor",
+      vec4(0.6f, 0.6f, 1.0f, 1.0f),
+      0.2f,
+      1.0f
+   );
+   m_materials->push_back(material_floor);
+
 #if 0
    {
       auto sun = make_shared<light>();
@@ -267,6 +290,32 @@ void scene_manager::add_simple_scene()
    float min_x = 0.0f;
    float max_x = 0.0f;
    float gap = 0.5f;
+
+   size_t material_start = m_materials->size();
+   for (float z = -15.0f; z < 15.1f; z += 5.0f)
+   {
+      float rel = (z + 15.0f) / 30.0f;
+      rel = 0.7f * rel + 0.3f;
+      float r = pow(rel, 5.0);
+      float p = pow(rel, 5.0);
+      float h = rel * 360.0f;
+      float s = 0.9f;
+      float v = 1.0f;
+      float R, G, B;
+
+      hsv_to_rgb(h, s, v, R, G, B);
+
+      auto m = make_shared<material>(
+         m_materials->size(),
+         "m",
+         vec4(1.0f, 1.0f, 1.0f, 1.0f),
+         //vec4(R, G, B, 1.0f),
+         r,
+         p
+      );
+      m_materials->push_back(m);
+   }
+
    for (auto i = g_collection.begin(); i != g_collection.end(); ++i)
    {
       auto g = *i;
@@ -292,15 +341,19 @@ void scene_manager::add_simple_scene()
          max_x += 0.5f * gap;
       }
 
+      size_t material_index = material_start;
       for (float z = -15.0f; z < 15.1f; z += 5.0f)
       {
+         shared_ptr<material> mat = m_materials->at(material_index);
          auto m = make_model(
             g->name(),
             nullptr,
             gm,
+            mat,
             vec3(x, -min.y, z)
          );
          m_models->push_back(m);
+         ++material_index;
       }
    }
 
@@ -339,14 +392,14 @@ void scene_manager::add_simple_scene()
          vec3(0.0f, 0.0f, 1.0f),  // up
          m
       );
-      l->set_range(35.0f);
+      l->set_range(5.0f);
       l->set_spot_angle(glm::pi<float>() / 4.0f);
       l->frame()->parent_from_local().set(m);
       l->frame()->update_hierarchical_no_cache();
       add(l);
    }
 
-   int n_lights = 75;
+   int n_lights = 100;
    for (int i = 0; i < n_lights; ++i)
    {
       float rel = static_cast<float>(i) / static_cast<float>(n_lights);
@@ -388,6 +441,7 @@ void scene_manager::add_simple_scene()
       "floor",
       nullptr,
       make_geometry_mesh(floor_g),
+      material_floor,
       vec3(0, -0.5f, 0.0f)
    );
    m_models->push_back(floor_m);

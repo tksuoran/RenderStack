@@ -85,6 +85,8 @@ add_executable(
    renderers/forward_renderer.hpp
    renderers/light_debug_renderer.cpp
    renderers/light_debug_renderer.hpp
+   renderers/light_mesh.cpp
+   renderers/light_mesh.hpp
    renderers/id_renderer.cpp
    renderers/id_renderer.hpp
    renderers/debug_renderer.cpp

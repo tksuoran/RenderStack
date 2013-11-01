@@ -17,6 +17,7 @@ public:
    model(
       std::string const &name,
       std::shared_ptr<renderstack::mesh::geometry_mesh> mesh,
+      std::shared_ptr<material> material,
       glm::mat4 transform
    );
 

@@ -118,8 +118,8 @@ void game::render_meshes()
    if (m_deferred)
    {
       m_deferred_renderer->set_max_lights(m_max_lights);
-      m_deferred_renderer->geometry_pass(m_scene_manager->models(), m_scene_manager->camera());
-      m_deferred_renderer->light_pass(m_scene_manager->lights(), m_scene_manager->camera(), m_viewport);
+      m_deferred_renderer->geometry_pass(m_scene_manager->materials(), m_scene_manager->models(), m_scene_manager->camera());
+      m_deferred_renderer->light_pass(m_scene_manager->lights(), m_scene_manager->camera());
       //m_deferred_renderer->show_rt();
    }
 

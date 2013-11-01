@@ -3,12 +3,16 @@
 using namespace std;
 
 material::material(
+   size_t index,
    string const &name,
-   shared_ptr<renderstack::graphics::program> program//,
-   //shared_ptr<renderstack::graphics::uniform_block> uniform_block
+   glm::vec4 color,
+   float roughness,
+   float isotropy
 )
-:  m_name(name)
-,  m_program(program)
+:  m_index(index)
+,  m_name(name)
+,  m_color(color)
+,  m_roughness(roughness)
+,  m_isotropy(isotropy)
 {
-   //m_uniform_block = make_shared<renderstack::graphics::uniform_buffer
 }

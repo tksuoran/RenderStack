@@ -15,18 +15,25 @@ class material
 {
 public:
    material(
-      std::string const                               &name,
-      std::shared_ptr<renderstack::graphics::program> program
+      std::size_t index,
+      std::string const &name,
+      glm::vec4 color,
+      float roughness,
+      float isotropy
    );
    
-   void use();
+   std::size_t index() const { return m_index; }
+   std::string const &name() const { return m_name; }
+   glm::vec4 const &color() const { return m_color; }
+   float roughness() const { return m_roughness; }
+   float isotropy() const { return m_isotropy; }
 
 private:
-   std::string                                     m_name;
-   std::shared_ptr<renderstack::graphics::program> m_program;
-   glm::vec4                                       m_color;
-   float                                           m_roughness;
-   float                                           m_isotropy;
+   std::size_t m_index;
+   std::string m_name;
+   glm::vec4   m_color;
+   float       m_roughness;
+   float       m_isotropy;
 };
 
 #endif

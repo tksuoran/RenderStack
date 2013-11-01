@@ -18,6 +18,7 @@
 #include "renderers/deferred_renderer.hpp"
 #include "renderers/light_debug_renderer.hpp"
 #include "renderers/id_renderer.hpp"
+#include "renderers/light_mesh.hpp"
 
 #include <sstream>
 
@@ -88,6 +89,7 @@ bool application::initialize_services()
    auto deferred_renderer_ = make_shared<deferred_renderer>();
    auto l_d_renderer_      = make_shared<light_debug_renderer>();
    auto id_renderer_       = make_shared<id_renderer>();
+   auto light_mesh_        = make_shared<light_mesh>();
 
    auto shader_monitor_    = make_shared<shader_monitor>();
 
@@ -108,6 +110,7 @@ bool application::initialize_services()
    m_services.add(deferred_renderer_);
    m_services.add(l_d_renderer_);
    m_services.add(id_renderer_);
+   m_services.add(light_mesh_);
 
    m_services.add(shader_monitor_);
 
@@ -126,9 +129,10 @@ bool application::initialize_services()
    if (debug_renderer_)    debug_renderer_->connect(renderer, gui_renderer, programs_);
    if (quad_renderer_)     quad_renderer_->connect(renderer);
    if (forward_renderer_)  forward_renderer_->connect(renderer, debug_renderer_, programs_);
-   if (deferred_renderer_) deferred_renderer_->connect(renderer, programs_, quad_renderer_);
-   if (l_d_renderer_)      l_d_renderer_->connect(renderer, programs_);
+   if (deferred_renderer_) deferred_renderer_->connect(renderer, programs_, quad_renderer_, light_mesh_);
+   if (l_d_renderer_)      l_d_renderer_->connect(renderer, programs_, light_mesh_);
    if (id_renderer_)       id_renderer_->connect(renderer, programs_);
+   if (light_mesh_)        light_mesh_->connect(renderer, programs_);
 
    if (scene_manager_)     scene_manager_->connect(programs_, renderer);
 

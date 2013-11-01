@@ -28,6 +28,8 @@ namespace renderstack
    }
 }
 
+class light_mesh;
+
 class light_debug_renderer : public renderstack::toolkit::service
 {
 public:
@@ -36,7 +38,8 @@ public:
 
    void connect(
       std::shared_ptr<renderstack::graphics::renderer>   renderer,
-      std::shared_ptr<programs>                          programs
+      std::shared_ptr<programs>                          programs,
+      std::shared_ptr<light_mesh>                        light_mesh
    );
    /*virtual/*/ void initialize_service();
 
@@ -53,6 +56,7 @@ private:
 private:
    std::shared_ptr<renderstack::graphics::renderer>   m_renderer;
    std::shared_ptr<programs>                          m_programs;
+   std::shared_ptr<light_mesh>                        m_light_mesh;
 
    renderstack::graphics::render_states               m_debug_light_render_states;
 
@@ -63,10 +67,6 @@ private:
    std::shared_ptr<renderstack::graphics::uniform_buffer_range>   m_material_ubr;
    std::shared_ptr<renderstack::graphics::uniform_buffer_range>   m_lights_ubr;
 
-   std::map<
-      std::shared_ptr<renderstack::scene::light>,
-      std::shared_ptr<renderstack::mesh::geometry_mesh>
-   >                                                  m_light_meshes; 
    int m_max_lights;
 };
 

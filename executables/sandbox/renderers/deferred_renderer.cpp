@@ -1,5 +1,6 @@
 #include "renderstack_toolkit/platform.hpp"
 #include "renderers/deferred_renderer.hpp"
+#include "renderers/light_mesh.hpp"
 #include "renderstack_geometry/shapes/cone.hpp"
 #include "renderstack_geometry/shapes/triangle.hpp" // quad is currently here...
 #include "renderstack_graphics/buffer.hpp"
@@ -55,12 +56,14 @@ deferred_renderer::deferred_renderer()
 void deferred_renderer::connect(
    shared_ptr<renderstack::graphics::renderer>  renderer_,
    shared_ptr<programs>                         programs_,
-   shared_ptr<quad_renderer>                    quad_renderer_
+   shared_ptr<quad_renderer>                    quad_renderer_,
+   std::shared_ptr<light_mesh>                  light_mesh_
 )
 {
    m_renderer = renderer_;
    m_programs = programs_;
    m_quad_renderer = quad_renderer_;
+   m_light_mesh = light_mesh_;
 
    initialization_depends_on(m_renderer);
    initialization_depends_on(m_programs);
@@ -155,6 +158,8 @@ void deferred_renderer::bind_default_framebuffer()
 
 void deferred_renderer::resize(int width, int height)
 {
+   m_width = width / 2;
+   m_height = height / 2;
    {
       if (m_gbuffer_fbo == 0)
          gl::gen_framebuffers(1, &m_gbuffer_fbo);
@@ -174,8 +179,8 @@ void deferred_renderer::resize(int width, int height)
             renderstack::graphics::texture_target::texture_2d,
             formats[i],
             false,
-            width,
-            height,
+            m_width,
+            m_height,
             0
          );
          m_gbuffer_rt[i]->allocate_storage(*m_renderer);
@@ -205,8 +210,8 @@ void deferred_renderer::resize(int width, int height)
          renderstack::graphics::texture_target::texture_2d,
          GL_DEPTH_COMPONENT32F,
          false,
-         width,
-         height,
+         m_width,
+         m_height,
          0
       );
       m_depth->set_mag_filter(gl::texture_mag_filter::nearest);
@@ -238,8 +243,8 @@ void deferred_renderer::resize(int width, int height)
             renderstack::graphics::texture_target::texture_2d,
             formats[i],
             false,
-            width,
-            height,
+            m_width,
+            m_height,
             0
          );
          m_linear_rt[i]->allocate_storage(*m_renderer);
@@ -305,11 +310,14 @@ void deferred_renderer::set_max_lights(int max_lights)
 }
 
 void deferred_renderer::geometry_pass(
+   shared_ptr<vector<shared_ptr<material> > > materials,
    shared_ptr<vector<shared_ptr<model> > > models,
    shared_ptr<renderstack::scene::camera> camera
 )
 {
    bind_gbuffer_fbo();
+
+   gl::viewport(0, 0, m_width, m_height);
 
    fbo_clear();
 
@@ -344,13 +352,21 @@ void deferred_renderer::geometry_pass(
    ubr_pos offsets;
 
    // Material
-   vec4  color(1.0f, 1.0f, 1.0f, 1.0f);
-   float roughness = 0.10f;
-   float isotropy = 0.02f;
-   ::memcpy(start.material + offsets.material + m_programs->material_block_access.color    , value_ptr(color), 4 * sizeof(float));
-   ::memcpy(start.material + offsets.material + m_programs->material_block_access.roughness, &roughness,       sizeof(float));
-   ::memcpy(start.material + offsets.material + m_programs->material_block_access.isotropy , &isotropy,        sizeof(float));
-   offsets.material += m_programs->material_block->size_bytes();
+   int material_index = 0;
+   for (auto i = materials->cbegin(); i != materials->cend(); ++i)
+   {
+      auto material = *i;
+      vec4  color = material->color();
+      float r = material->roughness();
+      float p = material->isotropy();
+
+      ::memcpy(start.material + offsets.material + m_programs->material_block_access.color    , value_ptr(color), 4 * sizeof(float));
+      ::memcpy(start.material + offsets.material + m_programs->material_block_access.roughness, &r, sizeof(float));
+      ::memcpy(start.material + offsets.material + m_programs->material_block_access.isotropy , &p, sizeof(float));
+      offsets.material += m_programs->material_block->size_bytes();
+      ++material_index;
+   }
+   assert(material_index < m_ubr_sizes.material);
    m_material_ubr->flush(r, offsets.material);
 
    // Camera
@@ -403,6 +419,8 @@ void deferred_renderer::geometry_pass(
       auto geometry_mesh   = model->geometry_mesh();
       auto vertex_stream   = geometry_mesh->vertex_stream();
       auto mesh            = geometry_mesh->get_mesh();
+      auto material        = model->material();
+      size_t material_index = material->index();
 
       gl::begin_mode::value         begin_mode     = gl::begin_mode::triangles;
       index_range const             &index_range   = geometry_mesh->fill_indices();
@@ -419,6 +437,12 @@ void deferred_renderer::geometry_pass(
          m_programs->model_block->size_bytes()
       );
 
+      m_uniform_buffer->bind_range(
+         m_programs->material_block->binding_point(),
+         m_material_ubr->first_byte() + (material_index * m_programs->material_block->size_bytes()),
+         m_programs->material_block->size_bytes()
+      );
+
       r.draw_elements_base_vertex(
          model->geometry_mesh()->vertex_stream(),
          begin_mode,
@@ -433,122 +457,17 @@ void deferred_renderer::geometry_pass(
 
 }
 
-void deferred_renderer::update_light_model(shared_ptr<light> l)
-{
-   switch (l->type())
-   {
-   case light_type::directional:
-      {
-         // -1 .. 1
-         shared_ptr<renderstack::geometry::geometry> g = make_shared<renderstack::geometry::shapes::quad>(2.0f);
-
-         g->build_edges();
-
-         renderstack::mesh::geometry_mesh_format_info format_info;
-         renderstack::mesh::geometry_mesh_buffer_info buffer_info;
-
-         renderstack::geometry::geometry::mesh_info info;
-
-         format_info.set_want_fill_triangles(true);
-         format_info.set_want_edge_lines(true);
-         format_info.set_want_position(true);
-         format_info.set_vertex_attribute_mappings(m_programs->attribute_mappings);
-
-         geometry_mesh::prepare_vertex_format(g, format_info, buffer_info);
-
-         auto &r = *m_renderer;
-
-         auto gm = make_shared<renderstack::mesh::geometry_mesh>(
-            r,
-            g,
-            format_info,
-            buffer_info
-         );
-
-         m_light_meshes[l] = gm;
-      }
-      break;
-
-   case light_type::point:
-      assert(0);
-      break;
-
-   case light_type::spot:
-      {
-         //           Side:                     Bottom:
-         //             .                    ______________
-         //            /|\                  /       |    / \
-         //           / | \                /   apothem  /   \
-         //          /  +--+ alpha        /         | radius \
-         //         /   |   \            /          | /       \
-         //        /    |    \          /           |/         \
-         //       /     |     \         \                      /
-         //      /      |      \         \                    /
-         //     /     length    \         \                  /
-         //    /        |        \         \                /
-         //   /         |         \         \______________/
-         //  +----------+----------+
-
-         int   n        = 16;
-         float alpha    = l->spot_angle(); 
-         float length   = l->range();
-         float apothem  = length * std::tan(alpha * 0.5f);
-         float radius   = apothem / std::cos(glm::pi<float>() / static_cast<float>(n));
-
-         shared_ptr<renderstack::geometry::geometry> g = make_shared<renderstack::geometry::shapes::conical_frustum>(
-            0.0,        // min x
-            length,     // max x
-            0.0,        // bottom radius
-            radius,     // top radius
-            false,      // use bottom
-            true,       // use top (end)
-            n,          // slice count
-            0           // stack division
-         );
-
-         g->transform(mat4_rotate_xz_cw);
-         g->build_edges();
-
-         renderstack::mesh::geometry_mesh_format_info format_info;
-         renderstack::mesh::geometry_mesh_buffer_info buffer_info;
-
-         renderstack::geometry::geometry::mesh_info info;
-
-         format_info.set_want_fill_triangles(true);
-         format_info.set_want_edge_lines(true);
-         format_info.set_want_position(true);
-         format_info.set_vertex_attribute_mappings(m_programs->attribute_mappings);
-
-         geometry_mesh::prepare_vertex_format(g, format_info, buffer_info);
-
-         auto &r = *m_renderer;
-
-         auto gm = make_shared<renderstack::mesh::geometry_mesh>(
-            r,
-            g,
-            format_info,
-            buffer_info
-         );
-
-         m_light_meshes[l] = gm;
-      }
-      break;
-
-   default:
-      assert(0);
-   }
-}
-
 void deferred_renderer::light_pass(
    shared_ptr<vector<shared_ptr<light> > > lights,
-   shared_ptr<camera> camera,
-   renderstack::scene::viewport const &viewport
+   shared_ptr<camera> camera
 )
 {
    bind_linear_fbo();
 
-   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+   gl::viewport(0, 0, m_width, m_height);
+
+   gl::clear_color(0.0f, 0.0f, 0.0f, 1.0f);
+   gl::clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
    auto &r = *m_renderer;
    auto &t = r.track();
@@ -577,10 +496,10 @@ void deferred_renderer::light_pass(
 
    // viewport (in camera constant buffer)
    vec4 vp;
-   vp.x = static_cast<float>(viewport.x());
-   vp.y = static_cast<float>(viewport.y());
-   vp.z = static_cast<float>(viewport.width());
-   vp.w = static_cast<float>(viewport.height());
+   vp.x = static_cast<float>(0);
+   vp.y = static_cast<float>(0);
+   vp.z = static_cast<float>(m_width);
+   vp.w = static_cast<float>(m_height);
 
    ubr_ptr start;
    start.model    = static_cast<unsigned char*>(start0) + m_model_ubr   ->first_byte();
@@ -610,7 +529,8 @@ void deferred_renderer::light_pass(
 
       l->frame()->update_hierarchical_no_cache(); // TODO
 
-      mat4 world_from_light   = l->frame()->world_from_local().matrix();
+      mat4 scale              = m_light_mesh->get_light_transform(l);
+      mat4 world_from_light   = l->frame()->world_from_local().matrix() * scale;
       mat4 view_from_light    = view_from_world * world_from_light;
       mat4 clip_from_light;
 
@@ -644,9 +564,9 @@ void deferred_renderer::light_pass(
       ::memcpy(start.model + offsets.model + m_programs->model_block_access.world_from_model, value_ptr(world_from_light), 16 * sizeof(float));
       ::memcpy(start.model + offsets.model + m_programs->model_block_access.view_from_model,  value_ptr(view_from_light),  16 * sizeof(float));
 
-      ::memcpy(start.lights + offsets.lights + m_programs->lights_block_access.position ,    value_ptr(position),    3 * sizeof(float));
+      ::memcpy(start.lights + offsets.lights + m_programs->lights_block_access.position,     value_ptr(position),    3 * sizeof(float));
       ::memcpy(start.lights + offsets.lights + m_programs->lights_block_access.direction,    value_ptr(direction),   3 * sizeof(float));
-      ::memcpy(start.lights + offsets.lights + m_programs->lights_block_access.radiance ,    value_ptr(radiance),    3 * sizeof(float));
+      ::memcpy(start.lights + offsets.lights + m_programs->lights_block_access.radiance,     value_ptr(radiance),    3 * sizeof(float));
       ::memcpy(start.lights + offsets.lights + m_programs->lights_block_access.spot_cutoff,  &spot_cutoff,           1 * sizeof(float));
 
       offsets.model += m_programs->model_block->size_bytes();
@@ -689,10 +609,7 @@ void deferred_renderer::light_pass(
          assert(0);
       }
 
-      if (m_light_meshes.find(l) == m_light_meshes.end())
-         update_light_model(l);
-
-      auto geometry_mesh   = m_light_meshes[l];
+      auto geometry_mesh   = m_light_mesh->get_light_mesh(l);
       auto vertex_stream   = geometry_mesh->vertex_stream();
       auto mesh            = geometry_mesh->get_mesh();
 
@@ -737,12 +654,13 @@ void deferred_renderer::light_pass(
    r.reset_texture(4, renderstack::graphics::texture_target::texture_2d, nullptr);
    r.set_program(m_programs->camera);
 
-   glClearColor(0.0f, 0.5f, 0.0f, 1.0f);
-   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-   glEnable(GL_FRAMEBUFFER_SRGB);
+   gl::clear_color(0.0f, 0.5f, 0.0f, 1.0f);
+   gl::viewport(0, 0, m_width * 2, m_height * 2);
+   gl::clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+   gl::enable(GL_FRAMEBUFFER_SRGB);
 
    m_quad_renderer->render_minus_one_to_one();
-   glDisable(GL_FRAMEBUFFER_SRGB);
+   gl::disable(GL_FRAMEBUFFER_SRGB);
 
    //int iw = m_application->width();
    //int ih = m_application->height();

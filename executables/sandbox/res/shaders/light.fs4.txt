@@ -48,8 +48,8 @@ vec3 evaluate_brdf(
    vec3 V
 )
 {
-   float r              = 0.02; // material.x;
-   float p              = 0.2;  // material.y;
+   float r              = material.x;
+   float p              = material.y;
 
    float light_distance = length(L);
    L                    = normalize(L);
@@ -81,7 +81,7 @@ vec3 evaluate_brdf(
          // View based parameters
 
          // Material (and view) based parameters
-         //C *= r;
+         C *= r;
 
          // Light based parameters
          vec3  H           = normalize(L + V);
@@ -150,4 +150,5 @@ void main(void)
    vec3 brdf = evaluate_brdf(g_albedo.xyz, g_material, N, T, B, L, V);
 
    out_linear.rgb = brdf;
+   //out_linear.rgb = vec3(0.0, 0.0, 0.0);
 }
