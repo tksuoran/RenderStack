@@ -37,6 +37,11 @@ public:
       std::shared_ptr<renderstack::scene::light> l
    );
 
+   bool point_in_light(
+      glm::vec3 point_in_world,
+      std::shared_ptr<renderstack::scene::light> l
+   );
+
    std::shared_ptr<renderstack::mesh::geometry_mesh> get_light_mesh(
       std::shared_ptr<renderstack::scene::light> l
    );

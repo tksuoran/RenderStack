@@ -113,7 +113,13 @@ void game::render_meshes()
    m_debug_renderer->printf("%s", glGetString(GL_RENDERER));
    m_debug_renderer->printf("%s", glGetString(GL_VERSION));
    m_debug_renderer->printf("%s", glGetString(GL_SHADING_LANGUAGE_VERSION));
-   m_debug_renderer->printf("%d lights %s%s", m_max_lights, m_forward ? "forward" : "", m_deferred ? "deferred" : "");
+   m_debug_renderer->printf(
+      "%d lights %s%s%s",
+      m_max_lights,
+      m_forward ? "forward " : "",
+      m_deferred ? "deferred " : "",
+      m_deferred && m_deferred_renderer->use_stencil() ? "stencil optimization" : ""
+   );
 
    if (m_deferred)
    {

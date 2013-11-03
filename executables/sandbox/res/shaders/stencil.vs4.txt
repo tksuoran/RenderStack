@@ -1,0 +1,9 @@
+in vec4 a_position;
+
+uniform mat4 model_to_clip;
+
+void main()
+{
+   gl_Position = model.clip_from_model * vec4(a_position.xyz, 1.0);
+}
+

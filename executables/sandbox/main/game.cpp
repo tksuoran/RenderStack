@@ -404,6 +404,32 @@ void game::on_key(int key, int scancode, int action, int mods)
       case RS_KEY_F3:      m_debug_lights = !m_debug_lights; break;
       case RS_KEY_F4:      --m_max_lights; break;
       case RS_KEY_F5:      ++m_max_lights; break;
+      case RS_KEY_F6:
+         {
+            bool use_stencil = m_deferred_renderer->use_stencil();
+            use_stencil = !use_stencil;
+            m_deferred_renderer->set_use_stencil(use_stencil);
+            m_deferred_renderer->resize(m_application->width(), m_application->height());
+         }
+         break;
+      case RS_KEY_F7:
+         {
+            int scale = m_deferred_renderer->scale();
+            --scale;
+            if (scale < 1)
+               scale = 1;
+            m_deferred_renderer->set_scale(scale);
+            m_deferred_renderer->resize(m_application->width(), m_application->height());
+         }
+         break;
+      case RS_KEY_F8:
+         {
+            int scale = m_deferred_renderer->scale();
+            ++scale;
+            m_deferred_renderer->set_scale(scale);
+            m_deferred_renderer->resize(m_application->width(), m_application->height());
+         }
+         break;
       case RS_KEY_B:       /* m_controls.fov *= 1.1f; TODO */ break;
       case RS_KEY_N:       /* m_controls.fov /= 1.1f; TODO */ break;
       case RS_KEY_M:       reset(); break;

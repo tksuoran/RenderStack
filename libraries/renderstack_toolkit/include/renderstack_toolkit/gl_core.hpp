@@ -429,7 +429,7 @@ GLboolean is_renderbuffer(GLuint a);
 void bind_renderbuffer(GLenum a, GLuint b);
 void delete_renderbuffers(GLsizei a, const GLuint *b);
 void gen_renderbuffers(GLsizei a, GLuint *b);
-void renderbuffer_storage(GLenum a, GLenum b, GLsizei c, GLsizei d);
+void renderbuffer_storage(GLenum target, GLenum internalformat, GLsizei width, GLsizei height);
 void get_renderbuffer_parameter_iv(GLenum a, GLenum b, GLint *c);
 GLboolean is_framebuffer(GLuint a);
 void bind_framebuffer(GLenum a, GLuint b);
@@ -438,7 +438,7 @@ void gen_framebuffers(GLsizei, GLuint *);
 GLenum check_framebuffer_status(GLenum a);
 void framebuffer_texture_2d(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level);
 void framebuffer_texture_3d(GLenum a, GLenum b, GLenum c, GLuint d, GLint e, GLint f);
-void framebuffer_renderbuffer(GLenum a, GLenum b, GLenum c, GLuint d);
+void framebuffer_renderbuffer(GLenum target, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer);
 void get_framebuffer_attachment_parameter_iv(GLenum a, GLenum b, GLenum c, GLint *d);
 void generate_mipmap(GLenum a);
 

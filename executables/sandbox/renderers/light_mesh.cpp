@@ -70,7 +70,7 @@ void light_mesh::initialize_service()
 
    // Spot light cone
    {
-      m_light_cone_sides = 16;
+      m_light_cone_sides = 11;
 
       auto g = make_shared<renderstack::geometry::shapes::conical_frustum>(
          0.0,                 // min x
@@ -143,6 +143,33 @@ glm::mat4 light_mesh::get_light_transform(
    default:
       return mat4(1.0f);
    }
+}
+
+bool light_mesh::point_in_light(
+   vec3 p,
+   shared_ptr<renderstack::scene::light> l
+)
+{
+   if (l->type() != light_type::spot)
+      return true;
+
+   float spot_angle  = l->spot_angle() * 0.5f;
+   float outer_angle = spot_angle / std::cos(glm::pi<float>() / static_cast<float>(m_light_cone_sides));
+   float spot_cutoff = std::cos(outer_angle);
+   float range       = l->range();
+
+   mat4 const &light_from_world = l->frame()->world_from_local().inverse_matrix();
+   vec3 view_in_light = vec3(light_from_world * vec4(p, 1.0f));
+   float distance = -view_in_light.z;
+   view_in_light = normalize(view_in_light);
+
+   float cos_angle = dot(view_in_light, vec3(0.0f, 0.0f, -1.0f));
+   bool outside_cone_angle = (cos_angle < spot_cutoff);
+   bool outside_cone_range = (distance < 0.0f) || (distance > range);
+   if (outside_cone_angle || outside_cone_range)
+      return false;
+   else
+      return true;
 }
 
 shared_ptr<renderstack::mesh::geometry_mesh> light_mesh::get_light_mesh(

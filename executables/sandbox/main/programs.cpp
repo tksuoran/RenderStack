@@ -48,6 +48,7 @@ programs::programs()
 ,  gbuffer           (nullptr)
 ,  light_spot        (nullptr)
 ,  light_directional (nullptr)
+,  stencil           (nullptr)
 ,  show_rt           (nullptr)
 ,  show_rt_spherical (nullptr)
 ,  id                (nullptr)
@@ -224,6 +225,7 @@ void programs::connect(
       gbuffer           = make_program("gbuffer");
       light_spot        = make_program("light", light_type_spot);
       light_directional = make_program("light", light_type_directional);
+      stencil           = make_program("stencil");
       show_rt           = make_program("show_rt");
       show_rt_spherical = make_program("show_rt_spherical");
       textured          = make_program("textured");

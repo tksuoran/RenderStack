@@ -144,6 +144,7 @@ public:
    std::shared_ptr<renderstack::graphics::program>                   gbuffer;
    std::shared_ptr<renderstack::graphics::program>                   light_spot;
    std::shared_ptr<renderstack::graphics::program>                   light_directional;
+   std::shared_ptr<renderstack::graphics::program>                   stencil;
    std::shared_ptr<renderstack::graphics::program>                   show_rt;
    std::shared_ptr<renderstack::graphics::program>                   show_rt_spherical;
    std::shared_ptr<renderstack::graphics::program>                   id;

@@ -1,7 +1,7 @@
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_graphics/depth_state.hpp"
 
-// #define DISABLE_CACHE 1
+//#define DISABLE_CACHE 1
 
 namespace renderstack { namespace graphics {
 
@@ -52,7 +52,7 @@ depth_state::depth_state()
 ,  m_function  (gl::depth_function::less)
 ,  m_near      (0.0f)
 ,  m_far       (1.0f)
-,  m_depth_mask(false)
+,  m_depth_mask(true)
 {
 }
 depth_state::depth_state(bool enabled)
@@ -60,17 +60,17 @@ depth_state::depth_state(bool enabled)
 ,  m_function  (gl::depth_function::less)
 ,  m_near      (0.0f)
 ,  m_far       (1.0f)
-,  m_depth_mask(enabled)  // TODO Is this correct?
+,  m_depth_mask(true)
 {
 }
 
 void depth_state::reset()
 {
-   set_enabled(true);
+   set_enabled(false);
    set_function(gl::depth_function::less);
    set_near(0.0f);
    set_far(1.0);
-}
+   set_depth_mask(true);}
 
 
 depth_state_tracker::depth_state_tracker()
@@ -87,6 +87,8 @@ void depth_state_tracker::reset()
    m_cache.set_far(1.0f);
    gl::enable(gl::enable_cap::depth_test);
    m_cache.set_enabled(true);
+   gl::depth_mask(GL_TRUE);
+   m_cache.set_depth_mask(true);
    m_last = nullptr;
 }
 void depth_state_tracker::execute(depth_state const *state)
@@ -94,8 +96,8 @@ void depth_state_tracker::execute(depth_state const *state)
 #if !DISABLE_CACHE
    if (m_last == state)
       return;
-
 #endif
+
    if (state->enabled())
    {
 #if !DISABLE_CACHE
@@ -105,6 +107,7 @@ void depth_state_tracker::execute(depth_state const *state)
          gl::enable(gl::enable_cap::depth_test);
          m_cache.set_enabled(true);
       }
+
 #if !DISABLE_CACHE
       if (m_cache.function() != state->function())
 #endif
@@ -112,6 +115,7 @@ void depth_state_tracker::execute(depth_state const *state)
          gl::depth_func(state->function());
          m_cache.set_function(state->function());
       }
+
 #if !DISABLE_CACHE
       if (
          (m_cache.near_() != state->near_()) ||

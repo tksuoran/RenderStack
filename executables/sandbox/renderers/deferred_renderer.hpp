@@ -48,6 +48,11 @@ public:
 
    void set_max_lights(int max_lights);
 
+   bool use_stencil() const { return m_use_stencil; }
+   int scale() const { return m_scale; }
+   void set_use_stencil(bool value);
+   void set_scale(int value);
+
    void geometry_pass(
       std::shared_ptr<std::vector<std::shared_ptr<material> > > materials,
       std::shared_ptr<std::vector<std::shared_ptr<model> > > models,
@@ -81,6 +86,8 @@ private:
    std::shared_ptr<renderstack::graphics::uniform_buffer_range>   m_lights_ubr;
 
    renderstack::graphics::render_states               m_mesh_render_states;
+   renderstack::graphics::render_states               m_light_stencil_render_states;
+   renderstack::graphics::render_states               m_light_with_stencil_test_render_states;
    renderstack::graphics::render_states               m_light_render_states;
    renderstack::graphics::render_states               m_show_rt_render_states;
    renderstack::graphics::render_states               m_camera_render_states;
@@ -88,14 +95,19 @@ private:
    // framebuffer
    int                                                m_width;
    int                                                m_height;
+   int                                                m_width_full;
+   int                                                m_height_full;
    unsigned int                                       m_gbuffer_fbo;
    std::shared_ptr<renderstack::graphics::texture>    m_gbuffer_rt[3];
    std::shared_ptr<renderstack::graphics::texture>    m_depth;
 
    unsigned int                                       m_linear_fbo;
    std::shared_ptr<renderstack::graphics::texture>    m_linear_rt[3];
+   unsigned int                                       m_stencil_rbo;
 
    int                                                m_max_lights;
+   bool                                               m_use_stencil;
+   int                                                m_scale;
 };
 
 

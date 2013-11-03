@@ -151,4 +151,11 @@ void main(void)
 
    out_linear.rgb = brdf;
    //out_linear.rgb = vec3(0.0, 0.0, 0.0);
+
+// #if defined(LIGHT_TYPE_SPOT)
+//    out_linear.rgb = 0.05 * lights.radiance;
+// #endif
+// #if defined(LIGHT_TYPE_DIRECTIONAL)
+//    out_linear.rgb = lights.radiance;
+// #endif
 }

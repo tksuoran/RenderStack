@@ -277,7 +277,7 @@ const char *enum_string(GLenum e)
 }
 }
 
-static bool enable_error_checking = false;
+static bool enable_error_checking = true;
 
 void set_error_checking(bool enable)
 {
@@ -2585,13 +2585,13 @@ void gen_renderbuffers(GLsizei a, GLuint *b)
 #endif
    check_error();
 }
-void renderbuffer_storage(GLenum a, GLenum b, GLsizei c, GLsizei d)
+void renderbuffer_storage(GLenum target, GLenum internalformat, GLsizei width, GLsizei height)
 {  LOG_GL_FUNCTION(__FUNCTION__);
 #if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glRenderbufferStorage != nullptr);
-   gl::detail::glRenderbufferStorage(a, b, c, d);
+   gl::detail::glRenderbufferStorage(target, internalformat, width, height);
 #else
-   ::glRenderbufferStorage(a, b, c, d);
+   ::glRenderbufferStorage(target, internalformat, width, height);
 #endif
    check_error();
 }
@@ -2671,13 +2671,13 @@ void framebuffer_texture_2d(GLenum target, GLenum attachment, GLenum textarget, 
 #endif
    check_error();
 }
-void framebuffer_renderbuffer(GLenum a, GLenum b, GLenum c, GLuint d)
+void framebuffer_renderbuffer(GLenum target, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer)
 {  LOG_GL_FUNCTION(__FUNCTION__);
 #if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glFramebufferRenderbuffer != nullptr);
-   gl::detail::glFramebufferRenderbuffer(a, b, c, d);
+   gl::detail::glFramebufferRenderbuffer(target, attachment, renderbuffertarget, renderbuffer);
 #else
-   ::glFramebufferRenderbuffer(a, b, c, d);
+   ::glFramebufferRenderbuffer(target, attachment, renderbuffertarget, renderbuffer);
 #endif
    check_error();
 }

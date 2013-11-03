@@ -50,6 +50,8 @@ public:
       std::shared_ptr<renderstack::scene::camera> camera
    );
 
+   bool point_in_light(std::shared_ptr<renderstack::scene::light> l);
+
 private:
    void update_light_model(std::shared_ptr<renderstack::scene::light> l);
 
