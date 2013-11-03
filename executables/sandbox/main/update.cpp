@@ -123,8 +123,8 @@ void game::update_once_per_frame()
                l->frame()->world_from_local().matrix() * vec4(0.0f, 0.0f, 0.0f, 1.0f)
             );
             eye.y = 16.0f + 5.0f * std::sin(t * 2.5f);
-            float R = std::sin(t * 2.5f);
-            vec3 center = eye + vec3(
+            float R = 2.0f + std::sin(t * 2.5f);
+            vec3 center = eye * 0.5f + vec3(
                 R * std::sin(rel + t * 1.0f),
                 0.0f,
                 R * std::cos(rel + t * 1.0f)

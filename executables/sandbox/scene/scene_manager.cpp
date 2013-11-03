@@ -138,8 +138,8 @@ void scene_manager::add_simple_scene()
       m_materials->size(),
       "floor",
       vec4(0.6f, 0.6f, 1.0f, 1.0f),
-      0.2f,
-      1.0f
+      0.03f,
+      0.005f
    );
    m_materials->push_back(material_floor);
 
@@ -173,8 +173,8 @@ void scene_manager::add_simple_scene()
       1.0f
    );
 
-   g_collection.push_back(make_shared<renderstack::geometry::shapes::disc>          (1.0, 0.8, 32, 2));
-   g_collection.push_back(make_shared<renderstack::geometry::shapes::triangle>      (0.8f / 0.57735027f));
+   //g_collection.push_back(make_shared<renderstack::geometry::shapes::disc>          (1.0, 0.8, 32, 2));
+   //g_collection.push_back(make_shared<renderstack::geometry::shapes::triangle>      (0.8f / 0.57735027f));
    g_collection.push_back(make_shared<renderstack::geometry::shapes::sphere>        (1.0f, 12 * 4, 4 * 6));
    g_collection.push_back(make_shared<renderstack::geometry::shapes::torus>         (0.6f, 0.3f, 42, 32));
    g_collection.push_back(make_shared<renderstack::geometry::shapes::cuboctahedron> (1.0));
@@ -185,6 +185,7 @@ void scene_manager::add_simple_scene()
 
    g_collection.push_back(make_shared<renderstack::geometry::shapes::dodecahedron>(2.0));
    auto g0 = make_shared<renderstack::geometry::shapes::dodecahedron>(2.0);
+#if 0
    g0->build_edges();
 
    auto o1 = make_shared<renderstack::geometry::operation::catmull_clark>(g0);
@@ -196,9 +197,11 @@ void scene_manager::add_simple_scene()
    g2->compute_polygon_normals();
    g2->compute_point_normals("point_normals");
    g_collection.push_back(g2);
+#endif
+   g_collection.push_back(g0);
 
    auto xml = make_shared<xml_polyhedron>("res/polyhedra/127.xml");
-   g2->compute_polygon_normals();
+   xml->compute_polygon_normals();
    g_collection.push_back(xml);
 
 #endif
@@ -296,8 +299,8 @@ void scene_manager::add_simple_scene()
    {
       float rel = (z + 15.0f) / 30.0f;
       rel = 0.7f * rel + 0.3f;
-      float r = pow(rel, 5.0);
-      float p = pow(rel, 5.0);
+      float r = 0.020f; // pow(rel, 5.0);
+      float p = 0.005f; //pow(rel, 5.0);
       float h = rel * 360.0f;
       float s = 0.9f;
       float v = 1.0f;
@@ -328,16 +331,18 @@ void scene_manager::add_simple_scene()
       float x;
       if (fabs(min_x) < fabs(max_x))
       {
-         min_x -= 0.5f *   gap;
+         min_x -= 0.5f * gap;
+         min_x -= width * 0.5f;
          x = min_x;
-         min_x -= width;
+         min_x -= width * 0.5f;
          min_x -= 0.5f * gap;
       }
       else
       {
          max_x += 0.5f * gap;
+         max_x += width * 0.5f;
          x = max_x;
-         max_x += width;
+         max_x += width * 0.5f;
          max_x += 0.5f * gap;
       }
 
@@ -361,7 +366,7 @@ void scene_manager::add_simple_scene()
       auto l = make_shared<light>();
       l->set_type(light_type::directional);
       l->set_color(vec3(0.11f, 0.23f, 1.00f));
-      l->set_intensity(0.03f);
+      l->set_intensity(0.0663f);
       l->set_name("atmosphere");
 
       mat4 m;
@@ -389,10 +394,10 @@ void scene_manager::add_simple_scene()
       create_look_at(
          vec3(0.0f, 0.2f, 9.0f), // eye
          vec3(0.0f, 0.0f, 0.0f), // center
-         vec3(0.0f, 0.0f, 1.0f),  // up
+         vec3(0.0f, 0.0f, 1.0f), // up
          m
       );
-      l->set_range(5.0f);
+      l->set_range(25.0f);
       l->set_spot_angle(glm::pi<float>() / 4.0f);
       l->frame()->parent_from_local().set(m);
       l->frame()->update_hierarchical_no_cache();
@@ -425,12 +430,12 @@ void scene_manager::add_simple_scene()
       mat4 m;
       create_look_at(
          vec3(x_pos, 10.0f, z_pos), // eye
-         vec3(x_pos,  0.0f, z_pos), // center
+         vec3(x_pos * 0.5,  0.0f, z_pos * 0.5f), // center
          vec3( 0.0f,  0.0f, 1.0f),  // up
          m
       );
       l->set_range(25.0f);
-      l->set_spot_angle(glm::pi<float>() / 3.0f);
+      l->set_spot_angle(glm::pi<float>() / 5.0f);
       l->frame()->parent_from_local().set(m);
       l->frame()->update_hierarchical_no_cache();
       add(l);

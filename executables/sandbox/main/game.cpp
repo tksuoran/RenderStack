@@ -83,7 +83,7 @@ game::game()
 ,  m_forward               (false)
 ,  m_deferred              (true)
 ,  m_debug_lights          (false)
-,  m_max_lights            (5)
+,  m_max_lights            (50)
 ,  m_screen_active         (false)
 ,  m_mouse_down            (false)
 {

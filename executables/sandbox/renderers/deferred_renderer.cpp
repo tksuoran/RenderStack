@@ -47,7 +47,7 @@ deferred_renderer::deferred_renderer()
 ,  m_gbuffer_fbo  (0)
 ,  m_linear_fbo   (0)
 ,  m_stencil_rbo  (0)
-,  m_use_stencil  (false)
+,  m_use_stencil  (true)
 ,  m_scale        (1)
 {
 }
