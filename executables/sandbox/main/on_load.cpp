@@ -27,6 +27,22 @@ using namespace std;
 using namespace renderstack::toolkit;
 using namespace renderstack::graphics;
 
+#if 0
+static void APIENTRY debug_message_callback_handler(
+   GLenum source, GLenum type, GLuint id, GLenum severity,
+   GLsizei length, const GLchar *message, const void *userParam
+)
+{
+   (void)source;
+   (void)type;
+   (void)id;
+   (void)severity;
+   (void)length;
+   (void)userParam;
+   fprintf(stdout, "%s\n", message);
+}
+#endif
+
 bool application::create_gl_window()
 {
 
@@ -69,6 +85,8 @@ bool application::create_gl_window()
 #endif
 
    configuration::initialize();
+
+   //gl::debug_message_callback(debug_message_callback_handler, nullptr);
 
    return true;
 }

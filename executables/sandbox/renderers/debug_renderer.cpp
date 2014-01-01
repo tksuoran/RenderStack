@@ -35,8 +35,6 @@ using namespace std;
 
 debug_renderer::debug_renderer()
 :  service        ("debug_renderer")
-,  m_renderer     (nullptr)
-,  m_programs     (nullptr)
 #if defined(RENDERSTACK_USE_FREETYPE)
 ,  m_font         (nullptr)
 ,  m_text_buffer  (nullptr)
@@ -52,12 +50,12 @@ debug_renderer::debug_renderer()
 void debug_renderer::connect(
    shared_ptr<renderstack::graphics::renderer>  renderer_,
    shared_ptr<renderstack::ui::gui_renderer>    gui_renderer_,
-   shared_ptr<programs>                         programs_
+   shared_ptr<class programs>                   programs_
 )
 {
-   m_renderer = renderer_;
+   base_connect(renderer_, programs_, nullptr);
+
    m_gui_renderer = gui_renderer_;
-   m_programs = programs_;
 
    initialization_depends_on(renderer_);
    initialization_depends_on(gui_renderer_);
@@ -66,13 +64,12 @@ void debug_renderer::connect(
 
 void debug_renderer::initialize_service()
 {
-   assert(m_renderer);
-   assert(m_programs);
+   base_initialize_service();
 
-   auto &r = *m_renderer;
+   auto &r = renderer();
 
 #if defined(RENDERSTACK_USE_FREETYPE)
-   auto p = m_programs->font;
+   auto p = programs()->font;
    auto m = p->vertex_attribute_mappings();
 
    m_font = make_shared<font>(r, "res/fonts/Ubuntu-R.ttf", 10);
@@ -122,7 +119,7 @@ void debug_renderer::initialize_service()
    m_index_buffer->allocate_storage(r);
 
    m_vertex_stream = make_shared<renderstack::graphics::vertex_stream>();
-   m_programs->attribute_mappings->add_to_vertex_stream(
+   programs()->attribute_mappings->add_to_vertex_stream(
       m_vertex_stream,
       m_vertex_buffer,
       m_vertex_format);
@@ -133,31 +130,6 @@ void debug_renderer::initialize_service()
    va->set_index_buffer(m_index_buffer);
 
    r.reset_vertex_array();
-
-   if (renderstack::graphics::configuration::can_use.uniform_buffer_object)
-   {
-      size_t ubo_size = 0;
-
-      m_ubr_sizes.camera   = 0;
-      m_ubr_sizes.model    = 800;
-      m_ubr_sizes.material = 800;
-      m_ubr_sizes.lights   = 0;
-      m_ubr_sizes.debug    = 0;
-
-      ubo_size += m_programs->model_block   ->size_bytes() * m_ubr_sizes.model;
-      ubo_size += m_programs->material_block->size_bytes() * m_ubr_sizes.material;
-
-      m_uniform_buffer = make_shared<buffer>(
-         renderstack::graphics::buffer_target::uniform_buffer,
-         ubo_size,
-         1
-      );
-      m_uniform_buffer->allocate_storage(r);
-
-      m_model_ubr      = make_shared<uniform_buffer_range>(m_programs->model_block,    m_uniform_buffer, m_ubr_sizes.model);
-      m_material_ubr   = make_shared<uniform_buffer_range>(m_programs->material_block, m_uniform_buffer, m_ubr_sizes.material);
-   }
-
 }
 
 void debug_renderer::clear_text_lines()
@@ -229,69 +201,42 @@ void debug_renderer::printf(const char *format, ...)
 void debug_renderer::render_text_lines(renderstack::scene::viewport const &vp)
 {
 #if defined(RENDERSTACK_USE_FREETYPE)
-   assert(m_programs);
-   assert(m_text_buffer);
-
    float w = (float)vp.width();
    float h = (float)vp.height();
 
    m_text_buffer->begin_print();
    for (size_t i = 0; i < m_debug_lines.size(); ++i)
-      m_text_buffer->print(m_debug_lines[i], 0.0f, h - (i + 1) * m_font->line_height());
+      m_text_buffer->print(m_debug_lines[i], 0, static_cast<int>(h - (i + 1) * m_font->line_height()));
 
    for (size_t i = 0; i < m_debug_print_ats.size(); ++i)
       m_text_buffer->print(m_debug_print_ats[i].text, m_debug_print_ats[i].x, m_debug_print_ats[i].y);
 
    int chars_printed = m_text_buffer->end_print();
-
    if (chars_printed == 0)
       return;
 
-   //auto gr = *m_gui_renderer;
-   auto &r = *m_renderer;
+   auto &r = renderer();
    auto &t = r.track();
    t.execute(&m_font_render_states);
 
-   auto p = m_programs->font;
+   auto p = programs()->font;
    r.set_program(p);
 
    gl::viewport(0, 0, (GLsizei)w, (GLsizei)h);
    mat4 ortho = glm::ortho(0.0f, (float)w, 0.0f, (float)h);
    gl::scissor(0, 0, (GLsizei)w, (GLsizei)h);
 
-   glm::vec4 white(1.0f, 1.0f, 1.0f, 0.66f); // gamma in 4th component
+   vec4 white(1.0f, 1.0f, 1.0f, 0.66f); // gamma in 4th component
 
-   if (p->use_uniform_buffers())
-   {
-      begin_edit();
-      set_ortho(vp);
-      ::memcpy(
-         m_uniform_start.material + m_uniform_offsets.material + m_programs->material_block_access.color,
-         value_ptr(white), 4 * sizeof(float)
-      );
+   begin_edit();
+   set_ortho(vp);
+   end_edit();
 
-      end_edit();
+   int clip_from_world = p->uniform_at(programs()->debug_block_access.clip_from_world);
+   int color           = p->uniform_at(programs()->debug_block_access.color);
 
-      m_uniform_buffer->bind_range(
-         m_programs->material_block->binding_point(),
-         m_material_ubr->first_byte() + (0 * m_programs->material_block->size_bytes()),
-         m_programs->material_block->size_bytes()
-      );
-
-      m_uniform_buffer->bind_range(
-         m_programs->model_block->binding_point(),
-         m_model_ubr->first_byte() + (0 * m_programs->model_block->size_bytes()),
-         m_programs->model_block->size_bytes()
-      );
-   }
-   else
-   {
-      int model_to_clip_ui = p->uniform_at(m_programs->model_block_access.clip_from_model);
-      int color_ui         = p->uniform_at(m_programs->material_block_access.color);
-
-      gl::uniform_matrix_4fv(model_to_clip_ui, 1, GL_FALSE, value_ptr(ortho));
-      gl::uniform_4fv(color_ui, 1, value_ptr(white));
-   }
+   gl::uniform_matrix_4fv(clip_from_world, 1, GL_FALSE, value_ptr(ortho));
+   gl::uniform_4fv(color, 1, value_ptr(white));
 
    //int texture_ui = p->uniform("font_texture")->index();
    //gl::uniform_1i(texture_ui, 0);
@@ -324,19 +269,20 @@ void debug_renderer::set_clip_from_model(glm::mat4 const &clip_from_model)
 {
    assert(m_in_edit);
 
-   if (m_index_offset > m_current_draw.first)
+   if (m_index_offset > m_current_draw.first_index)
    {
-      m_current_draw.count = m_index_offset - m_current_draw.first;
+      m_current_draw.count = m_index_offset - m_current_draw.first_index;
       m_draws.push_back(m_current_draw);
-      m_uniform_offsets.model += m_programs->model_block->size_bytes();
-      ++m_current_draw.model_index;
+      ++m_model_index;
    }
 
-   m_current_draw.clip_from_model = clip_from_model;
-   m_current_draw.first = m_index_offset;
+   //m_current_draw.clip_from_model = clip_from_model;
+   m_current_draw.first_index = m_index_offset;
 
-   ::memcpy(
-      m_uniform_start.model + m_uniform_offsets.model + m_programs->model_block_access.clip_from_model,
+   memcpy(
+      m_models_start
+         + m_model_index * programs()->models_block->size_bytes()
+         + programs()->models_block_access.clip_from_model,
       value_ptr(clip_from_model), 16 * sizeof(float)
    );
 }
@@ -397,47 +343,46 @@ void debug_renderer::add_frame_duration_graph(renderstack::scene::viewport const
 
 void debug_renderer::render()
 {
-   if (m_index_offset > m_current_draw.first)
+   if (m_index_offset > m_current_draw.first_index)
    {
-      m_current_draw.count = m_index_offset - m_current_draw.first;
+      m_current_draw.count = m_index_offset - m_current_draw.first_index;
       m_draws.push_back(m_current_draw);
    }
 
-   auto &r = *m_renderer;
+   auto &r = renderer();
    auto &t = r.track();
-   auto p = m_programs->debug_line;
+   auto p = programs()->debug_line;
 
    t.execute(&m_render_states);
    r.set_program(p);
    r.use_vertex_stream(m_vertex_stream);
 
+   size_t model_index = 0;
    for (auto i = m_draws.cbegin(); i != m_draws.cend(); ++i)
    {
       auto &draw = *i;
 
       if (p->use_uniform_buffers())
       {
-         m_uniform_buffer->bind_range(
-            m_programs->model_block->binding_point(),
-            m_model_ubr->first_byte() + (draw.model_index * m_programs->model_block->size_bytes()),
-            m_programs->model_block->size_bytes()
-         );
+         bind_model(model_index);
       }
       else
       {
-         gl::uniform_matrix_4fv(
-            p->uniform_at(m_programs->model_block_access.clip_from_model),
+         throw runtime_error("not implemented");
+         /*gl::uniform_matrix_4fv(
+            p->uniform_at(programs()->model_block_access.clip_from_model),
             1,
             GL_FALSE,
             value_ptr(draw.clip_from_model)
-         );
+         );*/
       }
 
       gl::draw_elements(
          gl::begin_mode::lines,
          draw.count,
          gl::draw_elements_type::unsigned_short,
-         reinterpret_cast<GLvoid*>(draw.first * 2));
+         reinterpret_cast<GLvoid*>(draw.first_index * 2));
+      ++model_index;
    }
 
    m_draws.clear();
@@ -448,31 +393,14 @@ void debug_renderer::set_color(glm::vec4 color)
    m_color = color;
 }
 
-
-void debug_renderer::begin_edit()
+void debug_renderer::begin_edit_vbo()
 {
-   auto &r = *m_renderer;
    m_vertex_offset = 0;
-   m_index_offset = 0;
-   m_in_edit = true;
-   r.set_vertex_array(m_vertex_stream->vertex_array());
-   r.set_buffer(renderstack::graphics::buffer_target::array_buffer, m_vertex_buffer);
+   renderer().set_vertex_array(m_vertex_stream->vertex_array());
+   renderer().set_buffer(renderstack::graphics::buffer_target::array_buffer, m_vertex_buffer);
    m_vertex_ptr = reinterpret_cast<float*>(
       m_vertex_buffer->map(
-         r,
-         0,
-         m_capacity_lines * 2,
-         static_cast<gl::buffer_access_mask::value>(
-            gl::buffer_access_mask::map_flush_explicit_bit   |
-            gl::buffer_access_mask::map_invalidate_range_bit |
-            gl::buffer_access_mask::map_write_bit
-         )
-      )
-   );
-
-   m_index_ptr = reinterpret_cast<uint16_t*>(
-      m_index_buffer->map(
-         r,
+         renderer(),
          0,
          m_capacity_lines * 2,
          static_cast<gl::buffer_access_mask::value>(
@@ -484,53 +412,52 @@ void debug_renderer::begin_edit()
    );
 
    m_vertex_ptr_start = m_vertex_ptr;
-   m_index_ptr_start = m_index_ptr;
+}
 
-   m_current_draw.first = 0;
+void debug_renderer::begin_edit_ibo()
+{
+   m_index_offset = 0;
+   renderer().set_vertex_array(m_vertex_stream->vertex_array());
+   m_index_ptr = reinterpret_cast<uint16_t*>(
+      m_index_buffer->map(
+         renderer(),
+         0,
+         m_capacity_lines * 2,
+         static_cast<gl::buffer_access_mask::value>(
+            gl::buffer_access_mask::map_flush_explicit_bit   |
+            gl::buffer_access_mask::map_invalidate_range_bit |
+            gl::buffer_access_mask::map_write_bit
+         )
+      )
+   );
+
+   m_index_ptr_start = m_index_ptr;
+}
+
+void debug_renderer::begin_edit()
+{
+   begin_edit_vbo();
+   begin_edit_ibo();
+   m_in_edit = true;
+
+   m_current_draw.first_index = 0;
    m_current_draw.count = 0;
-   m_current_draw.model_index = 0;
+   m_model_index = 0;
 
    if (renderstack::graphics::configuration::can_use.uniform_buffer_object)
-   {
-      r.set_buffer(renderstack::graphics::buffer_target::uniform_buffer, m_uniform_buffer);
-      void *start0 = m_uniform_buffer->map(
-         r, 
-         0, 
-         m_uniform_buffer->capacity(), 
-         static_cast<gl::buffer_access_mask::value>(
-            gl::buffer_access_mask::map_write_bit | 
-            gl::buffer_access_mask::map_flush_explicit_bit |
-            gl::buffer_access_mask::map_invalidate_buffer_bit
-         )
-      );
-
-      m_uniform_start.model    = static_cast<unsigned char*>(start0) + m_model_ubr   ->first_byte();
-      m_uniform_start.material = static_cast<unsigned char*>(start0) + m_material_ubr->first_byte();
-      m_uniform_offsets.camera   = 0;
-      m_uniform_offsets.debug    = 0;
-      m_uniform_offsets.lights   = 0;
-      m_uniform_offsets.material = 0;
-      m_uniform_offsets.model    = 0;
-   }
+      m_models_start = base_renderer::begin_edit(uniform_buffer_usage::models, 0);
 }
 
 void debug_renderer::end_edit()
 {
-   auto &r = *m_renderer;
+   auto &r = renderer();
    m_vertex_buffer->flush_and_unmap(r, m_vertex_offset);
    m_index_buffer->flush_and_unmap(r, m_index_offset);
 
    if (renderstack::graphics::configuration::can_use.uniform_buffer_object)
    {
-      m_model_ubr->flush(r, m_uniform_offsets.model);
-      m_material_ubr->flush(r, m_uniform_offsets.material);
-      m_uniform_buffer->unmap(r);
-      m_uniform_start.camera = nullptr;
-      m_uniform_start.debug = nullptr;
-      m_uniform_start.lights = nullptr;
-      m_uniform_start.material = nullptr;
-      m_uniform_start.model = nullptr;
-
+      base_renderer::end_edit(uniform_buffer_usage::models);
+      m_models_start = nullptr; 
    }
 
    m_in_edit = false;

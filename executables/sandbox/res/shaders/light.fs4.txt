@@ -1,4 +1,3 @@
-
 vec3 spherical_to_cartesian(vec2 s)
 {
    vec3 v;
@@ -98,7 +97,13 @@ vec3 evaluate_brdf(
          float zhn0        = (1.0 - one_minus_r * hn * hn);
          float D           = (ln * r * p2) / (gvn_denom * gln_denom * zhn0 * zhn0 * aht_denom);
 
+#if defined(LIGHT_TYPE_SPOT)
          float light_attenuation = 1.0 / (light_distance * light_distance);
+#endif
+
+#if defined(LIGHT_TYPE_DIRECTIONAL)
+         float light_attenuation = 1.0;
+#endif
 
 #if defined(LIGHT_TYPE_SPOT)
          float t = ls - spot_cutoff;
@@ -115,6 +120,7 @@ vec3 evaluate_brdf(
       }
    }
 
+   //return vec3(r, p * 120.0, 0.0);
    return exitant_radiance;
 }
 

@@ -1,5 +1,3 @@
-// gbuffer.fs.txt (sm5)
-
 in vec3 v_normal;
 in vec3 v_tangent;
 in vec4 v_color;
@@ -25,16 +23,16 @@ vec3 spherical_to_cartesian(vec2 s)
 
 void main(void)
 {
-    vec3 N = normalize(v_normal);
-    vec3 T = normalize(v_tangent);
-    //out_emission           = vec4(0.0, 0.0, 0.0, 0.0);
-    out_albedo             = material.color;
-    out_normal_tangent.xy  = cartesian_to_spherical(N);
-    out_normal_tangent.zw  = cartesian_to_spherical(T);
-    //out_normal_tangent     *= 0.25;
+   vec3 N = normalize(v_normal);
+   vec3 T = normalize(v_tangent);
+   //out_emission           = vec4(0.0, 0.0, 0.0, 0.0);
+   out_albedo             = materials.color;
+   out_normal_tangent.xy  = cartesian_to_spherical(N);
+   out_normal_tangent.zw  = cartesian_to_spherical(T);
+   //out_normal_tangent     *= 0.25;
 
-    out_material.x         = material.roughness;
-    out_material.y         = material.isotropy;
-    //out_material.xyz       = v_position;
+   out_material.x         = materials.roughness;
+   out_material.y         = materials.isotropy;
+   //out_material.xyz       = v_position;
 }
 

@@ -485,6 +485,12 @@ PFNGLTEXSTORAGE1DPROC                                    glTexStorage1D = nullpt
 PFNGLTEXSTORAGE2DPROC                                    glTexStorage2D = nullptr;
 PFNGLTEXSTORAGE3DPROC                                    glTexStorage3D = nullptr;
 
+PFNGLDEBUGMESSAGECONTROLARBPROC                          glDebugMessageControlARB  = nullptr;
+PFNGLDEBUGMESSAGEINSERTARBPROC                           glDebugMessageInsertARB   = nullptr;
+PFNGLDEBUGMESSAGECALLBACKARBPROC                         glDebugMessageCallbackARB = nullptr;
+PFNGLGETDEBUGMESSAGELOGARBPROC                           glGetDebugMessageLogARB   = nullptr;
+
+
 } }
 
 #endif
@@ -864,6 +870,10 @@ void window::get_extensions()
     gl::detail::glTexStorage1D                                  = (PFNGLTEXSTORAGE1DPROC                                )get_proc_address("glTexStorage1D");
     gl::detail::glTexStorage2D                                  = (PFNGLTEXSTORAGE2DPROC                                )get_proc_address("glTexStorage2D");
     gl::detail::glTexStorage3D                                  = (PFNGLTEXSTORAGE3DPROC                                )get_proc_address("glTexStorage3D");
+    gl::detail::glDebugMessageControlARB                        = (PFNGLDEBUGMESSAGECONTROLARBPROC                      )get_proc_address("glDebugMessageControlARB");
+    gl::detail::glDebugMessageInsertARB                         = (PFNGLDEBUGMESSAGEINSERTARBPROC                       )get_proc_address("glDebugMessageInsertARB");
+    gl::detail::glDebugMessageCallbackARB                       = (PFNGLDEBUGMESSAGECALLBACKARBPROC                     )get_proc_address("glDebugMessageCallbackARB");
+    gl::detail::glGetDebugMessageLogARB                         = (PFNGLGETDEBUGMESSAGELOGARBPROC                       )get_proc_address("glGetDebugMessageLogARB");
 
 #endif
 

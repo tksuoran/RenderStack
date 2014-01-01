@@ -1,12 +1,10 @@
-// textured_gui.fs.txt (sm4)
-
-in  vec2    v_texcoord;
+in vec2 v_texcoord;
 
 void main(void)
 {
     vec4 c = texture(background_texture, v_texcoord.xy);
-    //out_color = material.color * c.rbga;
-    out_color = material.color * c;
+    //out_color = materials.color * c.rbga;
+    out_color = materials.color * c;
 
     //float inside  = c.r;
     //float outline = c.g;

@@ -6,6 +6,7 @@
 #include "renderstack_graphics/program.hpp"
 #include "renderstack_graphics/renderer.hpp"
 #include "renderstack_graphics/samplers.hpp"
+#include "renderstack_graphics/shader_monitor.hpp"
 #include "renderstack_graphics/uniform_block.hpp"
 #include "renderstack_graphics/uniform.hpp"
 #include "renderstack_graphics/vertex_attribute_mappings.hpp"
@@ -249,7 +250,7 @@ void program::map_uniform(size_t key, string const &name)
 int program::uniform_at(size_t index) const
 {
    if (index >= m_uniform_map.size())
-      throw runtime_error("uniform index out of range");
+      return -1;
 
    return m_uniform_map[index];
 }
@@ -279,7 +280,7 @@ void program::load_shader(shader_type::value type, string const &path)
 
    m_loaded_shaders.push_back(resource);
 }
-void program::reload()
+void program::reload(class shader_monitor &monitor)
 {
    // TODO resource.source and resource.compiled_src get messedup if loading fails!
 
@@ -296,7 +297,9 @@ void program::reload()
          //  Mark current shader as 0 before compilation in order to
          //  know when to attach the shader back if compilation fails.
          resource.shader = 0;
-         string source = read(resource.path);
+         string path       = resource.path;
+         string load_path  = monitor.most_recent_version(path);
+         string source     = read(load_path);
          string compiled_src;
          resource.shader = make_shader(resource.type, source, compiled_src);
          resource.compiled_src = compiled_src;

@@ -39,9 +39,6 @@ using namespace std;
 
 light_debug_renderer::light_debug_renderer()
 :  service("light_debug_renderer")
-,  m_renderer  (nullptr)
-,  m_programs  (nullptr)
-,  m_max_lights(1)
 {
 }
 
@@ -51,22 +48,19 @@ light_debug_renderer::light_debug_renderer()
 
 void light_debug_renderer::connect(
    shared_ptr<renderstack::graphics::renderer>  renderer_,
-   shared_ptr<programs>                         programs_,
-   shared_ptr<light_mesh>                       light_mesh_
+   shared_ptr<class programs>                   programs_,
+   shared_ptr<class light_mesh>                 light_mesh_
 )
 {
-   m_renderer = renderer_;
-   m_programs = programs_;
-   m_light_mesh = light_mesh_;
-
-   initialization_depends_on(m_renderer);
-   initialization_depends_on(m_programs);
+   base_connect(renderer_, programs_, light_mesh_);
+   
+   initialization_depends_on(renderer_);
+   initialization_depends_on(programs_);
 }
 
 void light_debug_renderer::initialize_service()
 {
-   assert(m_renderer);
-   assert(m_programs);
+   base_initialize_service();
 
    m_debug_light_render_states.depth.set_enabled(true);
    m_debug_light_render_states.depth.set_function(gl::depth_function::l_equal);
@@ -79,154 +73,41 @@ void light_debug_renderer::initialize_service()
    m_debug_light_render_states.blend.alpha().set_source_factor(gl::blending_factor_src::one);
    m_debug_light_render_states.blend.alpha().set_destination_factor(gl::blending_factor_dest::one);   
 
-   if (renderstack::graphics::configuration::can_use.uniform_buffer_object)
-   {
-      auto &r = *m_renderer;
-
-      size_t ubo_size = 0;
-
-      m_ubr_sizes.camera   = 20;
-      m_ubr_sizes.model    = 400;
-      m_ubr_sizes.material = 100;
-      m_ubr_sizes.lights   = 400;
-      m_ubr_sizes.debug    = 100;
-
-      ubo_size += m_programs->model_block   ->size_bytes() * m_ubr_sizes.model;
-      ubo_size += m_programs->camera_block  ->size_bytes() * m_ubr_sizes.camera;
-      ubo_size += m_programs->material_block->size_bytes() * m_ubr_sizes.material;
-      ubo_size += m_programs->lights_block  ->size_bytes() * m_ubr_sizes.lights;
-      ubo_size += m_programs->debug_block   ->size_bytes() * m_ubr_sizes.debug;
-
-      m_uniform_buffer = make_shared<buffer>(
-         renderstack::graphics::buffer_target::uniform_buffer,
-         ubo_size,
-         1
-      );
-      m_uniform_buffer->allocate_storage(r);
-
-      m_model_ubr      = make_shared<uniform_buffer_range>(m_programs->model_block,    m_uniform_buffer, m_ubr_sizes.model);
-      m_camera_ubr     = make_shared<uniform_buffer_range>(m_programs->camera_block,   m_uniform_buffer, m_ubr_sizes.camera);
-      m_material_ubr   = make_shared<uniform_buffer_range>(m_programs->material_block, m_uniform_buffer, m_ubr_sizes.material);
-      m_lights_ubr     = make_shared<uniform_buffer_range>(m_programs->lights_block,   m_uniform_buffer, m_ubr_sizes.lights);
-   }
-}
-
-void light_debug_renderer::set_max_lights(int max_lights)
-{
-   m_max_lights = max_lights;
 }
 
 void light_debug_renderer::light_pass(
-   shared_ptr<vector<shared_ptr<light> > > lights,
-   shared_ptr<camera> camera
+   vector<shared_ptr<light> > const &lights,
+   shared_ptr<class camera> camera
 )
 {
-   auto &r = *m_renderer;
+   gl::viewport(0, 0, width(), height());
+
+   update_lights_models(lights, camera);
+   update_lights(lights, camera);
+   update_camera(camera);
+
+   auto &r = renderer();
    auto &t = r.track();
-   auto p = m_programs->debug_light;
 
    t.execute(&m_debug_light_render_states);
-   r.set_program(p);
+   r.set_program(programs()->debug_light);
 
-   r.set_buffer(renderstack::graphics::buffer_target::uniform_buffer, m_uniform_buffer);
-   void *start0 = m_uniform_buffer->map(
-      r, 
-      0, 
-      m_uniform_buffer->capacity(), 
-      static_cast<gl::buffer_access_mask::value>(
-         gl::buffer_access_mask::map_write_bit | 
-         gl::buffer_access_mask::map_flush_explicit_bit |
-         gl::buffer_access_mask::map_invalidate_buffer_bit
-      )
-   );
+   bind_camera();
 
-   ubr_ptr start;
-   start.model    = static_cast<unsigned char*>(start0) + m_model_ubr   ->first_byte();
-   start.camera   = static_cast<unsigned char*>(start0) + m_camera_ubr  ->first_byte();
-   start.material = static_cast<unsigned char*>(start0) + m_material_ubr->first_byte();
-   start.lights   = static_cast<unsigned char*>(start0) + m_lights_ubr  ->first_byte();
-   start.debug    = nullptr;
-   ubr_pos offsets;
-
-   // Camera
-   mat4 const &world_from_clip = camera->clip_from_world().inverse_matrix();
-   mat4 const &world_from_view = camera->frame()->world_from_local().matrix();
-   mat4 const &clip_from_world = camera->clip_from_world().matrix();
-   mat4 const &view_from_world = camera->frame()->world_from_local().inverse_matrix();
-   //float exposure = 0.1f;
-   ::memcpy(start.camera + offsets.camera + m_programs->camera_block_access.world_from_view, value_ptr(world_from_view), 16 * sizeof(float));
-   ::memcpy(start.camera + offsets.camera + m_programs->camera_block_access.world_from_clip, value_ptr(world_from_clip), 16 * sizeof(float));
-   //::memcpy(start.camera + offsets.camera + m_programs->camera_block_access.viewport, value_ptr(vp), 4 * sizeof(float));
-   offsets.camera += m_programs->camera_block->size_bytes();
-   m_camera_ubr->flush(r, offsets.camera);
-
-   int light_index = 0;
-   for (auto i = lights->cbegin(); i != lights->cend(); ++i)
+   size_t light_index = 0;
+   for (auto i = lights.cbegin(); i != lights.cend(); ++i)
    {
       auto l = *i;
 
-      l->frame()->update_hierarchical_no_cache(); // TODO
-
-      mat4 scale              = m_light_mesh->get_light_transform(l);
-      mat4 world_from_light   = l->frame()->world_from_local().matrix() * scale;
-      mat4 clip_from_light    = clip_from_world * world_from_light;
-      mat4 view_from_light    = view_from_world * world_from_light;
-
-      glm::vec3 position   = vec3(l->frame()->world_from_local().matrix() * vec4(0.0f, 0.0f, 0.0f, 1.0f));
-      glm::vec3 direction  = vec3(l->frame()->world_from_local().matrix() * vec4(0.0f, 0.0f, 1.0f, 0.0f));
-      glm::vec3 radiance   = l->intensity() * l->color();
-
-      direction = normalize(direction);
-
-      ::memcpy(start.model + offsets.model + m_programs->model_block_access.clip_from_model,  value_ptr(clip_from_light), 16 * sizeof(float));
-      ::memcpy(start.model + offsets.model + m_programs->model_block_access.world_from_model, value_ptr(world_from_light), 16 * sizeof(float));
-      ::memcpy(start.model + offsets.model + m_programs->model_block_access.view_from_model,  value_ptr(view_from_light), 16 * sizeof(float));
-
-      ::memcpy(start.lights + offsets.lights + m_programs->lights_block_access.position , value_ptr(position),  3 * sizeof(float));
-      ::memcpy(start.lights + offsets.lights + m_programs->lights_block_access.direction, value_ptr(direction), 3 * sizeof(float));
-      ::memcpy(start.lights + offsets.lights + m_programs->lights_block_access.radiance , value_ptr(radiance),  3 * sizeof(float));
-
-      offsets.model += m_programs->model_block->size_bytes();
-      offsets.lights += m_programs->lights_block->size_bytes();
-
-      ++light_index;
-   }
-   assert(light_index < m_ubr_sizes.model);
-   m_model_ubr->flush(r, offsets.model);
-   assert(light_index < m_ubr_sizes.lights);
-   m_lights_ubr->flush(r, offsets.lights);
-
-   m_uniform_buffer->unmap(r);
-
-   m_uniform_buffer->bind_range(
-      m_programs->camera_block->binding_point(),
-      m_camera_ubr->first_byte(),
-      m_programs->camera_block->size_bytes()
-   );
-
-   light_index = 0;
-   for (auto i = lights->cbegin(); i != lights->cend(); ++i)
-   {
-      auto l = *i;
-
-      if (light_index == m_max_lights)
+      if (light_index == max_lights())
          break;
 
-      auto geometry_mesh   = m_light_mesh->get_light_mesh(l);
+      auto geometry_mesh   = light_mesh()->get_light_mesh(l);
       auto vertex_stream   = geometry_mesh->vertex_stream();
       auto mesh            = geometry_mesh->get_mesh();
 
-      m_uniform_buffer->bind_range(
-         m_programs->lights_block->binding_point(),
-         m_lights_ubr->first_byte() + light_index * m_programs->lights_block->size_bytes(),
-         m_programs->lights_block->size_bytes()
-      );
-
-      m_uniform_buffer->bind_range(
-         m_programs->model_block->binding_point(),
-         m_model_ubr->first_byte() + (light_index * m_programs->model_block->size_bytes()),
-         m_programs->model_block->size_bytes()
-      );
+      bind_light_model(light_index);
+      bind_light(light_index);
 
       gl::begin_mode::value         begin_mode     = gl::begin_mode::lines;
       index_range const             &index_range   = geometry_mesh->edge_line_indices();

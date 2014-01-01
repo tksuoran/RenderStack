@@ -512,8 +512,10 @@ bool renderer::map_buffer(buffer_target::value target, shared_ptr<class buffer> 
    else
       binding_ok = m_effective.buffer_binding[target] == buffer;
 
-   bool map_ok = (m_mapped_buffer[target] == nullptr) && (buffer->target() == target);
-   bool all_ok = binding_ok && map_ok;
+   bool not_mapped   = m_mapped_buffer[target] == nullptr;
+   bool target_match = buffer->target() == target;
+   bool map_ok       = not_mapped && target_match;
+   bool all_ok       = binding_ok && map_ok;
 
    if (all_ok)
       m_mapped_buffer[target] = buffer;

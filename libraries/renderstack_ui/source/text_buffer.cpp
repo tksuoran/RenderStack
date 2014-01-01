@@ -38,6 +38,7 @@ text_buffer::text_buffer(
    if (m_mesh.index_count() > numeric_limits<unsigned int>::max())
       throw runtime_error("font::prepare_gl_resources: no code path for index types other than unsigned int");
 
+   // TODO Support colored text
    m_mesh.allocate_vertex_buffer(m_renderer->vertex_buffer(), 4 * m_max_chars);
    m_mesh.allocate_index_buffer(m_renderer->index_buffer(), 6 * m_max_chars);
 

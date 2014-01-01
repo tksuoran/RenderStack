@@ -1,5 +1,3 @@
-// slider.fs.txt (sm0)
-
 varying vec2 v_texcoord;
 
 void main(void)

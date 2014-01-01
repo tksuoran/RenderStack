@@ -1,4 +1,4 @@
-in  vec2 v_texcoord;
+in vec2 v_texcoord;
 
 vec3 spherical_to_cartesian(vec2 s)
 {

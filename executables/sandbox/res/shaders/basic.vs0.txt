@@ -1,13 +1,11 @@
-// basic.vs.txt (sm0)
-
 attribute vec3 a_position;
 attribute vec3 a_normal;
 attribute vec4 a_color;
 attribute vec2 a_texcoord;
 
-varying vec3  v_normal;
-varying vec4  v_color;
-varying vec2  v_texcoord;
+varying vec3 v_normal;
+varying vec4 v_color;
+varying vec2 v_texcoord;
 
 void main()
 {

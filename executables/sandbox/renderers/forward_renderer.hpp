@@ -25,25 +25,26 @@ namespace renderstack { namespace scene {
 class debug_renderer;
 class model;
 
-class forward_renderer : public renderstack::toolkit::service
+class forward_renderer
+:  public renderstack::toolkit::service
+,  public base_renderer
 {
 public:
    forward_renderer();
    /*virtual*/ ~forward_renderer();
 
-   void set_max_lights(int max_lights);
-
    void connect(
       std::shared_ptr<renderstack::graphics::renderer> renderer,
       std::shared_ptr<debug_renderer> debug_renderer,
-      std::shared_ptr<programs> programs
+      std::shared_ptr<class programs> programs
    );
 
    /*virtual*/ void initialize_service();
 
    void render_pass(
-      std::shared_ptr<std::vector<std::shared_ptr<model> > > models,
-      std::shared_ptr<std::vector<std::shared_ptr<renderstack::scene::light> > > lights,
+      std::vector<std::shared_ptr<material> > const &materials,
+      std::vector<std::shared_ptr<model> > const &models,
+      std::vector<std::shared_ptr<renderstack::scene::light> > const &lights,
       std::shared_ptr<renderstack::scene::camera> camera
    );
 
@@ -55,21 +56,12 @@ private:
 
 private:
    // services
-   std::shared_ptr<renderstack::graphics::renderer>               m_renderer;
-   std::shared_ptr<debug_renderer>                                m_debug_renderer;
-   std::shared_ptr<programs>                                      m_programs;
+   std::shared_ptr<debug_renderer>           m_debug_renderer;
 
-   std::shared_ptr<renderstack::graphics::buffer>                 m_uniform_buffer;
-   ubr_pos                                                        m_ubr_sizes;
-   std::shared_ptr<renderstack::graphics::uniform_buffer_range>   m_model_ubr;
-   std::shared_ptr<renderstack::graphics::uniform_buffer_range>   m_camera_ubr;
-   std::shared_ptr<renderstack::graphics::uniform_buffer_range>   m_material_ubr;
-   std::shared_ptr<renderstack::graphics::uniform_buffer_range>   m_lights_ubr;
+   renderstack::graphics::render_states      m_first_pass_render_states;
+   renderstack::graphics::render_states      m_other_pass_render_states;
 
-   renderstack::graphics::render_states                           m_first_pass_render_states;
-   renderstack::graphics::render_states                           m_other_pass_render_states;
-
-   int                                                            m_max_lights;
+   std::vector<std::shared_ptr<material> >   m_placeholder_materials;
 };
 
 

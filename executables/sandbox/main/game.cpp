@@ -264,6 +264,8 @@ void game::on_resize(int width, int height)
 #endif
 
    m_deferred_renderer->resize(width, height);
+   m_debug_renderer->base_resize(width, height);
+   m_forward_renderer->base_resize(width, height);
 }
 
 void game::action(weak_ptr<action_source> source)

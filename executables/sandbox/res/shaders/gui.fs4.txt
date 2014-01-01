@@ -1,9 +1,7 @@
-// gui.fs.txt (sm4)
-
-in  vec2    v_texcoord;
+in vec2 v_texcoord;
 
 void main(void)
 {
-    vec4 c = texture(background_texture, v_texcoord.xy);
-    out_color = (gui.color_scale * c) + gui.color_add * c.a;
+   vec4 c = texture(background_texture, v_texcoord.xy);
+   out_color = (gui.color_scale * c) + gui.color_add * c.a;
 }

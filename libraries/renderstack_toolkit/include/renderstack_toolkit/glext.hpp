@@ -479,6 +479,12 @@ extern PFNGLTEXSTORAGE1DPROC                                glTexStorage1D;
 extern PFNGLTEXSTORAGE2DPROC                                glTexStorage2D;
 extern PFNGLTEXSTORAGE3DPROC                                glTexStorage3D;
 
+/*  GL_ARB_debug_output  */
+extern PFNGLDEBUGMESSAGECONTROLARBPROC                      glDebugMessageControlARB ;
+extern PFNGLDEBUGMESSAGEINSERTARBPROC                       glDebugMessageInsertARB  ;
+extern PFNGLDEBUGMESSAGECALLBACKARBPROC                     glDebugMessageCallbackARB;
+extern PFNGLGETDEBUGMESSAGELOGARBPROC                       glGetDebugMessageLogARB  ;
+
 } }
 
 #endif

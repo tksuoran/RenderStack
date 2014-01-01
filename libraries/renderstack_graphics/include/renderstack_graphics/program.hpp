@@ -14,6 +14,7 @@
 namespace renderstack { namespace graphics {
 
 class renderer;
+class shader_monitor;
 
 class program : public std::enable_shared_from_this<program>
 {
@@ -59,7 +60,7 @@ public:
    void                             transform_feedback  (std::vector<std::string> varyings, GLenum buffer_mode);
    void                             add                 (std::shared_ptr<class uniform_block> uniform_block);
    void                             link                ();
-   void                             reload              ();
+   void                             reload              (class shader_monitor &monitor);
 
 friend class renderer;
 private:

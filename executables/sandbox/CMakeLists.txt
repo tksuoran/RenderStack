@@ -32,12 +32,12 @@ file(GLOB_RECURSE res_fonts      RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE
 file(GLOB_RECURSE res_polyhedra  RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/res/polyhedra/*")
 file(GLOB_RECURSE res_shaders    RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/res/shaders/*")
 
-foreach (r ${res_images} ${res_fonts} ${res_shaders})
+foreach (r ${res_images} ${res_fonts} ${res_polyhedra} ${res_shaders})
    cm_export_file(${CMAKE_CURRENT_SOURCE_DIR}/${r} ${CMAKE_CURRENT_BINARY_DIR}/${r} sandbox)
 endforeach(r)
-# message(STATUS ${CMAKE_CURRENT_BINARY_DIR}/res/source.txt "${CMAKE_CURRENT_SOURCE_DIR}/res")
-file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/res/src_path.txt "${CMAKE_CURRENT_SOURCE_DIR}/res")
-file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/res/dst_path.txt "${CMAKE_CURRENT_BINARY_DIR}/res")
+
+file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/res/src_path.txt "${CMAKE_CURRENT_SOURCE_DIR}")
+file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/res/dst_path.txt "${CMAKE_CURRENT_BINARY_DIR}")
 
 add_executable(
    sandbox
@@ -79,6 +79,8 @@ add_executable(
    scene/material.cpp
    scene/material.hpp
 
+   renderers/base_renderer.cpp
+   renderers/base_renderer.hpp
    renderers/deferred_renderer.cpp
    renderers/deferred_renderer.hpp
    renderers/forward_renderer.cpp

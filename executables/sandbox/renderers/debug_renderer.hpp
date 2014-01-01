@@ -2,6 +2,7 @@
 #define debug_renderer_hpp_renderers
 
 #include "renderstack_toolkit/platform.hpp"
+#include "renderers/base_renderer.hpp"
 #include "renderstack_toolkit/service.hpp"
 #include "renderstack_graphics/renderer.hpp"
 #include "main/programs.hpp"
@@ -25,12 +26,15 @@ namespace renderstack { namespace ui {
    class text_buffer;
 } }
 
+// This structure matches DrawElementsIndirectCommand from]
+// http://www.opengl.org/registry/specs/ARB/draw_indirect.txt
 struct draw
 {
-   glm::mat4   clip_from_model;
-   int         first;
-   int         count;
-   int         model_index;
+   unsigned count;            // number of indices / vertices
+   unsigned prim_count;       // number of instances
+   unsigned first_index;      // offset added to index buffer
+   unsigned base_vertex;      // offset added to vertex buffer
+   unsigned base_instance;    // offset added to instance buffer
 };
 
 struct print_at
@@ -40,7 +44,9 @@ struct print_at
    std::string text;
 };
 
-class debug_renderer : public renderstack::toolkit::service
+class debug_renderer
+:  public renderstack::toolkit::service
+,  public base_renderer
 {
 public:
    debug_renderer();
@@ -49,7 +55,7 @@ public:
    void connect(
       std::shared_ptr<renderstack::graphics::renderer> renderer,
       std::shared_ptr<renderstack::ui::gui_renderer> gui_renderer,
-      std::shared_ptr<programs> programs
+      std::shared_ptr<class programs> programs
    );
 
    void initialize_service();
@@ -76,14 +82,12 @@ public:
    void add_box(glm::vec3 min_, glm::vec3 max_);
 
 private:
-
+   void begin_edit_vbo();
+   void begin_edit_ibo();
    std::uint16_t add_point(glm::vec3 p);
 
 private:
-   std::shared_ptr<renderstack::graphics::renderer>               m_renderer;
    std::shared_ptr<renderstack::ui::gui_renderer>                 m_gui_renderer;
-   std::shared_ptr<programs>                                      m_programs;
-
    std::shared_ptr<renderstack::scene::camera>                    m_camera;
 
    // Self owned
@@ -94,23 +98,16 @@ private:
    std::shared_ptr<renderstack::graphics::vertex_stream>          m_vertex_stream;
 
    // Debug text lines
-   std::vector<std::string>                        m_debug_lines;
-   std::vector<print_at>                           m_debug_print_ats;
+   std::vector<std::string>                                       m_debug_lines;
+   std::vector<print_at>                                          m_debug_print_ats;
 
 #if defined(RENDERSTACK_USE_FREETYPE)
-   std::shared_ptr<renderstack::ui::font>          m_font;
-   std::shared_ptr<renderstack::ui::text_buffer>   m_text_buffer;
-   renderstack::graphics::render_states            m_font_render_states;
+   std::shared_ptr<renderstack::ui::font>                         m_font;
+   std::shared_ptr<renderstack::ui::text_buffer>                  m_text_buffer;
+   renderstack::graphics::render_states                           m_font_render_states;
 #endif
 
-   std::shared_ptr<renderstack::graphics::buffer>                 m_uniform_buffer;
-   ubr_pos                                                        m_ubr_sizes;
-   std::shared_ptr<renderstack::graphics::uniform_buffer_range>   m_model_ubr;
-   std::shared_ptr<renderstack::graphics::uniform_buffer_range>   m_material_ubr;
-   ubr_ptr                                                        m_uniform_start;
-   ubr_pos                                                        m_uniform_offsets;
-
-   renderstack::graphics::render_states            m_render_states;
+   renderstack::graphics::render_states                           m_render_states;
    
    bool                 m_in_edit;
    float                *m_vertex_ptr_start;
@@ -119,7 +116,9 @@ private:
    std::uint16_t        *m_index_ptr;
    int                  m_capacity_lines;
    std::uint16_t        m_vertex_offset;
-   int                  m_index_offset;
+   std::uint16_t        m_index_offset;
+   unsigned char        *m_models_start;
+   std::size_t          m_model_index;
 
    glm::vec4            m_color;
 

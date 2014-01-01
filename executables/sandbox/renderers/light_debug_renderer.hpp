@@ -2,6 +2,7 @@
 #define light_debug_renderer_hpp_renderers
 
 #include "renderstack_toolkit/platform.hpp"
+#include "renderers/base_renderer.hpp"
 #include "renderstack_toolkit/service.hpp"
 #include "main/programs.hpp"
 #include "scene/model.hpp"
@@ -30,7 +31,9 @@ namespace renderstack
 
 class light_mesh;
 
-class light_debug_renderer : public renderstack::toolkit::service
+class light_debug_renderer
+:  public renderstack::toolkit::service
+,  public base_renderer
 {
 public:
    light_debug_renderer();
@@ -38,38 +41,19 @@ public:
 
    void connect(
       std::shared_ptr<renderstack::graphics::renderer>   renderer,
-      std::shared_ptr<programs>                          programs,
-      std::shared_ptr<light_mesh>                        light_mesh
+      std::shared_ptr<class programs>                    programs,
+      std::shared_ptr<class light_mesh>                  light_mesh
    );
    /*virtual/*/ void initialize_service();
 
-   void set_max_lights(int max_lights);
-
    void light_pass(
-      std::shared_ptr<std::vector<std::shared_ptr<renderstack::scene::light> > > lights,
+      std::vector<std::shared_ptr<renderstack::scene::light> > const &lights,
       std::shared_ptr<renderstack::scene::camera> camera
    );
 
-   bool point_in_light(std::shared_ptr<renderstack::scene::light> l);
-
 private:
-   void update_light_model(std::shared_ptr<renderstack::scene::light> l);
+   renderstack::graphics::render_states m_debug_light_render_states;
 
-private:
-   std::shared_ptr<renderstack::graphics::renderer>   m_renderer;
-   std::shared_ptr<programs>                          m_programs;
-   std::shared_ptr<light_mesh>                        m_light_mesh;
-
-   renderstack::graphics::render_states               m_debug_light_render_states;
-
-   std::shared_ptr<renderstack::graphics::buffer>                 m_uniform_buffer;
-   ubr_pos                                                        m_ubr_sizes;
-   std::shared_ptr<renderstack::graphics::uniform_buffer_range>   m_model_ubr;
-   std::shared_ptr<renderstack::graphics::uniform_buffer_range>   m_camera_ubr;
-   std::shared_ptr<renderstack::graphics::uniform_buffer_range>   m_material_ubr;
-   std::shared_ptr<renderstack::graphics::uniform_buffer_range>   m_lights_ubr;
-
-   int m_max_lights;
 };
 
 

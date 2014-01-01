@@ -41,14 +41,10 @@ using namespace std;
 
 deferred_renderer::deferred_renderer()
 :  service("deferred_renderer")
-,  m_renderer     (nullptr)
-,  m_programs     (nullptr)
 ,  m_quad_renderer(nullptr)
 ,  m_gbuffer_fbo  (0)
 ,  m_linear_fbo   (0)
 ,  m_stencil_rbo  (0)
-,  m_use_stencil  (true)
-,  m_scale        (1)
 {
 }
 
@@ -58,27 +54,24 @@ deferred_renderer::deferred_renderer()
 
 void deferred_renderer::connect(
    shared_ptr<renderstack::graphics::renderer>  renderer_,
-   shared_ptr<programs>                         programs_,
+   shared_ptr<class programs>                   programs_,
    shared_ptr<quad_renderer>                    quad_renderer_,
-   std::shared_ptr<light_mesh>                  light_mesh_
+   std::shared_ptr<class light_mesh>            light_mesh_
 )
 {
-   m_renderer = renderer_;
-   m_programs = programs_;
+   base_connect(renderer_, programs_, light_mesh_);
    m_quad_renderer = quad_renderer_;
-   m_light_mesh = light_mesh_;
 
-   initialization_depends_on(m_renderer);
-   initialization_depends_on(m_programs);
+   initialization_depends_on(renderer_);
+   initialization_depends_on(programs_);
 }
 
 void deferred_renderer::initialize_service()
 {
-   assert(m_renderer);
-   assert(m_programs);
+   base_initialize_service();
 
-   m_mesh_render_states.depth.set_enabled(true);
-   m_mesh_render_states.face_cull.set_enabled(true);
+   m_gbuffer_render_states.depth.set_enabled(true);
+   m_gbuffer_render_states.face_cull.set_enabled(true);
 
    // Nothing to change in, use default render states:
    // m_show_rt_render_states
@@ -132,55 +125,11 @@ void deferred_renderer::initialize_service()
    m_light_render_states.blend.rgb().set_equation_mode      (gl::blend_equation_mode::func_add);
    m_light_render_states.blend.rgb().set_source_factor      (gl::blending_factor_src::one);
    m_light_render_states.blend.rgb().set_destination_factor (gl::blending_factor_dest::one);
-
-   if (renderstack::graphics::configuration::can_use.uniform_buffer_object)
-   {
-      auto &r = *m_renderer;
-
-      size_t ubo_size = 0;
-
-      m_ubr_sizes.camera   = 20;
-      m_ubr_sizes.model    = 400;
-      m_ubr_sizes.material = 100;
-      m_ubr_sizes.lights   = 400;
-      m_ubr_sizes.debug    = 100;
-
-      ubo_size += m_programs->model_block   ->size_bytes() * m_ubr_sizes.model;
-      ubo_size += m_programs->camera_block  ->size_bytes() * m_ubr_sizes.camera;
-      ubo_size += m_programs->material_block->size_bytes() * m_ubr_sizes.material;
-      ubo_size += m_programs->lights_block  ->size_bytes() * m_ubr_sizes.lights;
-      ubo_size += m_programs->debug_block   ->size_bytes() * m_ubr_sizes.debug;
-
-      m_uniform_buffer = make_shared<buffer>(
-         renderstack::graphics::buffer_target::uniform_buffer,
-         ubo_size,
-         1
-      );
-      m_uniform_buffer->allocate_storage(r);
-
-      m_model_ubr      = make_shared<uniform_buffer_range>(m_programs->model_block,    m_uniform_buffer, m_ubr_sizes.model);
-      m_camera_ubr     = make_shared<uniform_buffer_range>(m_programs->camera_block,   m_uniform_buffer, m_ubr_sizes.camera);
-      m_material_ubr   = make_shared<uniform_buffer_range>(m_programs->material_block, m_uniform_buffer, m_ubr_sizes.material);
-      m_lights_ubr     = make_shared<uniform_buffer_range>(m_programs->lights_block,   m_uniform_buffer, m_ubr_sizes.lights);
-   }
 }
 
-void deferred_renderer::set_use_stencil(bool value)
+void deferred_renderer::resize(int width_, int height_)
 {
-   m_use_stencil = value;
-}
-
-void deferred_renderer::set_scale(int value)
-{
-   m_scale = value;
-}
-
-void deferred_renderer::resize(int width, int height)
-{
-   m_width = width / m_scale;
-   m_height = height / m_scale;
-   m_width_full = width;
-   m_height_full = height;
+   base_resize(width_, height_);
    {
       if (m_gbuffer_fbo == 0)
          gl::gen_framebuffers(1, &m_gbuffer_fbo);
@@ -200,11 +149,11 @@ void deferred_renderer::resize(int width, int height)
             renderstack::graphics::texture_target::texture_2d,
             formats[i],
             false,
-            m_width,
-            m_height,
+            width(),
+            height(),
             0
          );
-         m_gbuffer_rt[i]->allocate_storage(*m_renderer);
+         m_gbuffer_rt[i]->allocate_storage(renderer());
          m_gbuffer_rt[i]->set_mag_filter(gl::texture_mag_filter::nearest);
          m_gbuffer_rt[i]->set_min_filter(gl::texture_min_filter::nearest);
          m_gbuffer_rt[i]->set_wrap(0, gl::texture_wrap_mode::clamp_to_edge);
@@ -226,23 +175,23 @@ void deferred_renderer::resize(int width, int height)
          );
       }
 
-      GLenum depth_format = m_use_stencil ? GL_DEPTH32F_STENCIL8 : GL_DEPTH_COMPONENT32F;
-      GLenum attachment_point = m_use_stencil ? GL_DEPTH_STENCIL_ATTACHMENT : GL_DEPTH_ATTACHMENT;
+      GLenum depth_format = use_stencil() ? GL_DEPTH32F_STENCIL8 : GL_DEPTH_COMPONENT32F;
+      GLenum attachment_point = use_stencil() ? GL_DEPTH_STENCIL_ATTACHMENT : GL_DEPTH_ATTACHMENT;
 
       m_depth.reset();
       m_depth = make_shared<renderstack::graphics::texture>(
          renderstack::graphics::texture_target::texture_2d,
          depth_format,
          false,
-         m_width,
-         m_height,
+         width(),
+         height(),
          0
       );
       m_depth->set_mag_filter(gl::texture_mag_filter::nearest);
       m_depth->set_min_filter(gl::texture_min_filter::nearest);
       m_depth->set_wrap(0, gl::texture_wrap_mode::clamp_to_edge);
       m_depth->set_wrap(1, gl::texture_wrap_mode::clamp_to_edge);
-      m_depth->allocate_storage(*m_renderer);
+      m_depth->allocate_storage(renderer());
 
       gl::framebuffer_texture_2d(
          GL_DRAW_FRAMEBUFFER,
@@ -275,11 +224,11 @@ void deferred_renderer::resize(int width, int height)
             renderstack::graphics::texture_target::texture_2d,
             formats[i],
             false,
-            m_width,
-            m_height,
+            width(),
+            height(),
             0
          );
-         m_linear_rt[i]->allocate_storage(*m_renderer);
+         m_linear_rt[i]->allocate_storage(renderer());
          m_linear_rt[i]->set_mag_filter(gl::texture_mag_filter::nearest);
          m_linear_rt[i]->set_min_filter(gl::texture_min_filter::nearest);
          m_linear_rt[i]->set_wrap(0, gl::texture_wrap_mode::clamp_to_edge);
@@ -294,7 +243,7 @@ void deferred_renderer::resize(int width, int height)
          );
       }
 
-      if (m_use_stencil)
+      if (use_stencil())
       {
          if (m_stencil_rbo == 0)
             gl::gen_renderbuffers(1, &m_stencil_rbo);
@@ -304,8 +253,8 @@ void deferred_renderer::resize(int width, int height)
          gl::renderbuffer_storage(
             GL_RENDERBUFFER,
             GL_DEPTH32F_STENCIL8,
-            m_width,
-            m_height
+            width(),
+            height()
          );
          gl::framebuffer_renderbuffer(
             GL_FRAMEBUFFER,
@@ -324,11 +273,6 @@ void deferred_renderer::resize(int width, int height)
    }
 
    gl::bind_framebuffer(GL_DRAW_FRAMEBUFFER, 0);
-}
-
-void deferred_renderer::set_max_lights(int max_lights)
-{
-   m_max_lights = max_lights;
 }
 
 void deferred_renderer::bind_gbuffer_fbo()
@@ -357,7 +301,7 @@ void deferred_renderer::fbo_clear()
    cartesian_to_spherical(N, normal_tangent_clear[0], normal_tangent_clear[1]);
    cartesian_to_spherical(T, normal_tangent_clear[2], normal_tangent_clear[3]);
 
-   auto &r = *m_renderer;
+   auto &r = renderer();
    r.reset_texture(0, renderstack::graphics::texture_target::texture_2d, nullptr);
    r.reset_texture(1, renderstack::graphics::texture_target::texture_2d, nullptr);
    r.reset_texture(2, renderstack::graphics::texture_target::texture_2d, nullptr);
@@ -376,110 +320,35 @@ void deferred_renderer::fbo_clear()
 }
 
 void deferred_renderer::geometry_pass(
-   shared_ptr<vector<shared_ptr<material> > > materials,
-   shared_ptr<vector<shared_ptr<model> > > models,
+   vector<shared_ptr<material> > const &materials,
+   vector<shared_ptr<model> > const &models,
    shared_ptr<renderstack::scene::camera> camera
 )
 {
    bind_gbuffer_fbo();
 
-   gl::viewport(0, 0, m_width, m_height);
+   gl::viewport(0, 0, width(), height());
 
    fbo_clear();
 
-   if (models->size() == 0)
+   if (models.size() == 0)
       return;
 
-   auto &r = *m_renderer;
+   update_camera(camera);
+   update_models(models, camera);
+   update_materials(materials);
+
+   auto &r = renderer();
    auto &t = r.track();
-   auto p = m_programs->gbuffer;
+   auto p = programs()->gbuffer;
    t.reset();
-   t.execute(&m_mesh_render_states);
+   t.execute(&m_gbuffer_render_states);
    r.set_program(p);
 
-   r.set_buffer(renderstack::graphics::buffer_target::uniform_buffer, m_uniform_buffer);
-   void *start0 = m_uniform_buffer->map(
-      r, 
-      0, 
-      m_uniform_buffer->capacity(), 
-      static_cast<gl::buffer_access_mask::value>(
-         gl::buffer_access_mask::map_write_bit | 
-         gl::buffer_access_mask::map_flush_explicit_bit |
-         gl::buffer_access_mask::map_invalidate_buffer_bit
-      )
-   );
+   bind_camera();
 
-   ubr_ptr start;
-   start.model    = static_cast<unsigned char*>(start0) + m_model_ubr   ->first_byte();
-   start.camera   = static_cast<unsigned char*>(start0) + m_camera_ubr  ->first_byte();
-   start.material = static_cast<unsigned char*>(start0) + m_material_ubr->first_byte();
-   start.lights   = static_cast<unsigned char*>(start0) + m_lights_ubr  ->first_byte();
-   start.debug    = nullptr;
-   ubr_pos offsets;
-
-   // Material
-   int material_index = 0;
-   for (auto i = materials->cbegin(); i != materials->cend(); ++i)
-   {
-      auto material = *i;
-      vec4  color = material->color();
-      float r = material->roughness();
-      float p = material->isotropy();
-
-      ::memcpy(start.material + offsets.material + m_programs->material_block_access.color    , value_ptr(color), 4 * sizeof(float));
-      ::memcpy(start.material + offsets.material + m_programs->material_block_access.roughness, &r, sizeof(float));
-      ::memcpy(start.material + offsets.material + m_programs->material_block_access.isotropy , &p, sizeof(float));
-      offsets.material += m_programs->material_block->size_bytes();
-      ++material_index;
-   }
-   assert(material_index < m_ubr_sizes.material);
-   m_material_ubr->flush(r, offsets.material);
-
-   // Camera
-   mat4 const &world_from_view = camera->frame()->world_from_local().matrix();
-   mat4 const &clip_from_world = camera->clip_from_world().matrix();
-   mat4 const &view_from_world = camera->frame()->world_from_local().inverse_matrix();
-   //float exposure = 0.1f;
-   ::memcpy(start.camera + offsets.camera + m_programs->camera_block_access.world_from_view, value_ptr(world_from_view), 16 * sizeof(float));
-   offsets.camera += m_programs->camera_block->size_bytes();
-   m_camera_ubr->flush(r, offsets.camera);
-
-   // Models
-   int model_index = 0;
-   for (auto j = models->cbegin(); j != models->cend(); ++j)
-   {
-      auto model = *j;
-
-      model->frame()->update_hierarchical_no_cache(); // TODO
-
-      mat4 world_from_model   = model->frame()->world_from_local().matrix();
-      mat4 clip_from_model    = clip_from_world * world_from_model;
-      mat4 view_from_model    = view_from_world * world_from_model;
-
-      ::memcpy(start.model + offsets.model + m_programs->model_block_access.clip_from_model,  value_ptr(clip_from_model), 16 * sizeof(float));
-      ::memcpy(start.model + offsets.model + m_programs->model_block_access.view_from_model,  value_ptr(view_from_model), 16 * sizeof(float));
-      ::memcpy(start.model + offsets.model + m_programs->model_block_access.world_from_model, value_ptr(world_from_model), 16 * sizeof(float));
-      offsets.model += m_programs->model_block->size_bytes();
-      ++model_index;
-   }
-   assert(model_index < m_ubr_sizes.model);
-   m_model_ubr->flush(r, offsets.model);
-
-   m_uniform_buffer->unmap(r);
-
-   m_uniform_buffer->bind_range(
-      m_programs->camera_block->binding_point(),
-      m_camera_ubr->first_byte(),
-      m_programs->camera_block->size_bytes()
-   );
-   m_uniform_buffer->bind_range(
-      m_programs->material_block->binding_point(),
-      m_material_ubr->first_byte(),
-      m_programs->material_block->size_bytes()
-   );
-
-   model_index = 0;
-   for (auto i = models->cbegin(); i != models->cend(); ++i)
+   size_t model_index = 0;
+   for (auto i = models.cbegin(); i != models.cend(); ++i)
    {
       auto model           = *i;
       auto geometry_mesh   = model->geometry_mesh();
@@ -497,17 +366,8 @@ void deferred_renderer::geometry_pass(
          ? static_cast<GLint>(mesh->first_vertex())
          : 0;
 
-      m_uniform_buffer->bind_range(
-         m_programs->model_block->binding_point(),
-         m_model_ubr->first_byte() + (model_index * m_programs->model_block->size_bytes()),
-         m_programs->model_block->size_bytes()
-      );
-
-      m_uniform_buffer->bind_range(
-         m_programs->material_block->binding_point(),
-         m_material_ubr->first_byte() + (material_index * m_programs->material_block->size_bytes()),
-         m_programs->material_block->size_bytes()
-      );
+      bind_model(model_index);
+      bind_material(material_index);
 
       r.draw_elements_base_vertex(
          model->geometry_mesh()->vertex_stream(),
@@ -528,12 +388,12 @@ void deferred_renderer::bind_linear_fbo()
    gl::draw_buffers(1, draw_buffers);
 
    gl::bind_framebuffer(GL_DRAW_FRAMEBUFFER, m_linear_fbo);
-   if (m_use_stencil)
+   if (use_stencil())
    {
       gl::bind_framebuffer(GL_READ_FRAMEBUFFER, m_gbuffer_fbo);
       gl::blit_framebuffer(
-         0, 0, m_width, m_height,
-         0, 0, m_width, m_height,
+         0, 0, width(), height(),
+         0, 0, width(), height(),
          GL_DEPTH_BUFFER_BIT,
          GL_NEAREST
       );
@@ -559,22 +419,27 @@ void deferred_renderer::bind_default_framebuffer()
 }
 
 void deferred_renderer::light_pass(
-   shared_ptr<vector<shared_ptr<light> > > lights,
-   shared_ptr<camera> camera
+   vector<shared_ptr<light> > const &lights,
+   shared_ptr<class camera> camera
 )
 {
    bind_linear_fbo();
 
-   gl::viewport(0, 0, m_width, m_height);
-
+   gl::viewport(0, 0, width(), height());
    gl::clear_color(0.0f, 0.0f, 0.0f, 1.0f);
    gl::clear_stencil(0);
-   if (m_use_stencil)
+   if (use_stencil())
       gl::clear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
    else
       gl::clear(GL_COLOR_BUFFER_BIT);
 
-   auto &r = *m_renderer;
+   update_lights_models(lights, camera);
+   update_lights(lights, camera);
+
+   mat4 const &world_from_view = camera->frame()->world_from_local().matrix();
+   vec3 view_position_in_world = vec3(world_from_view * vec4(0.0f, 0.0f, 0.0f, 1.0f));
+
+   auto &r = renderer();
    auto &t = r.track();
 
    // Don't bind emission texture for now
@@ -583,138 +448,27 @@ void deferred_renderer::light_pass(
    r.set_texture(2, m_gbuffer_rt[2]); // material
    r.reset_texture(3, renderstack::graphics::texture_target::texture_2d, nullptr);
    r.set_texture(4, m_depth);
-   r.set_program(m_programs->light_spot);
+   r.set_program(programs()->light_spot);
 
-   r.set_buffer(renderstack::graphics::buffer_target::uniform_buffer, m_uniform_buffer);
-   void *start0 = m_uniform_buffer->map(
-      r, 
-      0, 
-      m_uniform_buffer->capacity(), 
-      static_cast<gl::buffer_access_mask::value>(
-         gl::buffer_access_mask::map_write_bit | 
-         gl::buffer_access_mask::map_flush_explicit_bit |
-         gl::buffer_access_mask::map_invalidate_buffer_bit
-      )
-   );
+   bind_camera();
 
-   // viewport (in camera constant buffer)
-   vec4 vp;
-   vp.x = static_cast<float>(0);
-   vp.y = static_cast<float>(0);
-   vp.z = static_cast<float>(m_width);
-   vp.w = static_cast<float>(m_height);
-
-   ubr_ptr start;
-   start.model    = static_cast<unsigned char*>(start0) + m_model_ubr   ->first_byte();
-   start.camera   = static_cast<unsigned char*>(start0) + m_camera_ubr  ->first_byte();
-   start.material = static_cast<unsigned char*>(start0) + m_material_ubr->first_byte();
-   start.lights   = static_cast<unsigned char*>(start0) + m_lights_ubr  ->first_byte();
-   start.debug    = nullptr;
-   ubr_pos offsets;
-
-   // Camera
-   mat4 const &world_from_clip = camera->clip_from_world().inverse_matrix();
-   mat4 const &world_from_view = camera->frame()->world_from_local().matrix();
-   mat4 const &clip_from_world = camera->clip_from_world().matrix();
-   mat4 const &view_from_world = camera->frame()->world_from_local().inverse_matrix();
-   glm::vec3 view_position_in_world = vec3(world_from_view * vec4(0.0f, 0.0f, 0.0f, 1.0f));
-   float exposure = 1.0f;
-   ::memcpy(start.camera + offsets.camera + m_programs->camera_block_access.world_from_view, value_ptr(world_from_view), 16 * sizeof(float));
-   ::memcpy(start.camera + offsets.camera + m_programs->camera_block_access.world_from_clip, value_ptr(world_from_clip), 16 * sizeof(float));
-   ::memcpy(start.camera + offsets.camera + m_programs->camera_block_access.viewport, value_ptr(vp), 4 * sizeof(float));
-   ::memcpy(start.camera + offsets.camera + m_programs->camera_block_access.exposure, &exposure, sizeof(float));
-   offsets.camera += m_programs->camera_block->size_bytes();
-   m_camera_ubr->flush(r, offsets.camera);
-
-   int light_index = 0;
-   for (auto i = lights->cbegin(); i != lights->cend(); ++i)
-   {
-      auto l = *i;
-
-      l->frame()->update_hierarchical_no_cache(); // TODO
-
-      mat4 scale              = m_light_mesh->get_light_transform(l);
-      mat4 world_from_light   = l->frame()->world_from_local().matrix() * scale;
-      mat4 view_from_light    = view_from_world * world_from_light;
-      mat4 clip_from_light;
-
-      switch (l->type())
-      {
-      case light_type::spot:
-         clip_from_light = clip_from_world * world_from_light;
-         break;
-
-      case light_type::directional:
-         clip_from_light = mat4(1.0f);
-         break;
-
-      default:
-         assert(0);
-         break;
-      }
-
-      glm::vec3 position   = vec3(l->frame()->world_from_local().matrix() * vec4(0.0f, 0.0f, 0.0f, 1.0f));
-      glm::vec3 direction  = vec3(l->frame()->world_from_local().matrix() * vec4(0.0f, 0.0f, 1.0f, 0.0f));
-      glm::vec3 radiance   = l->intensity() * l->color();
-
-      direction = normalize(direction);
-
-      // Somewhat unneeded for other than point lights
-      float spot_angle  = l->spot_angle() * 0.5f;
-      float spot_cutoff = std::cos(spot_angle);
-
-      ::memcpy(start.model + offsets.model + m_programs->model_block_access.clip_from_model,  value_ptr(clip_from_light),  16 * sizeof(float));
-      ::memcpy(start.model + offsets.model + m_programs->model_block_access.world_from_model, value_ptr(world_from_light), 16 * sizeof(float));
-      ::memcpy(start.model + offsets.model + m_programs->model_block_access.view_from_model,  value_ptr(view_from_light),  16 * sizeof(float));
-
-      ::memcpy(start.lights + offsets.lights + m_programs->lights_block_access.position,     value_ptr(position),    3 * sizeof(float));
-      ::memcpy(start.lights + offsets.lights + m_programs->lights_block_access.direction,    value_ptr(direction),   3 * sizeof(float));
-      ::memcpy(start.lights + offsets.lights + m_programs->lights_block_access.radiance,     value_ptr(radiance),    3 * sizeof(float));
-      ::memcpy(start.lights + offsets.lights + m_programs->lights_block_access.spot_cutoff,  &spot_cutoff,           1 * sizeof(float));
-
-      offsets.model += m_programs->model_block->size_bytes();
-      offsets.lights += m_programs->lights_block->size_bytes();
-
-      ++light_index;
-   }
-   assert(light_index < m_ubr_sizes.model);
-   m_model_ubr->flush(r, offsets.model);
-   assert(light_index < m_ubr_sizes.lights);
-   m_lights_ubr->flush(r, offsets.lights);
-
-   m_uniform_buffer->unmap(r);
-
-   m_uniform_buffer->bind_range(
-      m_programs->camera_block->binding_point(),
-      m_camera_ubr->first_byte(),
-      m_programs->camera_block->size_bytes()
-   );
-
-   light_index = 0;
-   if (!m_use_stencil)
+   size_t light_index = 0;
+   if (!use_stencil())
       t.execute(&m_light_render_states);
-   for (auto i = lights->cbegin(); i != lights->cend(); ++i)
+
+   for (auto i = lights.cbegin(); i != lights.cend(); ++i)
    {
       auto l = *i;
 
-      if (light_index == m_max_lights)
+      if (light_index == max_lights())
          break;
 
-      auto geometry_mesh   = m_light_mesh->get_light_mesh(l);
+      auto geometry_mesh   = light_mesh()->get_light_mesh(l);
       auto vertex_stream   = geometry_mesh->vertex_stream();
       auto mesh            = geometry_mesh->get_mesh();
 
-      m_uniform_buffer->bind_range(
-         m_programs->lights_block->binding_point(),
-         m_lights_ubr->first_byte() + light_index * m_programs->lights_block->size_bytes(),
-         m_programs->lights_block->size_bytes()
-      );
-
-      m_uniform_buffer->bind_range(
-         m_programs->model_block->binding_point(),
-         m_model_ubr->first_byte() + (light_index * m_programs->model_block->size_bytes()),
-         m_programs->model_block->size_bytes()
-      );
+      bind_light_model(light_index);
+      bind_light(light_index);
 
       gl::begin_mode::value         begin_mode     = gl::begin_mode::triangles;
       index_range const             &index_range   = geometry_mesh->fill_indices();
@@ -728,13 +482,13 @@ void deferred_renderer::light_pass(
       assert(index_range.index_count > 0);
 
       bool used_stencil = false;
-      if (m_use_stencil && (l->type() == light_type::spot))
+      if (use_stencil() && (l->type() == light_type::spot))
       {
-         bool view_in_light = m_light_mesh->point_in_light(view_position_in_world, l);
+         bool view_in_light = light_mesh()->point_in_light(view_position_in_world, l);
          if (!view_in_light)
          {
             t.execute(&m_light_stencil_render_states);
-            r.set_program(m_programs->stencil);
+            r.set_program(programs()->stencil);
 
             r.draw_elements_base_vertex(
                geometry_mesh->vertex_stream(),
@@ -746,18 +500,18 @@ void deferred_renderer::light_pass(
       switch (l->type())
       {
       case light_type::spot:
-         if (m_use_stencil)
+         if (use_stencil())
             if (used_stencil)
                t.execute(&m_light_with_stencil_test_render_states);
             else
                t.execute(&m_light_render_states);
-         r.set_program(m_programs->light_spot);
+         r.set_program(programs()->light_spot);
          break;
 
       case light_type::directional:
-         if (m_use_stencil)
+         if (use_stencil())
             t.execute(&m_light_render_states);
-         r.set_program(m_programs->light_directional);
+         r.set_program(programs()->light_directional);
          break;
 
       default:
@@ -780,12 +534,12 @@ void deferred_renderer::light_pass(
    r.reset_texture(2, renderstack::graphics::texture_target::texture_2d, nullptr);
    r.reset_texture(3, renderstack::graphics::texture_target::texture_2d, nullptr);
    r.reset_texture(4, renderstack::graphics::texture_target::texture_2d, nullptr);
-   r.set_program(m_programs->camera);
+   r.set_program(programs()->camera);
 
-   gl::viewport(0, 0, m_width_full, m_height_full);
-   gl::enable(GL_FRAMEBUFFER_SRGB);
+   gl::viewport(0, 0, width_full(), height_full());
+   //gl::enable(GL_FRAMEBUFFER_SRGB);
    m_quad_renderer->render_minus_one_to_one();
-   gl::disable(GL_FRAMEBUFFER_SRGB);
+   //gl::disable(GL_FRAMEBUFFER_SRGB);
 }
 
 void deferred_renderer::show_rt()

@@ -89,6 +89,9 @@ configuration::can_use_t::can_use_t()
    map_buffer_oes                = false;
    discard_framebuffer_oes       = false;
    invalidate_framebuffer        = false;
+   tex_storage                   = false;
+
+   debug_output_arb              = false;
 }
 bool  configuration::throw_program_exceptions             = true;
 unsigned int   configuration::default_vao                 = 0;
@@ -508,6 +511,8 @@ void configuration::initialize()
    check(extensions, can_use.timer_query,                "timer_query",                330, 999, "GL_ARB_timer_query");
    check(extensions, can_use.gpu_shader5,                "gpu_shader5",                400, 999, "GL_EXT_gpu_shader5");
    check(extensions, can_use.tesselation_shaders,        "tesselation_shaders",        400, 999, "GL_ARB_tesselation_shader");
+
+   check(extensions, can_use.debug_output_arb,           "debug_output_arb",           999, 999, "GL_ARB_debug_output");
 #endif
 
    can_use.bind_buffer_range = can_use.map_buffer_range;

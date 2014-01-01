@@ -336,6 +336,9 @@ void buffer::flush(class renderer &renderer, size_t first, size_t count)
    size_t offset  = first * m_stride;
    size_t size    = count * m_stride;
 
+   bool flush_explicit = (m_mapped_access & gl::buffer_access_mask::map_flush_explicit_bit) == gl::buffer_access_mask::map_flush_explicit_bit;
+   assert(flush_explicit);
+
    if (first + count > m_capacity)
       throw runtime_error("first + count > m_capacity");
 
@@ -479,14 +482,14 @@ size_t buffer::capacity() const
    return m_capacity;
 }
 
-void buffer::bind_range(unsigned int binding_point, size_t offset, size_t size)
+void buffer::bind_range(unsigned int binding_point, size_t first, size_t size)
 {
    gl::bind_buffer_range(
       buffer_target::gl_buffer_target(m_target),
       binding_point,
       m_gl_name,
-      offset,
-      size
+      first * m_stride,
+      size * m_stride
    );
 }
    

@@ -4120,5 +4120,65 @@ void tex_storage_3d(GLenum target, GLsizei levels, GLenum internalformat, GLsize
 #endif
 #endif
 
+
+/*  GL_ARB_debug_output  */
+#if defined(RENDERSTACK_GL_API_OPENGL)
+void debug_message_control(
+   GLenum source, GLenum type, GLenum severity, GLsizei count,
+   const GLuint *ids, GLboolean enabled)
+{  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
+   assert(gl::detail::glDebugMessageControlARB != nullptr);
+   gl::detail::glDebugMessageControlARB(source, type, severity, count, ids, enabled);
+#else
+   ::glTexStorage3D(source, type, severity, count, ids, enabled);
+#endif
+   check_error();
+}
+
+void debug_message_insert(
+   GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *buf
+)
+{  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
+   assert(gl::detail::glDebugMessageInsertARB != nullptr);
+   gl::detail::glDebugMessageInsertARB(source, type, id, severity, length, buf);
+#else
+   ::glDebugMessageInsertARB(source, type, id, severity, length, buf);
+#endif
+   check_error();
+}
+
+void debug_message_callback(
+   GLDEBUGPROCARB callback, const void *userParam
+)
+{  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
+   assert(gl::detail::glDebugMessageCallbackARB != nullptr);
+   gl::detail::glDebugMessageCallbackARB(callback, userParam);
+#else
+   ::glDebugMessageCallbackARB(callback, userParam);
+#endif
+   check_error();
+}
+
+GLuint get_debug_message_log(
+   GLuint count, GLsizei bufsize, GLenum *sources, GLenum *types,
+   GLuint *ids, GLenum *severities, GLsizei *lengths, GLchar *messageLog
+)
+{  LOG_GL_FUNCTION(__FUNCTION__);
+   GLuint res;
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
+   assert(gl::detail::glGetDebugMessageLogARB != nullptr);
+   res = gl::detail::glGetDebugMessageLogARB(count, bufsize, sources, types, ids, severities, lengths, messageLog);
+#else
+   res = ::glGetDebugMessageLogARB(count, bufsize, sources, types, ids, severities, lengths, messageLog);
+#endif
+   check_error();
+   return res;
+}
+
+#endif
+
 }
 

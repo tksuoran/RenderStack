@@ -184,12 +184,15 @@ void menu::initialize_service()
 
    if (renderstack::graphics::configuration::can_use.uniform_buffer_object)
    {
+      intptr_t size = 0;
+      size += m_programs->models_block->size_bytes();
+      size += m_programs->materials_block->size_bytes();
+      size += m_programs->camera_block->size_bytes();
       auto &r = *m_renderer;
 
       m_uniform_buffer = make_shared<buffer>(
          renderstack::graphics::buffer_target::uniform_buffer,
-         m_programs->model_block   ->size_bytes() +
-         m_programs->material_block->size_bytes(),
+         size,
          1,
          gl::buffer_usage_hint::static_draw
       );
@@ -319,11 +322,8 @@ void menu::on_enter()
    slog_trace("menu::on_enter()");
 
    m_gui_renderer->prepare(); // disable cull face, depth test & mask, blend
-
    gl::clear_color(0.3f, 0.1f, 0.2f, 0.0f);
-
    gl::disable(gl::enable_cap::scissor_test); // TODO stencil_state
-
    on_resize(m_application->width(), m_application->height());
 }
 void menu::on_exit()
@@ -337,15 +337,17 @@ void menu::render()
    assert(m_application);
    assert(m_programs);
 
-   float w = static_cast<float>(m_application->width());   // (float)m_window->width();
-   float h = static_cast<float>(m_application->height());  // (float)m_window->height();
+   int iw = m_application->width();
+   int ih = m_application->height();
+   float w = static_cast<float>(iw);
+   float h = static_cast<float>(ih);
 
    auto gr = m_gui_renderer;
    auto &r = *m_renderer;
 
    if (m_resize)
    {
-      gr->on_resize(w, h);
+      gr->on_resize(iw, ih);
       resize(w, h);
       m_root_layer->set_layer_size(w, h);
       m_root_layer->update();
@@ -362,50 +364,66 @@ void menu::render()
 
    if (renderstack::graphics::configuration::can_use.uniform_buffer_object)
    {
-      m_uniform_buffer->bind_range(
-         m_programs->model_block->binding_point(),
-         0,
-         m_programs->model_block->size_bytes()
-      );
-      m_uniform_buffer->bind_range(
-         m_programs->camera_block->binding_point(),
-         m_programs->model_block->size_bytes(),
-         m_programs->material_block->size_bytes()
-      );
+      intptr_t models_offset     = 0;
+      intptr_t materials_offset  = m_programs->models_block->size_bytes();
+      intptr_t camera_offset     = materials_offset   + m_programs->materials_block->size_bytes();
+      intptr_t size              = camera_offset      + m_programs->camera_block->size_bytes();
 
+      // Update and bind uniform buffer
       r.set_buffer(renderstack::graphics::buffer_target::uniform_buffer, m_uniform_buffer);
-      unsigned char *start = (unsigned char*)m_uniform_buffer->map(
+      unsigned char *ptr = (unsigned char*)m_uniform_buffer->map(
          r,
          0,
-         m_programs->model_block->size_bytes() + m_programs->material_block->size_bytes(),
+         size,
          static_cast<gl::buffer_access_mask::value>(
             gl::buffer_access_mask::map_invalidate_buffer_bit |
             gl::buffer_access_mask::map_write_bit
          )
       );
       
-      ::memcpy(
-         start + m_programs->model_block_access.clip_from_model,
+      // Update models
+      memcpy(
+         ptr + models_offset + m_programs->models_block_access.clip_from_model,
          value_ptr(ortho),
          16 * sizeof(float)
       );
-      ::memcpy(
-         start + m_programs->model_block->size_bytes() + m_programs->material_block_access.color,
+
+      // Update camera
+      memcpy(
+         ptr + camera_offset + m_programs->camera_block_access.clip_from_world,
+         value_ptr(ortho),
+         16 * sizeof(float)
+      );
+
+      // Update materials
+      memcpy(
+         ptr + materials_offset + m_programs->materials_block_access.color,
          value_ptr(white),
          4 * sizeof(float)
       );
       m_uniform_buffer->unmap(r);
 
+      // bind models
       m_uniform_buffer->bind_range(
-         m_programs->model_block->binding_point(),
-         0,
-         m_programs->model_block->size_bytes()
+         m_programs->models_block->binding_point(),
+         models_offset,
+         m_programs->models_block->size_bytes()
       );
+
+      // bind materials
       m_uniform_buffer->bind_range(
-         m_programs->material_block->binding_point(),
-         m_programs->model_block->size_bytes(),
-         m_programs->material_block->size_bytes()
+         m_programs->materials_block->binding_point(),
+         materials_offset,
+         m_programs->materials_block->size_bytes()
       );
+
+      // bind camera
+      m_uniform_buffer->bind_range(
+         m_programs->camera_block->binding_point(),
+         camera_offset,
+         m_programs->materials_block->size_bytes()
+      );
+
    }
 
    //  Background
@@ -443,8 +461,8 @@ void menu::render()
       r.set_program(p);
       if (!renderstack::graphics::configuration::can_use.uniform_buffer_object)
       {
-         gl::uniform_matrix_4fv(p->uniform_at(m_programs->model_block_access.clip_from_model ), 1, GL_FALSE, value_ptr(ortho));
-         gl::uniform_4fv       (p->uniform_at(m_programs->material_block_access.color        ), 1, value_ptr(white));
+         gl::uniform_matrix_4fv(p->uniform_at(m_programs->models_block_access.clip_from_model), 1, GL_FALSE, value_ptr(ortho));
+         gl::uniform_4fv       (p->uniform_at(m_programs->materials_block_access.color       ), 1, value_ptr(white));
       }
 
       gr->draw_elements_base_vertex(begin_mode, count, index_type, index_pointer, base_vertex);
@@ -469,8 +487,8 @@ void menu::render()
       r.set_program(p);
       if (!renderstack::graphics::configuration::can_use.uniform_buffer_object)
       {
-         gl::uniform_matrix_4fv(p->uniform_at(m_programs->model_block_access.clip_from_model ), 1, GL_FALSE, value_ptr(ortho));
-         gl::uniform_4fv       (p->uniform_at(m_programs->material_block_access.color        ), 1, value_ptr(white));
+         gl::uniform_matrix_4fv(p->uniform_at(m_programs->models_block_access.clip_from_model ), 1, GL_FALSE, value_ptr(ortho));
+         gl::uniform_4fv       (p->uniform_at(m_programs->materials_block_access.color        ), 1, value_ptr(white));
       }
 
       m_text_buffer->render();

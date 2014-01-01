@@ -45,19 +45,19 @@ public:
 
    void initialize_cameras();
 
-   std::shared_ptr<model>                       add(std::shared_ptr<model> m);
-   std::shared_ptr<renderstack::scene::light>   add(std::shared_ptr<renderstack::scene::light> l);
+   std::shared_ptr<model>                          add(std::shared_ptr<model> m);
+   std::shared_ptr<renderstack::scene::light>      add(std::shared_ptr<renderstack::scene::light> l);
 
-   std::shared_ptr<renderstack::scene::camera>  camera() const { return m_camera; }
+   std::shared_ptr<renderstack::scene::camera>     camera() const { return m_camera; }
 
-   std::shared_ptr<std::vector<std::shared_ptr<material> > >       &materials() { return m_materials; }
-   std::shared_ptr<std::vector<std::shared_ptr<material> > > const &materials() const { return m_materials; }
+   std::vector<std::shared_ptr<material> >         &materials() { return m_materials; }
+   std::vector<std::shared_ptr<material> > const   &materials() const { return m_materials; }
 
-   std::shared_ptr<std::vector<std::shared_ptr<model> > >       &models();
-   std::shared_ptr<std::vector<std::shared_ptr<model> > > const &models() const;
+   std::vector<std::shared_ptr<model> >            &models();
+   std::vector<std::shared_ptr<model> > const      &models() const;
 
-   std::shared_ptr<std::vector<std::shared_ptr<renderstack::scene::light> > >       &lights();
-   std::shared_ptr<std::vector<std::shared_ptr<renderstack::scene::light> > > const &lights() const;
+   std::vector<std::shared_ptr<renderstack::scene::light> >       &lights();
+   std::vector<std::shared_ptr<renderstack::scene::light> > const &lights() const;
 
 private:
    void reset_build_info();
@@ -76,18 +76,18 @@ private:
 
 private:
    // services
-   std::shared_ptr<programs>                                                  m_programs;
-   std::shared_ptr<renderstack::graphics::renderer>                           m_renderer;
+   std::shared_ptr<programs>                                   m_programs;
+   std::shared_ptr<renderstack::graphics::renderer>            m_renderer;
 
    // self owned parts
-   std::shared_ptr<std::vector<std::shared_ptr<material> > >                  m_materials;
-   std::shared_ptr<std::vector<std::shared_ptr<model> > >                     m_models;
-   std::shared_ptr<std::vector<std::shared_ptr<renderstack::scene::light> > > m_lights;
-   std::shared_ptr<renderstack::scene::camera>                                m_camera;
-   std::shared_ptr<frame_controller>                                          m_camera_controls;
+   std::vector<std::shared_ptr<material> >                     m_materials;
+   std::vector<std::shared_ptr<model> >                        m_models;
+   std::vector<std::shared_ptr<renderstack::scene::light> >    m_lights;
+   std::shared_ptr<renderstack::scene::camera>                 m_camera;
+   std::shared_ptr<frame_controller>                           m_camera_controls;
 
-   renderstack::mesh::geometry_mesh_format_info                               m_format_info;
-   renderstack::mesh::geometry_mesh_buffer_info                               m_buffer_info;
+   renderstack::mesh::geometry_mesh_format_info                m_format_info;
+   renderstack::mesh::geometry_mesh_buffer_info                m_buffer_info;
 };
 
 

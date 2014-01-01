@@ -84,6 +84,9 @@ public:
       bool  discard_framebuffer_oes       ;
       bool  invalidate_framebuffer        ;
       bool  tex_storage                   ;
+
+      bool  debug_output_arb              ;
+
       can_use_t();
    };
 

@@ -2,6 +2,6 @@ in vec3 a_position;
 
 void main()
 {
-    gl_Position = model.clip_from_model * vec4(a_position.xyz, 1.0);
+   gl_Position = models.clip_from_model * vec4(a_position.xyz, 1.0);
 }
 

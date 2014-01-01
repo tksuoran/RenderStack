@@ -4,7 +4,7 @@
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_toolkit/service.hpp"
 #include <string>
-#include <vector>
+#include <map>
 #include <memory>
 #include <sys/stat.h>
 
@@ -25,10 +25,13 @@ public:
    void set_src_path(std::string const &src_path);
    void set_dst_path(std::string const &dst_path);
 
+   std::string most_recent_version(std::string const &path);
+
 private:
    struct file
    {
-      time_t                           last_time;
+      time_t                           src_last_time;
+      time_t                           dst_last_time;
       std::string                      src_path;
       std::string                      dst_path;
       std::set<
@@ -36,9 +39,9 @@ private:
       >                                programs;
    };
 
-   std::vector<file> m_files;
-   std::string       m_src_path;
-   std::string       m_dst_path;
+   std::map<std::string, file>   m_files;
+   std::string                   m_src_path;
+   std::string                   m_dst_path;
 };
 
 

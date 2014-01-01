@@ -94,9 +94,9 @@ void game::update_once_per_frame()
    if (!m_paused)
    {
       auto &lights = m_scene_manager->lights();
-      int n_lights = lights->size();
+      int n_lights = lights.size();
       int light_index = 0;
-      for (auto i = lights->cbegin(); i != lights->cend(); ++i)
+      for (auto i = lights.cbegin(); i != lights.cend(); ++i)
       {
          auto l = *i;
 

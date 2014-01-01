@@ -22,7 +22,7 @@ namespace renderstack
    }
 }
 
-struct model_block_i
+struct models_block_i
 {
    std::size_t clip_from_model;       /* mat4 */
    std::size_t world_from_model;      /* mat4 */
@@ -34,6 +34,7 @@ struct camera_block_i
 {
    std::size_t world_from_view;       /* mat4 */
    std::size_t world_from_clip;       /* mat4 */
+   std::size_t clip_from_world;       /* mat4 */
    std::size_t viewport;              /* vec4 */
    std::size_t exposure;
 };
@@ -46,46 +47,46 @@ struct lights_block_i
    std::size_t spot_cutoff;
 };
 
-struct material_block_i
+struct materials_block_i
 {
    std::size_t color;               /* vec4 */
    std::size_t roughness;           /* float aka 1.0 - smoothness */
    std::size_t isotropy;            /* float aka 1.0 - anisotropy */
+   std::size_t metalness;           /* float */
    // std::size_t translucency;        /* float */
-   // std::size_t metalness;           /* float */
    // std::size_t specular_coverage;   /* float */
    // std::size_t wet_roughness;       /* float */
 };
 
 struct debug_block_i
 {
-   size_t line_width;            /* vec2 */
-   size_t show_rt_transform;     /* mat4 */
+   std::size_t clip_from_world;     /* mat4 */
+   std::size_t color;               /* vec4 */
+   std::size_t line_width;          /* vec2 */
+   std::size_t show_rt_transform;   /* mat4 */
 };
 
 struct ubr_pos
 {
    ubr_pos()
-   :  model(0)
-   ,  camera(0)
-   ,  material(0)
+   :  models(0)
    ,  lights(0)
-   ,  debug(0)
+   ,  materials(0)
+   ,  camera(0)
    {
    }
-   int model;
-   int camera;
-   int material;
-   int lights;
-   int debug;
+   std::size_t models;
+   std::size_t lights;
+   std::size_t materials;
+   std::size_t camera;
 };
 
 struct ubr_ptr
 {
-   unsigned char *model;
-   unsigned char *camera;
-   unsigned char *material;
+   unsigned char *models;
    unsigned char *lights;
+   unsigned char *materials;
+   unsigned char *camera;
    unsigned char *debug;
 };
 
@@ -120,16 +121,16 @@ private:
    );
 
 public:
-   model_block_i                                                     model_block_access;
-   camera_block_i                                                    camera_block_access;
-   material_block_i                                                  material_block_access;
+   models_block_i                                                    models_block_access;
    lights_block_i                                                    lights_block_access;
+   materials_block_i                                                 materials_block_access;
+   camera_block_i                                                    camera_block_access;
    debug_block_i                                                     debug_block_access;
 
-   std::shared_ptr<renderstack::graphics::uniform_block>             model_block;
-   std::shared_ptr<renderstack::graphics::uniform_block>             camera_block;
-   std::shared_ptr<renderstack::graphics::uniform_block>             material_block;
+   std::shared_ptr<renderstack::graphics::uniform_block>             models_block;
    std::shared_ptr<renderstack::graphics::uniform_block>             lights_block;
+   std::shared_ptr<renderstack::graphics::uniform_block>             materials_block;
+   std::shared_ptr<renderstack::graphics::uniform_block>             camera_block;
    std::shared_ptr<renderstack::graphics::uniform_block>             debug_block;
 
    std::shared_ptr<renderstack::graphics::samplers>                  samplers;
@@ -137,7 +138,8 @@ public:
    std::shared_ptr<renderstack::graphics::fragment_outputs>          fragment_outputs;
    std::shared_ptr<renderstack::graphics::program>                   font;
    std::shared_ptr<renderstack::graphics::program>                   basic;
-   std::shared_ptr<renderstack::graphics::program>                   anisotropic;
+   std::shared_ptr<renderstack::graphics::program>                   anisotropic_spot;
+   std::shared_ptr<renderstack::graphics::program>                   anisotropic_directional;
    std::shared_ptr<renderstack::graphics::program>                   debug_line;
    std::shared_ptr<renderstack::graphics::program>                   debug_light;
    std::shared_ptr<renderstack::graphics::program>                   textured;

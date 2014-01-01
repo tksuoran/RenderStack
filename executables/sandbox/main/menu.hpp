@@ -79,20 +79,20 @@ private:
    void render();
 
 private: /* services */
-   std::shared_ptr<renderstack::graphics::renderer>               m_renderer;
-   std::shared_ptr<renderstack::ui::gui_renderer>                 m_gui_renderer;
-   std::shared_ptr<programs>                                      m_programs;
-   std::shared_ptr<textures>                                      m_textures;
-   std::shared_ptr<class game>                                    m_game;
-   std::shared_ptr<application>                                   m_application;
+   std::shared_ptr<renderstack::graphics::renderer>   m_renderer;
+   std::shared_ptr<renderstack::ui::gui_renderer>     m_gui_renderer;
+   std::shared_ptr<programs>                          m_programs;
+   std::shared_ptr<textures>                          m_textures;
+   std::shared_ptr<class game>                        m_game;
+   std::shared_ptr<application>                       m_application;
 
-   std::shared_ptr<renderstack::graphics::buffer>                 m_uniform_buffer;
-   std::shared_ptr<renderstack::ui::font>                         m_font;
-   std::shared_ptr<renderstack::ui::text_buffer>                  m_text_buffer;
-   std::shared_ptr<renderstack::mesh::mesh>                       m_mesh;
-   std::shared_ptr<renderstack::ui::layer>                        m_root_layer;
-   std::shared_ptr<renderstack::ui::button>                       m_sandbox_button;
-   std::shared_ptr<renderstack::ui::button>                       m_quit;
+   std::shared_ptr<renderstack::graphics::buffer>     m_uniform_buffer;
+   std::shared_ptr<renderstack::ui::font>             m_font;
+   std::shared_ptr<renderstack::ui::text_buffer>      m_text_buffer;
+   std::shared_ptr<renderstack::mesh::mesh>           m_mesh;
+   std::shared_ptr<renderstack::ui::layer>            m_root_layer;
+   std::shared_ptr<renderstack::ui::button>           m_sandbox_button;
+   std::shared_ptr<renderstack::ui::button>           m_quit;
 
    bool m_resize;
 };

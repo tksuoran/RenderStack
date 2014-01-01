@@ -48,16 +48,10 @@ void scene_manager::connect(
 
 /*virtual*/ void scene_manager::initialize_service()
 {
-   m_materials = make_shared<vector<shared_ptr<material> > >();
-
-   m_models = make_shared<vector<shared_ptr<model> > >();
-
-   m_camera = make_shared<renderstack::scene::camera>();
+   m_camera = std::make_shared<renderstack::scene::camera>();
    m_camera->projection().set_fov_y(1.0f / 1.5f);
    m_camera->projection().set_near(0.01f);
    m_camera->projection().set_far(1000.0f);
-
-   m_lights = make_shared<vector<shared_ptr<light> > >();
 
    //add_floor(20.0f);
    add_simple_scene();
@@ -126,22 +120,22 @@ void scene_manager::add_floor(float size)
 void scene_manager::add_simple_scene()
 {
    auto material_default = make_shared<material>(
-      m_materials->size(),
+      m_materials.size(),
       "default",
       vec4(1.0f, 1.0f, 1.0f, 1.0f),
       0.5f,
       0.5f
    );
-   m_materials->push_back(material_default);
+   m_materials.push_back(material_default);
 
    auto material_floor = make_shared<material>(
-      m_materials->size(),
+      m_materials.size(),
       "floor",
       vec4(0.6f, 0.6f, 1.0f, 1.0f),
       0.03f,
       0.005f
    );
-   m_materials->push_back(material_floor);
+   m_materials.push_back(material_floor);
 
 #if 0
    {
@@ -294,7 +288,7 @@ void scene_manager::add_simple_scene()
    float max_x = 0.0f;
    float gap = 0.5f;
 
-   size_t material_start = m_materials->size();
+   size_t material_start = m_materials.size();
    for (float z = -15.0f; z < 15.1f; z += 5.0f)
    {
       float rel = (z + 15.0f) / 30.0f;
@@ -309,14 +303,14 @@ void scene_manager::add_simple_scene()
       hsv_to_rgb(h, s, v, R, G, B);
 
       auto m = make_shared<material>(
-         m_materials->size(),
+         m_materials.size(),
          "m",
          vec4(1.0f, 1.0f, 1.0f, 1.0f),
          //vec4(R, G, B, 1.0f),
          r,
          p
       );
-      m_materials->push_back(m);
+      m_materials.push_back(m);
    }
 
    for (auto i = g_collection.begin(); i != g_collection.end(); ++i)
@@ -349,7 +343,7 @@ void scene_manager::add_simple_scene()
       size_t material_index = material_start;
       for (float z = -15.0f; z < 15.1f; z += 5.0f)
       {
-         shared_ptr<material> mat = m_materials->at(material_index);
+         shared_ptr<material> mat = m_materials.at(material_index);
          auto m = make_model(
             g->name(),
             nullptr,
@@ -357,7 +351,7 @@ void scene_manager::add_simple_scene()
             mat,
             vec3(x, -min.y, z)
          );
-         m_models->push_back(m);
+         m_models.push_back(m);
          ++material_index;
       }
    }
@@ -449,7 +443,7 @@ void scene_manager::add_simple_scene()
       material_floor,
       vec3(0, -0.5f, 0.0f)
    );
-   m_models->push_back(floor_m);
+   m_models.push_back(floor_m);
 
 # if 0
    {
@@ -505,7 +499,7 @@ shared_ptr<model> scene_manager::add(shared_ptr<model> m)
    if (!m)
       throw runtime_error("scene_manager::add() no model to add");
 
-   m_models->push_back(m);
+   m_models.push_back(m);
 
    return m;
 }
@@ -515,27 +509,27 @@ shared_ptr<light> scene_manager::add(shared_ptr<light> l)
    if (!l)
       throw runtime_error("scene_manager::add() no light to add");
 
-   m_lights->push_back(l);
+   m_lights.push_back(l);
 
    return l;
 }
 
-shared_ptr<vector<shared_ptr<model> > > &scene_manager::models()
+vector<shared_ptr<model> > &scene_manager::models()
 {
    return m_models;
 }
 
-shared_ptr<vector<shared_ptr<model> > > const &scene_manager::models() const
+vector<shared_ptr<model> > const &scene_manager::models() const
 {
    return m_models;
 }
 
-shared_ptr<vector<shared_ptr<light> > > &scene_manager::lights()
+vector<shared_ptr<light> > &scene_manager::lights()
 {
    return m_lights;
 }
 
-shared_ptr<vector<shared_ptr<light> > > const &scene_manager::lights() const
+vector<shared_ptr<light> > const &scene_manager::lights() const
 {
    return m_lights;
 }

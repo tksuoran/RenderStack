@@ -32,10 +32,11 @@ using namespace std;
 
 programs::programs()
 :  service("programs")
-,  model_block       (nullptr)
-,  camera_block      (nullptr)
-,  material_block    (nullptr)
+
+,  models_block      (nullptr)
 ,  lights_block      (nullptr)
+,  materials_block   (nullptr)
+,  camera_block      (nullptr)
 ,  debug_block       (nullptr)
 
 ,  samplers          (nullptr)
@@ -77,33 +78,6 @@ void programs::connect(
 
    slog_trace("programs::initialize_service()");
 
-   if (m_shader_monitor)
-   {
-      try
-      {
-         string src_path;
-         string dst_path;
-
-         if (exists("res/src_path.txt"))
-         {
-            src_path = read("res/src_path.txt");
-            dst_path = read("res/dst_path.txt");
-         }
-         else
-         {
-            src_path = "C:/git/RenderStack/executables/sandbox";
-            dst_path = "";
-         }
-
-         m_shader_monitor->set_dst_path(dst_path);
-         m_shader_monitor->set_src_path(src_path);
-      }
-      catch (...)
-      {
-         slog_warn("programs::initialize_service() setting up shader monitor failed");
-      }
-   }
-
    fragment_outputs = make_shared<class fragment_outputs>();
    fragment_outputs->add("out_id",              gl::fragment_output_type::float_vec4, 0);
    fragment_outputs->add("out_color",           gl::fragment_output_type::float_vec4, 0);
@@ -142,25 +116,26 @@ void programs::connect(
    m_poll_shaders = false;
    m_poll_ticks = 0; 
 
-   model_block = make_shared<uniform_block>(0, "model");
-   model_block_access.clip_from_model  = model_block->add_mat4("clip_from_model"   )->access();
-   model_block_access.world_from_model = model_block->add_mat4("world_from_model"  )->access();
-   model_block_access.view_from_model  = model_block->add_mat4("view_from_model"   )->access();
-   model_block_access.id_offset        = model_block->add_vec3("id_offset"         )->access();
-   model_block->seal();
+   models_block = make_shared<uniform_block>(0, "models");
+   models_block_access.clip_from_model  = models_block->add_mat4("clip_from_model"   )->access();
+   models_block_access.world_from_model = models_block->add_mat4("world_from_model"  )->access();
+   models_block_access.view_from_model  = models_block->add_mat4("view_from_model"   )->access();
+   models_block_access.id_offset        = models_block->add_vec3("id_offset"         )->access();
+   models_block->seal();
 
    camera_block = make_shared<uniform_block>(1, "camera");
    camera_block_access.world_from_view = camera_block->add_mat4 ("world_from_view" )->access();
    camera_block_access.world_from_clip = camera_block->add_mat4 ("world_from_clip" )->access();
+   camera_block_access.clip_from_world = camera_block->add_mat4 ("clip_from_world" )->access();
    camera_block_access.viewport        = camera_block->add_vec4 ("viewport"        )->access();
    camera_block_access.exposure        = camera_block->add_float("exposure"        )->access();
    camera_block->seal();
 
-   material_block = make_shared<uniform_block>(2, "material");
-   material_block_access.color      = material_block->add_vec4 ("color"    )->access();
-   material_block_access.roughness  = material_block->add_float("roughness")->access();
-   material_block_access.isotropy   = material_block->add_float("isotropy" )->access();
-   material_block->seal();
+   materials_block = make_shared<uniform_block>(2, "materials");
+   materials_block_access.color      = materials_block->add_vec4 ("color"    )->access();
+   materials_block_access.roughness  = materials_block->add_float("roughness")->access();
+   materials_block_access.isotropy   = materials_block->add_float("isotropy" )->access();
+   materials_block->seal();
 
    lights_block = make_shared<uniform_block>(3, "lights");
    lights_block_access.position     = lights_block->add_vec3("position" )->access();
@@ -169,9 +144,14 @@ void programs::connect(
    lights_block_access.spot_cutoff  = lights_block->add_float("spot_cutoff")->access();
    lights_block->seal();
 
-   debug_block = make_shared<uniform_block>(4, "debug");
-   debug_block_access.line_width         = debug_block->add_vec4("line_width"         )->access();
-   debug_block_access.show_rt_transform  = debug_block->add_vec4("show_rt_transform"  )->access();
+   /* This is created as default block. It is easier to use old style glUniform */
+   /* API since updating uniform buffers efficiently would be too much trouble  */
+   /* with little or no benefit at all. */
+   debug_block = make_shared<uniform_block>("debug");
+   debug_block_access.clip_from_world     = debug_block->add_mat4("clip_from_world"    )->access();
+   debug_block_access.color               = debug_block->add_vec4("color"              )->access();
+   debug_block_access.line_width          = debug_block->add_vec4("line_width"         )->access();
+   debug_block_access.show_rt_transform   = debug_block->add_vec4("show_rt_transform"  )->access();
 
    auto nearest_sampler = make_shared<sampler>();
    auto show_rt_sampler = make_shared<sampler>();
@@ -220,20 +200,21 @@ void programs::connect(
       vector<string> light_type_directional;
       light_type_directional.push_back("LIGHT_TYPE_DIRECTIONAL");
 
-      font              = make_program("font");
-      basic             = make_program("basic");
-      gbuffer           = make_program("gbuffer");
-      light_spot        = make_program("light", light_type_spot);
-      light_directional = make_program("light", light_type_directional);
-      stencil           = make_program("stencil");
-      show_rt           = make_program("show_rt");
-      show_rt_spherical = make_program("show_rt_spherical");
-      textured          = make_program("textured");
-      id                = make_program("id");
-      debug_line        = make_program("debug_line");
-      debug_light       = make_program("debug_light");
-      anisotropic       = make_program("anisotropic");
-      camera            = make_program("camera");
+      font                    = make_program("font");
+      basic                   = make_program("basic");
+      gbuffer                 = make_program("gbuffer");
+      light_spot              = make_program("light", light_type_spot);
+      light_directional       = make_program("light", light_type_directional);
+      stencil                 = make_program("stencil");
+      show_rt                 = make_program("show_rt");
+      show_rt_spherical       = make_program("show_rt_spherical");
+      textured                = make_program("textured");
+      id                      = make_program("id");
+      debug_line              = make_program("debug_line");
+      debug_light             = make_program("debug_light");
+      anisotropic_spot        = make_program("anisotropic", light_type_spot);
+      anisotropic_directional = make_program("anisotropic", light_type_directional);
+      camera                  = make_program("camera");
    }
    catch (runtime_error const &e)
    {
@@ -266,10 +247,10 @@ shared_ptr<renderstack::graphics::program> programs::make_program(
          continue;
 
       auto p = make_shared<program>(name, i->second, samplers, attribute_mappings, fragment_outputs);
-      p->add(model_block);
-      p->add(camera_block);
-      p->add(material_block);
+      p->add(models_block);
       p->add(lights_block);
+      p->add(materials_block);
+      p->add(camera_block);
       p->add(debug_block);
       for (auto i = defines.cbegin(); i != defines.cend(); ++i)
          p->define(*i, "1");

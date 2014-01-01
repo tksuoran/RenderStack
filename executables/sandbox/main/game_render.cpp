@@ -133,6 +133,7 @@ void game::render_meshes()
    {
       m_forward_renderer->set_max_lights(m_max_lights);
       m_forward_renderer->render_pass(
+         m_scene_manager->materials(), 
          m_scene_manager->models(),
          m_scene_manager->lights(),
          m_scene_manager->camera()
