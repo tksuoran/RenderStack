@@ -4122,7 +4122,7 @@ void tex_storage_3d(GLenum target, GLsizei levels, GLenum internalformat, GLsize
 
 
 /*  GL_ARB_debug_output  */
-#if defined(RENDERSTACK_GL_API_OPENGL)
+#if defined(RENDERSTACK_GL_API_OPENGL) && !defined(__APPLE__)
 void debug_message_control(
    GLenum source, GLenum type, GLenum severity, GLsizei count,
    const GLuint *ids, GLboolean enabled)
@@ -4131,7 +4131,7 @@ void debug_message_control(
    assert(gl::detail::glDebugMessageControlARB != nullptr);
    gl::detail::glDebugMessageControlARB(source, type, severity, count, ids, enabled);
 #else
-   ::glTexStorage3D(source, type, severity, count, ids, enabled);
+   ::glDebugMessageControlARB(source, type, severity, count, ids, enabled);
 #endif
    check_error();
 }

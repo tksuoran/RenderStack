@@ -35,7 +35,7 @@ shader_monitor::shader_monitor()
       }
       else
       {
-         src_path = "C:/git/RenderStack/executables/sandbox";
+         src_path = ""; //C:/git/RenderStack/executables/sandbox";
          dst_path = "";
       }
 
@@ -75,8 +75,8 @@ void shader_monitor::add(string const &path, shared_ptr<program> program_)
    if (res != 0)
       throw runtime_error("file not found");
 
-   f.src_path = m_src_path + "/" + path;
-   f.dst_path = m_dst_path + "/" + path;
+   f.src_path = m_src_path + path;
+   f.dst_path = m_dst_path + path;
 
    res = stat(f.src_path.c_str(), &st);
    if (res != 0)
