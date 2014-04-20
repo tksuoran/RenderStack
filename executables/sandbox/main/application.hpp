@@ -60,6 +60,11 @@ public:
 private:
    bool create_gl_window();
    bool initialize_services();
+
+private:
+#if defined(RENDERSTACK_USE_AMD_GPU_PERF_API_AND_ADL)
+   bool m_use_amd_gpa_adl;
+#endif
 };
 
 #endif

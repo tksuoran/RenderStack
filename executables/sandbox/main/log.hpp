@@ -8,5 +8,6 @@ extern renderstack::toolkit::log_category log_game;
 extern renderstack::toolkit::log_category log_menu;
 extern renderstack::toolkit::log_category log_programs;
 extern renderstack::toolkit::log_category log_textures;
+extern renderstack::toolkit::log_category log_debug;
 
 #endif

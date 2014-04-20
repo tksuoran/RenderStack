@@ -87,10 +87,15 @@ void main(void)
       }
    }
 
-   //vec3 linear = vec3(r, p * 120.0, 0.0);
    vec3 linear = exitant_radiance;      
    float exposure = 0.2 * camera.exposure;
    out_color.rgb = vec3(1.0) - exp(-linear * exposure);
+
+}
+
+
+
+   //vec3 linear = vec3(r, p * 120.0, 0.0);
 
    // out_color.rgb = vec3(
    //    2.0 /
@@ -105,4 +110,3 @@ void main(void)
    // 
    // out_color.rgb = vec3(1.0) - exp(-exitant_radiance * exposure);
    // out_color.rgb = pow(out_color.rgb, vec3(1.0 / 2.2));
-}

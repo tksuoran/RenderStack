@@ -25,6 +25,7 @@
 #include <sstream>
 #include <sys/stat.h>
 #include <iomanip>
+#include "main/log.hpp"
 
 using namespace renderstack::graphics;
 using namespace renderstack::ui;
@@ -50,12 +51,14 @@ debug_renderer::debug_renderer()
 void debug_renderer::connect(
    shared_ptr<renderstack::graphics::renderer>  renderer_,
    shared_ptr<renderstack::ui::gui_renderer>    gui_renderer_,
-   shared_ptr<class programs>                   programs_
+   shared_ptr<class programs>                   programs_,
+   shared_ptr<class application>                application_
 )
 {
    base_connect(renderer_, programs_, nullptr);
 
    m_gui_renderer = gui_renderer_;
+   m_application = application_;
 
    initialization_depends_on(renderer_);
    initialization_depends_on(gui_renderer_);
@@ -67,6 +70,11 @@ void debug_renderer::initialize_service()
    base_initialize_service();
 
    auto &r = renderer();
+
+   m_amd_performance.connect_to_window(*m_application);
+
+   float c = m_amd_performance.get_adapter_temperature(0);
+   printf("Adapter %d overdrive5 temperature %5.1f\n", 0, c);
 
 #if defined(RENDERSTACK_USE_FREETYPE)
    auto p = programs()->font;
@@ -130,6 +138,11 @@ void debug_renderer::initialize_service()
    va->set_index_buffer(m_index_buffer);
 
    r.reset_vertex_array();
+
+   {
+   float c = m_amd_performance.get_adapter_temperature(0);
+   printf("Adapter %d overdrive5 temperature %5.1f\n", 0, c);
+   }
 }
 
 void debug_renderer::clear_text_lines()
@@ -140,10 +153,14 @@ void debug_renderer::clear_text_lines()
 
 void debug_renderer::record_frame_duration(float frame_duration)
 {
+   (void)(frame_duration);
    if (m_frame_durations.size() == m_frame_duration_graph_size)
       m_frame_durations.pop_front();
 
-   m_frame_durations.push_back(frame_duration);
+   float c = m_amd_performance.get_adapter_temperature(0);
+   log_write(&log_debug, LOG_ERROR, "Adapter %d overdrive5 temperature %5.1f\n", 0, c);
+
+   m_frame_durations.push_back(c * 0.1f);
 }
 
 void debug_renderer::printf(int x, int y, const char *format, ...)
@@ -219,7 +236,7 @@ void debug_renderer::render_text_lines(renderstack::scene::viewport const &vp)
    auto &t = r.track();
    t.execute(&m_font_render_states);
 
-   auto p = programs()->font;
+   auto p = programs()->debug_font;
    r.set_program(p);
 
    gl::viewport(0, 0, (GLsizei)w, (GLsizei)h);

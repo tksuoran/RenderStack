@@ -138,7 +138,8 @@ void deferred_renderer::resize(int width_, int height_)
       GLenum formats[] = {
          GL_RGBA16F,    // normal tangent
          GL_RGBA8,      // albedo
-         GL_RGBA8       // material
+         GL_RGBA16F     // material
+         //GL_RGBA8       // material
       };
 
       for (int i = 0; i < 3; ++i)

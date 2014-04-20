@@ -352,4 +352,15 @@ extern PFNGLGETQUERYINDEXEDIVPROC                           glGetQueryIndexediv 
 extern PFNGLDRAWTRANSFORMFEEDBACKINSTANCEDPROC              glDrawTransformFeedbackInstanced      ;
 extern PFNGLDRAWTRANSFORMFEEDBACKSTREAMINSTANCEDPROC        glDrawTransformFeedbackStreamInstanced;
 
-#endif
+/*  GL_AMD_performance_monitor  */
+extern PFNGLGETPERFMONITORGROUPSAMDPROC                     glGetPerfMonitorGroupsAMD       ;
+extern PFNGLGETPERFMONITORCOUNTERSAMDPROC                   glGetPerfMonitorCountersAMD     ;
+extern PFNGLGETPERFMONITORGROUPSTRINGAMDPROC                glGetPerfMonitorGroupStringAMD  ;
+extern PFNGLGETPERFMONITORCOUNTERSTRINGAMDPROC              glGetPerfMonitorCounterStringAMD;
+extern PFNGLGETPERFMONITORCOUNTERINFOAMDPROC                glGetPerfMonitorCounterInfoAMD  ;
+extern PFNGLGENPERFMONITORSAMDPROC                          glGenPerfMonitorsAMD            ;
+extern PFNGLDELETEPERFMONITORSAMDPROC                       glDeletePerfMonitorsAMD         ;
+extern PFNGLSELECTPERFMONITORCOUNTERSAMDPROC                glSelectPerfMonitorCountersAMD  ;
+extern PFNGLBEGINPERFMONITORAMDPROC                         glBeginPerfMonitorAMD           ;
+extern PFNGLENDPERFMONITORAMDPROC                           glEndPerfMonitorAMD             ;
+extern PFNGLGETPERFMONITORCOUNTERDATAAMDPROC                glGetPerfMonitorCounterDataAMD  ;

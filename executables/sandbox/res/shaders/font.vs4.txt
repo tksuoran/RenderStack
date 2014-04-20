@@ -4,6 +4,12 @@ out vec2 v_texcoord;
 
 void main()
 {
-   gl_Position = camera.clip_from_world * vec4(a_position_texcoord.xy, 0.5, 1.0);
+#if defined(USE_DEBUG_UNIFORMS)
+   mat4 clip_from_world = debug.clip_from_world;
+#else
+   mat4 clip_from_world = camera.clip_from_world;
+#endif
+
+   gl_Position = clip_from_world * vec4(a_position_texcoord.xy, 0.5, 1.0);
    v_texcoord = a_position_texcoord.zw;
 }

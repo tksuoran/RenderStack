@@ -142,6 +142,7 @@ public:
    std::shared_ptr<renderstack::graphics::program>                   anisotropic_directional;
    std::shared_ptr<renderstack::graphics::program>                   debug_line;
    std::shared_ptr<renderstack::graphics::program>                   debug_light;
+   std::shared_ptr<renderstack::graphics::program>                   debug_font;
    std::shared_ptr<renderstack::graphics::program>                   textured;
    std::shared_ptr<renderstack::graphics::program>                   gbuffer;
    std::shared_ptr<renderstack::graphics::program>                   light_spot;

@@ -2,11 +2,17 @@ in vec2 v_texcoord;
 
 void main(void)
 {
+#if defined(USE_DEBUG_UNIFORMS)
+   vec4 u_color = vec4(1.0, 1.0, 1.0, 1.0); // debug.clip_from_world;
+#else
+   vec4 u_color = vec4(1.0, 1.0, 1.0, 1.0); // camera.clip_from_world;
+#endif
+
    vec2 c = texture(font_texture, v_texcoord.xy).rg;
    float inside  = c.r;
    float outline = c.g;
    float alpha   = max(inside, outline * 0.25);
-   vec3  color   = materials.color.rgb * pow(inside, 0.5);
+   vec3  color   = u_color.rgb * pow(inside, 0.5);
 
    out_color = vec4(color, alpha);
    //out_color = vec4(inside, outline, 0, 1.0);

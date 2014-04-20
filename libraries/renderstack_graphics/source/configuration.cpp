@@ -92,6 +92,7 @@ configuration::can_use_t::can_use_t()
    tex_storage                   = false;
 
    debug_output_arb              = false;
+   amd_performance_monitor       = false;
 }
 bool  configuration::throw_program_exceptions             = true;
 unsigned int   configuration::default_vao                 = 0;
@@ -513,6 +514,7 @@ void configuration::initialize()
    check(extensions, can_use.tesselation_shaders,        "tesselation_shaders",        400, 999, "GL_ARB_tesselation_shader");
 
    check(extensions, can_use.debug_output_arb,           "debug_output_arb",           999, 999, "GL_ARB_debug_output");
+   check(extensions, can_use.amd_performance_monitor,    "amd_performance_monitor",    999, 999, "GL_AMD_performance_monitor");
 #endif
 
    can_use.bind_buffer_range = can_use.map_buffer_range;

@@ -47,6 +47,7 @@
 #endif
 
 #include <GL/glcorearb.h>
+#include <GL/glext.h>
 
 #if defined(RENDERSTACK_USE_GLFW)
 # include <GLFW/glfw3.h>
@@ -484,6 +485,19 @@ extern PFNGLDEBUGMESSAGECONTROLARBPROC                      glDebugMessageContro
 extern PFNGLDEBUGMESSAGEINSERTARBPROC                       glDebugMessageInsertARB  ;
 extern PFNGLDEBUGMESSAGECALLBACKARBPROC                     glDebugMessageCallbackARB;
 extern PFNGLGETDEBUGMESSAGELOGARBPROC                       glGetDebugMessageLogARB  ;
+
+/*  GL_AMD_performance_monitor  */
+extern PFNGLGETPERFMONITORGROUPSAMDPROC                     glGetPerfMonitorGroupsAMD       ;
+extern PFNGLGETPERFMONITORCOUNTERSAMDPROC                   glGetPerfMonitorCountersAMD     ;
+extern PFNGLGETPERFMONITORGROUPSTRINGAMDPROC                glGetPerfMonitorGroupStringAMD  ;
+extern PFNGLGETPERFMONITORCOUNTERSTRINGAMDPROC              glGetPerfMonitorCounterStringAMD;
+extern PFNGLGETPERFMONITORCOUNTERINFOAMDPROC                glGetPerfMonitorCounterInfoAMD  ;
+extern PFNGLGENPERFMONITORSAMDPROC                          glGenPerfMonitorsAMD            ;
+extern PFNGLDELETEPERFMONITORSAMDPROC                       glDeletePerfMonitorsAMD         ;
+extern PFNGLSELECTPERFMONITORCOUNTERSAMDPROC                glSelectPerfMonitorCountersAMD  ;
+extern PFNGLBEGINPERFMONITORAMDPROC                         glBeginPerfMonitorAMD           ;
+extern PFNGLENDPERFMONITORAMDPROC                           glEndPerfMonitorAMD             ;
+extern PFNGLGETPERFMONITORCOUNTERDATAAMDPROC                glGetPerfMonitorCounterDataAMD  ;
 
 } }
 

@@ -5,6 +5,14 @@
 #include <stdexcept>
 #include <cstdlib>
 
+#if defined(WIN32)
+# define GLFW_EXPOSE_NATIVE_WIN32 1
+# define GLFW_EXPOSE_NATIVE_WGL   1
+# include <GLFW/glfw3native.h>
+#else
+// TODO
+#endif
+
 using namespace std;
 #if 0
 # if defined(_WIN32)
@@ -140,6 +148,13 @@ double window::time() const
 {
    return ::glfwGetTime();
 }
+
+#if defined(WIN32)
+HGLRC window::get_native_context()
+{
+   return glfwGetWGLContext((GLFWwindow*)m_window);
+}
+#endif
 
 bool window::open(int width, int height, string const &title, int major, int minor)
 {

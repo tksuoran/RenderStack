@@ -87,6 +87,8 @@ public:
 
       bool  debug_output_arb              ;
 
+      bool  amd_performance_monitor       ;
+
       can_use_t();
    };
 

@@ -22,13 +22,21 @@ set(
    source/services.cpp
 )
 
+if (RENDERSTACK_USE_AMD_GPU_PERF_API_AND_ADL)
+   set(
+      extra_sources
+      include/renderstack_toolkit/amd_gpa_adl.hpp
+      source/amd_gpa_adl.cpp
+   )
+endif ()
+
 if (RENDERSTACK_USE_GLFW)
    list(APPEND sources source/glfw_window.cpp)
 endif()
 
 if (RENDERSTACK_USE_GLWT)
    list(APPEND sources source/glwt_window.cpp)
-endif()
+endif ()
 
 if (RENDERSTACK_GL_API_OPENGL_ES_2)
    list(APPEND sources source/gles_ext.cpp)
@@ -50,6 +58,7 @@ include_directories(
 add_library(
    renderstack_toolkit STATIC
    ${sources}
+   ${extra_sources}
 )
 
 source_group(

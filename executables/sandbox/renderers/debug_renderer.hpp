@@ -2,9 +2,11 @@
 #define debug_renderer_hpp_renderers
 
 #include "renderstack_toolkit/platform.hpp"
-#include "renderers/base_renderer.hpp"
+#include "renderstack_toolkit/amd_gpa_adl.hpp"
 #include "renderstack_toolkit/service.hpp"
+#include "renderers/base_renderer.hpp"
 #include "renderstack_graphics/renderer.hpp"
+#include "main/application.hpp"
 #include "main/programs.hpp"
 #include <glm/glm.hpp>
 #include <vector>
@@ -53,9 +55,10 @@ public:
    /*virtual*/ ~debug_renderer();
 
    void connect(
-      std::shared_ptr<renderstack::graphics::renderer> renderer,
-      std::shared_ptr<renderstack::ui::gui_renderer> gui_renderer,
-      std::shared_ptr<class programs> programs
+      std::shared_ptr<renderstack::graphics::renderer>   renderer,
+      std::shared_ptr<renderstack::ui::gui_renderer>     gui_renderer,
+      std::shared_ptr<class programs>                    programs,
+      std::shared_ptr<class application>                 application_
    );
 
    void initialize_service();
@@ -89,6 +92,7 @@ private:
 private:
    std::shared_ptr<renderstack::ui::gui_renderer>                 m_gui_renderer;
    std::shared_ptr<renderstack::scene::camera>                    m_camera;
+   std::shared_ptr<class application>                             m_application;
 
    // Self owned
    std::shared_ptr<renderstack::graphics::vertex_format>          m_vertex_format;
@@ -126,6 +130,9 @@ private:
    std::vector<draw>    m_draws;
    std::deque<float>    m_frame_durations; // TODO use ringbuffer, implement on top of vector<>
    std::size_t          m_frame_duration_graph_size;
+
+   renderstack::toolkit::amd_performance m_amd_performance;
+
 };
 
 

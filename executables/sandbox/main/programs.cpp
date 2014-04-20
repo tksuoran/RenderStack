@@ -195,10 +195,9 @@ void programs::connect(
 
    try
    {
-      vector<string> light_type_spot;
-      light_type_spot.push_back("LIGHT_TYPE_SPOT");
-      vector<string> light_type_directional;
-      light_type_directional.push_back("LIGHT_TYPE_DIRECTIONAL");
+      vector<string> light_type_spot         = { "LIGHT_TYPE_SPOT" };
+      vector<string> light_type_directional  = { "LIGHT_TYPE_DIRECTIONAL" };
+      vector<string> use_debug_uniforms      = { "USE_DEBUG_UNIFORMS" };
 
       font                    = make_program("font");
       basic                   = make_program("basic");
@@ -210,6 +209,7 @@ void programs::connect(
       show_rt_spherical       = make_program("show_rt_spherical");
       textured                = make_program("textured");
       id                      = make_program("id");
+      debug_font              = make_program("font", use_debug_uniforms);
       debug_line              = make_program("debug_line");
       debug_light             = make_program("debug_light");
       anisotropic_spot        = make_program("anisotropic", light_type_spot);

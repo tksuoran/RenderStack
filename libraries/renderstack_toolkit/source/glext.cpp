@@ -6,6 +6,7 @@
 #endif
 
 #include <GL/glcorearb.h>
+#include <GL/glext.h>
 
 #if defined(RENDERSTACK_USE_GLFW)
 # include <GLFW/glfw3.h>
@@ -490,6 +491,18 @@ PFNGLDEBUGMESSAGEINSERTARBPROC                           glDebugMessageInsertARB
 PFNGLDEBUGMESSAGECALLBACKARBPROC                         glDebugMessageCallbackARB = nullptr;
 PFNGLGETDEBUGMESSAGELOGARBPROC                           glGetDebugMessageLogARB   = nullptr;
 
+/*  GL_AMD_performance_monitor  */
+PFNGLGETPERFMONITORGROUPSAMDPROC                         glGetPerfMonitorGroupsAMD        = nullptr;
+PFNGLGETPERFMONITORCOUNTERSAMDPROC                       glGetPerfMonitorCountersAMD      = nullptr;
+PFNGLGETPERFMONITORGROUPSTRINGAMDPROC                    glGetPerfMonitorGroupStringAMD   = nullptr;
+PFNGLGETPERFMONITORCOUNTERSTRINGAMDPROC                  glGetPerfMonitorCounterStringAMD = nullptr;
+PFNGLGETPERFMONITORCOUNTERINFOAMDPROC                    glGetPerfMonitorCounterInfoAMD   = nullptr;
+PFNGLGENPERFMONITORSAMDPROC                              glGenPerfMonitorsAMD             = nullptr;
+PFNGLDELETEPERFMONITORSAMDPROC                           glDeletePerfMonitorsAMD          = nullptr;
+PFNGLSELECTPERFMONITORCOUNTERSAMDPROC                    glSelectPerfMonitorCountersAMD   = nullptr;
+PFNGLBEGINPERFMONITORAMDPROC                             glBeginPerfMonitorAMD            = nullptr;
+PFNGLENDPERFMONITORAMDPROC                               glEndPerfMonitorAMD              = nullptr;
+PFNGLGETPERFMONITORCOUNTERDATAAMDPROC                    glGetPerfMonitorCounterDataAMD   = nullptr;
 
 } }
 
@@ -987,6 +1000,18 @@ void window::get_extensions()
     gl::detail::glGetStringi                                    = (PFNGLGETSTRINGIPROC                                  )get_proc_address("glGetStringi");
 #endif
     //check_gl_error();
+
+   gl::detail::glGetPerfMonitorGroupsAMD        = (PFNGLGETPERFMONITORGROUPSAMDPROC       )get_proc_address("glGetPerfMonitorGroupsAMD");
+   gl::detail::glGetPerfMonitorCountersAMD      = (PFNGLGETPERFMONITORCOUNTERSAMDPROC     )get_proc_address("glGetPerfMonitorCountersAMD");
+   gl::detail::glGetPerfMonitorGroupStringAMD   = (PFNGLGETPERFMONITORGROUPSTRINGAMDPROC  )get_proc_address("glGetPerfMonitorGroupStringAMD");
+   gl::detail::glGetPerfMonitorCounterStringAMD = (PFNGLGETPERFMONITORCOUNTERSTRINGAMDPROC)get_proc_address("glGetPerfMonitorCounterStringAMD");
+   gl::detail::glGetPerfMonitorCounterInfoAMD   = (PFNGLGETPERFMONITORCOUNTERINFOAMDPROC  )get_proc_address("glGetPerfMonitorCounterInfoAMD");
+   gl::detail::glGenPerfMonitorsAMD             = (PFNGLGENPERFMONITORSAMDPROC            )get_proc_address("glGenPerfMonitorsAMD");
+   gl::detail::glDeletePerfMonitorsAMD          = (PFNGLDELETEPERFMONITORSAMDPROC         )get_proc_address("glDeletePerfMonitorsAMD");
+   gl::detail::glSelectPerfMonitorCountersAMD   = (PFNGLSELECTPERFMONITORCOUNTERSAMDPROC  )get_proc_address("glSelectPerfMonitorCountersAMD");
+   gl::detail::glBeginPerfMonitorAMD            = (PFNGLBEGINPERFMONITORAMDPROC           )get_proc_address("glBeginPerfMonitorAMD");
+   gl::detail::glEndPerfMonitorAMD              = (PFNGLENDPERFMONITORAMDPROC             )get_proc_address("glEndPerfMonitorAMD");
+   gl::detail::glGetPerfMonitorCounterDataAMD   = (PFNGLGETPERFMONITORCOUNTERDATAAMDPROC  )get_proc_address("glGetPerfMonitorCounterDataAMD");
 }
 
 } }

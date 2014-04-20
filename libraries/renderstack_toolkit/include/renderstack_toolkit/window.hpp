@@ -264,6 +264,16 @@ public:
    bool     get_mouse_capture () const;
    void     show_cursor       (bool show);
 
+#if defined(WIN32)
+   HGLRC    get_native_context();
+#endif
+
+#if defined(RENDERSTACK_USE_FREEGLUT)
+   void window_resize_event(int width, int height);
+   void mouse_button_event(int button, int state);
+   void mouse_position_event(int x, int y);
+#endif
+
 private:
    bool string_list_check(const char *check_str, const char *str_list);
    void get_extensions();
@@ -282,6 +292,12 @@ private:
    bool m_running;
    bool m_capture;
    bool m_show;
+
+#if defined(_WIN32)
+# if defined(RENDERSTACK_USE_AMD_GPU_PERF_API)
+   void *m_gpuperfapigl_dll;
+# endif
+#endif
 
 #if defined(RENDERSTACK_USE_GLWT)
    bool     m_buttons[10];
