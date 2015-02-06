@@ -375,7 +375,7 @@ void hsv_to_rgb(float h, float s, float v, float &r, float &g, float &b)
          break;
       default:
          r = 1.0f;
-         b = 1.0f;
+         g = 1.0f;
          b = 1.0f;
          break;
       }
