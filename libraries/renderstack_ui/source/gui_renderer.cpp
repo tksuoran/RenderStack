@@ -53,6 +53,7 @@ void gui_renderer::connect(
 
 shared_ptr<program> gui_renderer::load_program(string const &name, string const &path)
 {
+   bool any_found = false;
    for (auto i = m_shader_versions.cbegin(); i != m_shader_versions.cend(); ++i)
    {
       string vs_path = m_shader_path + path + ".vs" + i->first + ".txt";
@@ -61,6 +62,7 @@ shared_ptr<program> gui_renderer::load_program(string const &name, string const 
       if (!exists(vs_path) || !exists(fs_path))
          continue;
 
+      any_found = true;
       auto p = make_shared<program>(name, i->second, m_samplers, m_vertex_attribute_mappings, m_fragment_outputs);
       p->add(m_uniform_block);
       p->load_vs(vs_path);
@@ -79,6 +81,21 @@ shared_ptr<program> gui_renderer::load_program(string const &name, string const 
 
    stringstream ss;
    ss << "gui_renderer::load_program(" << name << ") failed";
+   if (!any_found)
+   {
+      ss << "\nNo source files found.\n";
+      ss << "Did you run export-files build target?\n";
+      ss << "Current working directory is: " << get_current_working_directory() << "\n";
+      for (auto i = m_shader_versions.cbegin(); i != m_shader_versions.cend(); ++i)
+      {
+         string vs_path = m_shader_path + path + ".vs" + i->first + ".txt";
+         string fs_path = m_shader_path + path + ".fs" + i->first + ".txt";
+
+         ss << "\t" << vs_path << "\n";
+         ss << "\t" << fs_path << "\n";
+      }
+   }
+
    log_error("%s", ss.str().c_str());
    throw runtime_error(ss.str());
 }
@@ -196,10 +213,10 @@ void gui_renderer::initialize_service()
 
    try
    {
-      m_ninepatch_program = load_program("ninepatch", "gui");
-      m_slider_program = load_program("slider", "gui_slider");
-      m_font_program = load_program("font", "gui_font");
-      m_hsv_program = load_program("hsv", "gui_hsv");
+      m_ninepatch_program  = load_program("ninepatch", "gui");
+      m_slider_program     = load_program("slider", "gui_slider");
+      m_font_program       = load_program("font", "gui_font");
+      m_hsv_program        = load_program("hsv", "gui_hsv");
    }
    catch (runtime_error const &e)
    {
@@ -212,12 +229,9 @@ void gui_renderer::initialize_service()
       throw;
    }
 
-   m_font = make_shared<font>(
-      r,
-      "res/fonts/Ubuntu-R.ttf",
-      11,
-      1.0f
-   );
+   m_font = make_shared<font>(r, "res/fonts/Ubuntu-R.ttf", 11, 1.0f);
+   //m_font = make_shared<font>(r, "res/fonts/SourceCodePro-Semibold.ttf", 8, 1.0f);
+   //m_font = make_shared<font>(r, "res/fonts/SourceCodePro-Bold.ttf", 9, 1.0f);
 
    m_button_ninepatch_style = make_shared<ninepatch_style>(
       r,

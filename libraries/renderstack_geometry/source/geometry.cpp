@@ -533,7 +533,7 @@ polygon *geometry::make_polygon(size_t p0, size_t p1, size_t p2, size_t p3, size
    return p;
 }
 
-void geometry::transform(mat4 m)
+void geometry::transform(mat4 const &m)
 {
    mat4 it = glm::transpose(glm::inverse(m));
 

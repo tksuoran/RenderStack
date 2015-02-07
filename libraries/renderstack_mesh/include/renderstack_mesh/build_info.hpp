@@ -73,7 +73,7 @@ public:
    void set_want_color           (bool value) { m_want_color           = value; }
    void set_want_texcoord        (bool value) { m_want_texcoord        = value; }
    void set_want_id              (bool value) { m_want_id              = value; }
-   void set_constant_color       (glm::vec4 value)             { m_constant_color   = value; }
+   void set_constant_color       (glm::vec4 const &value)             { m_constant_color   = value; }
    void set_keep_geometry        (bool value)                  { m_keep_geometry    = value; }
    void set_normal_style         (normal_style::value value)   { m_normal_style     = value; }
    void set_vertex_attribute_mappings(std::shared_ptr<renderstack::graphics::vertex_attribute_mappings> value) { m_vertex_attribute_mappings = value; }

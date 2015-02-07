@@ -17,10 +17,16 @@ void services::add(shared_ptr<renderstack::toolkit::service>s)
 {
    // Silently ignores nullptr services
    if (s)
-      m_services.insert(s);   
+   {
+      s->register_as_service();
+      m_services.insert(s);
+   }
 }
 void services::cleanup_services()
 {
+   for (auto i = m_services.begin(); i != m_services.end(); ++i)
+      (*i)->unregister();
+
    m_services.clear();
 }
 void services::initialize_services()
@@ -48,7 +54,7 @@ void services::initialize_services()
          if (s->ready())
          {
             ++initialized_count;
-            log_info("Initializing service %d / %d: %s...", initialized_count, total_count, s->name().c_str());
+            log_write(&log_services, LOG_ERROR, "Initializing service %d / %d: %s...", initialized_count, total_count, s->name().c_str());
             try
             {
                s->initialize();  
@@ -81,6 +87,16 @@ void services::initialize_services()
       if (remove_set.size() == 0)
       {
          log_error("circular service dependenciers detected");
+         for (auto i = uninitialized.begin(); i != uninitialized.end(); ++i)
+         {
+            auto s = *i;
+            log_error("\t%s", s->name().c_str());
+            for (auto j = s->dependencies().cbegin(); j != s->dependencies().cend(); ++j)
+            {
+               auto d = *j;
+               log_error("\t\t%s", d->name().c_str());
+            }
+         }
          throw runtime_error("Circular dependencies detected");
       }
 

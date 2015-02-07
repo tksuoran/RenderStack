@@ -257,6 +257,11 @@ shared_ptr<renderstack::graphics::program> programs::make_program(
       p->load_vs(vs_path);
       p->load_fs(fs_path);
       p->link(); 
+      models_block->map_program(p);
+      lights_block->map_program(p);
+      materials_block->map_program(p);
+      camera_block->map_program(p);
+      debug_block->map_program(p);
 
       if (m_shader_monitor)
       {

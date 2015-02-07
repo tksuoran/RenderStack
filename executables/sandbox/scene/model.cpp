@@ -26,7 +26,7 @@ model::model(
    string const &name,
    shared_ptr<class geometry_mesh> geometry_mesh,
    shared_ptr<class material> material_,
-   mat4 transform
+   mat4 const &transform
 )
 :  m_name         (name)
 ,  m_frame        (nullptr)

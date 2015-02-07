@@ -6,6 +6,7 @@
 #include "renderstack_graphics/log.hpp"
 
 #include <algorithm>
+#include <cassert>
 
 #define LOG_CATEGORY &log_renderer
 
@@ -81,6 +82,12 @@ void renderer::trash()
 }
 shared_ptr<class program> renderer::set_program(shared_ptr<class program> program)
 {
+   if (!program)
+   {
+      log_error("renderer::set_program() program is empty");
+      throw runtime_error("renderer::set_program() program is empty");
+   }
+
    shared_ptr<class program> old = m_effective.current_program;
 
    m_requested.current_program = program;

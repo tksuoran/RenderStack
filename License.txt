@@ -3,7 +3,7 @@ Licenses for RenderStack and other parts:
 
 The following code is 
 
-executables/geometrytest:
+executables/sandbox:
 libraries/egl_dummy
 libraries/gles3_dummy
 libraries/renderstack_geometry
@@ -27,11 +27,18 @@ libraries/renderstack_toolkit/smart_ptr_builder.hpp
 The following libraries are dependencies for RenderStack. They are included for convenience, either
 as copied source code, or, where available, github submodule.
 
-libraries/freetype-2.5.0
+libraries/bullet3
+   Origin:     http://bulletphysics.org/wordpress/
+   Contact:    http://bulletphysics.org/mediawiki-1.5.8/index.php/Feedback,_discussion_and_contributions
+   License:    zlib (http://opensource.org/licenses/Zlib)
+   Form:       Github submodule (unmodified) https://github.com/bulletphysics/bullet3
+
+libraries/freetype-2.5.5
    Origin:     http://www.freetype.org/
    Contact:    The Freetype Project <freetype@nongnu.org>
    License:    The FreeType License (FTL) or The GNU General Public License (GPL), version 2
-   Form:       Copied source code, unmodified
+   Form:       Copied source code, duplicated builds\windows\vc2013 from builds\windows\vc2010
+               and upgraded 2013 project to use Visual Studio 2013
 
 libraries/glfw
    Origin:     http://www.glfw.org/
@@ -39,11 +46,11 @@ libraries/glfw
    License:    zlib/libpng (COPYING.TXT)
    Form:       Github submodule (unmodified) https://github.com/elmindreda/glfw
 
-libraries/glm
+libraries/glm-0.9.6.1
    Origin:     http://glm.g-truc.net/
    Contact:    Christophe Riccio <glm@g-truc.net>
    License:    MIT (copying.TXT)
-   Form:       Copied source code, built documentation stripped
+   Form:       Copied source code, removed documentation directory
 
 libraries/glwt
    Origin:     https://github.com/rikusalminen/glwt
@@ -57,7 +64,7 @@ libraries/khronos
    License:    Khronos Free Software License
    Form:       Copied API headers, unmodified
 
-libraries/lpng163
+libraries/lpng1616
    Origin:     http://libpng.sourceforge.net/index.html
    Contact:    png-mng-implement@lists.sourceforge.net
    License:    zlib/libpng (LICENSE)
@@ -79,4 +86,5 @@ libraries/zlib
    Origin:     http://www.zlib.net/
    Contact:    zlib@gzip.org
    License:    zlib (copying.TXT)
-   Form:       Github submodule (unmodified) https://github.com/madler/zlib
+   Form:       Github submodule https://github.com/madler/zlib
+               Disabled example and tests, zconf.h -> zconf.h.included

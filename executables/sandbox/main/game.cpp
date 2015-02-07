@@ -39,9 +39,7 @@
 
 #define LOG_CATEGORY &log_game
 
-#define USE_MESHES      1
-#define USE_FONT        1
-#define USE_GUI         1
+#define USE_GUI 1
 
 using namespace renderstack::graphics;
 using namespace renderstack::toolkit;
@@ -144,19 +142,21 @@ void game::initialize_service()
 {
    assert(m_renderer);
    assert(m_gui_renderer);
-   assert(m_programs);
-   assert(m_textures);
+   //assert(m_programs);
+   //assert(m_textures);
 
    slog_trace("game::on_load()");
 
-   auto camera = m_scene_manager->camera();
-
-   m_controls.camera_controller.set_frame(camera->frame());
+   if (m_scene_manager)
+   {
+      auto camera = m_scene_manager->camera();
+      m_controls.camera_controller.set_frame(camera->frame());
+   }
    m_controls.home = vec3(0.0f, 1.7f, 10.0f);
 
    reset();
 
-#if defined(USE_GUI)
+#if USE_GUI
    setup_gui();
 #endif
 }
@@ -174,7 +174,7 @@ void game::reset()
 
 void game::setup_gui()
 {
-#if !defined(USE_GUI)
+#if !USE_GUI
    slog_trace("game::setup_gui() - USE_GUI not defined, skipping");
    return;
 #else
@@ -236,21 +236,13 @@ void game::on_resize(int width, int height)
    if (!m_screen_active)
       return;
 
-#if !defined(USE_GUI)
-   (void)width;
-   (void)height;
-   slog_trace("game::on_resize() - USE_GUI not defined, skipping");
-   return;
-#else
-   slog_trace("game::on_resize()");
-
-   float w = (float)width;   // (float)m_window->width();
-   float h = (float)height;  // (float)m_window->height();
-
    m_viewport.set_x(0);
    m_viewport.set_y(0);
    m_viewport.set_width(width);
    m_viewport.set_height(height);
+
+#if USE_GUI
+   slog_trace("game::on_resize()");
 
    auto gr = m_gui_renderer;
    gr->on_resize(width, height);
@@ -258,19 +250,21 @@ void game::on_resize(int width, int height)
    if (m_root_layer)
    {
       gr->prepare();
+      float w = (float)width;   // (float)m_window->width();
+      float h = (float)height;  // (float)m_window->height();
       m_root_layer->set_layer_size(w, h);
       m_root_layer->update();
    }
 #endif
 
-   m_deferred_renderer->resize(width, height);
-   m_debug_renderer->base_resize(width, height);
-   m_forward_renderer->base_resize(width, height);
+   if (m_deferred_renderer)   m_deferred_renderer->resize(width, height);
+   if (m_debug_renderer)      m_debug_renderer->base_resize(width, height);
+   if (m_forward_renderer)    m_forward_renderer->base_resize(width, height);
 }
 
 void game::action(weak_ptr<action_source> source)
 {
-#if !defined(USE_GUI)
+#if !USE_GUI
    slog_trace("game::action() - USE_GUI not defined, skipping");
    return;
 #else
@@ -362,6 +356,9 @@ void game::toggle_pause()
 }
 void game::toggle_deferred()
 {
+   if (!m_deferred_renderer || !m_forward_renderer)
+      return;
+
    m_forward = !m_forward;
    m_deferred = !m_deferred;
 }
@@ -403,10 +400,16 @@ void game::on_key(int key, int scancode, int action, int mods)
       case RS_KEY_ESCAPE:  toggle_mouse_lock(); break;
       case RS_KEY_F1:      m_min_frame_dt = 1.0; m_max_frame_dt = 0.0; break;
       case RS_KEY_F2:      toggle_deferred(); break;
-      case RS_KEY_F3:      m_debug_lights = !m_debug_lights; break;
+      case RS_KEY_F3:      
+         if (m_light_debug_renderer)
+         {
+            m_debug_lights = !m_debug_lights;
+         }
+         break;
       case RS_KEY_F4:      --m_max_lights; break;
       case RS_KEY_F5:      ++m_max_lights; break;
       case RS_KEY_F6:
+         if (m_deferred_renderer)
          {
             bool use_stencil = m_deferred_renderer->use_stencil();
             use_stencil = !use_stencil;
@@ -415,6 +418,7 @@ void game::on_key(int key, int scancode, int action, int mods)
          }
          break;
       case RS_KEY_F7:
+         if (m_deferred_renderer)
          {
             int scale = m_deferred_renderer->scale();
             --scale;
@@ -425,6 +429,7 @@ void game::on_key(int key, int scancode, int action, int mods)
          }
          break;
       case RS_KEY_F8:
+         if (m_deferred_renderer)
          {
             int scale = m_deferred_renderer->scale();
             ++scale;

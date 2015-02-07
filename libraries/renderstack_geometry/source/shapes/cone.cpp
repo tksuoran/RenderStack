@@ -1,7 +1,7 @@
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_geometry/shapes/cone.hpp"
 #include <glm/glm.hpp>
-#include <glm/gtx/constants.hpp>
+#include <glm/gtc/constants.hpp>
 #include <map>
 #include <vector>
 #include <map>

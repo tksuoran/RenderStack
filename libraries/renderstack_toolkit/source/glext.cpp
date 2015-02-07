@@ -486,10 +486,17 @@ PFNGLTEXSTORAGE1DPROC                                    glTexStorage1D = nullpt
 PFNGLTEXSTORAGE2DPROC                                    glTexStorage2D = nullptr;
 PFNGLTEXSTORAGE3DPROC                                    glTexStorage3D = nullptr;
 
-PFNGLDEBUGMESSAGECONTROLARBPROC                          glDebugMessageControlARB  = nullptr;
-PFNGLDEBUGMESSAGEINSERTARBPROC                           glDebugMessageInsertARB   = nullptr;
-PFNGLDEBUGMESSAGECALLBACKARBPROC                         glDebugMessageCallbackARB = nullptr;
-PFNGLGETDEBUGMESSAGELOGARBPROC                           glGetDebugMessageLogARB   = nullptr;
+/*  GL_VERSION_4_3  */
+PFNGLDEBUGMESSAGECONTROLPROC                             glDebugMessageControl  = nullptr;
+PFNGLDEBUGMESSAGEINSERTPROC                              glDebugMessageInsert   = nullptr;
+PFNGLDEBUGMESSAGECALLBACKPROC                            glDebugMessageCallback = nullptr;
+PFNGLGETDEBUGMESSAGELOGPROC                              glGetDebugMessageLog   = nullptr;
+PFNGLPUSHDEBUGGROUPPROC                                  glPushDebugGroup       = nullptr;
+PFNGLPOPDEBUGGROUPPROC                                   glPopDebugGroup        = nullptr;
+PFNGLOBJECTLABELPROC                                     glObjectLabel          = nullptr;
+PFNGLGETOBJECTLABELPROC                                  glGetObjectLabel       = nullptr;
+PFNGLOBJECTPTRLABELPROC                                  glObjectPtrLabel       = nullptr;
+PFNGLGETOBJECTPTRLABELPROC                               glGetObjectPtrLabel    = nullptr;
 
 /*  GL_AMD_performance_monitor  */
 PFNGLGETPERFMONITORGROUPSAMDPROC                         glGetPerfMonitorGroupsAMD        = nullptr;
@@ -883,11 +890,17 @@ void window::get_extensions()
     gl::detail::glTexStorage1D                                  = (PFNGLTEXSTORAGE1DPROC                                )get_proc_address("glTexStorage1D");
     gl::detail::glTexStorage2D                                  = (PFNGLTEXSTORAGE2DPROC                                )get_proc_address("glTexStorage2D");
     gl::detail::glTexStorage3D                                  = (PFNGLTEXSTORAGE3DPROC                                )get_proc_address("glTexStorage3D");
-    gl::detail::glDebugMessageControlARB                        = (PFNGLDEBUGMESSAGECONTROLARBPROC                      )get_proc_address("glDebugMessageControlARB");
-    gl::detail::glDebugMessageInsertARB                         = (PFNGLDEBUGMESSAGEINSERTARBPROC                       )get_proc_address("glDebugMessageInsertARB");
-    gl::detail::glDebugMessageCallbackARB                       = (PFNGLDEBUGMESSAGECALLBACKARBPROC                     )get_proc_address("glDebugMessageCallbackARB");
-    gl::detail::glGetDebugMessageLogARB                         = (PFNGLGETDEBUGMESSAGELOGARBPROC                       )get_proc_address("glGetDebugMessageLogARB");
 
+    gl::detail::glDebugMessageControl                           = (PFNGLDEBUGMESSAGECONTROLPROC                         )get_proc_address("glDebugMessageControl");
+    gl::detail::glDebugMessageInsert                            = (PFNGLDEBUGMESSAGEINSERTPROC                          )get_proc_address("glDebugMessageInsert");
+    gl::detail::glDebugMessageCallback                          = (PFNGLDEBUGMESSAGECALLBACKPROC                        )get_proc_address("glDebugMessageCallback");
+    gl::detail::glGetDebugMessageLog                            = (PFNGLGETDEBUGMESSAGELOGPROC                          )get_proc_address("glGetDebugMessageLog");
+    gl::detail::glPushDebugGroup                                = (PFNGLPUSHDEBUGGROUPPROC                              )get_proc_address("glPushDebugGroup");
+    gl::detail::glPopDebugGroup                                 = (PFNGLPOPDEBUGGROUPPROC                               )get_proc_address("glPopDebugGroup");
+    gl::detail::glObjectLabel                                   = (PFNGLOBJECTLABELPROC                                 )get_proc_address("glObjectLabel");
+    gl::detail::glGetObjectLabel                                = (PFNGLGETOBJECTLABELPROC                              )get_proc_address("glGetObjectLabel");
+    gl::detail::glObjectPtrLabel                                = (PFNGLOBJECTPTRLABELPROC                              )get_proc_address("glObjectPtrLabel");
+    gl::detail::glGetObjectPtrLabel                             = (PFNGLGETOBJECTPTRLABELPROC                           )get_proc_address("glGetObjectPtrLabel");
 #endif
 
 #if defined(EXT_SUBSET)

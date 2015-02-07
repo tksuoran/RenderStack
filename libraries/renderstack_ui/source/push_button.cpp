@@ -73,7 +73,9 @@ void push_button::draw_self(ui_context &context)
       gr->blend_alpha();
       gr->set_program(style()->program());
       gr->set_texture(style()->texture_unit(), style()->font()->texture());
-      gr->set_color_add(glm::vec4(0.00f, 0.00f, 0.00f, 0.0f));
+
+      // TODO Font shader does not currently have color scale
+      //gr->set_color_add(glm::vec4(0.00f, 0.00f, 0.00f, 0.0f));
 
       if (m_pressed)
          gr->set_color_scale(glm::vec4(1.0f, 1.0f, 1.0f, 2.0f));

@@ -79,7 +79,7 @@ public:
    void set_model(glm::mat4 const &world_from_model);
    void set_clip_from_model(glm::mat4 const &clip_from_model);
    void set_ortho(renderstack::scene::viewport const &vp);
-   void set_color(glm::vec4 color);
+   void set_color(glm::vec4 const &color);
 
    void add_line(glm::vec3 start, glm::vec3 end);
    void add_box(glm::vec3 min_, glm::vec3 max_);
@@ -131,8 +131,9 @@ private:
    std::deque<float>    m_frame_durations; // TODO use ringbuffer, implement on top of vector<>
    std::size_t          m_frame_duration_graph_size;
 
+#if defined(RENDERSTACK_USE_AMD_GPU_PERF_API_AND_ADL)
    renderstack::toolkit::amd_performance m_amd_performance;
-
+#endif
 };
 
 

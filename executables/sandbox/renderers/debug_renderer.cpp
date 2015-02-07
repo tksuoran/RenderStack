@@ -71,10 +71,12 @@ void debug_renderer::initialize_service()
 
    auto &r = renderer();
 
+#if defined(RENDERSTACK_USE_AMD_GPU_PERF_API_AND_ADL)
    m_amd_performance.connect_to_window(*m_application);
 
    float c = m_amd_performance.get_adapter_temperature(0);
    printf("Adapter %d overdrive5 temperature %5.1f\n", 0, c);
+#endif
 
 #if defined(RENDERSTACK_USE_FREETYPE)
    auto p = programs()->font;
@@ -139,10 +141,12 @@ void debug_renderer::initialize_service()
 
    r.reset_vertex_array();
 
+#if defined(RENDERSTACK_USE_AMD_GPU_PERF_API_AND_ADL)
    {
-   float c = m_amd_performance.get_adapter_temperature(0);
-   printf("Adapter %d overdrive5 temperature %5.1f\n", 0, c);
+      float c = m_amd_performance.get_adapter_temperature(0);
+      printf("Adapter %d overdrive5 temperature %5.1f\n", 0, c);
    }
+#endif
 }
 
 void debug_renderer::clear_text_lines()
@@ -157,10 +161,7 @@ void debug_renderer::record_frame_duration(float frame_duration)
    if (m_frame_durations.size() == m_frame_duration_graph_size)
       m_frame_durations.pop_front();
 
-   float c = m_amd_performance.get_adapter_temperature(0);
-   log_write(&log_debug, LOG_ERROR, "Adapter %d overdrive5 temperature %5.1f\n", 0, c);
-
-   m_frame_durations.push_back(c * 0.1f);
+   m_frame_durations.push_back(frame_duration);
 }
 
 void debug_renderer::printf(int x, int y, const char *format, ...)
@@ -253,7 +254,7 @@ void debug_renderer::render_text_lines(renderstack::scene::viewport const &vp)
    int color           = p->uniform_at(programs()->debug_block_access.color);
 
    gl::uniform_matrix_4fv(clip_from_world, 1, GL_FALSE, value_ptr(ortho));
-   gl::uniform_4fv(color, 1, value_ptr(white));
+   //gl::uniform_4fv(color, 1, value_ptr(white));
 
    //int texture_ui = p->uniform("font_texture")->index();
    //gl::uniform_1i(texture_ui, 0);
@@ -405,7 +406,7 @@ void debug_renderer::render()
    m_draws.clear();
 }
 
-void debug_renderer::set_color(glm::vec4 color)
+void debug_renderer::set_color(glm::vec4 const &color)
 {
    m_color = color;
 }

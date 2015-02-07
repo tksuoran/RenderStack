@@ -480,11 +480,17 @@ extern PFNGLTEXSTORAGE1DPROC                                glTexStorage1D;
 extern PFNGLTEXSTORAGE2DPROC                                glTexStorage2D;
 extern PFNGLTEXSTORAGE3DPROC                                glTexStorage3D;
 
-/*  GL_ARB_debug_output  */
-extern PFNGLDEBUGMESSAGECONTROLARBPROC                      glDebugMessageControlARB ;
-extern PFNGLDEBUGMESSAGEINSERTARBPROC                       glDebugMessageInsertARB  ;
-extern PFNGLDEBUGMESSAGECALLBACKARBPROC                     glDebugMessageCallbackARB;
-extern PFNGLGETDEBUGMESSAGELOGARBPROC                       glGetDebugMessageLogARB  ;
+/*  GL_VERSION_4_3  */
+extern PFNGLDEBUGMESSAGECONTROLPROC                         glDebugMessageControl ;
+extern PFNGLDEBUGMESSAGEINSERTPROC                          glDebugMessageInsert  ;
+extern PFNGLDEBUGMESSAGECALLBACKPROC                        glDebugMessageCallback;
+extern PFNGLGETDEBUGMESSAGELOGPROC                          glGetDebugMessageLog  ;
+extern PFNGLPUSHDEBUGGROUPPROC                              glPushDebugGroup      ;
+extern PFNGLPOPDEBUGGROUPPROC                               glPopDebugGroup       ;
+extern PFNGLOBJECTLABELPROC                                 glObjectLabel         ;
+extern PFNGLGETOBJECTLABELPROC                              glGetObjectLabel      ;
+extern PFNGLOBJECTPTRLABELPROC                              glObjectPtrLabel      ;
+extern PFNGLGETOBJECTPTRLABELPROC                           glGetObjectPtrLabel   ;
 
 /*  GL_AMD_performance_monitor  */
 extern PFNGLGETPERFMONITORGROUPSAMDPROC                     glGetPerfMonitorGroupsAMD       ;

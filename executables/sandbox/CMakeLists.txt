@@ -148,7 +148,7 @@ target_link_libraries(
 
 if (RENDERSTACK_USE_FREETYPE)
    if (MSVC)
-      add_dependencies(sandbox freetype-2.5.0)
+      add_dependencies(sandbox freetype2)
       set_target_properties(
          sandbox PROPERTIES
          LINK_FLAGS "/ENTRY:mainCRTStartup"

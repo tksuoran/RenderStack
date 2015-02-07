@@ -9,6 +9,7 @@ namespace renderstack { namespace toolkit {
 service::service(string const &name)
 :  m_name(name)
 ,  m_initialized(false)
+,  m_is_registered(false)
 {
 }
 

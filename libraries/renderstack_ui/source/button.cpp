@@ -145,7 +145,8 @@ void button::draw_self(ui_context &context)
       gr->set_texture(style()->texture_unit(), t);
       t->apply(r, style()->texture_unit());
 
-      gr->set_color_add  (glm::vec4(0.00f, 0.00f, 0.00f, 0.0f));
+      // TODO Font shader does not currently support add/scale
+      //gr->set_color_add  (glm::vec4(0.00f, 0.00f, 0.00f, 0.0f));
       gr->set_color_scale(glm::vec4(0.72f, 0.72f, 0.72f, 2.0f));
       gr->set_transform(m_text_frame);
       m_text_buffer.render();

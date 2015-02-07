@@ -8,7 +8,7 @@
 #include "renderstack_mesh/geometry_mesh.hpp"
 #include "renderstack_graphics/vertex_format.hpp"
 #include <glm/glm.hpp>
-#include <glm/gtx/constants.hpp>
+#include <glm/gtc/constants.hpp>
 
 namespace renderstack { namespace ui {
 

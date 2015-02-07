@@ -71,12 +71,13 @@ endif ()
 #    message("egl")
 # endif ()
 
-option(RENDERSTACK_USE_AMD_GPU_PERF_API_AND_ADL "Use AMD GPUPerfAPI and ADL" TRUE)
-if (RENDERSTACK_USE_AMD_GPU_PERF_API_AND_ADL)
-   add_definitions(-DRENDERSTACK_USE_AMD_GPU_PERF_API_AND_ADL=1)
-   list(APPEND RENDERSTACK_WINDOW_TOOLKIT_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/libraries/GPUPerfAPI/Include)
-   list(APPEND RENDERSTACK_WINDOW_TOOLKIT_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/libraries/adl/include)
-endif ()
+# TODO Maybe later
+# option(RENDERSTACK_USE_AMD_GPU_PERF_API_AND_ADL "Use AMD GPUPerfAPI and ADL" TRUE)
+# if (RENDERSTACK_USE_AMD_GPU_PERF_API_AND_ADL)
+#    add_definitions(-DRENDERSTACK_USE_AMD_GPU_PERF_API_AND_ADL=1)
+#    list(APPEND RENDERSTACK_WINDOW_TOOLKIT_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/libraries/GPUPerfAPI/Include)
+#    list(APPEND RENDERSTACK_WINDOW_TOOLKIT_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/libraries/adl/include)
+# endif ()
 
 option(RENDERSTACK_USE_FREETYPE "Use Freetype" TRUE)
 option(RENDERSTACK_3DMOUSE_SUPPORT "3D Connexion 3D Mouse Support (experimental)" FALSE)
@@ -85,13 +86,13 @@ if (RENDERSTACK_3DMOUSE_SUPPORT)
 endif ()
 
 # Slightly hacky
-set(GLM_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/libraries/glm-0.9.4.4")
+set(GLM_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/libraries/glm-0.9.6.1")
 set(TINYXML_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/libraries/tinyxml2")
-set(TINYXML_LIBS tinyxml2static)
+set(TINYXML_LIBS tinyxml2)
 
 # libpng requires some hacking due to dependency to zlib
 if (MSVC)
-   set(PNG_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/libraries/lpng163" "${CMAKE_BINARY_DIR}/libraries/lpng163")
+   set(PNG_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/libraries/lpng1616" "${CMAKE_BINARY_DIR}/libraries/lpng1616")
    set(PNG_LIBRARIES png16_static zlibstatic)
    
    # Prevent libpng from trying to install anything
@@ -130,7 +131,7 @@ if (MSVC)
    set(ZLIB_FOUND TRUE)
 
    add_subdirectory(libraries/zlib)
-   add_subdirectory(libraries/lpng163)
+   add_subdirectory(libraries/lpng1616)
 else ()
    find_package(PNG REQUIRED)
    message("PNG_LIBRARIES = ${PNG_LIBRARIES}")
@@ -163,15 +164,24 @@ else ()
 endif ()
 
 if (RENDERSTACK_USE_FREETYPE)
+   set(FREETYPE_ROOT_DIR "${CMAKE_SOURCE_DIR}/libraries/freetype-2.5.5")
    if (MSVC)
       set(FREETYPE_FOUND TRUE)
-      set(FREETYPE_INCLUDE_DIR_ft2build "${CMAKE_SOURCE_DIR}/libraries/freetype-2.5.0/include")
-      set(FREETYPE_INCLUDE_DIR_freetype2 "${CMAKE_SOURCE_DIR}/libraries/freetype-2.5.0/include/freetype")
+      set(FREETYPE_INCLUDE_DIR_ft2build "${FREETYPE_ROOT_DIR}/include")
+      set(FREETYPE_INCLUDE_DIR_freetype2 "${FREETYPE_ROOT_DIR}/include/freetype")
       set(FREETYPE_INCLUDE_DIRS "${FREETYPE_INCLUDE_DIR_ft2build}" "${FREETYPE_INCLUDE_DIR_freetype2}")
-      include_external_msproject(
-         freetype-2.5.0
-         ${CMAKE_SOURCE_DIR}/libraries/freetype-2.5.0/builds/win32/vc2010/freetype.vcxproj
-      )
+      if (MSVC12)
+         include_external_msproject(
+            freetype2
+            ${FREETYPE_ROOT_DIR}/builds/windows/vc2013/freetype.vcxproj
+         )
+      else ()
+         # TODO check for VC2010
+         include_external_msproject(
+            freetype2
+            ${FREETYPE_ROOT_DIR}/builds/windows/vc2010/freetype.vcxproj
+         )
+      endif ()
    else ()
       find_package(Freetype REQUIRED)
    endif ()

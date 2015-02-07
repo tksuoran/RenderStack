@@ -1,6 +1,6 @@
 #include "renderstack_toolkit/platform.hpp"
 #include <glm/glm.hpp>
-#include <glm/gtx/constants.hpp>
+#include <glm/gtc/constants.hpp>
 #include "renderstack_geometry/shapes/sphere.hpp"
 #include <map>
 #include <vector>

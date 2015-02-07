@@ -1,6 +1,6 @@
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_toolkit/math_util.hpp"
-#include <glm/gtx/constants.hpp>
+#include <glm/gtc/constants.hpp>
 #include <algorithm>
 #include <stdexcept>
 
@@ -11,9 +11,9 @@ using namespace std;
 
 vec3 unproject(
    mat4  const &inverse_model_view_projection,
-   float win_x, 
-   float win_y, 
-   float win_z, 
+   float win_x,
+   float win_y,
+   float win_z,
    float viewport_x,
    float viewport_y,
    float viewport_width,
@@ -37,7 +37,7 @@ vec3 unproject(
 }
 vec2 project_to_screen_space(
    mat4 const  &model_view_projection,
-   vec3 const  &position_in_world, 
+   vec3 const  &position_in_world,
    float       viewport_x,
    float       viewport_y,
    float       viewport_width,
@@ -143,10 +143,10 @@ void create_perspective_horizontal(float fov_x, float aspect_ratio, float near_,
 
    create_frustum_simple(width, height, near_, far_, result);
 }
-/*  http://and-what-happened.blogspot.com/p/just-formulas.html  */ 
+/*  http://and-what-happened.blogspot.com/p/just-formulas.html  */
 /*  The projection produced by this formula has x, y and z extents of -1:+1.  */
 /*  The perspective control value p is not restricted to integer values.  */ 
-/*  The view plane is defined by z.  */ 
+/*  The view plane is defined by z.  */
 /*  Objects on the view plane will have a homogeneous w value of 1.0 after the transform. */ 
 void create_projection(
    float s,             //  Stereo-scopic 3D eye separation
@@ -452,7 +452,7 @@ float srgb_to_linear(float cs)
       cl = cs / 12.92f;
    else
       cl = std::pow(
-         (cs + 0.055f) / 1.055f, 
+         (cs + 0.055f) / 1.055f,
          2.4f
       );
 

@@ -5,7 +5,7 @@ using namespace std;
 material::material(
    size_t index,
    string const &name,
-   glm::vec4 color,
+   glm::vec4 const &color,
    float roughness,
    float isotropy
 )

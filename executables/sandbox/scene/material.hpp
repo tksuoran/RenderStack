@@ -17,7 +17,7 @@ public:
    material(
       std::size_t index,
       std::string const &name,
-      glm::vec4 color,
+      glm::vec4 const &color,
       float roughness,
       float isotropy
    );

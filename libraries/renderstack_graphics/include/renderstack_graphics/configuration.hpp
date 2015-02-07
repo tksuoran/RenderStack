@@ -85,7 +85,7 @@ public:
       bool  invalidate_framebuffer        ;
       bool  tex_storage                   ;
 
-      bool  debug_output_arb              ;
+      bool  debug_output                  ;
 
       bool  amd_performance_monitor       ;
 

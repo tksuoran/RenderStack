@@ -18,7 +18,7 @@ public:
       std::string const &name,
       std::shared_ptr<renderstack::mesh::geometry_mesh> mesh,
       std::shared_ptr<material> material,
-      glm::mat4 transform
+      glm::mat4 const &transform
    );
 
    std::shared_ptr<renderstack::scene::frame> frame() const { return m_frame; }

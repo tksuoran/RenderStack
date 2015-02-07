@@ -7,13 +7,22 @@
 #include <sys/stat.h>
 #include <stdexcept>
 
+#include <cstdio>
+#ifdef WIN32
+# include <direct.h>
+# define get_cwd _getcwd
+#else
+# include <unistd.h>
+# define get_cwd getcwd
+#endif
+
 namespace renderstack { namespace toolkit {
 
 #define LOG_CATEGORY &log_file
 
 using namespace std;
 
-bool exists(std::string const &fname)
+bool exists(string const &fname)
 {
    ifstream file(fname, ios::binary);
    struct stat st;
@@ -39,5 +48,18 @@ string read(string const &fname)
 
    return result;
 }
+
+string get_current_working_directory()
+{
+   char path[FILENAME_MAX];
+
+   if (!get_cwd(path, sizeof(path)))
+      return string("");
+
+   path[sizeof(path) - 1] = '\0';
+
+   return string(path);
+}
+
 
 } }

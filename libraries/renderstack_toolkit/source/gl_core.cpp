@@ -272,6 +272,14 @@ const char *enum_string(GLenum e)
    case GL_TRANSFORM_FEEDBACK_VARYINGS             : return "GL_TRANSFORM_FEEDBACK_VARYINGS";
    case GL_TRANSFORM_FEEDBACK_VARYING_MAX_LENGTH   : return "GL_TRANSFORM_FEEDBACK_VARYING_MAX_LENGTH";
 #endif
+   case GL_VENDOR:                     return "GL_VENDOR";
+   case GL_RENDERER:                   return "GL_RENDERER";
+   case GL_VERSION:                    return "GL_VERSION";
+   case GL_SHADING_LANGUAGE_VERSION:   return "GL_SHADING_LANGUAGE_VERSION";
+   case GL_DEBUG_OUTPUT:               return "GL_DEBUG_OUTPUT";
+   case GL_DEBUG_OUTPUT_SYNCHRONOUS:   return "GL_DEBUG_OUTPUT_SYNCHRONOUS";
+   case GL_DRAW_FRAMEBUFFER:           return "GL_DRAW_FRAMEBUFFER";
+   case GL_READ_FRAMEBUFFER:           return "GL_READ_FRAMEBUFFER";
 
    default: return "???"; 
 }
@@ -299,8 +307,29 @@ void check_error()
       set_text_color(C_RED);
       puts(enum_string(status));
       set_text_color(C_GREY);
+#if defined(WIN32)
+      DebugBreak();
+#endif
    }
 }
+
+#if !defined(NDEBUG)
+void check_uniform_location(GLint location)
+{
+   if (enable_error_checking == false)
+      return;
+
+   if (location == -1)
+   {
+      log_trace("uniform location == -1");
+#if defined(WIN32)
+      DebugBreak();
+#endif
+   }
+}
+#else
+#define check_uniform_location(location)
+#endif
 
 #if defined(RENDERSTACK_GL_API_OPENGL_WITH_LEGACY)
 void get_tex_env_fv(GLenum target, GLenum pname, GLfloat *params)
@@ -622,7 +651,10 @@ void get_integer_v(GLenum pname, GLint *params)
    check_error();
 }
 const GLubyte *get_string(GLenum name)
-{  LOG_GL_FUNCTION(__FUNCTION__);
+{  
+#if defined(LOG_GL) || defined(LOG_GL_TEXTURE)
+   log_trace("get_string(name = %s)", enum_string(name));
+#endif
 #if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
    assert(gl::detail::glGetString != nullptr);
    const GLubyte *res = gl::detail::glGetString(name);
@@ -725,7 +757,10 @@ void read_pixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format,
    check_error();
 }
 void scissor(GLint x, GLint y, GLsizei width, GLsizei height)
-{  LOG_GL_FUNCTION(__FUNCTION__);
+{
+#if defined(LOG_GL)
+   log_trace("scissor(%d, %d, %d, %d)", x, y, width, height);
+#endif
 #if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
    assert(gl::detail::glScissor != nullptr);
    gl::detail::glScissor(x, y, width, height);
@@ -825,7 +860,10 @@ void tex_sub_image_2d(GLenum target, GLint level, GLint xoffset, GLint yoffset, 
    check_error();
 }
 void viewport(GLint x, GLint y, GLsizei width, GLsizei height)
-{  LOG_GL_FUNCTION(__FUNCTION__);
+{  
+#if defined(LOG_GL)
+   log_trace("viewport(%d, %d, %d, %d)", x, y, width, height);
+#endif
 #if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
    assert(gl::detail::glViewport != nullptr);
    gl::detail::glViewport(x, y, width, height);
@@ -1214,13 +1252,19 @@ void client_active_texture(GLenum texture)
 #endif
 
 /*  GL_VERSION_1_4  */ 
-void blend_func_separate(GLenum a, GLenum b, GLenum c, GLenum d)
-{  LOG_GL_FUNCTION(__FUNCTION__);
+void blend_func_separate(GLenum sfactorRGB, GLenum dfactorRGB, GLenum sfactorAlpha, GLenum dfactorAlpha)
+{  
+#if defined(LOG_GL)
+   log_trace(
+      "blend_func_separate(sfactorRGB = %s, dfactorRGB = %s, sfactorAlpha = %s, dfactorAlpha = %s)",
+      enum_string(sfactorRGB), enum_string(dfactorRGB), enum_string(sfactorAlpha), enum_string(dfactorAlpha)
+   );      
+#endif
 #if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glBlendFuncSeparate != nullptr);
-   gl::detail::glBlendFuncSeparate(a, b, c, d);
+   gl::detail::glBlendFuncSeparate(sfactorRGB, dfactorRGB, sfactorAlpha, dfactorAlpha);
 #else
-   ::glBlendFuncSeparate(a, b, c, d);
+   ::glBlendFuncSeparate(sfactorRGB, dfactorRGB, sfactorAlpha, dfactorAlpha);
 #endif
    check_error();
 }
@@ -1870,6 +1914,7 @@ void get_uniform_fv(GLuint a, GLint b, GLfloat *c)
 }
 void get_uniform_iv(GLuint a, GLint b, GLint *c)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+   check_uniform_location(a);
 #if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glGetUniformiv != nullptr);
    gl::detail::glGetUniformiv(a, b, c);
@@ -1991,6 +2036,7 @@ void use_program(GLuint a)
 }
 void uniform_1f(GLint a, GLfloat b)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+   check_uniform_location(a);
 #if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glUniform1f != nullptr);
    gl::detail::glUniform1f(a, b);
@@ -2001,6 +2047,7 @@ void uniform_1f(GLint a, GLfloat b)
 }
 void uniform_2f(GLint a, GLfloat b, GLfloat c)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+   check_uniform_location(a);
 #if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glUniform2f != nullptr);
    gl::detail::glUniform2f(a, b, c);
@@ -2011,6 +2058,7 @@ void uniform_2f(GLint a, GLfloat b, GLfloat c)
 }
 void uniform_3f(GLint a, GLfloat b, GLfloat c, GLfloat d)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+   check_uniform_location(a);
 #if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glUniform3f != nullptr);
    gl::detail::glUniform3f(a, b, c, d);
@@ -2021,6 +2069,7 @@ void uniform_3f(GLint a, GLfloat b, GLfloat c, GLfloat d)
 }
 void uniform_4f(GLint a, GLfloat b, GLfloat c, GLfloat d, GLfloat e)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+   check_uniform_location(a);
 #if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glUniform4f != nullptr);
    gl::detail::glUniform4f(a, b, c, d, e);
@@ -2034,6 +2083,7 @@ void uniform_1i(GLint location, GLint v0)
 #if defined(LOG_GL) || defined(LOG_GL_UNIFORM)
    log_trace("uniform_1i(location = %d, v0 = %d)", location, v0);
 #endif
+   check_uniform_location(location);
 #if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glUniform1i != nullptr);
    gl::detail::glUniform1i(location, v0);
@@ -2044,6 +2094,7 @@ void uniform_1i(GLint location, GLint v0)
 }
 void uniform_2i(GLint a, GLint b, GLint c)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+   check_uniform_location(a);
 #if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glUniform2i != nullptr);
    gl::detail::glUniform2i(a, b, c);
@@ -2054,6 +2105,7 @@ void uniform_2i(GLint a, GLint b, GLint c)
 }
 void uniform_3i(GLint a, GLint b, GLint c, GLint d)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+   check_uniform_location(a);
 #if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glUniform3i != nullptr);
    gl::detail::glUniform3i(a, b, c, d);
@@ -2064,6 +2116,7 @@ void uniform_3i(GLint a, GLint b, GLint c, GLint d)
 }
 void uniform_4i(GLint a, GLint b, GLint c, GLint d, GLint e)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+   check_uniform_location(a);
 #if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glUniform4i != nullptr);
    gl::detail::glUniform4i(a, b, c, d, e);
@@ -2074,6 +2127,7 @@ void uniform_4i(GLint a, GLint b, GLint c, GLint d, GLint e)
 }
 void uniform_1fv(GLint a, GLsizei b, const GLfloat *c)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+   check_uniform_location(a);
 #if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glUniform1fv != nullptr);
    gl::detail::glUniform1fv(a, b, c);
@@ -2084,6 +2138,7 @@ void uniform_1fv(GLint a, GLsizei b, const GLfloat *c)
 }
 void uniform_2fv(GLint a, GLsizei b, const GLfloat *c)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+   check_uniform_location(a);
 #if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glUniform2fv != nullptr);
    gl::detail::glUniform2fv(a, b, c);
@@ -2094,6 +2149,7 @@ void uniform_2fv(GLint a, GLsizei b, const GLfloat *c)
 }
 void uniform_3fv(GLint location, GLsizei count, const GLfloat *value)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+   check_uniform_location(location);
 #if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glUniform3fv != nullptr);
    gl::detail::glUniform3fv(location, count, value);
@@ -2104,6 +2160,7 @@ void uniform_3fv(GLint location, GLsizei count, const GLfloat *value)
 }
 void uniform_4fv(GLint location, GLsizei count, const GLfloat *value)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+   check_uniform_location(location);
 #if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glUniform4fv != nullptr);
    gl::detail::glUniform4fv(location, count, value);
@@ -2114,6 +2171,7 @@ void uniform_4fv(GLint location, GLsizei count, const GLfloat *value)
 }
 void uniform_1iv(GLint location, GLsizei count, const GLint *value)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+   check_uniform_location(location);
 #if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glUniform1iv != nullptr);
    gl::detail::glUniform1iv(location, count, value);
@@ -2124,6 +2182,7 @@ void uniform_1iv(GLint location, GLsizei count, const GLint *value)
 }
 void uniform_2iv(GLint a, GLsizei b, const GLint *c)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+   check_uniform_location(a);
 #if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glUniform2iv != nullptr);
    gl::detail::glUniform2iv(a, b, c);
@@ -2134,6 +2193,7 @@ void uniform_2iv(GLint a, GLsizei b, const GLint *c)
 }
 void uniform_3iv(GLint a, GLsizei b, const GLint *c)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+   check_uniform_location(a);
 #if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glUniform3iv != nullptr);
    gl::detail::glUniform3iv(a, b, c);
@@ -2144,6 +2204,7 @@ void uniform_3iv(GLint a, GLsizei b, const GLint *c)
 }
 void uniform_4iv(GLint a, GLsizei b, const GLint *c)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+   check_uniform_location(a);
 #if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glUniform4iv != nullptr);
    gl::detail::glUniform4iv(a, b, c);
@@ -2154,6 +2215,7 @@ void uniform_4iv(GLint a, GLsizei b, const GLint *c)
 }
 void uniform_matrix_2fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+   check_uniform_location(location);
 #if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glUniformMatrix2fv != nullptr);
    gl::detail::glUniformMatrix2fv(location, count, transpose, value);
@@ -2164,6 +2226,7 @@ void uniform_matrix_2fv(GLint location, GLsizei count, GLboolean transpose, cons
 }
 void uniform_matrix_3fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+   check_uniform_location(location);
 #if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glUniformMatrix3fv != nullptr);
    gl::detail::glUniformMatrix3fv(location, count, transpose, value);
@@ -2174,6 +2237,7 @@ void uniform_matrix_3fv(GLint location, GLsizei count, GLboolean transpose, cons
 }
 void uniform_matrix_4fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+   check_uniform_location(location);
 #if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glUniformMatrix4fv != nullptr);
    gl::detail::glUniformMatrix4fv(location, count, transpose, value);
@@ -2477,6 +2541,7 @@ void vertex_attrib_4usv(GLuint a, const GLushort *b)
 #if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
 void uniform_matrix_2x3fv(GLint a, GLsizei b, GLboolean c, const GLfloat *d)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+   check_uniform_location(a);
 #if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glUniformMatrix2x3fv != nullptr);
    gl::detail::glUniformMatrix2x3fv(a, b, c, d);
@@ -2487,6 +2552,7 @@ void uniform_matrix_2x3fv(GLint a, GLsizei b, GLboolean c, const GLfloat *d)
 }
 void uniform_matrix_3x2fv(GLint a, GLsizei b, GLboolean c, const GLfloat *d)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+   check_uniform_location(a);
 #if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glUniformMatrix2x3fv != nullptr);
    gl::detail::glUniformMatrix3x2fv(a, b, c, d);
@@ -2497,6 +2563,7 @@ void uniform_matrix_3x2fv(GLint a, GLsizei b, GLboolean c, const GLfloat *d)
 }
 void niform_matrix_2x4fv(GLint a, GLsizei b, GLboolean c, const GLfloat *d)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+   check_uniform_location(a);
 #if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glUniformMatrix2x4fv != nullptr);
    gl::detail::glUniformMatrix2x4fv(a, b, c, d);
@@ -2507,6 +2574,7 @@ void niform_matrix_2x4fv(GLint a, GLsizei b, GLboolean c, const GLfloat *d)
 }
 void uniform_matrix_4x2fv(GLint a, GLsizei b, GLboolean c, const GLfloat *d)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+   check_uniform_location(a);
 #if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glUniformMatrix4x2fv != nullptr);
    gl::detail::glUniformMatrix4x2fv(a, b, c, d);
@@ -2517,6 +2585,7 @@ void uniform_matrix_4x2fv(GLint a, GLsizei b, GLboolean c, const GLfloat *d)
 }
 void uniform_matrix_3x4fv(GLint a, GLsizei b, GLboolean c, const GLfloat *d)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+   check_uniform_location(a);
 #if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glUniformMatrix3x4fv != nullptr);
    gl::detail::glUniformMatrix3x4fv(a, b, c, d);
@@ -2527,6 +2596,7 @@ void uniform_matrix_3x4fv(GLint a, GLsizei b, GLboolean c, const GLfloat *d)
 }
 void uniform_matrix_4x3fv(GLint a, GLsizei b, GLboolean c, const GLfloat *d)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+   check_uniform_location(a);
 #if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glUniformMatrix4x3fv != nullptr);
    gl::detail::glUniformMatrix4x3fv(a, b, c, d);
@@ -3032,6 +3102,7 @@ void vertex_attrib_i4uiv(GLuint a, const GLuint *b)
 }
 void get_uniform_uiv(GLuint a, GLint b, GLuint *c)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+   check_uniform_location(a);
 #if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glGetUniformuiv != nullptr);
    gl::detail::glGetUniformuiv(a, b, c);
@@ -3053,6 +3124,7 @@ GLint get_frag_data_location(GLuint a, const GLchar *b)
 }
 void uniform_1ui(GLint a, GLuint b)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+   check_uniform_location(a);
 #if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glUniform1ui != nullptr);
    gl::detail::glUniform1ui(a, b);
@@ -3063,6 +3135,7 @@ void uniform_1ui(GLint a, GLuint b)
 }
 void uniform_2ui(GLint a, GLuint b, GLuint c)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+   check_uniform_location(a);
 #if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glUniform2ui != nullptr);
    gl::detail::glUniform2ui(a, b, c);
@@ -3073,6 +3146,7 @@ void uniform_2ui(GLint a, GLuint b, GLuint c)
 }
 void uniform_3ui(GLint a, GLuint b, GLuint c, GLuint d)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+   check_uniform_location(a);
 #if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glUniform3ui != nullptr);
    gl::detail::glUniform3ui(a, b, c, d);
@@ -3083,6 +3157,7 @@ void uniform_3ui(GLint a, GLuint b, GLuint c, GLuint d)
 }
 void uniform_4ui(GLint a, GLuint b, GLuint c, GLuint d, GLuint e)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+   check_uniform_location(a);
 #if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glUniform4ui != nullptr);
    gl::detail::glUniform4ui(a, b, c, d, e);
@@ -3093,6 +3168,7 @@ void uniform_4ui(GLint a, GLuint b, GLuint c, GLuint d, GLuint e)
 }
 void uniform_1uiv(GLint a, GLsizei b, const GLuint *c)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+   check_uniform_location(a);
 #if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glUniform1uiv != nullptr);
    gl::detail::glUniform1uiv(a, b, c);
@@ -3103,6 +3179,7 @@ void uniform_1uiv(GLint a, GLsizei b, const GLuint *c)
 }
 void uniform_2uiv(GLint a, GLsizei b, const GLuint *c)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+   check_uniform_location(a);
 #if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glUniform2uiv != nullptr);
    gl::detail::glUniform2uiv(a, b, c);
@@ -3113,6 +3190,7 @@ void uniform_2uiv(GLint a, GLsizei b, const GLuint *c)
 }
 void uniform_3uiv(GLint a, GLsizei b, const GLuint *c)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+   check_uniform_location(a);
 #if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glUniform3uiv != nullptr);
    gl::detail::glUniform3uiv(a, b, c);
@@ -3123,6 +3201,7 @@ void uniform_3uiv(GLint a, GLsizei b, const GLuint *c)
 }
 void uniform_4uiv(GLint a, GLsizei b, const GLuint *c)
 {  LOG_GL_FUNCTION(__FUNCTION__);
+   check_uniform_location(a);
 #if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glUniform4uiv != nullptr);
    gl::detail::glUniform4uiv(a, b, c);
@@ -4121,17 +4200,17 @@ void tex_storage_3d(GLenum target, GLsizei levels, GLenum internalformat, GLsize
 #endif
 
 
-/*  GL_ARB_debug_output  */
-#if defined(RENDERSTACK_GL_API_OPENGL) && !defined(__APPLE__)
+/*  GL_VERSION_4_3  */
+#if defined(RENDERSTACK_GL_API_OPENGL)
 void debug_message_control(
    GLenum source, GLenum type, GLenum severity, GLsizei count,
    const GLuint *ids, GLboolean enabled)
 {  LOG_GL_FUNCTION(__FUNCTION__);
 #if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
-   assert(gl::detail::glDebugMessageControlARB != nullptr);
-   gl::detail::glDebugMessageControlARB(source, type, severity, count, ids, enabled);
+   assert(gl::detail::glDebugMessageControl != nullptr);
+   gl::detail::glDebugMessageControl(source, type, severity, count, ids, enabled);
 #else
-   ::glDebugMessageControlARB(source, type, severity, count, ids, enabled);
+   ::glDebugMessageControl(source, type, severity, count, ids, enabled);
 #endif
    check_error();
 }
@@ -4141,10 +4220,10 @@ void debug_message_insert(
 )
 {  LOG_GL_FUNCTION(__FUNCTION__);
 #if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
-   assert(gl::detail::glDebugMessageInsertARB != nullptr);
-   gl::detail::glDebugMessageInsertARB(source, type, id, severity, length, buf);
+   assert(gl::detail::glDebugMessageInsert != nullptr);
+   gl::detail::glDebugMessageInsert(source, type, id, severity, length, buf);
 #else
-   ::glDebugMessageInsertARB(source, type, id, severity, length, buf);
+   ::glDebugMessageInsert(source, type, id, severity, length, buf);
 #endif
    check_error();
 }
@@ -4154,10 +4233,10 @@ void debug_message_callback(
 )
 {  LOG_GL_FUNCTION(__FUNCTION__);
 #if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
-   assert(gl::detail::glDebugMessageCallbackARB != nullptr);
-   gl::detail::glDebugMessageCallbackARB(callback, userParam);
+   assert(gl::detail::glDebugMessageCallback != nullptr);
+   gl::detail::glDebugMessageCallback(callback, userParam);
 #else
-   ::glDebugMessageCallbackARB(callback, userParam);
+   ::glDebugMessageCallback(callback, userParam);
 #endif
    check_error();
 }
@@ -4169,15 +4248,80 @@ GLuint get_debug_message_log(
 {  LOG_GL_FUNCTION(__FUNCTION__);
    GLuint res;
 #if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
-   assert(gl::detail::glGetDebugMessageLogARB != nullptr);
-   res = gl::detail::glGetDebugMessageLogARB(count, bufsize, sources, types, ids, severities, lengths, messageLog);
+   assert(gl::detail::glGetDebugMessageLog != nullptr);
+   res = gl::detail::glGetDebugMessageLog(count, bufsize, sources, types, ids, severities, lengths, messageLog);
 #else
-   res = ::glGetDebugMessageLogARB(count, bufsize, sources, types, ids, severities, lengths, messageLog);
+   res = ::glGetDebugMessageLog(count, bufsize, sources, types, ids, severities, lengths, messageLog);
 #endif
    check_error();
    return res;
 }
 
+void push_debug_group(GLenum source, GLuint id, GLsizei length, const GLchar *message)
+{  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
+   assert(gl::detail::glPushDebugGroup != nullptr);
+   gl::detail::glPushDebugGroup(source, id, length, message);
+#else
+   ::glPushDebugGroup(source, id, length, message);
+#endif
+   check_error();
+}
+
+void pop_debug_group(void)
+{  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
+   assert(gl::detail::glPopDebugGroup != nullptr);
+   gl::detail::glPopDebugGroup();
+#else
+   ::glPopDebugGroup();
+#endif
+   check_error();
+}
+
+void object_label(GLenum identifier, GLuint name, GLsizei length, const GLchar *label)
+{  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
+   assert(gl::detail::glObjectLabel != nullptr);
+   gl::detail::glObjectLabel(identifier, name, length, label);
+#else
+   ::glObjectLabel(identifier, name, length, label);
+#endif
+   check_error();
+}
+
+void get_object_label(GLenum identifier, GLuint name, GLsizei bufSize, GLsizei *length, GLchar *label)
+{  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
+   assert(gl::detail::glGetObjectLabel != nullptr);
+   gl::detail::glGetObjectLabel(identifier, name, bufSize, length, label);
+#else
+   ::glGetObjectLabel(identifier, name, bufSize, length, label);
+#endif
+   check_error();
+}
+
+void object_ptr_label(const void *ptr, GLsizei length, const GLchar *label)
+{  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
+   assert(gl::detail::glObjectPtrLabel != nullptr);
+   gl::detail::glObjectPtrLabel(ptr, length, label);
+#else
+   ::glObjectPtrLabel(ptr, length, label);
+#endif
+   check_error();
+}
+
+void get_object_ptr_label(const void *ptr, GLsizei bufSize, GLsizei *length, GLchar *label)
+{  LOG_GL_FUNCTION(__FUNCTION__);
+#if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
+   assert(gl::detail::glGetObjectPtrLabel != nullptr);
+   gl::detail::glGetObjectPtrLabel(ptr, bufSize, length, label);
+#else
+   ::glGetObjectPtrLabel(ptr, bufSize, length, label);
+#endif
+   check_error();
+}
 #endif
 
 }

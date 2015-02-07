@@ -8,6 +8,7 @@ namespace renderstack { namespace toolkit {
 
 extern bool exists(std::string const &fname);
 extern std::string read(std::string const &fname);
+extern std::string get_current_working_directory();
 
 } }
 

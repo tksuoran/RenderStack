@@ -9,6 +9,15 @@ namespace renderstack { namespace scene {
 class viewport
 {
 public:
+   explicit viewport()
+   :  m_border(0)
+   ,  m_x(0)
+   ,  m_y(0)
+   ,  m_width(0)
+   ,  m_height(0)
+   {
+   }
+
    int   border      () const    { return m_border; }
    void  set_border  (int value) { m_border = value; }
    int   x           () const    { return m_x; }

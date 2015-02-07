@@ -203,7 +203,8 @@ void slider::draw_self(ui_context &context)
       gr->blend_alpha();
       gr->set_program(style()->program());
       gr->set_texture(style()->texture_unit(), style()->font()->texture());
-      gr->set_color_add  (vec4(0.00f, 0.00f, 0.00f, 0.0f));
+      // TODO Font shader currently does not have color add
+      // gr->set_color_add  (vec4(0.00f, 0.00f, 0.00f, 0.0f));
       gr->set_color_scale(vec4(0.72f, 0.72f, 0.72f, 2.0f));
       gr->set_transform(m_text_frame);
       m_text_buffer.render();

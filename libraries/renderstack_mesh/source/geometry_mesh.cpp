@@ -20,7 +20,9 @@
 #include "renderstack_mesh/log.hpp"
 
 #include <glm/glm.hpp>
-#include <glm/gtx/constants.hpp>
+#include <glm/gtc/constants.hpp>
+#include <glm/gtc/packing.hpp>
+#include <glm/gtc/type_precision.hpp>
 
 #include <stdexcept>
 #include <map>
@@ -714,9 +716,12 @@ static inline void write(
       break;
    case gl::vertex_attrib_pointer_type::half_float:
       {
-         short *ptr = reinterpret_cast<short*>(data_ptr);
-         ptr[0] = glm::half(value.x)._data();
-         ptr[1] = glm::half(value.y)._data();
+         // TODO Would this be safe even if we are not aligned?
+         // uint *ptr = reinterpret_cast<uint*>(data_ptr);
+         // *ptr = glm::packHalf2x16(value);
+         uint16 *ptr = reinterpret_cast<uint16*>(data_ptr);
+         ptr[0] = glm::packHalf1x16(value.x);
+         ptr[1] = glm::packHalf1x16(value.y);
       }
       break;
    default:
@@ -741,10 +746,10 @@ static inline void write(
       break;
    case gl::vertex_attrib_pointer_type::half_float:
       {
-         short *ptr = reinterpret_cast<short*>(data_ptr);
-         ptr[0] = glm::half(value.x)._data();
-         ptr[1] = glm::half(value.y)._data();
-         ptr[2] = glm::half(value.z)._data();
+         uint16 *ptr = reinterpret_cast<uint16*>(data_ptr);
+         ptr[0] = glm::packHalf1x16(value.x);
+         ptr[1] = glm::packHalf1x16(value.y);
+         ptr[2] = glm::packHalf1x16(value.z);
       }
       break;
    default:
@@ -775,11 +780,12 @@ static void write(
       break;
    case gl::vertex_attrib_pointer_type::half_float:
       {
-         short *ptr = reinterpret_cast<short*>(data_ptr);
-         ptr[0] = glm::half(value.x)._data();
-         ptr[1] = glm::half(value.y)._data();
-         ptr[2] = glm::half(value.z)._data();
-         ptr[3] = glm::half(value.w)._data();
+         uint16 *ptr = reinterpret_cast<uint16*>(data_ptr);
+         // TODO glm::packHalf4x16() - but what if we are not aligned?
+         ptr[0] = glm::packHalf1x16(value.x);
+         ptr[1] = glm::packHalf1x16(value.y);
+         ptr[2] = glm::packHalf1x16(value.z);
+         ptr[3] = glm::packHalf1x16(value.w);
       }
       break;
    default:

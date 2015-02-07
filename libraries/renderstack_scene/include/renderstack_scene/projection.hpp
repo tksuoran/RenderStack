@@ -4,7 +4,7 @@
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_scene/stereo_parameters.hpp"
 #include "renderstack_scene/transform.hpp"
-#include <glm/gtx/constants.hpp>
+#include <glm/gtc/constants.hpp>
 #include <cstdint>
 
 namespace renderstack { namespace scene {

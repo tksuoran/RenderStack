@@ -136,7 +136,7 @@ public:
 
    void build_edges();
 
-   void transform(glm::mat4 m);
+   void transform(glm::mat4 const &m);
 
 private:
    std::string                      m_name;

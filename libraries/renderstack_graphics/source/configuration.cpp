@@ -33,6 +33,71 @@ bool  configuration::must_use_vertex_array_object         = false;
 
 configuration::can_use_t configuration::can_use;
 
+static const char * desc_debug_source(GLenum source)
+{
+   switch (source)
+   {
+   case GL_DEBUG_SOURCE_API            : return "api";
+   case GL_DEBUG_SOURCE_WINDOW_SYSTEM  : return "window system";
+   case GL_DEBUG_SOURCE_SHADER_COMPILER: return "shader compiler";
+   case GL_DEBUG_SOURCE_THIRD_PARTY    : return "third party";
+   case GL_DEBUG_SOURCE_APPLICATION    : return "application";
+   case GL_DEBUG_SOURCE_OTHER          : return "other";
+   default: return "?";
+   }
+}
+
+static const char * desc_debug_type(GLenum type)
+{
+   switch (type)
+   {
+   case GL_DEBUG_TYPE_ERROR              : return "error";
+   case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: return "deprecated behavior";
+   case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR : return "undefined behavior";
+   case GL_DEBUG_TYPE_PORTABILITY        : return "portability";
+   case GL_DEBUG_TYPE_PERFORMANCE        : return "performance";
+   case GL_DEBUG_TYPE_OTHER              : return "other";
+   case GL_DEBUG_TYPE_MARKER             : return "marker";
+   case GL_DEBUG_TYPE_PUSH_GROUP         : return "push group";
+   case GL_DEBUG_TYPE_POP_GROUP          : return "pop group";
+   default: return "?";
+   }
+}
+
+static const char * desc_debug_severity(GLenum severity)
+{
+   switch (severity)
+   {
+   case GL_DEBUG_SEVERITY_HIGH  : return "high";
+   case GL_DEBUG_SEVERITY_MEDIUM: return "medium";
+   case GL_DEBUG_SEVERITY_LOW   : return "low";
+   default: return "?";
+   }
+}
+
+static void APIENTRY opengl_callback(
+   GLenum source,
+   GLenum type,
+   GLuint id,
+   GLenum severity,
+   GLsizei /*length*/,
+   const GLchar *message,
+   const void * /*userParam*/
+)
+{
+   log_info(
+      "GL: source: %s type: %s id: 0x%08x severity: %s : %s",
+      desc_debug_source(source),
+      desc_debug_type(type),
+      id,
+      desc_debug_severity(severity),
+      (message != nullptr ? message : "")
+   );
+#if defined(WIN32)
+   DebugBreak();
+#endif
+}
+
 configuration::can_use_t::can_use_t()
 {
    vertex_buffer                 = false; // 150 map buffer etc.
@@ -91,7 +156,7 @@ configuration::can_use_t::can_use_t()
    invalidate_framebuffer        = false;
    tex_storage                   = false;
 
-   debug_output_arb              = false;
+   debug_output                  = false;
    amd_performance_monitor       = false;
 }
 bool  configuration::throw_program_exceptions             = true;
@@ -513,7 +578,7 @@ void configuration::initialize()
    check(extensions, can_use.gpu_shader5,                "gpu_shader5",                400, 999, "GL_EXT_gpu_shader5");
    check(extensions, can_use.tesselation_shaders,        "tesselation_shaders",        400, 999, "GL_ARB_tesselation_shader");
 
-   check(extensions, can_use.debug_output_arb,           "debug_output_arb",           999, 999, "GL_ARB_debug_output");
+   check(extensions, can_use.debug_output,               "debug_output",               430, 999, "GL_KHR_debug" /*"GL_ARB_debug_output"*/);
    check(extensions, can_use.amd_performance_monitor,    "amd_performance_monitor",    999, 999, "GL_AMD_performance_monitor");
 #endif
 
@@ -566,6 +631,21 @@ void configuration::initialize()
       //gl::get_integer_v(GetPName.MaxTextureBufferSize, out MaxTextureBufferSize);
    }
 #endif
+
+   if (can_use.debug_output)
+   {
+      gl::debug_message_callback(opengl_callback, nullptr);
+      gl::debug_message_control(
+         GL_DONT_CARE,
+         GL_DONT_CARE,
+         GL_DONT_CARE,
+         0,
+         nullptr,
+         GL_TRUE
+      );
+      gl::enable(GL_DEBUG_OUTPUT);
+      gl::enable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+   }
 
 #if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
    if (can_use.uniform_buffer_object)

@@ -109,19 +109,16 @@ void game::render_meshes()
          m_manipulator_frame->set_parent(hover_model->frame());
    }
 #endif
-   m_debug_renderer->printf("%s", glGetString(GL_VENDOR));
-   m_debug_renderer->printf("%s", glGetString(GL_RENDERER));
-   m_debug_renderer->printf("%s", glGetString(GL_VERSION));
-   m_debug_renderer->printf("%s", glGetString(GL_SHADING_LANGUAGE_VERSION));
-   m_debug_renderer->printf(
-      "%d lights %s%s%s",
-      m_max_lights,
-      m_forward ? "forward " : "",
-      m_deferred ? "deferred " : "",
-      m_deferred && m_deferred_renderer->use_stencil() ? "stencil optimization" : ""
-   );
+   if (m_debug_renderer)
+      m_debug_renderer->printf(
+         "%d lights %s%s%s",
+         m_max_lights,
+         m_forward ? "forward " : "",
+         m_deferred ? "deferred " : "",
+         m_deferred && m_deferred_renderer->use_stencil() ? "stencil optimization" : ""
+      );
 
-   if (m_deferred)
+   if (m_deferred && m_deferred_renderer)
    {
       m_deferred_renderer->set_max_lights(m_max_lights);
       m_deferred_renderer->geometry_pass(m_scene_manager->materials(), m_scene_manager->models(), m_scene_manager->camera());
@@ -129,7 +126,7 @@ void game::render_meshes()
       //m_deferred_renderer->show_rt();
    }
 
-   if (m_forward)
+   if (m_forward && m_forward_renderer)
    {
       m_forward_renderer->set_max_lights(m_max_lights);
       m_forward_renderer->render_pass(
@@ -141,7 +138,7 @@ void game::render_meshes()
       //m_forward_renderer->render_pass(m_manipulator, m_camera);
    }
 
-   if (m_debug_lights)
+   if (m_debug_lights && m_light_debug_renderer)
    {
       m_light_debug_renderer->set_max_lights(m_max_lights);
       m_light_debug_renderer->light_pass(
@@ -151,7 +148,7 @@ void game::render_meshes()
    }
 
 #if 0
-   if (hover_model)
+   if (hover_model && m_debug_renderer)
    {
       m_debug_renderer->set_camera(m_scene_manager->camera());
       m_debug_renderer->begin_edit();
@@ -172,9 +169,12 @@ void game::render_meshes()
 
 #endif
 
-   m_debug_renderer->add_frame_duration_graph(m_viewport);
-   m_debug_renderer->render();
-   //r.track.reset();
+   if (m_debug_renderer)
+   {
+      m_debug_renderer->add_frame_duration_graph(m_viewport);
+      m_debug_renderer->render();
+      //r.track.reset();
+   }
 
 #if 0 // just blit one rt to screen
    int iw = m_application->width();
@@ -247,6 +247,11 @@ void game::render()
       gr->prepare();
       gr->on_resize(iw, ih);
 
+      m_debug_renderer->printf("%s", gl::get_string(GL_VENDOR));
+      m_debug_renderer->printf("%s", gl::get_string(GL_RENDERER));
+      m_debug_renderer->printf("%s", gl::get_string(GL_VERSION));
+      m_debug_renderer->printf("%s", gl::get_string(GL_SHADING_LANGUAGE_VERSION));
+
       m_debug_renderer->render_text_lines(m_viewport);
    }
 #endif
@@ -269,6 +274,7 @@ void game::render()
       m_root_layer->draw(c);
    }
 
+   //log_error("\n\n\n - - - - -\n\n\n");
    m_application->swap_buffers();
 }
 

@@ -628,11 +628,18 @@ void tex_storage_3d(GLenum target, GLsizei levels, GLenum internalformat, GLsize
 #endif
 
 /*  GL_ARB_debug_output  */
+/*  GL_VERSION_4_3  */
 #if defined(RENDERSTACK_GL_API_OPENGL)
 void debug_message_control(GLenum source, GLenum type, GLenum severity, GLsizei count, const GLuint *ids, GLboolean enabled);
 void debug_message_insert(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *buf);
 void debug_message_callback(GLDEBUGPROCARB callback, const void *userParam);
 GLuint get_debug_message_log(GLuint count, GLsizei bufsize, GLenum *sources, GLenum *types, GLuint *ids, GLenum *severities, GLsizei *lengths, GLchar *messageLog);
+void push_debug_group(GLenum source, GLuint id, GLsizei length, const GLchar *message);
+void pop_debug_group(void);
+void object_label(GLenum identifier, GLuint name, GLsizei length, const GLchar *label);
+void get_object_label(GLenum identifier, GLuint name, GLsizei bufSize, GLsizei *length, GLchar *label);
+void object_ptr_label(const void *ptr, GLsizei length, const GLchar *label);
+void get_object_ptr_label(const void *ptr, GLsizei bufSize, GLsizei *length, GLchar *label);
 #endif
 
 } /* namespace gl */
