@@ -5,6 +5,7 @@
 #include "renderstack_toolkit/service.hpp"
 #include "main/programs.hpp"
 #include "renderers/quad_renderer.hpp"
+#include "renderers/light_mesh.hpp"
 #include "scene/model.hpp"
 #include <glm/glm.hpp>
 #include <vector>

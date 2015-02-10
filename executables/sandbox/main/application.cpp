@@ -50,7 +50,7 @@ void application::connect(shared_ptr<game> game_, shared_ptr<menu> menu_)
 
 void application::initialize_service()
 {
-#  if 1
+#  if 0
    if (m_menu)
       set_screen(m_menu);
 #  else

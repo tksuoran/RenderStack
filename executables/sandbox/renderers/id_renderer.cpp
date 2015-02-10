@@ -29,7 +29,6 @@ using namespace renderstack::graphics;
 using namespace renderstack::mesh;
 using namespace renderstack;
 using namespace gl;
-using namespace glm;
 using namespace std;
 
 

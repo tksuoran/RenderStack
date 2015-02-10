@@ -171,16 +171,12 @@ if (RENDERSTACK_USE_FREETYPE)
       set(FREETYPE_INCLUDE_DIR_freetype2 "${FREETYPE_ROOT_DIR}/include/freetype")
       set(FREETYPE_INCLUDE_DIRS "${FREETYPE_INCLUDE_DIR_ft2build}" "${FREETYPE_INCLUDE_DIR_freetype2}")
       if (MSVC12)
-         include_external_msproject(
-            freetype2
-            ${FREETYPE_ROOT_DIR}/builds/windows/vc2013/freetype.vcxproj
-         )
+         include_external_msproject(freetype2 ${FREETYPE_ROOT_DIR}/builds/windows/vc2013/freetype.vcxproj)
+      elseif (MSVC11)
+         include_external_msproject(freetype2 ${FREETYPE_ROOT_DIR}/builds/windows/vc2012/freetype.vcxproj)
       else ()
-         # TODO check for VC2010
-         include_external_msproject(
-            freetype2
-            ${FREETYPE_ROOT_DIR}/builds/windows/vc2010/freetype.vcxproj
-         )
+         # TODO Here assuming VC2010
+         include_external_msproject(freetype2 ${FREETYPE_ROOT_DIR}/builds/windows/vc2010/freetype.vcxproj)
       endif ()
    else ()
       find_package(Freetype REQUIRED)
@@ -233,6 +229,7 @@ endif ()
 if (RENDERSTACK_USE_GLFW)
    option(GLFW_BUILD_EXAMPLES "Build the GLFW example programs" OFF)
    option(GLFW_BUILD_TESTS    "Build the GLFW test programs" OFF)
+   option(GLFW_BUILD_DOCS    "Build the GLFW documentation" OFF)
    option(BUILD_SHARED_LIBS   "Build shared libraries" OFF)
    add_definitions(-DGLFW_NO_GLU)
    add_subdirectory(libraries/glfw)

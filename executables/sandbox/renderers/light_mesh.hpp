@@ -3,6 +3,7 @@
 
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_toolkit/service.hpp"
+#include <glm/glm.hpp>
 #include <map>
 #include <memory>
 

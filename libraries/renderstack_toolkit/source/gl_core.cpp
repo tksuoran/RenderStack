@@ -313,6 +313,36 @@ void check_error()
    }
 }
 
+void dump_gl_state()
+{
+    GLint program = 0;
+    GLint vao = 0;
+    gl::get_integer_v(GL_CURRENT_PROGRAM, &program);
+    gl::get_integer_v(GL_VERTEX_ARRAY_BINDING, &vao);
+    log_trace("current state:");
+    log_trace("\tprogram : %d", program);
+    log_trace("\tvao     : %d", vao);
+    for (GLuint i = 0; i < 16; ++i)
+    {
+        GLint buffer    [4];
+        GLint enabled   [4];
+        GLint stride    [4];
+        GLint type      [4];
+        GLvoid *pointer = nullptr;
+        gl::get_vertex_attrib_iiv(i, GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING, &buffer[0]);
+        gl::get_vertex_attrib_iiv(i, GL_VERTEX_ATTRIB_ARRAY_ENABLED,        &enabled[0]);
+        gl::get_vertex_attrib_iiv(i, GL_VERTEX_ATTRIB_ARRAY_STRIDE,         &stride[0]);
+        gl::get_vertex_attrib_iiv(i, GL_VERTEX_ATTRIB_ARRAY_TYPE,           &type[0]);
+        gl::get_vertex_attrib_pointer_v(i, GL_VERTEX_ATTRIB_ARRAY_POINTER, &pointer);
+        log_trace("\t\tattribute %u", i);
+        log_trace("\t\t\tenabled : %d", enabled[0]);
+        log_trace("\t\t\tbuffer  : %d", buffer[0]);
+        log_trace("\t\t\tpointer : 0x%08x", (unsigned long)(pointer));
+        log_trace("\t\t\tstride  : %d", stride[0]);
+    }
+
+}
+
 #if !defined(NDEBUG)
 void check_uniform_location(GLint location)
 {
@@ -1314,6 +1344,8 @@ void bind_buffer(GLenum target, GLuint buffer)
 {
 #if defined(LOG_GL) || defined(LOG_GL_BUFFER)
    log_trace("bind_buffer(%s, %u)", enum_string(target), buffer);
+#elif defined(LOG_GL_VAO)
+   if (target == GL_ARRAY_BUFFER) log_trace("bind_buffer(%s, %u)", enum_string(target), buffer);
 #endif
 #if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glBindBuffer != nullptr);
@@ -1762,7 +1794,7 @@ void detach_shader(GLuint program, GLuint shader)
 }
 void disable_vertex_attrib_array(GLuint a)
 {
-#if defined(LOG_GL) || defined(LOG_GL_ATTRIB)
+#if defined(LOG_GL) || defined(LOG_GL_ATTRIB) || defined(LOG_GL_VAO)
    log_trace("disable_vertex_attrib_array(%u)", a);
 #endif
 #if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
@@ -1775,7 +1807,7 @@ void disable_vertex_attrib_array(GLuint a)
 }
 void enable_vertex_attrib_array(GLuint a)
 {
-#if defined(LOG_GL) || defined(LOG_GL_ATTRIB)
+#if defined(LOG_GL) || defined(LOG_GL_ATTRIB) || defined(LOG_GL_VAO)
    log_trace("enable_vertex_attrib_array(%u)", a);
 #endif
 #if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
@@ -4149,7 +4181,10 @@ void draw_transform_feedback_stream_instanced(GLenum mode, GLuint id, GLuint str
 #if !defined(__APPLE__)
 #if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
 void vertex_attrib_divisor(GLuint index, GLuint divisor)
-{  LOG_GL_FUNCTION(__FUNCTION__);
+{
+#if defined(LOG_GL) || (LOG_GL_VAO) || (LOG_GL_ATTRIB)
+   log_trace("vertex_attrib_divisor(index = %u, divisor = %u)", index, divisor);
+#endif
 #if defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS) || defined(RENDERSTACK_DLOAD_WINDOWS_GL_SYMBOLS)
    assert(gl::detail::glVertexAttribDivisor != nullptr);
    gl::detail::glVertexAttribDivisor(index, divisor);

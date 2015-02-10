@@ -195,25 +195,21 @@ void programs::connect(
 
    try
    {
-      vector<string> light_type_spot         = { "LIGHT_TYPE_SPOT" };
-      vector<string> light_type_directional  = { "LIGHT_TYPE_DIRECTIONAL" };
-      vector<string> use_debug_uniforms      = { "USE_DEBUG_UNIFORMS" };
-
       font                    = make_program("font");
       basic                   = make_program("basic");
       gbuffer                 = make_program("gbuffer");
-      light_spot              = make_program("light", light_type_spot);
-      light_directional       = make_program("light", light_type_directional);
+      light_spot              = make_program("light", "LIGHT_TYPE_SPOT");
+      light_directional       = make_program("light", "LIGHT_TYPE_DIRECTIONAL");
       stencil                 = make_program("stencil");
       show_rt                 = make_program("show_rt");
       show_rt_spherical       = make_program("show_rt_spherical");
       textured                = make_program("textured");
       id                      = make_program("id");
-      debug_font              = make_program("font", use_debug_uniforms);
+      debug_font              = make_program("font", "USE_DEBUG_UNIFORMS");
       debug_line              = make_program("debug_line");
       debug_light             = make_program("debug_light");
-      anisotropic_spot        = make_program("anisotropic", light_type_spot);
-      anisotropic_directional = make_program("anisotropic", light_type_directional);
+      anisotropic_spot        = make_program("anisotropic", "LIGHT_TYPE_SPOT");
+      anisotropic_directional = make_program("anisotropic", "LIGHT_TYPE_DIRECTIONAL");
       camera                  = make_program("camera");
    }
    catch (runtime_error const &e)
@@ -229,6 +225,16 @@ shared_ptr<renderstack::graphics::program> programs::make_program(
 {
    vector<string> no_defines;
    return make_program(name, no_defines);
+}
+
+shared_ptr<renderstack::graphics::program> programs::make_program(
+   string const &name,
+   string const &define
+)
+{
+   vector<string> defines;
+   defines.push_back(define);
+   return make_program(name, defines);
 }
 
 shared_ptr<renderstack::graphics::program> programs::make_program(

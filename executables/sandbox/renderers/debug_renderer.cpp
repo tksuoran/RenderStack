@@ -30,8 +30,11 @@
 using namespace renderstack::graphics;
 using namespace renderstack::ui;
 using namespace gl;
-using namespace glm;
 using namespace std;
+
+using glm::mat4;
+using glm::vec4;
+using glm::vec3;
 
 
 debug_renderer::debug_renderer()
@@ -251,7 +254,7 @@ void debug_renderer::render_text_lines(renderstack::scene::viewport const &vp)
    end_edit();
 
    int clip_from_world = p->uniform_at(programs()->debug_block_access.clip_from_world);
-   int color           = p->uniform_at(programs()->debug_block_access.color);
+   //int color           = p->uniform_at(programs()->debug_block_access.color);
 
    gl::uniform_matrix_4fv(clip_from_world, 1, GL_FALSE, value_ptr(ortho));
    //gl::uniform_4fv(color, 1, value_ptr(white));

@@ -7,6 +7,7 @@
 #include "renderstack_toolkit/log.hpp"
 #include "renderstack_graphics/vertex_attribute.hpp"
 #include <vector>
+#include <cstdint>
 #include <cstddef>
 #include <memory>
 
@@ -19,7 +20,7 @@ class index_buffer;
 struct vertex_array_state
 {
    bool                          attrib_enabled[RS_ATTRIBUTE_COUNT];
-   uint32_t                      attrib_divisor[RS_ATTRIBUTE_COUNT];
+   std::uint32_t                 attrib_divisor[RS_ATTRIBUTE_COUNT];
    std::shared_ptr<class buffer> element_array_buffer_binding;
 };
 

@@ -6,6 +6,7 @@
 #include "renderstack_graphics/configuration.hpp"
 #include "renderstack_graphics/renderer.hpp"
 #include "renderstack_graphics/blend_state.hpp"
+#include "renderstack_graphics/shader_monitor.hpp"
 #include <glm/glm.hpp>
 #include <memory>
 

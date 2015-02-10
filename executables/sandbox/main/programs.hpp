@@ -117,6 +117,10 @@ private:
       std::vector<std::string> const &defines
    );
    std::shared_ptr<renderstack::graphics::program> make_program(
+      std::string const &name,
+      std::string const &define
+   );
+   std::shared_ptr<renderstack::graphics::program> make_program(
       std::string const &name
    );
 
