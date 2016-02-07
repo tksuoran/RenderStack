@@ -98,9 +98,9 @@ catmull_clark::catmull_clark(shared_ptr<geometry> src)
       point *new_point        = make_new_point_from_edge(src_edge); //  these get weights 1 + 1
       assert(new_point);
 
-      for (auto i = src_edge_polygons.cbegin(); i != src_edge_polygons.cend(); ++i)
+      for (auto j = src_edge_polygons.cbegin(); j != src_edge_polygons.cend(); ++j)
       {
-         polygon *src_polygon = *i;
+         polygon *src_polygon = *j;
          float weight = 1.0f / (float)src_polygon->corners().size();
          add_polygon_centroid(new_point, weight, src_polygon);
       }
@@ -132,9 +132,9 @@ catmull_clark::catmull_clark(shared_ptr<geometry> src)
       //   F    <- because F is average of all centroids, it adds extra /n
       //  ---
       //   n
-      for (auto i = src_polygon->corners().cbegin(); i != src_polygon->corners().cend(); ++i)
+      for (auto j = src_polygon->corners().cbegin(); j != src_polygon->corners().cend(); ++j)
       {
-         auto  src_corner     = *i;
+         auto  src_corner     = *j;
          point *src_point     = src_corner->point();
          assert(src_point);
 

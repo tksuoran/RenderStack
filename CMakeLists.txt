@@ -86,13 +86,13 @@ if (RENDERSTACK_3DMOUSE_SUPPORT)
 endif ()
 
 # Slightly hacky
-set(GLM_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/libraries/glm-0.9.6.1")
+set(GLM_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/libraries/glm-0.9.7.2")
 set(TINYXML_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/libraries/tinyxml2")
 set(TINYXML_LIBS tinyxml2)
 
 # libpng requires some hacking due to dependency to zlib
 if (MSVC)
-   set(PNG_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/libraries/lpng1616" "${CMAKE_BINARY_DIR}/libraries/lpng1616")
+   set(PNG_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/libraries/lpng1621" "${CMAKE_BINARY_DIR}/libraries/lpng1621")
    set(PNG_LIBRARIES png16_static zlibstatic)
    
    # Prevent libpng from trying to install anything
@@ -131,7 +131,7 @@ if (MSVC)
    set(ZLIB_FOUND TRUE)
 
    add_subdirectory(libraries/zlib)
-   add_subdirectory(libraries/lpng1616)
+   add_subdirectory(libraries/lpng1621)
 else ()
    find_package(PNG REQUIRED)
    message("PNG_LIBRARIES = ${PNG_LIBRARIES}")
@@ -164,19 +164,16 @@ else ()
 endif ()
 
 if (RENDERSTACK_USE_FREETYPE)
-   set(FREETYPE_ROOT_DIR "${CMAKE_SOURCE_DIR}/libraries/freetype-2.5.5")
+   set(FREETYPE_ROOT_DIR "${CMAKE_SOURCE_DIR}/libraries/freetype-2.6.2")
    if (MSVC)
       set(FREETYPE_FOUND TRUE)
       set(FREETYPE_INCLUDE_DIR_ft2build "${FREETYPE_ROOT_DIR}/include")
       set(FREETYPE_INCLUDE_DIR_freetype2 "${FREETYPE_ROOT_DIR}/include/freetype")
       set(FREETYPE_INCLUDE_DIRS "${FREETYPE_INCLUDE_DIR_ft2build}" "${FREETYPE_INCLUDE_DIR_freetype2}")
-      if (MSVC12)
-         include_external_msproject(freetype2 ${FREETYPE_ROOT_DIR}/builds/windows/vc2013/freetype.vcxproj)
-      elseif (MSVC11)
-         include_external_msproject(freetype2 ${FREETYPE_ROOT_DIR}/builds/windows/vc2012/freetype.vcxproj)
+      if (MSVC14)
+         include_external_msproject(freetype2 ${FREETYPE_ROOT_DIR}/builds/windows/vc2015/freetype.vcxproj)
       else ()
-         # TODO Here assuming VC2010
-         include_external_msproject(freetype2 ${FREETYPE_ROOT_DIR}/builds/windows/vc2010/freetype.vcxproj)
+          message(FATAL_ERROR "MSVC14 required.")
       endif ()
    else ()
       find_package(Freetype REQUIRED)

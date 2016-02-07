@@ -237,8 +237,10 @@ void debug_renderer::render_text_lines(renderstack::scene::viewport const &vp)
       return;
 
    auto &r = renderer();
-   auto &t = r.track();
-   t.execute(&m_font_render_states);
+   {
+       auto &t = r.track();
+       t.execute(&m_font_render_states);
+   }
 
    auto p = programs()->debug_font;
    r.set_program(p);

@@ -155,12 +155,14 @@ void menu::initialize_service()
    auto bs = gr->button_style();
    auto ms = gr->menulist_style();
 
-   float w = (float)m_application->width();
-   float h = (float)m_application->height();
-   rectangle size(w, h);
+   {
+       float w = (float)m_application->width();
+       float h = (float)m_application->height();
+       rectangle size(w, h);
 
-   m_root_layer = smart_ptr_builder::create_shared_ptr<area>(new layer(gr, size));
-   m_root_layer->set_name("m_root_layer");
+       m_root_layer = smart_ptr_builder::create_shared_ptr<area>(new layer(gr, size));
+       m_root_layer->set_name("m_root_layer");
+   }
 
    auto d = smart_ptr_builder::create_shared_ptr<area>(new menulist(gr, ms, orientation::vertical));
    d->set_offset_free_size_relative(glm::vec2( 0.50f,  0.25f));
@@ -188,7 +190,6 @@ void menu::initialize_service()
       size += m_programs->models_block->size_bytes();
       size += m_programs->materials_block->size_bytes();
       size += m_programs->camera_block->size_bytes();
-      auto &r = *m_renderer;
 
       m_uniform_buffer = make_shared<buffer>(
          renderstack::graphics::buffer_target::uniform_buffer,
@@ -498,8 +499,6 @@ void menu::render()
    // GUI
    {
       ui_context c;
-      int iw = m_application->width();
-      int ih = m_application->height();
       double x;
       double y;
       m_application->get_mouse_pos(x, y);

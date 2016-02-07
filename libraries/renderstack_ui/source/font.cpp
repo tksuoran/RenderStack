@@ -569,10 +569,10 @@ void font::save() const
                    "m_chars_256[%lu].v[2] = %ff; "
                    "m_chars_256[%lu].v[3] = %ff;\n",
                    i, c.v[0], i, c.v[1], i, c.v[2], i, c.v[3]);
-         for (size_t i = 0; i < c.kernings.size(); ++i)
+         for (size_t j = 0; j < c.kernings.size(); ++j)
          {
             kerning const &k = c.kernings[i];
-            printf("   m_chars[%lu].push_back(kerning(%d, %d));\n", i, k.second, k.amount);
+            printf("   m_chars[%lu].push_back(kerning(%d, %d));\n", j, k.second, k.amount);
          }
       }
    }

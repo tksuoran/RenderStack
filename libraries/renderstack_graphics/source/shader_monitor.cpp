@@ -141,8 +141,8 @@ void shader_monitor::poll()
       {
          if (f.src_last_time != st.st_mtime)
          {
-            for (auto i = f.programs.cbegin(); i != f.programs.cend(); ++i)
-               (*i)->reload(*this);
+            for (auto j = f.programs.cbegin(); j != f.programs.cend(); ++j)
+               (*j)->reload(*this);
 
             f.src_last_time = st.st_mtime;
             continue;
@@ -153,8 +153,8 @@ void shader_monitor::poll()
       {
          if (f.dst_last_time != st.st_mtime)
          {
-            for (auto i = f.programs.cbegin(); i != f.programs.cend(); ++i)
-               (*i)->reload(*this);
+            for (auto j = f.programs.cbegin(); j != f.programs.cend(); ++j)
+               (*j)->reload(*this);
 
             f.dst_last_time = st.st_mtime;
             continue;

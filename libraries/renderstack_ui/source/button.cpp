@@ -103,9 +103,11 @@ void button::draw_self(ui_context &context)
    gr->set_program(style()->ninepatch_style()->program());
 
    auto &r = *gr->renderer();
-   auto t = style()->ninepatch_style()->texture();
-   r.set_texture(style()->ninepatch_style()->texture_unit(), t);
-   //t->apply(rr, style()->ninepatch_style()->texture_unit());
+   {
+      auto t = style()->ninepatch_style()->texture();
+      r.set_texture(style()->ninepatch_style()->texture_unit(), t);
+      //t->apply(rr, style()->ninepatch_style()->texture_unit());
+   }
 
    gr->set_transform(m_background_frame);
    gr->set_color_scale(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));

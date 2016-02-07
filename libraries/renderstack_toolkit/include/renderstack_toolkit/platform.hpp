@@ -57,7 +57,9 @@
 # include <stdlib.h>
 # include <crtdbg.h>
 
-# define vsnprintf _vsnprintf
+# if _MSC_VER < 1900
+#  define vsnprintf _vsnprintf
+# endif
 
 #ifdef _DEBUG
    #ifndef DBG_NEW

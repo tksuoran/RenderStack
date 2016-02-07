@@ -1,0 +1,43 @@
+﻿  autofit.c
+  bdf.c
+  cff.c
+  ftbase.c
+  ftbitmap.c
+  ftcache.c
+  ftfstype.c
+c:\git\tksuoran\renderstack\libraries\freetype-2.6.2\src\base\ftobjs.c(4733): warning C4702: unreachable code
+c:\git\tksuoran\renderstack\libraries\freetype-2.6.2\src\base\ftobjs.c(4734): warning C4702: unreachable code
+  ftgasp.c
+  ftglyph.c
+  ftgzip.c
+  ftinit.c
+  ftlzw.c
+  ftstroke.c
+  ftsystem.c
+  smooth.c
+  ftbbox.c
+  ftfntfmt.c
+  ftmm.c
+  ftpfr.c
+  ftsynth.c
+  fttype1.c
+  ftwinfnt.c
+  ftlcdfil.c
+  ftgxval.c
+  ftotval.c
+  ftpatent.c
+  pcf.c
+  pfr.c
+  psaux.c
+  pshinter.c
+  psmodule.c
+  raster.c
+  sfnt.c
+  truetype.c
+  type1.c
+  type1cid.c
+  type42.c
+c:\git\tksuoran\renderstack\libraries\freetype-2.6.2\src\truetype\ttgload.c(1782): warning C4701: potentially uninitialized local variable 'outline' used
+  winfnt.c
+  ftdebug.c
+  freetype.vcxproj -> C:\git\tksuoran\RenderStack\libraries\freetype-2.6.2\builds\windows\vc2015\.\..\..\..\objs\vc2010\Win32\freetype262d.lib

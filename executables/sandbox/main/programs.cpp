@@ -258,8 +258,10 @@ shared_ptr<renderstack::graphics::program> programs::make_program(
       p->add(materials_block);
       p->add(camera_block);
       p->add(debug_block);
-      for (auto i = defines.cbegin(); i != defines.cend(); ++i)
-         p->define(*i, "1");
+      for (auto j = defines.cbegin(); j != defines.cend(); ++j)
+      {
+         p->define(*j, "1");
+      }
       p->load_vs(vs_path);
       p->load_fs(fs_path);
       p->link(); 

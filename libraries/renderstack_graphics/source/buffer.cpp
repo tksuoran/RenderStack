@@ -406,7 +406,7 @@ void buffer::dump() const
 
    if (mapped == GL_FALSE)
    {
-      uint32_t *data = reinterpret_cast<uint32_t *>(
+      data = reinterpret_cast<uint32_t *>(
          gl::map_buffer_range(
             buffer_target::gl_buffer_target(m_target),
             0,
