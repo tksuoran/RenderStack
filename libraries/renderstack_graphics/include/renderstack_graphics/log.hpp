@@ -1,10 +1,13 @@
 #ifndef log__hpp_renderstack_graphics
 #define log__hpp_renderstack_graphics
 
-#include "renderstack_toolkit/platform.hpp"
 #include "renderstack_toolkit/log.hpp"
+#include "renderstack_toolkit/platform.hpp"
 
-namespace renderstack { namespace graphics {
+namespace renderstack
+{
+namespace graphics
+{
 
 extern renderstack::toolkit::log_category log_buffer;
 extern renderstack::toolkit::log_category log_configuration;
@@ -16,6 +19,7 @@ extern renderstack::toolkit::log_category log_vertex_attribute_mappings;
 extern renderstack::toolkit::log_category log_fragment_outputs;
 extern renderstack::toolkit::log_category log_load_png;
 
-} }
+} // namespace graphics
+} // namespace renderstack
 
 #endif

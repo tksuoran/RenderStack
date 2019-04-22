@@ -1,56 +1,60 @@
 #ifndef triangle_hpp_renderstack_geometry
 #define triangle_hpp_renderstack_geometry
 
-#include "renderstack_toolkit/platform.hpp"
 #include "renderstack_geometry/geometry.hpp"
+#include "renderstack_toolkit/platform.hpp"
 
-namespace renderstack { namespace geometry { namespace shapes {
+namespace renderstack
+{
+namespace geometry
+{
+namespace shapes
+{
 
 class triangle : public geometry
 {
 public:
-   triangle(double radius);
+    triangle(double radius);
 };
 
 class quad : public geometry
 {
 public:
-   quad(double edge);
+    quad(double edge);
 };
 
 class cuboctahedron : public geometry
 {
 public:
-   cuboctahedron(double radius);
+    cuboctahedron(double radius);
 };
 
 class dodecahedron : public geometry
 {
 public:
-   dodecahedron(double radius);
+    dodecahedron(double radius);
 };
 
 class icosahedron : public geometry
 {
 public:
-   icosahedron(double radius);
+    icosahedron(double radius);
 };
 
 class octahedron : public geometry
 {
 public:
-   octahedron(double radius);
+    octahedron(double radius);
 };
 
 class tetrahedron : public geometry
 {
 public:
-   tetrahedron(double radius);
+    tetrahedron(double radius);
 };
 
-} } }
-
+} // namespace shapes
+} // namespace geometry
+} // namespace renderstack
 
 #endif
-
-

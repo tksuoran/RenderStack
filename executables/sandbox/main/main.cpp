@@ -1,22 +1,21 @@
-#include "renderstack_toolkit/platform.hpp"
-#include "renderstack_toolkit/gl.hpp"
-#include "renderstack_toolkit/strong_gl_enums.hpp"
 #include "renderstack_graphics/configuration.hpp"
-#include "renderstack_graphics/shader_monitor.hpp"
 #include "renderstack_graphics/program.hpp"
+#include "renderstack_graphics/shader_monitor.hpp"
+#include "renderstack_toolkit/gl.hpp"
+#include "renderstack_toolkit/platform.hpp"
+#include "renderstack_toolkit/strong_gl_enums.hpp"
 #include "renderstack_ui/font.hpp"
 
 #include "main/application.hpp"
 #include "main/log.hpp"
 
-#include <glm/glm.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 #include <fstream>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <iomanip>
 #include <sstream>
 #include <sys/stat.h>
-#include <iomanip>
-
 
 using namespace gl;
 using namespace glm;
@@ -35,11 +34,11 @@ int main(int argc, char *argv[])
     static_cast<void>(argc);
     static_cast<void>(argv);
     shared_ptr<renderstack::toolkit::window> g_application;
-    int return_value = EXIT_FAILURE;
+    int                                      return_value = EXIT_FAILURE;
 
-#  if defined(NDEBUG)
-   try
-#  endif
+#if defined(NDEBUG)
+    try
+#endif
     {
         g_application = make_shared<application>();
         if (g_application->on_load())
@@ -51,21 +50,20 @@ int main(int argc, char *argv[])
         {
             return_value = EXIT_FAILURE;
         }
-
     }
-#   if defined(NDEBUG)
-    catch(runtime_error const &e)
+#if defined(NDEBUG)
+    catch (runtime_error const &e)
     {
         fprintf(stderr, "exception:\n");
         fprintf(stderr, e.what());
         fprintf(stderr, "\nPress RETURN\n");
         fgetc(stdin);
     }
-    catch(...)
+    catch (...)
     {
         ;
     }
-#  endif
+#endif
 
     if (g_application)
     {

@@ -21,7 +21,7 @@ public:
 
    void connect(std::shared_ptr<renderstack::graphics::renderer> renderer);
 
-   /*virtual*/ void initialize_service();
+   void initialize_service() override;
 
 public:
    void render_minus_one_to_one();

@@ -1,7 +1,7 @@
 #include "scene/material_manager.hpp"
 
 material_manager::material_manager()
-:  service("material_manager")
+    : service("material_manager")
 {
 }
 

@@ -3,17 +3,24 @@
 
 #include "renderstack_geometry/operation/geometry_operation.hpp"
 
-namespace renderstack { namespace geometry { namespace operation {
+namespace renderstack
+{
+namespace geometry
+{
+namespace operation
+{
 
 class clone : public geometry_operation
 {
 public:
-   clone(
-      std::shared_ptr<geometry> src
-      /*, HashSet<uint> selectedPolygonIndices*/
-   );
+    clone(
+        std::shared_ptr<geometry> src
+        /*, HashSet<uint> selectedPolygonIndices*/
+    );
 };
 
-} } }
+} // namespace operation
+} // namespace geometry
+} // namespace renderstack
 
-#endif 
+#endif

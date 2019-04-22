@@ -9,6 +9,7 @@ void main(void)
 {
    float r              = materials.roughness;
    float p              = materials.isotropy;
+
    float p2             = p * p;
    float one_minus_r    = 1.0 - r;
    float one_minus_p2   = 1.0 - p2;
@@ -36,6 +37,8 @@ void main(void)
    vec3  one_minus_C    = vec3(1.0, 1.0, 1.0) - C;
    vec3  S              = C + one_minus_C * pow(1.0 - vn_clamped, 5.0);
 
+   gvn_denom = clamp(gvn_denom, 0.05, 1.0);
+
    vec3  exitant_radiance = vec3(0.0);
    float ln = dot(L, N);
 
@@ -46,26 +49,24 @@ void main(void)
       if (ls_clamped > spot_cutoff)
 #endif
       {
+
+         float light_distance    = length(lights.position - v_position);
          C *= r * r;
 
          float ln_clamped  = max(ln, 0.0);
          vec3  H           = normalize(L + V);
-         float hn          = dot(H, N);
-         float hv          = dot(H, V);
-         float hn_clamped  = max(hn, 0.0);
+         float hn          = max(0.0, dot(H, N));
+         float hv          = max(0.0, dot(H, V));
          float hv_clamped  = max(hv, 0.0);
          float ht          = dot(H - hn * N, T);
-         float ht_clamped  = max(ht, 0.0);
          float hn2         = hn * hn;
          float ht2         = ht * ht;
          float aht_denom   = sqrt(p2 + one_minus_p2 * ht2);
          float gln_denom   = (r   + one_minus_r * ln);
-         float zhn0        = (1.0 - one_minus_r * hn * hn2);
-         float D           = (ln_clamped * r * p2) / (gvn_denom * gln_denom * zhn0 * zhn0 * aht_denom);
+         float zhn0        = (1.0 - one_minus_r * hn * hn);
+         float D           = (ln * r * p2) / (gvn_denom * gln_denom * zhn0 * zhn0 * aht_denom);
 
 #if defined(LIGHT_TYPE_SPOT)
-         float light_distance    = length(lights.position - v_position);
-
          float light_attenuation = 1.0 / (light_distance * light_distance);
 #endif
 
@@ -82,32 +83,13 @@ void main(void)
          float light_visibility  = 1000.0;
          vec3  incident_radiance = lights.radiance * light_visibility * light_attenuation;
 
-         //exitant_radiance += incident_radiance * C * ln_clamped;  //  diffuse
-         //exitant_radiance += incident_radiance * S * D;           //  specular
-         exitant_radiance += vec3(ln);
+         exitant_radiance += incident_radiance * C * ln_clamped;  //  diffuse
+         exitant_radiance += incident_radiance * S * D;  //  specular
       }
    }
 
-   vec3 linear = exitant_radiance;      
-   float exposure = 0.2 * camera.exposure;
-   out_color.rgb = vec3(1.0) - exp(-linear * exposure);
-
+   vec3 linear = exitant_radiance;
+   float exposure = camera.exposure;
+   //out_color.rgb = vec3(1.0) - exp(-linear * exposure);
+   out_color.rgb = linear;
 }
-
-
-
-   //vec3 linear = vec3(r, p * 120.0, 0.0);
-
-   // out_color.rgb = vec3(
-   //    2.0 /
-   //    length(v_light_direction)
-   // );
-   // 
-   // out_color.rgb = 0.5 * normalize(T) + vec3(0.5);
-   //out_color.rgb = vec3(0.01, 0.0, 0.0);  
-   //out_color.rgb = 0.5 * normalize(N) + vec3(0.5);
-
-   // float exposure = lights.exposure * 40.0;
-   // 
-   // out_color.rgb = vec3(1.0) - exp(-exitant_radiance * exposure);
-   // out_color.rgb = pow(out_color.rgb, vec3(1.0 / 2.2));

@@ -1,16 +1,16 @@
 #if 0
-#ifndef renderstack_ui__context_hpp
-#define renderstack_ui__context_hpp
+#    ifndef renderstack_ui__context_hpp
+#        define renderstack_ui__context_hpp
 
-#include "renderstack_toolkit/platform.hpp"
-#include "renderstack_ui/text_buffer.hpp"
-#include "renderstack_ui/style.hpp"
-#include "renderstack_ui/ninepatch.hpp"
+#        include "renderstack_toolkit/platform.hpp"
+#        include "renderstack_ui/ninepatch.hpp"
+#        include "renderstack_ui/style.hpp"
+#        include "renderstack_ui/text_buffer.hpp"
 
-#include <memory>
-#include <vector>
-#include <string>
-#include <map>
+#        include <map>
+#        include <memory>
+#        include <string>
+#        include <vector>
 
 namespace renderstack { namespace ui {
 
@@ -45,6 +45,6 @@ private:
 
 } }
 
-#endif
+#    endif
 
 #endif

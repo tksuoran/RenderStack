@@ -1,12 +1,15 @@
 #ifndef face_cull_state_hpp_renderstack_graphics
 #define face_cull_state_hpp_renderstack_graphics
 
-#include "renderstack_toolkit/platform.hpp"
 #include "renderstack_toolkit/gl.hpp"
+#include "renderstack_toolkit/platform.hpp"
 #include "renderstack_toolkit/strong_gl_enums.hpp"
 #include <glm/glm.hpp>
 
-namespace renderstack { namespace graphics {
+namespace renderstack
+{
+namespace graphics
+{
 
 class face_cull_state
 {
@@ -32,16 +35,17 @@ private:
 class face_cull_state_tracker
 {
 public:
-   face_cull_state_tracker();
+    face_cull_state_tracker();
 
-   void reset();
-   void execute(face_cull_state const *state);
+    void reset();
+    void execute(face_cull_state const *state);
 
 private:
-    face_cull_state const  *m_last;
+    face_cull_state const *m_last;
     face_cull_state        m_cache;
 };
 
-} }
+} // namespace graphics
+} // namespace renderstack
 
 #endif

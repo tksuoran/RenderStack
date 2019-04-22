@@ -10,3 +10,6 @@
 [submodule "libraries/zlib"]
 	path = libraries/zlib
 	url = git://github.com/madler/zlib.git
+[submodule "libraries/OpenGL-Registry"]
+	path = libraries/OpenGL-Registry
+	url = https://github.com/KhronosGroup/OpenGL-Registry.git

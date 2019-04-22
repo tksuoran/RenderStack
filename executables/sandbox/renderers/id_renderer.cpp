@@ -1,28 +1,27 @@
-#include "renderstack_toolkit/platform.hpp"
 #include "renderers/id_renderer.hpp"
-#include "scene/model.hpp"
 #include "renderstack_graphics/buffer.hpp"
 #include "renderstack_graphics/configuration.hpp"
 #include "renderstack_graphics/program.hpp"
 #include "renderstack_graphics/renderer.hpp"
+#include "renderstack_graphics/uniform.hpp"
 #include "renderstack_graphics/uniform_block.hpp"
 #include "renderstack_graphics/uniform_buffer_range.hpp"
-#include "renderstack_graphics/uniform.hpp"
 #include "renderstack_graphics/vertex_format.hpp"
 #include "renderstack_mesh/geometry_mesh.hpp"
 #include "renderstack_mesh/mesh.hpp"
 #include "renderstack_scene/camera.hpp"
 #include "renderstack_toolkit/gl.hpp"
-#include "renderstack_toolkit/strong_gl_enums.hpp"
 #include "renderstack_toolkit/math_util.hpp"
-#include <glm/glm.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <glm/gtc/matrix_transform.hpp>
+#include "renderstack_toolkit/platform.hpp"
+#include "renderstack_toolkit/strong_gl_enums.hpp"
+#include "scene/model.hpp"
 #include <fstream>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <iomanip>
 #include <sstream>
 #include <sys/stat.h>
-#include <iomanip>
-
 
 using namespace renderstack::toolkit;
 using namespace renderstack::graphics;
@@ -31,13 +30,8 @@ using namespace renderstack;
 using namespace gl;
 using namespace std;
 
-
 id_renderer::id_renderer()
-:  service("id_renderer")
-,  m_renderer(nullptr)
-,  m_programs(nullptr)
-,  m_last_render(0)
-,  m_radius(64)
+    : service("id_renderer"), m_renderer(nullptr), m_programs(nullptr), m_last_render(0), m_radius(64)
 {
 }
 
@@ -46,40 +40,37 @@ id_renderer::id_renderer()
 }
 
 void id_renderer::connect(
-   shared_ptr<renderstack::graphics::renderer>  renderer_,
-   shared_ptr<programs>                         programs_
-)
+    shared_ptr<renderstack::graphics::renderer> renderer_,
+    shared_ptr<programs>                        programs_)
 {
-   m_renderer = renderer_;
-   m_programs = programs_;
+    m_renderer = renderer_;
+    m_programs = programs_;
 
-   initialization_depends_on(renderer_);
-   initialization_depends_on(programs_);
+    initialization_depends_on(renderer_);
+    initialization_depends_on(programs_);
 }
 
 void id_renderer::initialize_service()
 {
-   assert(m_renderer);
-   assert(m_programs);
+    assert(m_renderer);
+    assert(m_programs);
 
-   m_id_render_states.depth.set_enabled(true);
-   m_id_render_states.face_cull.set_enabled(true);
+    m_id_render_states.depth.set_enabled(true);
+    m_id_render_states.face_cull.set_enabled(true);
 
-   for (int i = 0; i < 4; ++i)
-   {
-      id_render &idr = m_renders[i];
+    for (int i = 0; i < 4; ++i)
+    {
+        id_render &idr = m_renders[i];
 
-      idr.pixel_pack_buffer = make_shared<buffer>(
-         renderstack::graphics::buffer_target::pixel_pack_buffer,
-         m_radius * m_radius * 8,
-         1,
-         gl::buffer_usage_hint::stream_read
-      );
-      idr.pixel_pack_buffer->allocate_storage(*m_renderer);
-      idr.state = id_render_state::unused;
-      idr.data.resize(m_radius * m_radius * 8);
-  }
-
+        idr.pixel_pack_buffer = make_shared<buffer>(
+            renderstack::graphics::buffer_target::pixel_pack_buffer,
+            m_radius * m_radius * 8,
+            1,
+            gl::buffer_usage_hint::stream_read);
+        idr.pixel_pack_buffer->allocate_storage(*m_renderer);
+        idr.state = id_render_state::unused;
+        idr.data.resize(m_radius * m_radius * 8);
+    }
 }
 
 void id_renderer::clear()
@@ -91,18 +82,17 @@ void id_renderer::clear()
 }
 
 void id_renderer::render_pass(
-   shared_ptr<vector<shared_ptr<model> > > models,
-   shared_ptr<renderstack::scene::camera> camera,
-   double time,
-   int x,
-   int y
-)
+    shared_ptr<vector<shared_ptr<model>>>  models,
+    shared_ptr<renderstack::scene::camera> camera,
+    double                                 time,
+    int                                    x,
+    int                                    y)
 {
-   (void)models;
-   (void)camera;
-   (void)time;
-   (void)x;
-   (void)y;
+    (void)models;
+    (void)camera;
+    (void)time;
+    (void)x;
+    (void)y;
 #if 0
    if (models->size() == 0)
       return;
@@ -212,80 +202,76 @@ void id_renderer::render_pass(
 
 bool id_renderer::get(int x, int y, uint32_t &id, float &depth)
 {
-   int try_render = m_last_render;
+    int try_render = m_last_render;
 
-   // TODO: Testing for sync done is not free. Start testing only older syncs?
-   for (int i = 0; i < 4; ++i)
-   {
-      --try_render;
-      if (try_render < 0)
-         try_render = 3;
+    // TODO: Testing for sync done is not free. Start testing only older syncs?
+    for (int i = 0; i < 4; ++i)
+    {
+        --try_render;
+        if (try_render < 0)
+            try_render = 3;
 
-      id_render &idr = m_renders[try_render];
+        id_render &idr = m_renders[try_render];
 
-      if (idr.state == id_render_state::waiting_for_read)
-      {
-         GLint sync_status = GL_UNSIGNALED;
-         gl::get_sync_iv(idr.sync, GL_SYNC_STATUS, 4, nullptr, &sync_status);
+        if (idr.state == id_render_state::waiting_for_read)
+        {
+            GLint sync_status = GL_UNSIGNALED;
+            gl::get_sync_iv(idr.sync, GL_SYNC_STATUS, 4, nullptr, &sync_status);
 
-         if (sync_status == GL_SIGNALED)
-         {
-            auto &r = *m_renderer;
-            r.set_buffer(renderstack::graphics::buffer_target::pixel_pack_buffer, idr.pixel_pack_buffer);
+            if (sync_status == GL_SIGNALED)
+            {
+                auto &r = *m_renderer;
+                r.set_buffer(renderstack::graphics::buffer_target::pixel_pack_buffer, idr.pixel_pack_buffer);
 
-            void *src = idr.pixel_pack_buffer->map(
-               *m_renderer,
-               0,
-               m_radius * m_radius * 8,
-               gl::buffer_access_mask::map_read_bit
-            );
-            ::memcpy(&idr.data[0], src, m_radius * m_radius * 8);
-            idr.pixel_pack_buffer->unmap(*m_renderer);
-            idr.state = id_render_state::read_complete;
-         }         
-      }
+                void *src = idr.pixel_pack_buffer->map(
+                    *m_renderer,
+                    0,
+                    m_radius * m_radius * 8,
+                    gl::buffer_access_mask::map_read_bit);
+                ::memcpy(&idr.data[0], src, m_radius * m_radius * 8);
+                idr.pixel_pack_buffer->unmap(*m_renderer);
+                idr.state = id_render_state::read_complete;
+            }
+        }
 
-      if (idr.state == id_render_state::read_complete)
-      {
-         int x_ = x - idr.x_offset;
-         int y_ = y - idr.y_offset;
-         if ((x_ >= 0) && (y_ >= 0) && (x_ < m_radius) && (y_ < m_radius))
-         {
-            uint32_t stride = m_radius * 4;
-            uint8_t r = idr.data[x_ * 4 + y_ * stride + 0];
-            uint8_t g = idr.data[x_ * 4 + y_ * stride + 1];
-            uint8_t b = idr.data[x_ * 4 + y_ * stride + 2];
-            id = (r << 16) | (g << 8) | b;
-            uint8_t *depth_ptr = &idr.data[m_radius * m_radius * 4 + x_ * 4 + y_ * stride];
-            float *depth_f_ptr = reinterpret_cast<float*>(depth_ptr);
-            depth = *depth_f_ptr;
-            return true;
-         }
-      }
-   }
-   return false;
+        if (idr.state == id_render_state::read_complete)
+        {
+            int x_ = x - idr.x_offset;
+            int y_ = y - idr.y_offset;
+            if ((x_ >= 0) && (y_ >= 0) && (x_ < m_radius) && (y_ < m_radius))
+            {
+                uint32_t stride      = m_radius * 4;
+                uint8_t  r           = idr.data[x_ * 4 + y_ * stride + 0];
+                uint8_t  g           = idr.data[x_ * 4 + y_ * stride + 1];
+                uint8_t  b           = idr.data[x_ * 4 + y_ * stride + 2];
+                id                   = (r << 16) | (g << 8) | b;
+                uint8_t *depth_ptr   = &idr.data[m_radius * m_radius * 4 + x_ * 4 + y_ * stride];
+                float *  depth_f_ptr = reinterpret_cast<float *>(depth_ptr);
+                depth                = *depth_f_ptr;
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 shared_ptr<class model> id_renderer::get(int x, int y)
 {
-   uint32_t id;
-   float depth;
+    uint32_t id;
+    float    depth;
 
-   bool ok = get(x, y, id, depth);
+    bool ok = get(x, y, id, depth);
 
-   if (!ok)
-      return nullptr;
+    if (!ok)
+        return nullptr;
 
-   for (auto i = m_ranges.cbegin(); i != m_ranges.cend(); ++i)
-   {
-      auto r = *i;
+    for (auto i = m_ranges.cbegin(); i != m_ranges.cend(); ++i)
+    {
+        auto r = *i;
 
-      if (id >= r.offset && id < (r.offset + r.length))
-         return r.model;
-   }
+        if (id >= r.offset && id < (r.offset + r.length))
+            return r.model;
+    }
 
-   return nullptr;
+    return nullptr;
 }
-
-
-

@@ -1,15 +1,15 @@
-#include "renderstack_toolkit/platform.hpp"
 #include "renderstack_toolkit/service.hpp"
+#include "renderstack_toolkit/platform.hpp"
 
 using namespace std;
 
-namespace renderstack { namespace toolkit {
-
+namespace renderstack
+{
+namespace toolkit
+{
 
 service::service(string const &name)
-:  m_name(name)
-,  m_initialized(false)
-,  m_is_registered(false)
+    : m_name(name), m_initialized(false), m_is_registered(false)
 {
 }
 
@@ -17,23 +17,27 @@ service::~service()
 {
 }
 
-bool service::initialized() const { return m_initialized; }
+bool service::initialized() const
+{
+    return m_initialized;
+}
 
 void service::initialize()
 {
-   initialize_service();
-   m_initialized = true;
+    initialize_service();
+    m_initialized = true;
 }
 
 bool service::ready() const
 {
-   return m_dependencies.size() == 0;
+    return m_dependencies.size() == 0;
 }
 
-void service::remove_dependencies(set<shared_ptr<service> > const &remove_set)
+void service::remove_dependencies(set<shared_ptr<service>> const &remove_set)
 {
-   for (auto i = remove_set.cbegin(); i != remove_set.cend(); ++i)
-      m_dependencies.erase(*i);
+    for (auto i = remove_set.cbegin(); i != remove_set.cend(); ++i)
+        m_dependencies.erase(*i);
 }
 
-} }
+} // namespace toolkit
+} // namespace renderstack

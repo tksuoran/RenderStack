@@ -1,27 +1,28 @@
 #include "renderstack_scene/light.hpp"
-#include "renderstack_scene/camera.hpp"
-#include "renderstack_graphics/uniform_block.hpp"
 #include "renderstack_graphics/buffer.hpp"
+#include "renderstack_graphics/uniform_block.hpp"
 #include "renderstack_graphics/uniform_buffer_range.hpp"
+#include "renderstack_scene/camera.hpp"
 
-namespace renderstack { namespace scene {
+namespace renderstack
+{
+namespace scene
+{
 
 using namespace std;
 using namespace glm;
 using namespace renderstack::graphics;
 
 mat4 light::s_texture = mat4(
-   0.5f, 0.0f, 0.0f, 0.5f,
-   0.0f, 0.5f, 0.0f, 0.5f,
-   0.0f, 0.0f, 0.5f, 0.5f,
-   0.0f, 0.0f, 0.0f, 1.0f
-);
+    0.5f, 0.0f, 0.0f, 0.5f,
+    0.0f, 0.5f, 0.0f, 0.5f,
+    0.0f, 0.0f, 0.5f, 0.5f,
+    0.0f, 0.0f, 0.0f, 1.0f);
 mat4 light::s_texture_inverse = mat4(
-   2.0f, 0.0f, 0.0f, -1.0f,
-   0.0f, 2.0f, 0.0f, -1.0f,
-   0.0f, 0.0f, 2.0f, -1.0f,
-   0.0f, 0.0f, 0.0f,  1.0f
-);
+    2.0f, 0.0f, 0.0f, -1.0f,
+    0.0f, 2.0f, 0.0f, -1.0f,
+    0.0f, 0.0f, 2.0f, -1.0f,
+    0.0f, 0.0f, 0.0f, 1.0f);
 
 #if 0
 lights_uniforms::lights_uniforms(
@@ -58,97 +59,94 @@ lights_uniforms::lights_uniforms(
 #endif
 
 light::light()
-:  m_camera(nullptr)
-,  m_shadow_from_world(mat4(1.0f), mat4(1.0f))
+    : m_camera(nullptr), m_shadow_from_world(mat4(1.0f), mat4(1.0f))
 {
-   m_camera = make_shared<class camera>();
+    m_camera = make_shared<class camera>();
 }
 
 shared_ptr<camera> light::camera()
 {
-   return m_camera;
+    return m_camera;
 }
 string const &light::name()
 {
-   return m_camera->name();
+    return m_camera->name();
 }
 void light::set_name(string const &value)
 {
-   m_camera->set_name(value);
+    m_camera->set_name(value);
 }
 shared_ptr<frame> light::frame()
 {
-   return m_camera->frame();
+    return m_camera->frame();
 }
 
 light_type::value light::type() const
 {
-   return m_type;
+    return m_type;
 }
 void light::set_type(light_type::value value)
 {
-   m_type = value;
+    m_type = value;
 }
 glm::vec3 light::color() const
 {
-   return m_color;
+    return m_color;
 }
 void light::set_color(glm::vec3 value)
 {
-   m_color = value;
+    m_color = value;
 }
 float light::intensity() const
 {
-   return m_intensity;
+    return m_intensity;
 }
 void light::set_intensity(float value)
 {
-   m_intensity = value;
+    m_intensity = value;
 }
 float light::range() const
 {
-   return m_range;
+    return m_range;
 }
 void light::set_range(float value)
 {
-   m_range = value;
+    m_range = value;
 }
 float light::spot_angle() const
 {
-   return m_spot_angle;
+    return m_spot_angle;
 }
 void light::set_spot_angle(float value)
 {
-   m_spot_angle = value;
+    m_spot_angle = value;
 }
 class projection const &light::projection() const
 {
-   return m_camera->projection();
+    return m_camera->projection();
 }
 class projection &light::projection()
 {
-   return m_camera->projection();
+    return m_camera->projection();
 }
 transform const &light::shadow_from_world() const
 {
-   return m_shadow_from_world;
+    return m_shadow_from_world;
 }
 transform &light::shadow_from_world()
 {
-   return m_shadow_from_world;
+    return m_shadow_from_world;
 }
 
 void light::update(viewport &viewport)
 {
-   m_camera->update(viewport);
+    m_camera->update(viewport);
 
-   // world from light = world from view
-   m_shadow_from_world.set(
-      s_texture * camera()->clip_from_world().matrix(),
-      camera()->clip_from_world().inverse_matrix() * s_texture_inverse
-   );
+    // world from light = world from view
+    m_shadow_from_world.set(
+        s_texture * camera()->clip_from_world().matrix(),
+        camera()->clip_from_world().inverse_matrix() * s_texture_inverse);
 }
 
-} }
-
-
+} // namespace scene
+} // namespace renderstack

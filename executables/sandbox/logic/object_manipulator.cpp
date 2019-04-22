@@ -3,4 +3,3 @@
 object_manipulator::object_manipulator()
 {
 }
-

@@ -2,9 +2,9 @@ in vec2 v_texcoord;
 
 void main(void)
 {
-   float exposure = 0.2 * camera.exposure;
+   float exposure = camera.exposure;
    vec3 linear = texture(linear_texture, v_texcoord.xy).xyz;
-   out_color.rgb = vec3(1.0) - exp(-linear * exposure);
-   //out_color.rgb = linear;
+   //out_color.rgb = vec3(1.0) - exp(-linear * exposure);
+   out_color.rgb = linear;
    //out_color.rgb = vec3(1.0);
 }

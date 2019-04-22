@@ -5,18 +5,21 @@
 #include <memory>
 #include <string>
 
-namespace renderstack { namespace graphics {
+namespace renderstack
+{
+namespace graphics
+{
 
 class renderer;
 class texture;
 
 // Currently creates immutable texture without mipmaps
 extern std::shared_ptr<renderstack::graphics::texture> load_png(
-   renderstack::graphics::renderer &renderer,
-   unsigned int texture_unit,
-   std::string const &path
-);
+    renderstack::graphics::renderer &renderer,
+    unsigned int                     texture_unit,
+    std::string const &              path);
 
-} }
+} // namespace graphics
+} // namespace renderstack
 
 #endif

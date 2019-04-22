@@ -1,22 +1,21 @@
-#include "renderstack_toolkit/platform.hpp"
-#include "renderstack_toolkit/gl.hpp"
-#include "renderstack_toolkit/strong_gl_enums.hpp"
 #include "renderstack_graphics/configuration.hpp"
-#include "renderstack_graphics/shader_monitor.hpp"
 #include "renderstack_graphics/program.hpp"
+#include "renderstack_graphics/shader_monitor.hpp"
+#include "renderstack_toolkit/gl.hpp"
+#include "renderstack_toolkit/platform.hpp"
+#include "renderstack_toolkit/strong_gl_enums.hpp"
 #include "renderstack_ui/font.hpp"
 
 #include "main/application.hpp"
 #include "main/log.hpp"
 
-#include <glm/glm.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 #include <fstream>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <iomanip>
 #include <sstream>
 #include <sys/stat.h>
-#include <iomanip>
-
 
 using namespace renderstack::graphics;
 using namespace renderstack::ui;
@@ -25,9 +24,8 @@ using namespace gl;
 using namespace glm;
 using namespace std;
 
-
 application::application()
-:   service("application")
+    : service("application")
 {
 }
 
@@ -47,13 +45,13 @@ void application::connect(shared_ptr<game> game_, shared_ptr<menu> menu_)
 
 void application::initialize_service()
 {
-    if (m_menu)
-    {
-        set_screen(m_menu);
-    }
-    else if (m_game)
+    if (m_game)
     {
         set_screen(m_game);
+    }
+    else if (m_menu)
+    {
+        set_screen(m_menu);
     }
 
     m_last_screen.reset();
@@ -61,22 +59,22 @@ void application::initialize_service()
 
 void application::set_screen(shared_ptr<screen> screen)
 {
-   m_screen = screen;
+    m_screen = screen;
 }
 
 void application::reset_screen()
 {
-   m_screen.reset();
+    m_screen.reset();
 }
 
 void application::on_resize(int width, int height)
 {
-   m_screen->on_resize(width, height);
+    m_screen->on_resize(width, height);
 }
 
 void application::on_focus(bool has_focus)
 {
-   m_screen->on_focus(has_focus);
+    m_screen->on_focus(has_focus);
 }
 
 void application::update()
@@ -117,6 +115,5 @@ void application::on_scroll(double x, double y)
 
 void application::on_3d_mouse(long tx, long ty, long tz, long rx, long ry, long rz, long period)
 {
-   m_screen->on_3d_mouse(tx, ty, tz, rx, ry, rz, period);
+    m_screen->on_3d_mouse(tx, ty, tz, rx, ry, rz, period);
 }
-

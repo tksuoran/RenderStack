@@ -1,12 +1,12 @@
-#include "renderstack_toolkit/platform.hpp"
-#include "renderstack_toolkit/gl.hpp"
-#include "renderstack_toolkit/strong_gl_enums.hpp"
-#include "renderstack_graphics/texture.hpp"
 #include "renderstack_graphics/load_png.hpp"
+#include "renderstack_graphics/texture.hpp"
+#include "renderstack_toolkit/gl.hpp"
+#include "renderstack_toolkit/platform.hpp"
+#include "renderstack_toolkit/strong_gl_enums.hpp"
 
 #include "main/application.hpp"
-#include "main/textures.hpp"
 #include "main/log.hpp"
+#include "main/textures.hpp"
 
 #include <stdexcept>
 
@@ -17,8 +17,7 @@ using namespace std;
 using namespace renderstack::graphics;
 
 textures::textures()
-:  service("textures")
-,  background_texture(nullptr)
+    : service("textures"), background_texture(nullptr)
 {
 }
 
@@ -28,18 +27,18 @@ textures::~textures()
 
 void textures::connect(shared_ptr<renderstack::graphics::renderer> renderer)
 {
-   m_renderer = renderer;
+    m_renderer = renderer;
 
-   initialization_depends_on(renderer);
+    initialization_depends_on(renderer);
 }
 
 void textures::initialize_service()
 {
-   assert(m_renderer);
+    assert(m_renderer);
 
-   slog_trace("textures::on_load()");
-   
-   background_texture = load(1, "res/images/background.png");
+    slog_trace("textures::on_load()\n");
+
+    background_texture = load(1, "res/images/background.png");
 }
 
 #if 0
@@ -181,11 +180,9 @@ read_png(FILE *fp)
 }
 #endif
 
-
 shared_ptr<renderstack::graphics::texture> textures::load(
-   unsigned int texture_unit,
-   string const &path
-)
+    unsigned int  texture_unit,
+    string const &path)
 {
-   return load_png(*m_renderer, texture_unit, path);
+    return load_png(*m_renderer, texture_unit, path);
 }

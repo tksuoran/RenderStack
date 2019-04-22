@@ -6,23 +6,27 @@
 
 #include <string>
 
-namespace renderstack { namespace graphics {
+namespace renderstack
+{
+namespace graphics
+{
 
 class fragment_output
 {
 public:
-   fragment_output(std::string const &name, gl::fragment_output_type::value type, unsigned int location);
+    fragment_output(std::string const &name, gl::fragment_output_type::value type, unsigned int location);
 
-   std::string const                &name() const;
-   gl::fragment_output_type::value  type() const;
-   unsigned int                     location() const;
+    std::string const &             name() const;
+    gl::fragment_output_type::value type() const;
+    unsigned int                    location() const;
 
 private:
-   std::string                      m_name;
-   gl::fragment_output_type::value  m_type;
-   unsigned int                     m_location;
+    std::string                     m_name;
+    gl::fragment_output_type::value m_type;
+    unsigned int                    m_location;
 };
 
-} }
+} // namespace graphics
+} // namespace renderstack
 
 #endif

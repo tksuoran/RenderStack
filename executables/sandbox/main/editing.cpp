@@ -1,7 +1,7 @@
-#include "renderstack_toolkit/platform.hpp"
 #include "main/game.hpp"
-#include "voxel/voxel_renderer.hpp"
+#include "renderstack_toolkit/platform.hpp"
 #include "voxel/morton.hpp"
+#include "voxel/voxel_renderer.hpp"
 #include <unordered_set>
 
 #define LOG_CATEGORY &log_game
@@ -29,7 +29,7 @@ void game::end_patch()
 
     for (auto i = m_patch_list.begin(); i != m_patch_list.end(); ++i)
     {
-        coord_t x, y, z;
+        coord_t  x, y, z;
         morton_t morton = *i;
         morton_decode(morton, x, y, z);
         m_voxel_renderer->patch(x, y, z, *m_map);
@@ -54,12 +54,18 @@ void game::patch(glm::ivec3 const &pos, blockid_t brush)
     m_map->put_light(x, y, z, 0xf0);
     m_patch_list.insert(morton_encode(x, y, z));
 
-    if (x > 0                  ) m_patch_list.insert(morton_encode(x - 1, y, z));
-    if (x < m_map->size_x() - 1) m_patch_list.insert(morton_encode(x + 1, y, z));
-    if (y > 0                  ) m_patch_list.insert(morton_encode(x, y - 1, z));
-    if (y < m_map->size_y() - 1) m_patch_list.insert(morton_encode(x, y + 1, z));
-    if (z > 0                  ) m_patch_list.insert(morton_encode(x, y, z - 1));
-    if (z < m_map->size_z() - 1) m_patch_list.insert(morton_encode(x, y, z + 1));
+    if (x > 0)
+        m_patch_list.insert(morton_encode(x - 1, y, z));
+    if (x < m_map->size_x() - 1)
+        m_patch_list.insert(morton_encode(x + 1, y, z));
+    if (y > 0)
+        m_patch_list.insert(morton_encode(x, y - 1, z));
+    if (y < m_map->size_y() - 1)
+        m_patch_list.insert(morton_encode(x, y + 1, z));
+    if (z > 0)
+        m_patch_list.insert(morton_encode(x, y, z - 1));
+    if (z < m_map->size_z() - 1)
+        m_patch_list.insert(morton_encode(x, y, z + 1));
 }
 
 void game::patch_inner(coord_t x, coord_t y, coord_t z, blockid_t brush)
@@ -101,14 +107,12 @@ void game::paint(glm::ivec3 const &pos, blockid_t brush)
                 if (
                     (x >= 0) && (x < m_map->size_x()) &&
                     (y >= 0) && (y < m_map->size_y()) &&
-                    (z >= 0) && (z < m_map->size_z())
-                )
+                    (z >= 0) && (z < m_map->size_z()))
                 {
                     vec3 p(
                         static_cast<float>(ix),
                         static_cast<float>(iy),
-                        static_cast<float>(iz)
-                    );
+                        static_cast<float>(iz));
                     float l = length(p);
                     if (l > static_cast<float>(size))
                         continue;
