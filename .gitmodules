@@ -10,6 +10,3 @@
 [submodule "libraries/zlib"]
 	path = libraries/zlib
 	url = git://github.com/madler/zlib.git
-[submodule "libraries/bullet3"]
-	path = libraries/bullet3
-	url = https://github.com/bulletphysics/bullet3.git
