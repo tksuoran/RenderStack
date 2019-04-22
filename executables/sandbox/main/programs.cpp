@@ -31,28 +31,7 @@ using namespace std;
 
 
 programs::programs()
-:  service("programs")
-
-,  models_block      (nullptr)
-,  lights_block      (nullptr)
-,  materials_block   (nullptr)
-,  camera_block      (nullptr)
-,  debug_block       (nullptr)
-
-,  samplers          (nullptr)
-,  attribute_mappings(nullptr)
-,  fragment_outputs  (nullptr)
-,  font              (nullptr)
-,  basic             (nullptr)
-,  debug_line        (nullptr)
-,  textured          (nullptr)
-,  gbuffer           (nullptr)
-,  light_spot        (nullptr)
-,  light_directional (nullptr)
-,  stencil           (nullptr)
-,  show_rt           (nullptr)
-,  show_rt_spherical (nullptr)
-,  id                (nullptr)
+:   service("programs")
 {
 }
 
@@ -61,51 +40,51 @@ programs::programs()
 }
 
 void programs::connect(
-   shared_ptr<renderstack::graphics::renderer>        renderer_,
-   shared_ptr<renderstack::graphics::shader_monitor>  shader_monitor_
+    shared_ptr<renderstack::graphics::renderer>        renderer_,
+    shared_ptr<renderstack::graphics::shader_monitor>  shader_monitor_
 )
 {
-   m_renderer = renderer_;
-   m_shader_monitor = shader_monitor_;
+    m_renderer = renderer_;
+    m_shader_monitor = shader_monitor_;
 
-   initialization_depends_on(renderer_);
-   initialization_depends_on(shader_monitor_);
+    initialization_depends_on(renderer_);
+    initialization_depends_on(shader_monitor_);
 }
 
-/*virtual*/ void programs::initialize_service()
+void programs::initialize_service()
 {
-   assert(m_renderer);
+    assert(m_renderer);
 
-   slog_trace("programs::initialize_service()");
+    slog_trace("programs::initialize_service()");
 
-   fragment_outputs = make_shared<class fragment_outputs>();
-   fragment_outputs->add("out_id",              gl::fragment_output_type::float_vec4, 0);
-   fragment_outputs->add("out_color",           gl::fragment_output_type::float_vec4, 0);
+    fragment_outputs = make_shared<class fragment_outputs>();
+    fragment_outputs->add("out_id",              gl::fragment_output_type::float_vec4, 0);
+    fragment_outputs->add("out_color",           gl::fragment_output_type::float_vec4, 0);
 
-   fragment_outputs->add("out_normal_tangent",  gl::fragment_output_type::float_vec4, 0);
-   fragment_outputs->add("out_albedo",          gl::fragment_output_type::float_vec4, 1);
-   fragment_outputs->add("out_material",        gl::fragment_output_type::float_vec4, 2);
-   fragment_outputs->add("out_emission",        gl::fragment_output_type::float_vec4, 3);
+    fragment_outputs->add("out_normal_tangent",  gl::fragment_output_type::float_vec4, 0);
+    fragment_outputs->add("out_albedo",          gl::fragment_output_type::float_vec4, 1);
+    fragment_outputs->add("out_material",        gl::fragment_output_type::float_vec4, 2);
+    fragment_outputs->add("out_emission",        gl::fragment_output_type::float_vec4, 3);
 
-   fragment_outputs->add("out_linear",          gl::fragment_output_type::float_vec4, 0);
+    fragment_outputs->add("out_linear",          gl::fragment_output_type::float_vec4, 0);
 
-   attribute_mappings = make_shared<renderstack::graphics::vertex_attribute_mappings>();
-   attribute_mappings->add("a_position",            vertex_attribute_usage::position,   0, 0);
-   attribute_mappings->add("a_normal",              vertex_attribute_usage::normal,     0, 1);
-   attribute_mappings->add("a_normal_flat",         vertex_attribute_usage::normal,     1, 2);
-   attribute_mappings->add("a_normal_smooth",       vertex_attribute_usage::normal,     2, 3);
-   attribute_mappings->add("a_tangent",             vertex_attribute_usage::tangent,    0, 4);
-   attribute_mappings->add("a_color",               vertex_attribute_usage::color,      0, 5);
-   attribute_mappings->add("a_texcoord",            vertex_attribute_usage::tex_coord,  0, 6);
-   attribute_mappings->add("a_id",                  vertex_attribute_usage::id,         0, 7);
-   attribute_mappings->add(
-      "a_position_texcoord",
-      static_cast<vertex_attribute_usage::value>(
-         vertex_attribute_usage::position | vertex_attribute_usage::tex_coord
-      ),
-      0,
-      0
-   );
+    attribute_mappings = make_shared<renderstack::graphics::vertex_attribute_mappings>();
+    attribute_mappings->add("a_position",            vertex_attribute_usage::position,   0, 0);
+    attribute_mappings->add("a_normal",              vertex_attribute_usage::normal,     0, 1);
+    attribute_mappings->add("a_normal_flat",         vertex_attribute_usage::normal,     1, 2);
+    attribute_mappings->add("a_normal_smooth",       vertex_attribute_usage::normal,     2, 3);
+    attribute_mappings->add("a_tangent",             vertex_attribute_usage::tangent,    0, 4);
+    attribute_mappings->add("a_color",               vertex_attribute_usage::color,      0, 5);
+    attribute_mappings->add("a_texcoord",            vertex_attribute_usage::tex_coord,  0, 6);
+    attribute_mappings->add("a_id",                  vertex_attribute_usage::id,         0, 7);
+    attribute_mappings->add(
+        "a_position_texcoord",
+        static_cast<vertex_attribute_usage::value>(
+            vertex_attribute_usage::position | vertex_attribute_usage::tex_coord
+        ),
+        0,
+        0
+    );
 
    //mappings->add("a_position_texcoord",   vertex_attribute_usage::position,   0, 0);
    /*mappings->add(
@@ -193,53 +172,53 @@ void programs::connect(
    m_shader_versions.push_back(make_pair("0", 120));
 #endif
 
-   try
-   {
-      font                    = make_program("font");
-      basic                   = make_program("basic");
-      gbuffer                 = make_program("gbuffer");
-      light_spot              = make_program("light", "LIGHT_TYPE_SPOT");
-      light_directional       = make_program("light", "LIGHT_TYPE_DIRECTIONAL");
-      stencil                 = make_program("stencil");
-      show_rt                 = make_program("show_rt");
-      show_rt_spherical       = make_program("show_rt_spherical");
-      textured                = make_program("textured");
-      id                      = make_program("id");
-      debug_font              = make_program("font", "USE_DEBUG_UNIFORMS");
-      debug_line              = make_program("debug_line");
-      debug_light             = make_program("debug_light");
-      anisotropic_spot        = make_program("anisotropic", "LIGHT_TYPE_SPOT");
-      anisotropic_directional = make_program("anisotropic", "LIGHT_TYPE_DIRECTIONAL");
-      camera                  = make_program("camera");
-   }
-   catch (runtime_error const &e)
-   {
-      log_error("programs::initialize_service() - aborting");
-      throw e;
-   }
+    try
+    {
+        font                    = make_program("font");
+        basic                   = make_program("basic");
+        gbuffer                 = make_program("gbuffer");
+        light_spot              = make_program("light", "LIGHT_TYPE_SPOT");
+        light_directional       = make_program("light", "LIGHT_TYPE_DIRECTIONAL");
+        stencil                 = make_program("stencil");
+        show_rt                 = make_program("show_rt");
+        show_rt_spherical       = make_program("show_rt_spherical");
+        textured                = make_program("textured");
+        id                      = make_program("id");
+        debug_font              = make_program("font", "USE_DEBUG_UNIFORMS");
+        debug_line              = make_program("debug_line");
+        debug_light             = make_program("debug_light");
+        anisotropic_spot        = make_program("anisotropic", "LIGHT_TYPE_SPOT");
+        anisotropic_directional = make_program("anisotropic", "LIGHT_TYPE_DIRECTIONAL");
+        camera                  = make_program("camera");
+    }
+    catch (runtime_error const &e)
+    {
+        log_error("programs::initialize_service() - aborting");
+        throw e;
+    }
 }
 
 shared_ptr<renderstack::graphics::program> programs::make_program(
-   string const &name
+    string const &name
 )
 {
-   vector<string> no_defines;
-   return make_program(name, no_defines);
+    vector<string> no_defines;
+    return make_program(name, no_defines);
 }
 
 shared_ptr<renderstack::graphics::program> programs::make_program(
-   string const &name,
-   string const &define
+    string const &name,
+    string const &define
 )
 {
-   vector<string> defines;
-   defines.push_back(define);
-   return make_program(name, defines);
+    vector<string> defines;
+    defines.push_back(define);
+    return make_program(name, defines);
 }
 
 shared_ptr<renderstack::graphics::program> programs::make_program(
-   string const &name,
-   vector<string> const &defines
+    string const &name,
+    vector<string> const &defines
 )
 {
    log_info("programs::make_program(%s)\n", name.c_str());

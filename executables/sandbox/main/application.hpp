@@ -17,54 +17,49 @@ namespace renderstack { namespace renderer { class renderer; } }
 namespace renderstack { namespace ui { class gui_renderer; } }
 
 class application
-:  public renderstack::toolkit::window
-,  public renderstack::toolkit::service
-,  public std::enable_shared_from_this<application>
+:   public renderstack::toolkit::window
+,   public renderstack::toolkit::service
+,   public std::enable_shared_from_this<application>
 {
 private:
-   renderstack::toolkit::services   m_services;
+    renderstack::toolkit::services   m_services;
 
-   std::shared_ptr<screen>          m_screen;
-   std::shared_ptr<screen>          m_last_screen;
-   std::shared_ptr<game>            m_game;
-   std::shared_ptr<menu>            m_menu;
+    std::shared_ptr<screen>          m_screen;
+    std::shared_ptr<screen>          m_last_screen;
+    std::shared_ptr<game>            m_game;
+    std::shared_ptr<menu>            m_menu;
 
 public:
-   application();
-   /*virtual*/ ~application();
-   void connect(std::shared_ptr<game> game_, std::shared_ptr<menu> menu_);
+    application();
+    /*virtual*/ ~application();
+    void connect(std::shared_ptr<game> game_, std::shared_ptr<menu> menu_);
 
-   /*virtual*/ void initialize_service();
+    void initialize_service() override;
 
-   void set_screen(std::shared_ptr<screen> screen);
-   void reset_screen();
+    void set_screen(std::shared_ptr<screen> screen);
+    void reset_screen();
 
-   void execute_tests();
+    void execute_tests();
 
-   void reset();
+    void reset();
 
-   bool on_load         ();
-   bool on_exit         ();
-   void on_resize       (int width, int height);
-   void on_focus        (bool has_focus);
-   void update          ();
+    bool on_load() override;
+    bool on_exit() override;
+    void on_resize(int width, int height) override;
+    void on_focus(bool has_focus) override;
+    void update() override;
 
-   void on_key          (int key, int scancode, int action, int mods);
-   void on_mouse_moved  (double x, double y);
-   void on_mouse_button (int button, int action, int mods);
-   void on_scroll       (double x, double y);
-   void on_3d_mouse     (long tx, long ty, long tz, long rx, long ry, long rz, long period);
+    void on_key(int key, int scancode, int action, int mods) override;
+    void on_mouse_moved(double x, double y) override;
+    void on_mouse_button(int button, int action, int mods) override;
+    void on_scroll(double x, double y) override;
+    void on_3d_mouse(long tx, long ty, long tz, long rx, long ry, long rz, long period) override;
 
-   void setup_programs  ();
-
-private:
-   bool create_gl_window();
-   bool initialize_services();
+    void setup_programs();
 
 private:
-#if defined(RENDERSTACK_USE_AMD_GPU_PERF_API_AND_ADL)
-   bool m_use_amd_gpa_adl;
-#endif
+    bool create_gl_window();
+    bool initialize_services();
 };
 
 #endif

@@ -46,27 +46,3 @@ private:
 
 
 #endif
-
-
-
-
-
-
-
-#if 0
-   // std::shared_ptr<material>              m_material;
-   // bool                                   m_selected;
-   // m_bounding_box;
-   // m_bounding_sphere
-   struct {
-      // shape
-      // rigidbody
-      bool m_static;
-      bool m_use_position;
-      bool m_use_rotation;
-   } physics;
-
-   struct {
-      bool m_shadow_caster;
-   } effects;
-#endif

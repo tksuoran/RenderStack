@@ -69,10 +69,10 @@ struct debug_block_i
 struct ubr_pos
 {
    ubr_pos()
-   :  models(0)
-   ,  lights(0)
-   ,  materials(0)
-   ,  camera(0)
+   :    models(0)
+   ,    lights(0)
+   ,    materials(0)
+   ,    camera(0)
    {
    }
    std::size_t models;
@@ -90,16 +90,6 @@ struct ubr_ptr
    unsigned char *debug;
 };
 
-/*struct draw_v1
-{
-   std::shared_ptr<renderstack::graphics::vertex_stream> vertex_stream;
-   gl::begin_mode::value                                 begin_mode;
-   GLsizei                                               count;
-   gl::draw_elements_type::value                         index_type;
-   GLvoid                                                *index_pointer;
-   GLint                                                 base_vertex
-};*/
-
 class programs : public renderstack::toolkit::service
 {
 public:
@@ -109,66 +99,66 @@ public:
       std::shared_ptr<renderstack::graphics::renderer>         renderer_,
       std::shared_ptr<renderstack::graphics::shader_monitor>   shader_monitor_
    );
-   /*virtual*/ void initialize_service();
+   void initialize_service() override;
 
 private:
-   std::shared_ptr<renderstack::graphics::program> make_program(
-      std::string const &name,
-      std::vector<std::string> const &defines
-   );
-   std::shared_ptr<renderstack::graphics::program> make_program(
-      std::string const &name,
-      std::string const &define
-   );
-   std::shared_ptr<renderstack::graphics::program> make_program(
-      std::string const &name
-   );
+    std::shared_ptr<renderstack::graphics::program> make_program(
+        std::string const &name,
+        std::vector<std::string> const &defines
+    );
+    std::shared_ptr<renderstack::graphics::program> make_program(
+        std::string const &name,
+        std::string const &define
+    );
+    std::shared_ptr<renderstack::graphics::program> make_program(
+        std::string const &name
+    );
 
 public:
-   models_block_i                                                    models_block_access;
-   lights_block_i                                                    lights_block_access;
-   materials_block_i                                                 materials_block_access;
-   camera_block_i                                                    camera_block_access;
-   debug_block_i                                                     debug_block_access;
+    models_block_i                                                    models_block_access;
+    lights_block_i                                                    lights_block_access;
+    materials_block_i                                                 materials_block_access;
+    camera_block_i                                                    camera_block_access;
+    debug_block_i                                                     debug_block_access;
 
-   std::shared_ptr<renderstack::graphics::uniform_block>             models_block;
-   std::shared_ptr<renderstack::graphics::uniform_block>             lights_block;
-   std::shared_ptr<renderstack::graphics::uniform_block>             materials_block;
-   std::shared_ptr<renderstack::graphics::uniform_block>             camera_block;
-   std::shared_ptr<renderstack::graphics::uniform_block>             debug_block;
+    std::shared_ptr<renderstack::graphics::uniform_block>             models_block;
+    std::shared_ptr<renderstack::graphics::uniform_block>             lights_block;
+    std::shared_ptr<renderstack::graphics::uniform_block>             materials_block;
+    std::shared_ptr<renderstack::graphics::uniform_block>             camera_block;
+    std::shared_ptr<renderstack::graphics::uniform_block>             debug_block;
 
-   std::shared_ptr<renderstack::graphics::samplers>                  samplers;
-   std::shared_ptr<renderstack::graphics::vertex_attribute_mappings> attribute_mappings;
-   std::shared_ptr<renderstack::graphics::fragment_outputs>          fragment_outputs;
-   std::shared_ptr<renderstack::graphics::program>                   font;
-   std::shared_ptr<renderstack::graphics::program>                   basic;
-   std::shared_ptr<renderstack::graphics::program>                   anisotropic_spot;
-   std::shared_ptr<renderstack::graphics::program>                   anisotropic_directional;
-   std::shared_ptr<renderstack::graphics::program>                   debug_line;
-   std::shared_ptr<renderstack::graphics::program>                   debug_light;
-   std::shared_ptr<renderstack::graphics::program>                   debug_font;
-   std::shared_ptr<renderstack::graphics::program>                   textured;
-   std::shared_ptr<renderstack::graphics::program>                   gbuffer;
-   std::shared_ptr<renderstack::graphics::program>                   light_spot;
-   std::shared_ptr<renderstack::graphics::program>                   light_directional;
-   std::shared_ptr<renderstack::graphics::program>                   stencil;
-   std::shared_ptr<renderstack::graphics::program>                   show_rt;
-   std::shared_ptr<renderstack::graphics::program>                   show_rt_spherical;
-   std::shared_ptr<renderstack::graphics::program>                   id;
-   std::shared_ptr<renderstack::graphics::program>                   camera;
+    std::shared_ptr<renderstack::graphics::samplers>                  samplers;
+    std::shared_ptr<renderstack::graphics::vertex_attribute_mappings> attribute_mappings;
+    std::shared_ptr<renderstack::graphics::fragment_outputs>          fragment_outputs;
+    std::shared_ptr<renderstack::graphics::program>                   font;
+    std::shared_ptr<renderstack::graphics::program>                   basic;
+    std::shared_ptr<renderstack::graphics::program>                   anisotropic_spot;
+    std::shared_ptr<renderstack::graphics::program>                   anisotropic_directional;
+    std::shared_ptr<renderstack::graphics::program>                   debug_line;
+    std::shared_ptr<renderstack::graphics::program>                   debug_light;
+    std::shared_ptr<renderstack::graphics::program>                   debug_font;
+    std::shared_ptr<renderstack::graphics::program>                   textured;
+    std::shared_ptr<renderstack::graphics::program>                   gbuffer;
+    std::shared_ptr<renderstack::graphics::program>                   light_spot;
+    std::shared_ptr<renderstack::graphics::program>                   light_directional;
+    std::shared_ptr<renderstack::graphics::program>                   stencil;
+    std::shared_ptr<renderstack::graphics::program>                   show_rt;
+    std::shared_ptr<renderstack::graphics::program>                   show_rt_spherical;
+    std::shared_ptr<renderstack::graphics::program>                   id;
+    std::shared_ptr<renderstack::graphics::program>                   camera;
 
 public:
-   void update_fixed_step();
+    void update_fixed_step();
 
 private:
-   std::shared_ptr<renderstack::graphics::renderer>         m_renderer;
-   std::shared_ptr<renderstack::graphics::shader_monitor>   m_shader_monitor;
+    std::shared_ptr<renderstack::graphics::renderer>         m_renderer;
+    std::shared_ptr<renderstack::graphics::shader_monitor>   m_shader_monitor;
 
-   bool                                                     m_poll_shaders;
-   size_t                                                   m_poll_ticks;
+    bool                                                     m_poll_shaders;
+    size_t                                                   m_poll_ticks;
 
-   std::vector<std::pair<std::string, int> >                m_shader_versions;
-   std::string                                              m_shader_path;
+    std::vector<std::pair<std::string, int> >                m_shader_versions;
+    std::string                                              m_shader_path;
 };
 
 #endif

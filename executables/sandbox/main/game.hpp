@@ -91,38 +91,38 @@ public:
    game();
    /*virtual*/ ~game();
 
-   void connect(
-      std::shared_ptr<renderstack::graphics::renderer>         renderer,
-      std::shared_ptr<renderstack::graphics::shader_monitor>   shader_monitor_,
-      std::shared_ptr<renderstack::ui::gui_renderer>           gui_renderer,
-      std::shared_ptr<programs>                                programs_,
-      std::shared_ptr<textures>                                textures_,
-      std::shared_ptr<debug_renderer>                          debug_renderer_,
-      std::shared_ptr<forward_renderer>                        forward_renderer_,
-      std::shared_ptr<deferred_renderer>                       deferred_renderer_,
-      std::shared_ptr<light_debug_renderer>                    light_debug_renderer_,
-      std::shared_ptr<id_renderer>                             id_renderer_,
-      std::shared_ptr<menu>                                    menu_,
-      std::shared_ptr<application>                             application_,
-      std::shared_ptr<scene_manager>                           scene_manager_
-   );
+    void connect(
+        std::shared_ptr<renderstack::graphics::renderer>         renderer,
+        std::shared_ptr<renderstack::graphics::shader_monitor>   shader_monitor_,
+        std::shared_ptr<renderstack::ui::gui_renderer>           gui_renderer,
+        std::shared_ptr<programs>                                programs_,
+        std::shared_ptr<textures>                                textures_,
+        std::shared_ptr<debug_renderer>                          debug_renderer_,
+        std::shared_ptr<forward_renderer>                        forward_renderer_,
+        std::shared_ptr<deferred_renderer>                       deferred_renderer_,
+        std::shared_ptr<light_debug_renderer>                    light_debug_renderer_,
+        std::shared_ptr<id_renderer>                             id_renderer_,
+        std::shared_ptr<menu>                                    menu_,
+        std::shared_ptr<application>                             application_,
+        std::shared_ptr<scene_manager>                           scene_manager_
+    );
    void disconnect();
-   /*virtual*/ void initialize_service();
+   void initialize_service() override;
 
-   void action(std::weak_ptr<renderstack::ui::action_source> source);
+   void action(std::weak_ptr<renderstack::ui::action_source> source) override;
 
 public:
    void on_load         ();
-   void on_resize       (int width, int height);
-   void on_focus        (bool has_focus);
-   void on_enter        ();
-   void on_exit         ();
-   void update          ();
-   void on_key          (int key, int scancode, int action, int mods);
-   void on_mouse_moved  (double x, double y);
-   void on_mouse_button (int button, int action, int mods);
-   void on_scroll       (double x, double y);
-   void on_3d_mouse     (long tx, long ty, long tz, long rx, long ry, long rz, long period);
+   void on_resize       (int width, int height) override;
+   void on_focus        (bool has_focus) override;
+   void on_enter        () override;
+   void on_exit         () override;
+   void update          () override;
+   void on_key          (int key, int scancode, int action, int mods) override;
+   void on_mouse_moved  (double x, double y) override;
+   void on_mouse_button (int button, int action, int mods) override;
+   void on_scroll       (double x, double y) override;
+   void on_3d_mouse     (long tx, long ty, long tz, long rx, long ry, long rz, long period) override;
 
 private:
    void reset();
@@ -141,48 +141,48 @@ private:
    void update_fixed_step     ();
    void update_once_per_frame ();
 
-private: /* services */
-   std::shared_ptr<renderstack::graphics::renderer>         m_renderer;
-   std::shared_ptr<renderstack::graphics::shader_monitor>   m_shader_monitor;
-   std::shared_ptr<renderstack::ui::gui_renderer>           m_gui_renderer;
-   std::shared_ptr<programs>                                m_programs;
-   std::shared_ptr<textures>                                m_textures;
-   std::shared_ptr<debug_renderer>                          m_debug_renderer;
-   std::shared_ptr<forward_renderer>                        m_forward_renderer;
-   std::shared_ptr<deferred_renderer>                       m_deferred_renderer;
-   std::shared_ptr<light_debug_renderer>                    m_light_debug_renderer;
-   std::shared_ptr<id_renderer>                             m_id_renderer;
-   std::shared_ptr<menu>                                    m_menu;
-   std::shared_ptr<application>                             m_application;
-   std::shared_ptr<scene_manager>                           m_scene_manager;
+private:
+    // services
+    std::shared_ptr<renderstack::graphics::renderer>         m_renderer;
+    std::shared_ptr<renderstack::graphics::shader_monitor>   m_shader_monitor;
+    std::shared_ptr<renderstack::ui::gui_renderer>           m_gui_renderer;
+    std::shared_ptr<programs>                                m_programs;
+    std::shared_ptr<textures>                                m_textures;
+    std::shared_ptr<debug_renderer>                          m_debug_renderer;
+    std::shared_ptr<forward_renderer>                        m_forward_renderer;
+    std::shared_ptr<deferred_renderer>                       m_deferred_renderer;
+    std::shared_ptr<light_debug_renderer>                    m_light_debug_renderer;
+    std::shared_ptr<id_renderer>                             m_id_renderer;
+    std::shared_ptr<menu>                                    m_menu;
+    std::shared_ptr<application>                             m_application;
+    std::shared_ptr<scene_manager>                           m_scene_manager;
 
-private: /* self owned parts */
-   //std::shared_ptr<renderstack::scene::camera>              m_camera;
-   //std::shared_ptr<std::vector<std::shared_ptr<model> > >   m_models;
+private:
+    // self owned parts
+    std::shared_ptr<renderstack::scene::frame>               m_manipulator_frame;
+    std::shared_ptr<std::vector<std::shared_ptr<model> > >   m_manipulator_models;
+    std::shared_ptr<renderstack::ui::layer>                  m_root_layer;
+    std::shared_ptr<renderstack::ui::button>                 m_menu_button;
+    std::shared_ptr<renderstack::ui::slider>                 m_slider;
 
-   std::shared_ptr<renderstack::scene::frame>               m_manipulator_frame;
-   std::shared_ptr<std::vector<std::shared_ptr<model> > >   m_manipulator_models;
-   std::shared_ptr<renderstack::ui::layer>                  m_root_layer;
-   std::shared_ptr<renderstack::ui::button>                 m_menu_button;
-   std::shared_ptr<renderstack::ui::slider>                 m_slider;
+    controls                                                 m_controls;
+    renderstack::scene::viewport                             m_viewport;
 
-   controls                                                 m_controls;
-   renderstack::scene::viewport                             m_viewport;
+    double                                                   m_update_time;
+    double                                                   m_frame_dt;
+    double                                                   m_min_frame_dt;
+    double                                                   m_max_frame_dt;
+    double                                                   m_simulation_time;
 
-   double                                                   m_update_time;
-   double                                                   m_frame_dt;
-   double                                                   m_min_frame_dt;
-   double                                                   m_max_frame_dt;
-   double                                                   m_simulation_time;
-   bool m_paused;
-   bool m_forward;
-   bool m_deferred;
-   bool m_debug_lights;
-   int  m_max_lights;
+    bool m_paused;
+    bool m_forward;
+    bool m_deferred;
+    bool m_debug_lights;
+    int  m_max_lights;
 
-   // are we between on_enter() and on_exit()?
-   bool m_screen_active;
-   bool m_mouse_down;
+    // are we between on_enter() and on_exit()?
+    bool m_screen_active;
+    bool m_mouse_down;
 };
 
 #endif

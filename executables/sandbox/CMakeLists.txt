@@ -133,27 +133,32 @@ message("RENDERSTACK_WINDOW_TOOLKIT_LIBRARIES = ${RENDERSTACK_WINDOW_TOOLKIT_LIB
 message("TINYXML_LIBS = ${TINYXML_LIBS}")
 
 target_link_libraries(
-   sandbox
-   renderstack_ui 
-   renderstack_mesh
-   renderstack_graphics
-   renderstack_geometry
-   renderstack_scene
-   renderstack_toolkit
-   RectangleBinPack
-   ${RENDERSTACK_WINDOW_TOOLKIT_LIBRARIES}
-   ${TINYXML_LIBS}
-   ${PNG_LIBRARIES}
+    sandbox
+    renderstack_ui 
+    renderstack_mesh
+    renderstack_graphics
+    renderstack_geometry
+    renderstack_scene
+    renderstack_toolkit
+    RectangleBinPack
+    ${RENDERSTACK_WINDOW_TOOLKIT_LIBRARIES}
+    ${TINYXML_LIBS}
+    ${PNG_LIBRARIES}
 )
 
+if (RENDERSTACK_GL_API_OPENGL)
+    target_link_libraries(sandbox PRIVATE OpenGL::OpenGL)
+endif ()
+
+
 if (RENDERSTACK_USE_FREETYPE)
-   if (MSVC)
-      add_dependencies(sandbox freetype2)
-      set_target_properties(
-         sandbox PROPERTIES
-         LINK_FLAGS "/ENTRY:mainCRTStartup"
-      )
-   else ()
-      target_link_libraries(sandbox ${FREETYPE_LIBRARIES})
-   endif()
+    if (MSVC)
+        add_dependencies(sandbox freetype2)
+        set_target_properties(
+            sandbox PROPERTIES
+            LINK_FLAGS "/ENTRY:mainCRTStartup"
+        )
+    else ()
+        target_link_libraries(sandbox ${FREETYPE_LIBRARIES})
+    endif()
 endif()

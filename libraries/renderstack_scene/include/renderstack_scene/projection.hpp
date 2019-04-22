@@ -63,11 +63,6 @@ public:
    float frustum_top       ()             { return m_frustum_top; }
    void  set_frustum_top   (float value)  { m_frustum_top = value; }
 
-#if 0
-public:
-   stereo_parameters const &stereo_parameters () { return m_stereo_parameters; }
-#endif
-
 private:
    projection_type::value  m_projection_type;
    float                   m_near;

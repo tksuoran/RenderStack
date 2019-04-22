@@ -1,4 +1,4 @@
-#ifndef log_hpp_renderstack_graphics
+#ifndef log__hpp_renderstack_graphics
 #define log__hpp_renderstack_graphics
 
 #include "renderstack_toolkit/platform.hpp"

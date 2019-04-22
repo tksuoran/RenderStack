@@ -22,15 +22,6 @@ set(
    source/services.cpp
 )
 
-# TODO Maybe later
-# if (RENDERSTACK_USE_AMD_GPU_PERF_API_AND_ADL)
-#    set(
-#       extra_sources
-#       include/renderstack_toolkit/amd_gpa_adl.hpp
-#       source/amd_gpa_adl.cpp
-#    )
-# endif ()
-
 if (RENDERSTACK_USE_GLFW)
    list(APPEND sources source/glfw_window.cpp)
 endif()

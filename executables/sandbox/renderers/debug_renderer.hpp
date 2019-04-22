@@ -2,7 +2,6 @@
 #define debug_renderer_hpp_renderers
 
 #include "renderstack_toolkit/platform.hpp"
-#include "renderstack_toolkit/amd_gpa_adl.hpp"
 #include "renderstack_toolkit/service.hpp"
 #include "renderers/base_renderer.hpp"
 #include "renderstack_graphics/renderer.hpp"
@@ -131,9 +130,6 @@ private:
    std::deque<float>    m_frame_durations; // TODO use ringbuffer, implement on top of vector<>
    std::size_t          m_frame_duration_graph_size;
 
-#if defined(RENDERSTACK_USE_AMD_GPU_PERF_API_AND_ADL)
-   renderstack::toolkit::amd_performance m_amd_performance;
-#endif
 };
 
 

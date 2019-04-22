@@ -1,5 +1,5 @@
-#ifndef log_hpp_renderstack_graphics
-#define log__hpp_renderstack_graphics
+#ifndef log__hpp_renderstack_ui
+#define log__hpp_renderstack_ui
 
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_toolkit/log.hpp"

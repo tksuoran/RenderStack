@@ -300,7 +300,7 @@ void check_error()
 #if defined(RENDERSTACK_GL_API_OPENGL_WITH_LEGACY) || defined(RENDERSTACK_DLOAD_ALL_GL_SYMBOLS)
    GLenum status = gl::detail::glGetError();
 #else
-   GLenum status = glGetError();
+   GLenum status = ::glGetError();
 #endif
    if (status != GL_NO_ERROR)
    {

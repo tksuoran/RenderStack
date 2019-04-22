@@ -31,9 +31,7 @@ using namespace renderstack::graphics;
 bool application::create_gl_window()
 {
 #if defined(RENDERSTACK_GL_API_OPENGL)
-   int versions[] = {45, 44, 43, 42, 41, 40, 33, 32, 31, 30, 21, 20, 15, 14, 13, 12, 11, 10, 0 };
-   //int versions[] = {32, 31, 30, 21, 20, 15, 14, 13, 12, 11, 10, 0 };
-   //int versions[] = {21, 20, 15, 14, 13, 12, 11, 10, 0 };
+   int versions[] = {46, 45, 44, 43, 42, 41, 40, 33, 32, 31, 30, 21, 20, 15, 14, 13, 12, 11, 10, 0 };
    int *v = versions;
 
    bool ok = false;
@@ -49,12 +47,8 @@ bool application::create_gl_window()
       stringstream ss;
       ss << "RenderStack Sandbox (OpenGL " << major << "." << minor << ")";
 
-      // Youtube 720p
-      ok = open(1280, 720, ss.str().c_str(), major, minor);
-
-      // Youtube 480p
-      //ok = open(854, 480, ss.str().c_str(), major, minor);
-      version = version;
+      // Youtube 720p = 1280 x 720
+      // Youtube 480p = 854 x 480
    }
 
    if (!ok)

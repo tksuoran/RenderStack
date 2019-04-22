@@ -50,27 +50,7 @@ using namespace gl;
 using namespace glm;
 
 game::game()
-:  service("game")
-
-/* services */
-,  m_renderer              (nullptr)
-,  m_shader_monitor        (nullptr)
-,  m_gui_renderer          (nullptr)
-,  m_programs              (nullptr)
-,  m_textures              (nullptr)
-,  m_debug_renderer        (nullptr)
-,  m_forward_renderer      (nullptr)
-,  m_deferred_renderer     (nullptr)
-,  m_light_debug_renderer  (nullptr)
-,  m_id_renderer           (nullptr)
-,  m_menu                  (nullptr)
-,  m_application           (nullptr)
-
-/* self owned parts */
-,  m_manipulator_frame     (nullptr)
-,  m_root_layer            (nullptr)
-,  m_menu_button           (nullptr)
-,  m_slider                (nullptr)
+:   service("game")
 
 ,  m_update_time           (0.0)
 ,  m_frame_dt              (0.0)
@@ -130,46 +110,46 @@ void game::connect(
 
 void game::disconnect()
 {
-   slog_trace("game::disconnect()");
+    slog_trace("game::disconnect()");
 
-   m_application.reset();
-   m_menu.reset();
-   m_programs.reset();
-   m_textures.reset();
+    m_application.reset();
+    m_menu.reset();
+    m_programs.reset();
+    m_textures.reset();
 }
 
 void game::initialize_service()
 {
-   assert(m_renderer);
-   assert(m_gui_renderer);
-   //assert(m_programs);
-   //assert(m_textures);
+    assert(m_renderer);
+    assert(m_gui_renderer);
+    //assert(m_programs);
+    //assert(m_textures);
 
-   slog_trace("game::on_load()");
+    slog_trace("game::on_load()");
 
-   if (m_scene_manager)
-   {
-      auto camera = m_scene_manager->camera();
-      m_controls.camera_controller.set_frame(camera->frame());
-   }
-   m_controls.home = vec3(0.0f, 1.7f, 10.0f);
+    if (m_scene_manager)
+    {
+        auto camera = m_scene_manager->camera();
+        m_controls.camera_controller.set_frame(camera->frame());
+    }
+    m_controls.home = vec3(0.0f, 1.7f, 10.0f);
 
-   reset();
+    reset();
 
 #if USE_GUI
-   setup_gui();
+    setup_gui();
 #endif
 }
 
 void game::reset()
 {
-   slog_trace("game::reset()");
+    slog_trace("game::reset()");
 
-   m_controls.reset();
+    m_controls.reset();
 
-   m_frame_dt        = 0.0;
-   m_update_time     = m_application->time();
-   m_simulation_time = m_update_time;
+    m_frame_dt        = 0.0;
+    m_update_time     = m_application->time();
+    m_simulation_time = m_update_time;
 }
 
 void game::setup_gui()
@@ -207,76 +187,80 @@ void game::setup_gui()
    m_menu_button->set_sink(as);
    d->add(m_menu_button);
 
-#if 1
-   shared_ptr<renderstack::ui::choice> c = renderstack::toolkit::smart_ptr_builder::create_shared_ptr<
-      renderstack::ui::action_source, 
-      renderstack::ui::choice,
-      renderstack::ui::area>(
-         new renderstack::ui::choice(gr, cs, bs, orientation::horizontal)
-      );
-   c->add_choice_item("Foo", true);
+    shared_ptr<renderstack::ui::choice> c = renderstack::toolkit::smart_ptr_builder::create_shared_ptr<
+        renderstack::ui::action_source, 
+        renderstack::ui::choice,
+        renderstack::ui::area>(
+            new renderstack::ui::choice(gr, cs, bs, orientation::horizontal)
+        );
+    c->add_choice_item("Foo", true);
 
-   c->add_choice_item("Bar");
-   d->add(c);
+    c->add_choice_item("Bar");
+    d->add(c);
 
-   //auto p = new color_picker(ps);
-   //d->add(p);
+    //auto p = new color_picker(ps);
+    //d->add(p);
 
-   m_slider = smart_ptr_builder::create_shared_ptr<action_source, area>(
-      new slider(gr, ss, "Slider", 0.0f, 80.0f));
-   d->add(m_slider);
-#endif
+    m_slider = smart_ptr_builder::create_shared_ptr<action_source, area>(
+        new slider(gr, ss, "Slider", 0.0f, 80.0f));
+    d->add(m_slider);
 
-   m_root_layer->add(d);
+    m_root_layer->add(d);
 #endif
 }
 
 void game::on_resize(int width, int height)
 {
-   if (!m_screen_active)
-      return;
+    if (!m_screen_active)
+    {
+        return;
+    }
 
-   m_viewport.set_x(0);
-   m_viewport.set_y(0);
-   m_viewport.set_width(width);
-   m_viewport.set_height(height);
+    m_viewport.set_x(0);
+    m_viewport.set_y(0);
+    m_viewport.set_width(width);
+    m_viewport.set_height(height);
 
 #if USE_GUI
-   slog_trace("game::on_resize()");
+    slog_trace("game::on_resize()");
 
-   auto gr = m_gui_renderer;
-   gr->on_resize(width, height);
+    auto gr = m_gui_renderer;
+    gr->on_resize(width, height);
 
-   if (m_root_layer)
-   {
-      gr->prepare();
-      float w = (float)width;   // (float)m_window->width();
-      float h = (float)height;  // (float)m_window->height();
-      m_root_layer->set_layer_size(w, h);
-      m_root_layer->update();
-   }
+    if (m_root_layer)
+    {
+        gr->prepare();
+        float w = (float)width;   // (float)m_window->width();
+        float h = (float)height;  // (float)m_window->height();
+        m_root_layer->set_layer_size(w, h);
+        m_root_layer->update();
+    }
 #endif
 
-   if (m_deferred_renderer)   m_deferred_renderer->resize(width, height);
-   if (m_debug_renderer)      m_debug_renderer->base_resize(width, height);
-   if (m_forward_renderer)    m_forward_renderer->base_resize(width, height);
+    if (m_deferred_renderer)   m_deferred_renderer->resize(width, height);
+    if (m_debug_renderer)      m_debug_renderer->base_resize(width, height);
+    if (m_forward_renderer)    m_forward_renderer->base_resize(width, height);
 }
 
 void game::action(weak_ptr<action_source> source)
 {
 #if !USE_GUI
-   slog_trace("game::action() - USE_GUI not defined, skipping");
-   return;
+    slog_trace("game::action() - USE_GUI not defined, skipping");
+    return;
 #else
-   slog_trace("game::action()");
+    slog_trace("game::action()");
 
-   auto s = source.lock();
-   if (s == m_menu_button)
-   {
-      if (m_menu)
-         m_application->set_screen(m_menu);
-      else
-         throw runtime_error("m_menu does not exist");
+    auto s = source.lock();
+    if (s == m_menu_button)
+    {
+        if (m_menu)
+        {
+            m_application->set_screen(m_menu);
+        }
+        else
+        {
+            throw runtime_error("m_menu does not exist");
+        }
    }
 
    /*if (s == m_slider)
@@ -288,34 +272,37 @@ void game::action(weak_ptr<action_source> source)
 
 void game::on_enter()
 {
-   slog_trace("game::on_enter()");
+    slog_trace("game::on_enter()");
 
-   assert(m_application);
+    assert(m_application);
 
-   m_screen_active = true;
-   on_resize(m_application->width(), m_application->height());
+    m_screen_active = true;
+    on_resize(m_application->width(), m_application->height());
 
-   lock_mouse(true);
+    lock_mouse(true);
 }
+
 void game::on_exit()
 {
-   gl::bind_framebuffer(GL_DRAW_FRAMEBUFFER, 0);
-   m_screen_active = false;
-   m_application->capture_mouse(false);
+    gl::bind_framebuffer(GL_DRAW_FRAMEBUFFER, 0);
+    m_screen_active = false;
+    m_application->capture_mouse(false);
 }
+
 void controls::reset()
 {
-   slog_trace("controls::reset()");
+    slog_trace("controls::reset()");
 
-   camera_controller.clear();
-   camera_controller.set_elevation(0.0f);
-   camera_controller.set_heading(0.0f);
-   camera_controller.set_position(home);
-   mouse_locked = true;
+    camera_controller.clear();
+    camera_controller.set_elevation(0.0f);
+    camera_controller.set_heading(0.0f);
+    camera_controller.set_position(home);
+    mouse_locked = true;
 }
+
 void game::lock_mouse(bool lock)
 {
-   m_controls.mouse_locked = lock;
+    m_controls.mouse_locked = lock;
 
 #if 0
    if (m_controls.mouse_locked)
@@ -344,53 +331,64 @@ void game::lock_mouse(bool lock)
    }
 #endif
 }
+
 void game::toggle_mouse_lock()
 {
-   assert(m_application);
+    assert(m_application);
 
-   lock_mouse(!m_controls.mouse_locked);
+    lock_mouse(!m_controls.mouse_locked);
 }
+
 void game::toggle_pause()
 {
-   m_paused = !m_paused;
+    m_paused = !m_paused;
 }
+
 void game::toggle_deferred()
 {
-   if (!m_deferred_renderer || !m_forward_renderer)
-      return;
+    if (!m_deferred_renderer || !m_forward_renderer)
+    {
+        return;
+    }
 
-   m_forward = !m_forward;
-   m_deferred = !m_deferred;
+    m_forward = !m_forward;
+    m_deferred = !m_deferred;
 }
+
 void game::shift(bool left, bool value)
 {
-   if (left)
-      m_controls.left_shift = value;
-   else
-      m_controls.right_shift = value;
+    if (left)
+    {
+        m_controls.left_shift = value;
+    }
+    else
+    {
+        m_controls.right_shift = value;
+    }
 
-   bool any_shift_pressed = m_controls.left_shift || m_controls.right_shift;
-   m_controls.camera_controller.translate_y().set_less(any_shift_pressed);
+    bool any_shift_pressed = m_controls.left_shift || m_controls.right_shift;
+    m_controls.camera_controller.translate_y().set_less(any_shift_pressed);
 }
+
 void game::on_focus(bool has_focus)
 {
-   if (!has_focus)
-   {
-      m_controls.camera_controller.translate_z().set_more(false);
-      m_controls.camera_controller.translate_z().set_less(false);
-      m_controls.camera_controller.translate_x().set_more(false);
-      m_controls.camera_controller.translate_x().set_less(false);
-   }
-   m_controls.camera_controller.translate_z().set_inhibit(!has_focus);
-   m_controls.camera_controller.translate_x().set_inhibit(!has_focus);
+    if (!has_focus)
+    {
+        m_controls.camera_controller.translate_z().set_more(false);
+        m_controls.camera_controller.translate_z().set_less(false);
+        m_controls.camera_controller.translate_x().set_more(false);
+        m_controls.camera_controller.translate_x().set_less(false);
+    }
+    m_controls.camera_controller.translate_z().set_inhibit(!has_focus);
+    m_controls.camera_controller.translate_x().set_inhibit(!has_focus);
 }
 
 void game::on_key(int key, int scancode, int action, int mods)
 {
-   bool pressed = action != 0;
+    bool pressed = action != 0;
 
-   (void)mods;
-   (void)scancode;
+    static_cast<void>(mods);
+    static_cast<void>(scancode);
 
    if (pressed)
    {
@@ -494,6 +492,7 @@ void game::on_mouse_moved(double x, double y)
       m_controls.mouse_y = y;
    }
 }
+
 void game::on_3d_mouse(long tx, long ty, long tz, long rx, long ry, long rz, long period)
 {
    double ts = (double) period / (65536.0 * 16.0);
@@ -516,6 +515,7 @@ void game::on_3d_mouse(long tx, long ty, long tz, long rx, long ry, long rz, lon
    if (rz)
       m_controls.camera_controller.rotate_z().adjust((double)rz * rs);
 }
+
 void game::on_mouse_button(int button, int action, int mods)
 {
    m_mouse_down = !!action;
@@ -528,6 +528,7 @@ void game::on_mouse_button(int button, int action, int mods)
    (void)button;
    (void)mods;
 }
+
 void game::on_scroll(double x, double y)
 {
    (void)x;

@@ -74,13 +74,6 @@ void debug_renderer::initialize_service()
 
    auto &r = renderer();
 
-#if defined(RENDERSTACK_USE_AMD_GPU_PERF_API_AND_ADL)
-   m_amd_performance.connect_to_window(*m_application);
-
-   float c = m_amd_performance.get_adapter_temperature(0);
-   printf("Adapter %d overdrive5 temperature %5.1f\n", 0, c);
-#endif
-
 #if defined(RENDERSTACK_USE_FREETYPE)
    auto p = programs()->font;
    auto m = p->vertex_attribute_mappings();
@@ -120,14 +113,16 @@ void debug_renderer::initialize_service()
    m_vertex_buffer = make_shared<buffer>(
       renderstack::graphics::buffer_target::array_buffer,
       m_capacity_lines * 2,
-      vf->stride()
+      vf->stride(),
+      gl::buffer_usage_hint::stream_draw
    );
    m_vertex_buffer->allocate_storage(r);
 
    m_index_buffer = make_shared<buffer>(
       renderstack::graphics::buffer_target::element_array_buffer,
       m_capacity_lines * 2,
-      sizeof(GLushort)
+      sizeof(GLushort),
+      gl::buffer_usage_hint::stream_draw
    );
    m_index_buffer->allocate_storage(r);
 
@@ -144,12 +139,6 @@ void debug_renderer::initialize_service()
 
    r.reset_vertex_array();
 
-#if defined(RENDERSTACK_USE_AMD_GPU_PERF_API_AND_ADL)
-   {
-      float c = m_amd_performance.get_adapter_temperature(0);
-      printf("Adapter %d overdrive5 temperature %5.1f\n", 0, c);
-   }
-#endif
 }
 
 void debug_renderer::clear_text_lines()
@@ -324,91 +313,102 @@ void debug_renderer::set_ortho(renderstack::scene::viewport const &vp)
 
 void debug_renderer::add_frame_duration_graph(renderstack::scene::viewport const &vp)
 {
-   begin_edit();
+    begin_edit();
 
-   set_ortho(vp);
+    set_ortho(vp);
 
-   float scale = 1000.0f * 4.0f; // 1 ms = 10 pixels
-   float first_frame_duration = m_frame_durations.front();
-   vec3 previous(0.0f, scale * first_frame_duration, 0.0f); 
-   float frame = 0.0f;
+    float scale = 1000.0f * 4.0f; // 1 ms = 10 pixels
+    float first_frame_duration = m_frame_durations.front();
+    vec3 previous(0.0f, scale * first_frame_duration, 0.0f); 
+    float frame = 0.0f;
 
-   // 32 ms
-   float left = 0.0f;
-   float right = static_cast<float>(m_frame_duration_graph_size);
-   float sixty_fps = scale / 60.0f;
-   float thirty_fps = scale / 30.0f;
+    /// debug cross
+    // set_color(vec4(1.0f, 1.0f, 1.0f, 1.0f));
+    // add_line(
+    //     vec3(0.0f, 0.0f, 0.0f),
+    //     vec3(vp.width(), vp.height(), 0.0f)
+    // );
+    // add_line(
+    //     vec3(vp.width(), 0.0f, 0.0f),
+    //     vec3(0.0f, vp.height(), 0.0f)
+    // );
+   
+    // 32 ms
+    float left = 0.0f;
+    float right = static_cast<float>(m_frame_duration_graph_size);
+    float sixty_fps = scale / 60.0f;
+    float thirty_fps = scale / 30.0f;
+ 
+    set_color(vec4(0.0f, 1.0f, 0.0f, 1.0f));
+    add_line(
+        vec3(left, sixty_fps, 0.0f),
+        vec3(right, sixty_fps, 0.0f)
+    );
 
-   set_color(vec4(0.0f, 1.0f, 0.0f, 1.0f));
-   add_line(
-      vec3(left, sixty_fps, 0.0f),
-      vec3(right, sixty_fps, 0.0f)
-   );
+    set_color(vec4(0.0f, 0.0f, 1.0f, 1.0f));
+    add_line(
+        vec3(left, thirty_fps, 0.0f),
+        vec3(right, thirty_fps, 0.0f)
+    );
 
-   set_color(vec4(0.0f, 0.0f, 1.0f, 1.0f));
-   add_line(
-      vec3(left, thirty_fps, 0.0f),
-      vec3(right, thirty_fps, 0.0f)
-   );
+    set_color(vec4(1.0f, 0.5f, 0.0f, 1.0f));
+    for (auto frame_duration : m_frame_durations)
+    {
+        vec3 current(frame, scale * frame_duration, 0.0f);
+        if (frame > 0.0f) {
+            add_line(previous, current);
+        }
 
-   set_color(vec4(1.0f, 0.5f, 0.0f, 1.0f));
-   for (auto i = m_frame_durations.cbegin(); i != m_frame_durations.cend(); ++i)
-   {
-      vec3 current(frame, scale * *i, 0.0f);
-      if (frame > 0.0f)
-         add_line(previous, current);
-
-      previous = current;
-      frame += 1.0f;
-   }
-   end_edit();
+        previous = current;
+        frame += 1.0f;
+    }
+    end_edit();
 }
 
 void debug_renderer::render()
 {
-   if (m_index_offset > m_current_draw.first_index)
-   {
-      m_current_draw.count = m_index_offset - m_current_draw.first_index;
-      m_draws.push_back(m_current_draw);
-   }
+    if (m_index_offset > m_current_draw.first_index)
+    {
+        m_current_draw.count = m_index_offset - m_current_draw.first_index;
+        m_draws.push_back(m_current_draw);
+    }
 
-   auto &r = renderer();
-   auto &t = r.track();
-   auto p = programs()->debug_line;
+    auto &r = renderer();
+    auto &t = r.track();
+    auto p = programs()->debug_line;
+   
+    t.execute(&m_render_states);
+    r.set_program(p);
+    r.use_vertex_stream(m_vertex_stream);
 
-   t.execute(&m_render_states);
-   r.set_program(p);
-   r.use_vertex_stream(m_vertex_stream);
-
-   size_t model_index = 0;
-   for (auto i = m_draws.cbegin(); i != m_draws.cend(); ++i)
-   {
-      auto &draw = *i;
-
-      if (p->use_uniform_buffers())
-      {
-         bind_model(model_index);
-      }
-      else
-      {
-         throw runtime_error("not implemented");
+    size_t model_index = 0;
+    for (auto &draw : m_draws)
+    {
+        if (p->use_uniform_buffers())
+        {
+            bind_model(model_index);
+        }
+        else
+        {
+            throw runtime_error("not implemented");
          /*gl::uniform_matrix_4fv(
             p->uniform_at(programs()->model_block_access.clip_from_model),
             1,
             GL_FALSE,
             value_ptr(draw.clip_from_model)
          );*/
-      }
+        }
 
-      gl::draw_elements(
-         gl::begin_mode::lines,
-         draw.count,
-         gl::draw_elements_type::unsigned_short,
-         reinterpret_cast<GLvoid*>(draw.first_index * 2));
-      ++model_index;
-   }
+        gl::draw_elements(
+            gl::begin_mode::lines,
+            //gl::begin_mode::points,
+            draw.count,
+            gl::draw_elements_type::unsigned_short,
+            reinterpret_cast<GLvoid*>(draw.first_index * 2));
+        ++model_index;
+    }
 
-   m_draws.clear();
+    m_draws.clear();
 }
 
 void debug_renderer::set_color(glm::vec4 const &color)

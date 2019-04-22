@@ -11,20 +11,21 @@
 class textures : public renderstack::toolkit::service
 {
 public:
-   textures();
-   /*virtual*/ ~textures();
-   void connect(std::shared_ptr<renderstack::graphics::renderer> renderer);
-   /*virtual*/ void initialize_service();
+    textures();
+    /*virtual*/ ~textures();
 
-   std::shared_ptr<renderstack::graphics::texture> load(
-      unsigned int texture_unit,
-      std::string const &path
-   );
+    void connect(std::shared_ptr<renderstack::graphics::renderer> renderer);
+    void initialize_service() override;
 
-   std::shared_ptr<renderstack::graphics::texture> background_texture;
+    std::shared_ptr<renderstack::graphics::texture> load(
+        unsigned int texture_unit,
+        std::string const &path
+    );
+
+    std::shared_ptr<renderstack::graphics::texture> background_texture;
 
 private:
-   std::shared_ptr<renderstack::graphics::renderer> m_renderer;
+    std::shared_ptr<renderstack::graphics::renderer> m_renderer;
 };
 
 #endif

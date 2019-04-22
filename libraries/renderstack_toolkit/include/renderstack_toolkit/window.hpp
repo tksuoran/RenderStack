@@ -280,24 +280,10 @@ private:
    glproc get_proc_address(const char* procname);
 
 
-#if 0
-private:
-   void resize(int width, int height);
-
-private:
-   int m_width;
-   int m_height;
-#endif
 private:
    bool m_running;
    bool m_capture;
    bool m_show;
-
-#if defined(_WIN32)
-# if defined(RENDERSTACK_USE_AMD_GPU_PERF_API)
-   void *m_gpuperfapigl_dll;
-# endif
-#endif
 
 #if defined(RENDERSTACK_USE_GLWT)
    bool     m_buttons[10];

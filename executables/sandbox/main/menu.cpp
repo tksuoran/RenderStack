@@ -195,7 +195,7 @@ void menu::initialize_service()
          renderstack::graphics::buffer_target::uniform_buffer,
          size,
          1,
-         gl::buffer_usage_hint::static_draw
+         gl::buffer_usage_hint::stream_draw
       );
       m_uniform_buffer->allocate_storage(r);
    }

@@ -1,26 +1,3 @@
-#if 0
-
-#include <cstdlib>
-
-template<typename value_type>
-value_type interpolate(float t, value_type a, value_type b)
-{
-   return t * a + (1.0f - t) * b;
-}
-
-int main(int argc, char *argv[])
-{
-   (void)argc;
-   (void)argv;
-
-   int a = interpolate<int>(0.5f, 10, 20);
-   (void)a;
-
-   return EXIT_SUCCESS;
-}
-
-#else
-
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_toolkit/gl.hpp"
 #include "renderstack_toolkit/strong_gl_enums.hpp"
@@ -50,55 +27,54 @@ using namespace renderstack::toolkit;
 
 int main(int argc, char *argv[])
 {
-   console_init();
+    console_init();
 
-   init_memory_system();
-   begin_memory_compare();
+    init_memory_system();
+    begin_memory_compare();
 
-   (void)argc;
-   (void)argv;
-   shared_ptr<renderstack::toolkit::window> g_application;
-   int return_value = EXIT_FAILURE;
+    static_cast<void>(argc);
+    static_cast<void>(argv);
+    shared_ptr<renderstack::toolkit::window> g_application;
+    int return_value = EXIT_FAILURE;
 
 #  if defined(NDEBUG)
    try
 #  endif
-   {
-      g_application = make_shared<application>();
-      if (g_application->on_load())
-      {
-         g_application->run();
-         return_value = EXIT_SUCCESS;
-      }
-      else
-      {
-         return_value = EXIT_FAILURE;
-      }
+    {
+        g_application = make_shared<application>();
+        if (g_application->on_load())
+        {
+            g_application->run();
+            return_value = EXIT_SUCCESS;
+        }
+        else
+        {
+            return_value = EXIT_FAILURE;
+        }
 
-   }
-#  if defined(NDEBUG)
-   catch(runtime_error const &e)
-   {
-      fprintf(stderr, "exception:\n");
-      fprintf(stderr, e.what());
-      fprintf(stderr, "\nPress RETURN\n");
-      fgetc(stdin);
-   }
-   catch(...)
-   {
-      ;
-   }
+    }
+#   if defined(NDEBUG)
+    catch(runtime_error const &e)
+    {
+        fprintf(stderr, "exception:\n");
+        fprintf(stderr, e.what());
+        fprintf(stderr, "\nPress RETURN\n");
+        fgetc(stdin);
+    }
+    catch(...)
+    {
+        ;
+    }
 #  endif
 
-   if (g_application)
-      g_application->on_exit();
+    if (g_application)
+    {
+        g_application->on_exit();
+    }
 
-   g_application.reset();
+    g_application.reset();
 
-   end_memory_compare();
+    end_memory_compare();
 
-   exit(return_value);
+    exit(return_value);
 }
-
-
-#endif

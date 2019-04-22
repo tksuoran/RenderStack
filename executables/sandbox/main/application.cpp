@@ -27,38 +27,36 @@ using namespace std;
 
 
 application::application()
-:  service("application")
-#if defined(RENDERSTACK_USE_AMD_GPU_PERF_API_AND_ADL)
-,  m_use_amd_gpa_adl(false)
-#endif
+:   service("application")
 {
 }
 
 application::~application()
 {
-   on_exit(); // TODO figure out how to get ~window call to on_exit() to call derived on_exit?
+    on_exit(); // TODO figure out how to get ~window call to on_exit() to call derived on_exit?
 }
 
 void application::connect(shared_ptr<game> game_, shared_ptr<menu> menu_)
 {
-   m_game = game_;
-   m_menu = menu_;
+    m_game = game_;
+    m_menu = menu_;
 
-   initialization_depends_on(game_);
-   initialization_depends_on(menu_);
+    initialization_depends_on(game_);
+    initialization_depends_on(menu_);
 }
 
 void application::initialize_service()
 {
-#  if 0
-   if (m_menu)
-      set_screen(m_menu);
-#  else
-   if (m_game)
-      set_screen(m_game);
-#  endif
+    if (m_menu)
+    {
+        set_screen(m_menu);
+    }
+    else if (m_game)
+    {
+        set_screen(m_game);
+    }
 
-   m_last_screen.reset();
+    m_last_screen.reset();
 }
 
 void application::set_screen(shared_ptr<screen> screen)
@@ -83,33 +81,40 @@ void application::on_focus(bool has_focus)
 
 void application::update()
 {
-   if (m_last_screen != m_screen)
-   {
-      if (m_last_screen)
-         m_last_screen->on_exit();
+    if (m_last_screen != m_screen)
+    {
+        if (m_last_screen)
+        {
+            m_last_screen->on_exit();
+        }
 
-      m_screen->on_enter();
-      m_last_screen = m_screen;
-   }
+        m_screen->on_enter();
+        m_last_screen = m_screen;
+    }
 
-   m_screen->update();
+    m_screen->update();
 }
+
 void application::on_key(int key, int scancode, int action, int mods)
 {
-   m_screen->on_key(key, scancode, action, mods);
+    m_screen->on_key(key, scancode, action, mods);
 }
+
 void application::on_mouse_moved(double x, double y)
 {
-   m_screen->on_mouse_moved(x, y);
+    m_screen->on_mouse_moved(x, y);
 }
+
 void application::on_mouse_button(int button, int action, int mods)
 {
-   m_screen->on_mouse_button(button, action, mods);
+    m_screen->on_mouse_button(button, action, mods);
 }
+
 void application::on_scroll(double x, double y)
 {
-   m_screen->on_scroll(x, y);
+    m_screen->on_scroll(x, y);
 }
+
 void application::on_3d_mouse(long tx, long ty, long tz, long rx, long ry, long rz, long period)
 {
    m_screen->on_3d_mouse(tx, ty, tz, rx, ry, rz, period);

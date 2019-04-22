@@ -36,7 +36,7 @@ using namespace std;
 
 
 forward_renderer::forward_renderer()
-:  service("forward_renderer")
+:   service("forward_renderer")
 {
 }
 
@@ -50,12 +50,12 @@ void forward_renderer::connect(
    shared_ptr<class programs>                   programs_
 )
 {
-   base_connect(renderer_, programs_, nullptr);
+    base_connect(renderer_, programs_, nullptr);
 
-   m_debug_renderer = debug_renderer;
+    m_debug_renderer = debug_renderer;
 
-   initialization_depends_on(renderer_);
-   initialization_depends_on(programs_);
+    initialization_depends_on(renderer_);
+    initialization_depends_on(programs_);
 }
 
 void forward_renderer::initialize_service()
@@ -126,9 +126,9 @@ void forward_renderer::render_pass(
 
    bind_camera();
 
-   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-   //glEnable(GL_FRAMEBUFFER_SRGB);
+   gl::clear_color(0.0f, 0.0f, 0.0f, 1.0f);
+   gl::clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+   //gl::enable(GL_FRAMEBUFFER_SRGB);
 
    size_t light_index = 0;
    for (auto i = lights.cbegin(); i != lights.cend(); ++i)

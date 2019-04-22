@@ -84,10 +84,10 @@ void id_renderer::initialize_service()
 
 void id_renderer::clear()
 {
-   glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+    gl::clear_color(1.0f, 1.0f, 1.0f, 1.0f);
+    gl::clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-   m_ranges.clear();
+    m_ranges.clear();
 }
 
 void id_renderer::render_pass(
@@ -217,7 +217,7 @@ bool id_renderer::get(int x, int y, uint32_t &id, float &depth)
    // TODO: Testing for sync done is not free. Start testing only older syncs?
    for (int i = 0; i < 4; ++i)
    {
-      try_render = --try_render;
+      --try_render;
       if (try_render < 0)
          try_render = 3;
 

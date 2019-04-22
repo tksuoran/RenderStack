@@ -54,7 +54,8 @@ public:
          m_storage[i] = std::make_shared<renderstack::graphics::buffer>(
             renderstack::graphics::buffer_target::uniform_buffer,
             num,
-            stride
+            stride,
+            gl::buffer_usage_hint::stream_draw
          );
          m_storage[i]->allocate_storage(renderer);
       }
@@ -111,9 +112,9 @@ public:
    int   width_full     () { return m_width_full; }
    int   height_full    () { return m_height_full; }
 
-   renderstack::graphics::renderer  &renderer();
-   std::shared_ptr<class programs>  programs();
-   std::shared_ptr<light_mesh>      light_mesh() { return m_light_mesh; }
+   renderstack::graphics::renderer   &renderer();
+   std::shared_ptr<class programs>   programs();
+   std::shared_ptr<class light_mesh> light_mesh() { return m_light_mesh; }
 
    void bind_camera     ();
    void bind_model      (std::size_t model_index);
@@ -133,19 +134,18 @@ protected:
 
 protected:
    unsigned char *begin_edit(uniform_buffer_usage buffer, std::size_t count);
+
    void end_edit(uniform_buffer_usage buffer);
-   void update_models(
-      std::vector<std::shared_ptr<model> > const &models,
-      std::shared_ptr<renderstack::scene::camera> camera
-   );
-   void update_lights_models(
-      std::vector<std::shared_ptr<renderstack::scene::light> > const &lights,
-      std::shared_ptr<renderstack::scene::camera> camera
-   );
-   void update_lights(
-      std::vector<std::shared_ptr<renderstack::scene::light> > const &lights,
-      std::shared_ptr<renderstack::scene::camera> camera
-   );
+
+   void update_models(std::vector<std::shared_ptr<model> > const &models,
+                      std::shared_ptr<renderstack::scene::camera> camera);
+
+   void update_lights_models(std::vector<std::shared_ptr<renderstack::scene::light> > const &lights,
+                             std::shared_ptr<renderstack::scene::camera> camera);
+
+   void update_lights(std::vector<std::shared_ptr<renderstack::scene::light> > const &lights,
+                      std::shared_ptr<renderstack::scene::camera> camera);
+                      
    void update_materials(std::vector<std::shared_ptr<material> > const &materials);
    void update_camera(std::shared_ptr<renderstack::scene::camera> camera);
 

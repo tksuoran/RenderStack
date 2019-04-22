@@ -53,271 +53,280 @@ deferred_renderer::deferred_renderer()
 }
 
 void deferred_renderer::connect(
-   shared_ptr<renderstack::graphics::renderer>  renderer_,
-   shared_ptr<class programs>                   programs_,
-   shared_ptr<quad_renderer>                    quad_renderer_,
-   std::shared_ptr<class light_mesh>            light_mesh_
+    shared_ptr<renderstack::graphics::renderer>  renderer_,
+    shared_ptr<class programs>                   programs_,
+    shared_ptr<quad_renderer>                    quad_renderer_,
+    std::shared_ptr<class light_mesh>            light_mesh_
 )
 {
-   base_connect(renderer_, programs_, light_mesh_);
-   m_quad_renderer = quad_renderer_;
+    base_connect(renderer_, programs_, light_mesh_);
+    m_quad_renderer = quad_renderer_;
 
-   initialization_depends_on(renderer_);
-   initialization_depends_on(programs_);
+    initialization_depends_on(renderer_);
+    initialization_depends_on(programs_);
 }
 
 void deferred_renderer::initialize_service()
 {
-   base_initialize_service();
+    base_initialize_service();
 
-   m_gbuffer_render_states.depth.set_enabled(true);
-   m_gbuffer_render_states.face_cull.set_enabled(true);
+    m_gbuffer_render_states.depth.set_enabled(true);
+    m_gbuffer_render_states.face_cull.set_enabled(true);
 
-   // Nothing to change in, use default render states:
-   // m_show_rt_render_states
+    // Nothing to change in, use default render states:
+    // m_show_rt_render_states
 
-   m_light_stencil_render_states.depth.set_enabled   (true);
-   m_light_stencil_render_states.depth.set_depth_mask(false);
+    m_light_stencil_render_states.depth.set_enabled   (true);
+    m_light_stencil_render_states.depth.set_depth_mask(false);
 
-   m_light_stencil_render_states.color_mask.set_red  (false);
-   m_light_stencil_render_states.color_mask.set_green(false);
-   m_light_stencil_render_states.color_mask.set_blue (false);
-   m_light_stencil_render_states.color_mask.set_alpha(false);
+    m_light_stencil_render_states.color_mask.set_red  (false);
+    m_light_stencil_render_states.color_mask.set_green(false);
+    m_light_stencil_render_states.color_mask.set_blue (false);
+    m_light_stencil_render_states.color_mask.set_alpha(false);
 
-   m_light_stencil_render_states.face_cull.set_enabled(false);
+    m_light_stencil_render_states.face_cull.set_enabled(false);
 
-   m_light_stencil_render_states.stencil.set_enabled(true);
-   m_light_stencil_render_states.stencil.back ().set_z_fail_op       (gl::stencil_op_enum::keep);
-   m_light_stencil_render_states.stencil.back ().set_z_pass_op       (gl::stencil_op_enum::incr_wrap);
-   m_light_stencil_render_states.stencil.back ().set_stencil_fail_op (gl::stencil_op_enum::keep);
-   m_light_stencil_render_states.stencil.back ().set_function        (gl::stencil_function_enum::always);
+    m_light_stencil_render_states.stencil.set_enabled(true);
+    m_light_stencil_render_states.stencil.back ().set_z_fail_op       (gl::stencil_op_enum::keep);
+    m_light_stencil_render_states.stencil.back ().set_z_pass_op       (gl::stencil_op_enum::incr_wrap);
+    m_light_stencil_render_states.stencil.back ().set_stencil_fail_op (gl::stencil_op_enum::keep);
+    m_light_stencil_render_states.stencil.back ().set_function        (gl::stencil_function_enum::always);
 
-   m_light_stencil_render_states.stencil.front().set_z_fail_op       (gl::stencil_op_enum::keep);
-   m_light_stencil_render_states.stencil.front().set_z_pass_op       (gl::stencil_op_enum::decr_wrap);
-   m_light_stencil_render_states.stencil.front().set_stencil_fail_op (gl::stencil_op_enum::keep);
-   m_light_stencil_render_states.stencil.front().set_function        (gl::stencil_function_enum::always);
+    m_light_stencil_render_states.stencil.front().set_z_fail_op       (gl::stencil_op_enum::keep);
+    m_light_stencil_render_states.stencil.front().set_z_pass_op       (gl::stencil_op_enum::decr_wrap);
+    m_light_stencil_render_states.stencil.front().set_stencil_fail_op (gl::stencil_op_enum::keep);
+    m_light_stencil_render_states.stencil.front().set_function        (gl::stencil_function_enum::always);
 
-   m_light_stencil_render_states.stencil.set_separate(true);
+    m_light_stencil_render_states.stencil.set_separate(true);
 
-   m_light_with_stencil_test_render_states.depth.set_enabled                   (false);
-   m_light_with_stencil_test_render_states.depth.set_depth_mask                (false);
-   m_light_with_stencil_test_render_states.face_cull.set_enabled               (true);
-   m_light_with_stencil_test_render_states.face_cull.set_cull_face_mode        (gl::cull_face_mode::front);
-   m_light_with_stencil_test_render_states.stencil.set_enabled                 (true);
-   m_light_with_stencil_test_render_states.stencil.back ().set_function        (gl::stencil_function_enum::not_equal);
-   m_light_with_stencil_test_render_states.stencil.back ().set_reference       (0);
-   m_light_with_stencil_test_render_states.stencil.front().set_function        (gl::stencil_function_enum::not_equal);
-   m_light_with_stencil_test_render_states.stencil.front().set_reference       (0);
-   m_light_with_stencil_test_render_states.blend.set_enabled                   (true);
-   m_light_with_stencil_test_render_states.blend.rgb().set_equation_mode       (gl::blend_equation_mode::func_add);
-   m_light_with_stencil_test_render_states.blend.rgb().set_source_factor       (gl::blending_factor_src::one);
-   m_light_with_stencil_test_render_states.blend.rgb().set_destination_factor  (gl::blending_factor_dest::one);
-   m_light_with_stencil_test_render_states.stencil.back ().set_z_fail_op(gl::stencil_op_enum::replace);
-   m_light_with_stencil_test_render_states.stencil.back ().set_z_pass_op(gl::stencil_op_enum::replace);
-   m_light_with_stencil_test_render_states.stencil.front().set_z_fail_op(gl::stencil_op_enum::replace);
-   m_light_with_stencil_test_render_states.stencil.front().set_z_pass_op(gl::stencil_op_enum::replace);
+    m_light_with_stencil_test_render_states.depth.set_enabled                   (false);
+    m_light_with_stencil_test_render_states.depth.set_depth_mask                (false);
+    m_light_with_stencil_test_render_states.face_cull.set_enabled               (true);
+    m_light_with_stencil_test_render_states.face_cull.set_cull_face_mode        (gl::cull_face_mode::front);
+    m_light_with_stencil_test_render_states.stencil.set_enabled                 (true);
+    m_light_with_stencil_test_render_states.stencil.back ().set_function        (gl::stencil_function_enum::not_equal);
+    m_light_with_stencil_test_render_states.stencil.back ().set_reference       (0);
+    m_light_with_stencil_test_render_states.stencil.front().set_function        (gl::stencil_function_enum::not_equal);
+    m_light_with_stencil_test_render_states.stencil.front().set_reference       (0);
+    m_light_with_stencil_test_render_states.blend.set_enabled                   (true);
+    m_light_with_stencil_test_render_states.blend.rgb().set_equation_mode       (gl::blend_equation_mode::func_add);
+    m_light_with_stencil_test_render_states.blend.rgb().set_source_factor       (gl::blending_factor_src::one);
+    m_light_with_stencil_test_render_states.blend.rgb().set_destination_factor  (gl::blending_factor_dest::one);
+    m_light_with_stencil_test_render_states.stencil.back ().set_z_fail_op(gl::stencil_op_enum::replace);
+    m_light_with_stencil_test_render_states.stencil.back ().set_z_pass_op(gl::stencil_op_enum::replace);
+    m_light_with_stencil_test_render_states.stencil.front().set_z_fail_op(gl::stencil_op_enum::replace);
+    m_light_with_stencil_test_render_states.stencil.front().set_z_pass_op(gl::stencil_op_enum::replace);
 
-   m_light_render_states.depth.set_enabled                  (false);
-   m_light_render_states.depth.set_depth_mask               (false);
-   m_light_render_states.face_cull.set_enabled              (true);
-   m_light_render_states.face_cull.set_cull_face_mode       (gl::cull_face_mode::front);
-   m_light_render_states.blend.set_enabled                  (true);
-   m_light_render_states.blend.rgb().set_equation_mode      (gl::blend_equation_mode::func_add);
-   m_light_render_states.blend.rgb().set_source_factor      (gl::blending_factor_src::one);
-   m_light_render_states.blend.rgb().set_destination_factor (gl::blending_factor_dest::one);
+    m_light_render_states.depth.set_enabled                  (false);
+    m_light_render_states.depth.set_depth_mask               (false);
+    m_light_render_states.face_cull.set_enabled              (true);
+    m_light_render_states.face_cull.set_cull_face_mode       (gl::cull_face_mode::front);
+    m_light_render_states.blend.set_enabled                  (true);
+    m_light_render_states.blend.rgb().set_equation_mode      (gl::blend_equation_mode::func_add);
+    m_light_render_states.blend.rgb().set_source_factor      (gl::blending_factor_src::one);
+    m_light_render_states.blend.rgb().set_destination_factor (gl::blending_factor_dest::one);
 }
 
 void deferred_renderer::resize(int width_, int height_)
 {
-   base_resize(width_, height_);
-   {
-      if (m_gbuffer_fbo == 0)
-         gl::gen_framebuffers(1, &m_gbuffer_fbo);
+    base_resize(width_, height_);
+    {
+        if (m_gbuffer_fbo == 0)
+        {
+            gl::gen_framebuffers(1, &m_gbuffer_fbo);
+        }
 
-      gl::bind_framebuffer(GL_DRAW_FRAMEBUFFER, m_gbuffer_fbo);
-      GLenum formats[] = {
-         GL_RGBA16F,    // normal tangent
-         GL_RGBA8,      // albedo
-         GL_RGBA16F     // material
-         //GL_RGBA8       // material
-      };
+        gl::bind_framebuffer(GL_DRAW_FRAMEBUFFER, m_gbuffer_fbo);
+        GLenum formats[] = {
+            GL_RGBA16F,    // normal tangent
+            GL_RGBA8,      // albedo
+            GL_RGBA16F     // material
+             //GL_RGBA8       // material
+        };
 
-      for (int i = 0; i < 3; ++i)
-      {
-         m_gbuffer_rt[i].reset();
+        for (int i = 0; i < 3; ++i)
+        {
+            m_gbuffer_rt[i].reset();
 
-         m_gbuffer_rt[i] = make_shared<renderstack::graphics::texture>(
+            m_gbuffer_rt[i] = make_shared<renderstack::graphics::texture>(
+                renderstack::graphics::texture_target::texture_2d,
+                formats[i],
+                false,
+                width(),
+                height(),
+                0
+            );
+            m_gbuffer_rt[i]->allocate_storage(renderer());
+            m_gbuffer_rt[i]->set_mag_filter(gl::texture_mag_filter::nearest);
+            m_gbuffer_rt[i]->set_min_filter(gl::texture_min_filter::nearest);
+            m_gbuffer_rt[i]->set_wrap(0, gl::texture_wrap_mode::clamp_to_edge);
+             m_gbuffer_rt[i]->set_wrap(1, gl::texture_wrap_mode::clamp_to_edge);
+
+             gl::framebuffer_texture_2d(
+                GL_DRAW_FRAMEBUFFER,
+                GL_COLOR_ATTACHMENT0 + i,
+                GL_TEXTURE_2D,
+                m_gbuffer_rt[i]->gl_name(),
+                0
+            );
+            gl::framebuffer_texture_2d(
+                GL_DRAW_FRAMEBUFFER,
+                GL_COLOR_ATTACHMENT0 + i,
+                GL_TEXTURE_2D,
+                m_gbuffer_rt[i]->gl_name(),
+                0
+            );
+        }
+
+        GLenum depth_format = use_stencil() ? GL_DEPTH32F_STENCIL8
+                                            : GL_DEPTH_COMPONENT32F;
+        GLenum attachment_point = use_stencil() ? GL_DEPTH_STENCIL_ATTACHMENT
+                                                : GL_DEPTH_ATTACHMENT;
+
+        m_depth.reset();
+        m_depth = make_shared<renderstack::graphics::texture>(
             renderstack::graphics::texture_target::texture_2d,
-            formats[i],
+            depth_format,
             false,
             width(),
             height(),
             0
-         );
-         m_gbuffer_rt[i]->allocate_storage(renderer());
-         m_gbuffer_rt[i]->set_mag_filter(gl::texture_mag_filter::nearest);
-         m_gbuffer_rt[i]->set_min_filter(gl::texture_min_filter::nearest);
-         m_gbuffer_rt[i]->set_wrap(0, gl::texture_wrap_mode::clamp_to_edge);
-         m_gbuffer_rt[i]->set_wrap(1, gl::texture_wrap_mode::clamp_to_edge);
+        );
+        m_depth->set_mag_filter(gl::texture_mag_filter::nearest);
+        m_depth->set_min_filter(gl::texture_min_filter::nearest);
+        m_depth->set_wrap(0, gl::texture_wrap_mode::clamp_to_edge);
+        m_depth->set_wrap(1, gl::texture_wrap_mode::clamp_to_edge);
+        m_depth->allocate_storage(renderer());
 
-         gl::framebuffer_texture_2d(
+        gl::framebuffer_texture_2d(
             GL_DRAW_FRAMEBUFFER,
-            GL_COLOR_ATTACHMENT0 + i,
+            attachment_point,
             GL_TEXTURE_2D,
-            m_gbuffer_rt[i]->gl_name(),
+            m_depth->gl_name(),
             0
-         );
-         gl::framebuffer_texture_2d(
-            GL_DRAW_FRAMEBUFFER,
-            GL_COLOR_ATTACHMENT0 + i,
-            GL_TEXTURE_2D,
-            m_gbuffer_rt[i]->gl_name(),
-            0
-         );
-      }
+        );
 
-      GLenum depth_format = use_stencil() ? GL_DEPTH32F_STENCIL8 : GL_DEPTH_COMPONENT32F;
-      GLenum attachment_point = use_stencil() ? GL_DEPTH_STENCIL_ATTACHMENT : GL_DEPTH_ATTACHMENT;
+        GLenum a = gl::check_framebuffer_status(GL_FRAMEBUFFER);
+        if (a != GL_FRAMEBUFFER_COMPLETE)
+        {
+            const char *status = gl::enum_string(a);
+            throw runtime_error(status);
+        }
+    }
 
-      m_depth.reset();
-      m_depth = make_shared<renderstack::graphics::texture>(
-         renderstack::graphics::texture_target::texture_2d,
-         depth_format,
-         false,
-         width(),
-         height(),
-         0
-      );
-      m_depth->set_mag_filter(gl::texture_mag_filter::nearest);
-      m_depth->set_min_filter(gl::texture_min_filter::nearest);
-      m_depth->set_wrap(0, gl::texture_wrap_mode::clamp_to_edge);
-      m_depth->set_wrap(1, gl::texture_wrap_mode::clamp_to_edge);
-      m_depth->allocate_storage(renderer());
+    {
+        if (m_linear_fbo == 0)
+        {
+            gl::gen_framebuffers(1, &m_linear_fbo);
+        }
 
-      gl::framebuffer_texture_2d(
-         GL_DRAW_FRAMEBUFFER,
-         attachment_point,
-         GL_TEXTURE_2D,
-         m_depth->gl_name(),
-         0
-      );
+        gl::bind_framebuffer(GL_DRAW_FRAMEBUFFER, m_linear_fbo);
+        GLenum formats[] = { GL_RGBA16F };
 
-      GLenum a = gl::check_framebuffer_status(GL_FRAMEBUFFER);
-      if (a != GL_FRAMEBUFFER_COMPLETE)
-      {
-         const char *status = gl::enum_string(a);
-         throw runtime_error(status);
-      }
-   }
+        for (int i = 0; i < 1; ++i)
+        {
+            m_linear_rt[i].reset();
 
-   {
-      if (m_linear_fbo == 0)
-         gl::gen_framebuffers(1, &m_linear_fbo);
+            m_linear_rt[i] = make_shared<renderstack::graphics::texture>(
+                renderstack::graphics::texture_target::texture_2d,
+                formats[i],
+                false,
+                width(),
+                height(),
+                0
+            );
+            m_linear_rt[i]->allocate_storage(renderer());
+            m_linear_rt[i]->set_mag_filter(gl::texture_mag_filter::nearest);
+            m_linear_rt[i]->set_min_filter(gl::texture_min_filter::nearest);
+            m_linear_rt[i]->set_wrap(0, gl::texture_wrap_mode::clamp_to_edge);
+            m_linear_rt[i]->set_wrap(1, gl::texture_wrap_mode::clamp_to_edge);
 
-      gl::bind_framebuffer(GL_DRAW_FRAMEBUFFER, m_linear_fbo);
-      GLenum formats[] = { GL_RGBA16F };
+            gl::framebuffer_texture_2d(
+                GL_DRAW_FRAMEBUFFER,
+                GL_COLOR_ATTACHMENT0 + i,
+                GL_TEXTURE_2D,
+                m_linear_rt[i]->gl_name(),
+                0
+            );
+        }
 
-      for (int i = 0; i < 1; ++i)
-      {
-         m_linear_rt[i].reset();
+        if (use_stencil())
+        {
+             if (m_stencil_rbo == 0)
+             {
+                gl::gen_renderbuffers(1, &m_stencil_rbo);
+             }
 
-         m_linear_rt[i] = make_shared<renderstack::graphics::texture>(
-            renderstack::graphics::texture_target::texture_2d,
-            formats[i],
-            false,
-            width(),
-            height(),
-            0
-         );
-         m_linear_rt[i]->allocate_storage(renderer());
-         m_linear_rt[i]->set_mag_filter(gl::texture_mag_filter::nearest);
-         m_linear_rt[i]->set_min_filter(gl::texture_min_filter::nearest);
-         m_linear_rt[i]->set_wrap(0, gl::texture_wrap_mode::clamp_to_edge);
-         m_linear_rt[i]->set_wrap(1, gl::texture_wrap_mode::clamp_to_edge);
+            gl::bind_renderbuffer(GL_RENDERBUFFER, m_stencil_rbo);
 
-         gl::framebuffer_texture_2d(
-            GL_DRAW_FRAMEBUFFER,
-            GL_COLOR_ATTACHMENT0 + i,
-            GL_TEXTURE_2D,
-            m_linear_rt[i]->gl_name(),
-            0
-         );
-      }
+            gl::renderbuffer_storage(
+                GL_RENDERBUFFER,
+                GL_DEPTH32F_STENCIL8,
+                width(),
+                height()
+            );
+            gl::framebuffer_renderbuffer(
+                GL_FRAMEBUFFER,
+                GL_DEPTH_STENCIL_ATTACHMENT,
+                GL_RENDERBUFFER,
+                m_stencil_rbo
+            );
+        }
 
-      if (use_stencil())
-      {
-         if (m_stencil_rbo == 0)
-            gl::gen_renderbuffers(1, &m_stencil_rbo);
+        GLenum a = gl::check_framebuffer_status(GL_FRAMEBUFFER);
+        if (a != GL_FRAMEBUFFER_COMPLETE)
+        {
+            const char *status = gl::enum_string(a);
+            throw runtime_error(status);
+        }
+    }
 
-         gl::bind_renderbuffer(GL_RENDERBUFFER, m_stencil_rbo);
-
-         gl::renderbuffer_storage(
-            GL_RENDERBUFFER,
-            GL_DEPTH32F_STENCIL8,
-            width(),
-            height()
-         );
-         gl::framebuffer_renderbuffer(
-            GL_FRAMEBUFFER,
-            GL_DEPTH_STENCIL_ATTACHMENT,
-            GL_RENDERBUFFER,
-            m_stencil_rbo
-         );
-      }
-
-      GLenum a = gl::check_framebuffer_status(GL_FRAMEBUFFER);
-      if (a != GL_FRAMEBUFFER_COMPLETE)
-      {
-         const char *status = gl::enum_string(a);
-         throw runtime_error(status);
-      }
-   }
-
-   gl::bind_framebuffer(GL_DRAW_FRAMEBUFFER, 0);
+    gl::bind_framebuffer(GL_DRAW_FRAMEBUFFER, 0);
 }
 
 void deferred_renderer::bind_gbuffer_fbo()
 {
-   gl::bind_framebuffer(GL_DRAW_FRAMEBUFFER, m_gbuffer_fbo);
+    gl::bind_framebuffer(GL_DRAW_FRAMEBUFFER, m_gbuffer_fbo);
 
-   GLenum draw_buffers[] =
-   {
-      GL_COLOR_ATTACHMENT0,
-      GL_COLOR_ATTACHMENT1,
-      GL_COLOR_ATTACHMENT2
-   };
-   gl::draw_buffers(3, draw_buffers);
+    GLenum draw_buffers[] =
+    {
+        GL_COLOR_ATTACHMENT0,
+        GL_COLOR_ATTACHMENT1,
+        GL_COLOR_ATTACHMENT2
+    };
+    gl::draw_buffers(3, draw_buffers);
 }
 
 void deferred_renderer::fbo_clear()
 {
-   GLfloat albedo_clear          [4] = { 0.5f, 0.5f, 0.5f, 0.0f };
-   GLfloat normal_tangent_clear  [4];
-   GLfloat material_clear        [4];
-   GLfloat one = 1.0f;
+    GLfloat albedo_clear          [4] = { 0.5f, 0.5f, 0.5f, 0.0f };
+    GLfloat normal_tangent_clear  [4];
+    GLfloat material_clear        [4];
+    GLfloat one = 1.0f;
 
-   vec3 N = vec3(0.0f, 0.0f, -1.0f);
-   vec3 T = vec3(0.0f, 1.0f,  0.0f); 
+    vec3 N = vec3(0.0f, 0.0f, -1.0f);
+    vec3 T = vec3(0.0f, 1.0f,  0.0f); 
 
-   cartesian_to_spherical(N, normal_tangent_clear[0], normal_tangent_clear[1]);
-   cartesian_to_spherical(T, normal_tangent_clear[2], normal_tangent_clear[3]);
+    cartesian_to_spherical(N, normal_tangent_clear[0], normal_tangent_clear[1]);
+    cartesian_to_spherical(T, normal_tangent_clear[2], normal_tangent_clear[3]);
 
-   auto &r = renderer();
-   r.reset_texture(0, renderstack::graphics::texture_target::texture_2d, nullptr);
-   r.reset_texture(1, renderstack::graphics::texture_target::texture_2d, nullptr);
-   r.reset_texture(2, renderstack::graphics::texture_target::texture_2d, nullptr);
-   r.reset_texture(3, renderstack::graphics::texture_target::texture_2d, nullptr);
-   r.reset_texture(4, renderstack::graphics::texture_target::texture_2d, nullptr);
+    auto &r = renderer();
+    r.reset_texture(0, renderstack::graphics::texture_target::texture_2d, nullptr);
+    r.reset_texture(1, renderstack::graphics::texture_target::texture_2d, nullptr);
+    r.reset_texture(2, renderstack::graphics::texture_target::texture_2d, nullptr);
+    r.reset_texture(3, renderstack::graphics::texture_target::texture_2d, nullptr);
+    r.reset_texture(4, renderstack::graphics::texture_target::texture_2d, nullptr);
 
-   //gl::clear_buffer_fv(GL_COLOR, 0, &emission_clear      [0]);
-   GLenum a = gl::check_framebuffer_status(GL_FRAMEBUFFER);
-   if (a != GL_FRAMEBUFFER_COMPLETE)
-      throw runtime_error("FBO is not complete");
+    //gl::clear_buffer_fv(GL_COLOR, 0, &emission_clear      [0]);
+    GLenum a = gl::check_framebuffer_status(GL_FRAMEBUFFER);
+    if (a != GL_FRAMEBUFFER_COMPLETE) {
+        throw runtime_error("FBO is not complete");
+    }
 
-   gl::clear_buffer_fv(GL_COLOR, 0, &normal_tangent_clear[0]);
-   gl::clear_buffer_fv(GL_COLOR, 1, &albedo_clear        [0]);
-   gl::clear_buffer_fv(GL_COLOR, 2, &material_clear      [0]);
-   gl::clear_buffer_fv(GL_DEPTH, 0, &one);
+    gl::clear_buffer_fv(GL_COLOR, 0, &normal_tangent_clear[0]);
+    gl::clear_buffer_fv(GL_COLOR, 1, &albedo_clear        [0]);
+    gl::clear_buffer_fv(GL_COLOR, 2, &material_clear      [0]);
+    gl::clear_buffer_fv(GL_DEPTH, 0, &one);
 }
 
 void deferred_renderer::geometry_pass(
@@ -501,13 +510,21 @@ void deferred_renderer::light_pass(
       switch (l->type())
       {
       case light_type::spot:
+      {
          if (use_stencil())
+         {
             if (used_stencil)
+            {
                t.execute(&m_light_with_stencil_test_render_states);
+            }
             else
+            {
                t.execute(&m_light_render_states);
+            }
+         }
          r.set_program(programs()->light_spot);
          break;
+      }
 
       case light_type::directional:
          if (use_stencil())
