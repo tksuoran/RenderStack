@@ -56,11 +56,11 @@ void main(void)
          float hv_clamped  = max(hv, 0.0);
          float ht          = dot(H - hn * N, T);
          float ht_clamped  = max(ht, 0.0);
-         float hn2         = hn_clamped * hn_clamped;
-         float ht2         = ht_clamped * ht_clamped;
+         float hn2         = hn * hn;
+         float ht2         = ht * ht;
          float aht_denom   = sqrt(p2 + one_minus_p2 * ht2);
          float gln_denom   = (r   + one_minus_r * ln);
-         float zhn0        = (1.0 - one_minus_r * hn_clamped2);
+         float zhn0        = (1.0 - one_minus_r * hn * hn2);
          float D           = (ln_clamped * r * p2) / (gvn_denom * gln_denom * zhn0 * zhn0 * aht_denom);
 
 #if defined(LIGHT_TYPE_SPOT)
@@ -82,8 +82,9 @@ void main(void)
          float light_visibility  = 1000.0;
          vec3  incident_radiance = lights.radiance * light_visibility * light_attenuation;
 
-         exitant_radiance += incident_radiance * C * ln_clamped;  //  diffuse
-         exitant_radiance += incident_radiance * S * D;           //  specular
+         //exitant_radiance += incident_radiance * C * ln_clamped;  //  diffuse
+         //exitant_radiance += incident_radiance * S * D;           //  specular
+         exitant_radiance += vec3(ln);
       }
    }
 

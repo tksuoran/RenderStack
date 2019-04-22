@@ -49,6 +49,7 @@ bool application::create_gl_window()
 
       // Youtube 720p = 1280 x 720
       // Youtube 480p = 854 x 480
+      ok = open(1280, 720, ss.str().c_str(), major, minor);
    }
 
    if (!ok)

@@ -128,7 +128,7 @@ void forward_renderer::render_pass(
 
    gl::clear_color(0.0f, 0.0f, 0.0f, 1.0f);
    gl::clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-   //gl::enable(GL_FRAMEBUFFER_SRGB);
+   gl::enable(GL_FRAMEBUFFER_SRGB);
 
    size_t light_index = 0;
    for (auto i = lights.cbegin(); i != lights.cend(); ++i)
@@ -197,5 +197,5 @@ void forward_renderer::render_pass(
 
       ++light_index;
    }
-   //glDisable(GL_FRAMEBUFFER_SRGB);
+   gl::disable(GL_FRAMEBUFFER_SRGB);
 }

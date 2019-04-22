@@ -115,8 +115,9 @@ vec3 evaluate_brdf(
 
          vec3  incident_radiance = lights.radiance * light_visibility * light_attenuation;
 
-         exitant_radiance += incident_radiance * C * ln; //  diffuse
-         exitant_radiance += incident_radiance * S * D;  //  specular
+         //exitant_radiance += incident_radiance * C * ln; //  diffuse
+         //exitant_radiance += incident_radiance * S * D;  //  specular
+         exitant_radiance += vec3(ln);
       }
    }
 
@@ -152,6 +153,9 @@ void main(void)
    );
 
    vec3  V                 = normalize(view_position_in_world - g_position);
+
+    L = normalize(L);
+    N = normalize(N);
 
    vec3 brdf = evaluate_brdf(g_albedo.xyz, g_material, N, T, B, L, V);
 
