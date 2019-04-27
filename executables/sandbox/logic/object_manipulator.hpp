@@ -6,10 +6,9 @@
 class object_manipulator
 {
 public:
-   object_manipulator();
+    object_manipulator();
 
 private:
 };
-
 
 #endif

@@ -150,8 +150,8 @@ protected:
 
 protected:
     unsigned char *begin_edit(uniform_buffer_usage buffer, std::size_t count);
-    void write(unsigned char *const dst, const float *const src, std::size_t byte_count);
-    void end_edit(uniform_buffer_usage buffer);
+    void           write(unsigned char *const dst, const float *const src, std::size_t byte_count);
+    void           end_edit(uniform_buffer_usage buffer);
 
     void update_models(std::vector<std::shared_ptr<model>> const & models,
                        std::shared_ptr<renderstack::scene::camera> camera);
@@ -181,8 +181,8 @@ private:
     bool        m_use_stencil;
     int         m_scale;
 
-    intptr_t    m_edit_start;
-    intptr_t    m_edit_byte_count;
+    intptr_t m_edit_start;
+    intptr_t m_edit_byte_count;
 };
 
 #endif

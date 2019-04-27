@@ -7,14 +7,10 @@
 class material_manager : public renderstack::toolkit::service
 {
 public:
-   material_manager();
-   /*virtual*/ ~material_manager();
+    material_manager();
+    /*virtual*/ ~material_manager();
 
-   /*virtual*/ void initialize_service();
-
+    /*virtual*/ void initialize_service();
 };
 
-
-
 #endif
-

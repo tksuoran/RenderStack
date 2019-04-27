@@ -20,7 +20,7 @@ struct bounding_box
     {
         return size() / 2.0f;
     }
-    
+
     inline glm::vec3 center()
     {
         return min + half_size();

@@ -1,8 +1,8 @@
 #ifndef netlib_polyhedron_hpp_parsers
 #define netlib_polyhedron_hpp_parsers
 
-#include "renderstack_toolkit/platform.hpp"
 #include "renderstack_geometry/geometry.hpp"
+#include "renderstack_toolkit/platform.hpp"
 #include <glm/glm.hpp>
 #include <memory>
 #include <string>
@@ -12,7 +12,7 @@
 class xml_polyhedron : public renderstack::geometry::geometry
 {
 public:
-   xml_polyhedron(std::string const &path);
+    xml_polyhedron(std::string const &path);
 };
 
 #endif

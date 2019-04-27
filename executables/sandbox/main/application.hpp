@@ -1,33 +1,45 @@
 #ifndef application_hpp
 #define application_hpp
 
-#include "renderstack_toolkit/platform.hpp"
-#include "renderstack_toolkit/window.hpp"
-#include "renderstack_toolkit/services.hpp"
-#include "main/screen.hpp"
 #include "main/game.hpp"
 #include "main/menu.hpp"
 #include "main/programs.hpp"
+#include "main/screen.hpp"
 #include "main/textures.hpp"
-#include <vector>
-#include <string>
+#include "renderstack_toolkit/platform.hpp"
+#include "renderstack_toolkit/services.hpp"
+#include "renderstack_toolkit/window.hpp"
 #include <memory>
+#include <string>
+#include <vector>
 
-namespace renderstack { namespace renderer { class renderer; } }
-namespace renderstack { namespace ui { class gui_renderer; } }
+namespace renderstack
+{
+namespace renderer
+{
+class renderer;
+}
+} // namespace renderstack
+namespace renderstack
+{
+namespace ui
+{
+class gui_renderer;
+}
+} // namespace renderstack
 
 class application
-:   public renderstack::toolkit::window
-,   public renderstack::toolkit::service
-,   public std::enable_shared_from_this<application>
+    : public renderstack::toolkit::window,
+      public renderstack::toolkit::service,
+      public std::enable_shared_from_this<application>
 {
 private:
-    renderstack::toolkit::services   m_services;
+    renderstack::toolkit::services m_services;
 
-    std::shared_ptr<screen>          m_screen;
-    std::shared_ptr<screen>          m_last_screen;
-    std::shared_ptr<game>            m_game;
-    std::shared_ptr<menu>            m_menu;
+    std::shared_ptr<screen> m_screen;
+    std::shared_ptr<screen> m_last_screen;
+    std::shared_ptr<game>   m_game;
+    std::shared_ptr<menu>   m_menu;
 
 public:
     application();

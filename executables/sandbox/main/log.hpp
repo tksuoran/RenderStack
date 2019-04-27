@@ -1,8 +1,8 @@
 #ifndef log_hpp
 #define log_hpp
 
-#include "renderstack_toolkit/platform.hpp"
 #include "renderstack_toolkit/log.hpp"
+#include "renderstack_toolkit/platform.hpp"
 
 extern renderstack::toolkit::log_category log_game;
 extern renderstack::toolkit::log_category log_menu;
