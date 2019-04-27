@@ -5,7 +5,9 @@
 #include "renderstack_ui/log.hpp"
 #include <glm/gtx/string_cast.hpp>
 
-// #define LOG_LAYOUT
+#define LOG_CATEGORY &log_layout
+
+#define LOG_LAYOUT 1
 
 namespace renderstack
 {
@@ -15,237 +17,257 @@ namespace ui
 using namespace std;
 using namespace glm;
 
-area::area(shared_ptr<class gui_renderer> renderer)
-    : m_renderer(renderer), m_style(renderer->default_style()), m_hidden(false), m_offset_pixels(glm::vec2(0.0f, 0.0f)), m_offset_self_size_relative(glm::vec2(0.0f, 0.0f)), m_offset_free_size_relative(glm::vec2(0.0f, 0.0f)), m_fill_base_pixels(glm::vec2(0.0f, 0.0f)), m_fill_free_size_relative(glm::vec2(0.0f, 0.0f)), m_parent(), m_draw_ordering(area_order::self_first), m_event_ordering(area_order::post_self), m_layout_style(area_layout_style::normal), m_layout_x_order(area_layout_order::none), m_layout_y_order(area_layout_order::none), m_link(), m_size(glm::vec2(0.0f, 0.0f)), m_rect(0.0f, 0.0f), m_in_rect(0.0f, 0.0f), m_clip_to_reference(true), m_in_draw(false)
-{
-}
-area::area(shared_ptr<class gui_renderer> renderer, shared_ptr<class style> style)
-    : m_renderer(renderer), m_style(style), m_hidden(false), m_offset_pixels(glm::vec2(0.0f, 0.0f)), m_offset_self_size_relative(glm::vec2(0.0f, 0.0f)), m_offset_free_size_relative(glm::vec2(0.0f, 0.0f)), m_fill_base_pixels(glm::vec2(0.0f, 0.0f)), m_fill_free_size_relative(glm::vec2(0.0f, 0.0f)), m_parent(), m_draw_ordering(area_order::self_first), m_event_ordering(area_order::post_self), m_layout_style(area_layout_style::normal), m_layout_x_order(area_layout_order::none), m_layout_y_order(area_layout_order::none), m_link(), m_size(glm::vec2(0.0f, 0.0f)), m_rect(0.0f, 0.0f), m_in_rect(0.0f, 0.0f), m_clip_to_reference(true), m_in_draw(false)
-{
-}
 
-area::area(
-    shared_ptr<class gui_renderer> renderer,
-    shared_ptr<class style>        style,
-    area_layout_order::value       layout_x_order,
-    area_layout_order::value       layout_y_order)
-    : m_renderer(renderer), m_style(style), m_hidden(false), m_offset_pixels(glm::vec2(0.0f, 0.0f)), m_offset_self_size_relative(glm::vec2(0.0f, 0.0f)), m_offset_free_size_relative(glm::vec2(0.0f, 0.0f)), m_fill_base_pixels(glm::vec2(0.0f, 0.0f)), m_fill_free_size_relative(glm::vec2(0.0f, 0.0f)), m_parent(), m_draw_ordering(area_order::self_first), m_event_ordering(area_order::separate), m_layout_style(area_layout_style::normal), m_layout_x_order(layout_x_order), m_layout_y_order(layout_y_order), m_link(), m_size(glm::vec2(0.0f, 0.0f)), m_rect(0.0f, 0.0f), m_in_rect(0.0f, 0.0f), m_clip_to_reference(true), m_in_draw(false)
-{
-}
-
-area::~area()
-{
-}
-
-shared_ptr<class area> area::add(shared_ptr<class area> area)
+Area *Area::add(Area *area)
 {
     if (m_in_draw)
+    {
         m_add_list.push_back(area);
+    }
     else
     {
-        m_children.push_back(area);
-        area->set_parent(shared_from_this());
+        children.push_back(area);
+        area->parent = this;
     }
     return area;
 }
-shared_ptr<class area> area::remove(shared_ptr<class area> a)
+
+Area *Area::remove(Area *area)
 {
-    if (m_in_draw)
-        m_remove_list.push_back(a);
-    else
+    if (area != nullptr)
     {
-        m_children.erase(
-            std::remove(m_children.begin(), m_children.end(), a),
-            m_children.end());
-        a->reset_parent();
+        if (m_in_draw)
+        {
+            m_remove_list.push_back(area);
+        }
+        else
+        {
+            children.erase(std::remove(children.begin(), children.end(), area),
+                        children.end());
+            area->parent = nullptr;
+        }
     }
-    return a;
+    return area;
 }
-shared_ptr<class area> area::get_hit(glm::vec2 hit_position)
+
+Area *Area::get_hit(glm::vec2 hit_position)
 {
-    if (m_hidden)
-        return nullptr;
-
-    if (m_event_ordering == area_order::self_first)
-        if (m_rect.hit(hit_position))
-            return shared_from_this();
-
-    for (auto child = m_children.cbegin(); child != m_children.cend(); ++child)
+    if (hidden)
     {
-        auto hit = (*child)->get_hit(hit_position);
-        if (hit != nullptr)
-            return hit;
+        return nullptr;
     }
 
-    if (m_event_ordering == area_order::post_self)
+    if (event_ordering == Order::self_first)
     {
-        if (m_rect.hit(hit_position))
-            return shared_from_this();
+        if (rect.hit(hit_position))
+        {
+            return this;
+        }
+    }
+
+    for (auto child : children)
+    {
+        auto hit = child->get_hit(hit_position);
+        if (hit != nullptr)
+        {
+            return hit;
+        }
+    }
+
+    if (event_ordering == Order::post_self)
+    {
+        if (rect.hit(hit_position))
+        {
+            return this;
+        }
     }
 
     return nullptr;
 }
 
-void area::draw_self(ui_context &context)
+void Area::draw_self(ui_context &context)
 {
-    (void)context;
+    static_cast<void>(context);
 }
-void area::draw(ui_context &context)
+
+void Area::draw(ui_context &context)
 {
-    if (m_hidden)
+    if (hidden)
+    {
         return;
+    }
 
     m_in_draw = true;
-    if (m_draw_ordering == area_order::self_first)
+    if (draw_ordering == Order::self_first)
+    {
         draw_self(context);
+    }
 
-    for (auto child = m_children.cbegin(); child != m_children.cend(); ++child)
-        (*child)->draw(context);
+    for (auto child : children)
+    {
+        child->draw(context);
+    }
 
-    if (m_draw_ordering == area_order::post_self)
+    if (draw_ordering == Order::post_self)
+    {
         draw_self(context);
+    }
 
     m_in_draw = false;
 
-    for (auto i = m_add_list.cbegin(); i != m_add_list.cend(); ++i)
-        add(*i);
+    for (auto i : m_add_list)
+    {
+        add(i);
+    }
 
-    for (auto i = m_remove_list.cbegin(); i != m_remove_list.cend(); ++i)
-        remove(*i);
+    for (auto i : m_remove_list)
+    {
+        remove(i);
+    }
 
     m_add_list.clear();
     m_remove_list.clear();
 }
 
 //  Layout
-#if 1
-void area::begin_size(glm::vec2 const &free_size_reference)
-{
-#    if defined(LOG_LAYOUT)
-    log() << name() << " area::begin_size() reference = " << to_string(free_size_reference) << '\n';
-    log().flush();
-#    endif
 
-    m_size = m_fill_base_pixels + free_size_reference * m_fill_free_size_relative;
-    m_size = glm::round(m_size);
-
-#    if defined(LOG_LAYOUT)
-    log() << name() << " size = " << to_string(size()) << '\n';
-    log().flush();
-#    endif
-}
-void area::call_size(shared_ptr<area> area)
+void Area::begin_size(glm::vec2 free_size_reference)
 {
-#    if defined(LOG_LAYOUT)
-    log() << name() << " area::call_size(" << area->name() << ")\n";
-    log().flush();
-#    endif
+    const char *const name_ = name.c_str();
+    slog_trace("%s Area::begin_size() reference = %f, %f\n", name_, free_size_reference.x, free_size_reference.y);
 
-    area->do_size(m_size);
+    size = fill_base_pixels + free_size_reference * fill_free_size_relative;
+    size = glm::round(size);
+
+    log_trace("%s size = %f, %f\n", name_, size.x, size.y);
 }
-void area::end_size()
+
+void Area::call_size(Area *area)
 {
-#    if defined(LOG_LAYOUT)
-    log() << name() << " area::end_size() size = " << to_string(size()) << '\n';
-    log().flush();
-#    endif
+    const char *const name_ = name.c_str();
+    const char *const area_name = area ? area->name.c_str() : "(nullptr)";
+    slog_trace("%s Area::call_size(%s)\n", name_, area_name);
+
+    if (area != nullptr)
+    {
+        area->do_size(size);
+    }
 }
+
+void Area::end_size()
+{
+    assert_size_valid();
+
+    const char *const name_ = name.c_str();
+    slog_trace("%s Area::end_size() size = %f, %f\n", name_, size.x, size.y);
+}
+
 // Do not make this virtual.
 // Derived classes should override BeginSize() instead
-glm::vec2 const &area::do_size(glm::vec2 const &free_size_reference)
+glm::vec2 Area::do_size(glm::vec2 free_size_reference)
 {
-#    if defined(LOG_LAYOUT)
-    log() << m_name << " area::do_size() reference = " << to_string(free_size_reference) << '\n';
-    log().flush();
-#    endif
+    const char *const name_ = name.c_str();
+    slog_trace("%s Area::do_size() reference = %f, %f", name_, free_size_reference.x, free_size_reference.y);
 
     begin_size(free_size_reference);
-    for (auto child = m_children.cbegin(); child != m_children.cend(); ++child)
-        call_size(*child);
+    for (auto child : children)
+    {
+        call_size(child);
+    }
 
     end_size();
 
-#    if defined(LOG_LAYOUT)
-    log() << "  " << name() << " size = " << to_string(size()) << '\n';
-    log().flush();
-#    endif
+    assert_size_valid();
 
-    return m_size;
+    log_trace("  %s size = %f, %f\n", name_, size.x, size.y);
+
+    return size;
 }
-void area::begin_place(rectangle const &reference, glm::vec2 const &container_grow_direction)
-{
-    (void)container_grow_direction; // TODO
-#    if defined(LOG_LAYOUT)
-    log() << name() << " area::begin_place() reference = " << to_string(reference.min()) << ".." << to_string(reference.max()) << '\n';
-    log() << "  " << name() << " size = " + to_string(size()) << '\n';
-    log().flush();
-#    endif
 
-    switch (m_layout_style)
+void Area::begin_place(Rectangle reference, glm::vec2 container_grow_direction)
+{
+    const char *const name_ = name.c_str();
+    static_cast<void>(container_grow_direction); // TODO
+    slog_trace("%s Area::begin_place() reference = (%f, %f)..(%f, %f)\n",
+               name_,
+               reference.min().x, reference.min().y,
+               reference.max().x, reference.max().y);
+    log_trace("  %s size = %f, %f\n", name_, size.x, size.y);
+
+    switch (layout_style)
     {
-        case area_layout_style::normal:
+        case Flow_mode::normal:
+        {
             break;
-        case area_layout_style::extend_horizontal:
-            m_size.x = reference.size().x;
+        }
+
+        case Flow_mode::extend_horizontal:
+        {
+            size.x = reference.size().x;
             break;
-        case area_layout_style::extend_vertical:
-            m_size.y = reference.size().y;
+        }
+
+        case Flow_mode::extend_vertical:
+        {
+            size.y = reference.size().y;
             break;
+        }
     }
 
-#    if defined(LOG_LAYOUT)
-    log() << "  " << name() << " size = " + to_string(size()) << " after layout style\n";
-    log().flush();
-#    endif
+    log_trace("  %s size = %f, %f after layout style\n", name_, size.x, size.y);
 
-    m_rect.min() =
-        reference.min() +
-        offset_pixels() +
-        reference.size() * offset_free_size_relative() +
-        size() * offset_self_size_relative();
+    rect.min() = reference.min() +
+                 offset_pixels +
+                 reference.size() * offset_free_size_relative +
+                 size * offset_self_size_relative;
 
-    m_rect.max() = m_rect.min() + size();
+    rect.max() = rect.min() + size;
 
-    m_rect.min() = glm::round(m_rect.min());
-    m_rect.max() = glm::round(m_rect.max());
+    rect.min() = glm::round(rect.min());
+    rect.max() = glm::round(rect.max());
 
-    if (m_clip_to_reference)
-        m_rect.clip_to(reference);
+    if (clip_to_reference)
+    {
+        rect.clip_to(reference);
+    }
 
-    m_in_rect = m_rect.shrink(m_style->padding());
+    in_rect = rect.shrink(style.padding);
 }
-void area::call_place(shared_ptr<class area> area)
+
+void Area::call_place(Area *area)
 {
-#    if defined(LOG_LAYOUT)
-    log() << name() << " area::call_place(" + area->name() << ")\n";
-    log().flush();
-#    endif
+    const char *const name_ = name.c_str();
+    const char *const area_name = area ? area->name.c_str() : "(nullptr)";
+    assert(area != nullptr);
 
-    area->do_place(m_rect, glm::vec2(1.0f, 1.0f));
+    slog_trace("%s Area::call_place(%s)\n", name_, area_name);
+
+    area->do_place(rect, glm::vec2(1.0f, 1.0f));
 }
-void area::end_place()
+
+void Area::end_place()
 {
 }
+
 // Do not make this virtual.
 // Derived classes should override BeginPlace() instead
-glm::vec2 const &area::do_place(rectangle const &reference_location, glm::vec2 const &grow_direction)
+glm::vec2 Area::do_place(Rectangle reference_location, glm::vec2 grow_direction)
 {
-#    if defined(LOG_LAYOUT)
-    log() << name() << " area::do_place() reference size = " << to_string(reference_location.size()) << '\n';
-    log() << "  " << name() << " size = " + to_string(size()) << '\n';
-    log().flush();
-#    endif
+    const char *const name_ = name.c_str();
+    slog_trace("%s Area::do_place() reference size = %f, %f\n", name_, reference_location.size().x, reference_location.size().y);
+    log_trace("  %s size = %f, %f\n", name_, size.x, size.y);
 
     begin_place(reference_location, grow_direction);
-    for (auto child = m_children.cbegin(); child != m_children.cend(); ++child)
-        call_place(*child);
+    for (auto child : children)
+    {
+        call_place(child);
+    }
     //string name = area.Name != null ? area.Name : "";
 
     end_place();
-    return m_size;
+    return size;
 }
 
-#endif // layout #if 1
 
 } // namespace ui
 } // namespace renderstack

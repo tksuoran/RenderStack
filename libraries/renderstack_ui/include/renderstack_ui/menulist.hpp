@@ -12,26 +12,32 @@ namespace renderstack
 namespace ui
 {
 
-class menulist : public dock
+class Menulist : public Dock
 {
 public:
-    menulist(
-        std::shared_ptr<class gui_renderer> renderer,
-        std::shared_ptr<class style>        style,
-        orientation::value                  orientation,
-        area_layout_style::value            child_layout_style = area_layout_style::normal)
-        : dock(renderer, style, orientation, child_layout_style), m_ninepatch(renderer, style->ninepatch_style())
+    Menulist(Gui_renderer &renderer,
+             Style        &style,
+             Orientation  orientation,
+             Flow_mode    child_layout_style = Flow_mode::normal)
+        : Dock(renderer, style, orientation, child_layout_style)
     {
+        if (style.ninepatch_style != nullptr)
+        {
+            m_ninepatch = std::make_unique<Ninepatch>(renderer, *style.ninepatch_style);
+        }
     }
-    virtual ~menulist() {}
+
+    virtual ~Menulist() = default;
 
     void update();
-    void begin_place(rectangle const &reference, glm::vec2 const &grow_direction);
-    void draw_self(ui_context &context);
+
+    void begin_place(Rectangle reference, glm::vec2 grow_direction) override;
+
+    void draw_self(ui_context &context) override;
 
 private:
-    glm::mat4       m_background_frame;
-    class ninepatch m_ninepatch;
+    glm::mat4                  m_background_frame;
+    std::unique_ptr<Ninepatch> m_ninepatch;
 };
 
 } // namespace ui

@@ -1,6 +1,4 @@
 #include "renderstack_graphics/samplers.hpp"
-#include "renderstack_graphics/uniform.hpp"
-#include "renderstack_toolkit/platform.hpp"
 #include <sstream>
 #include <stdexcept>
 
@@ -13,22 +11,24 @@ using namespace std;
 
 static char const *const c_str(gl::active_uniform_type::value type);
 
-vector<shared_ptr<uniform>> const &samplers::sampler_uniforms()
+Samplers::Uniform_collection const &Samplers::sampler_uniforms()
 {
     return m_samplers;
 }
 
-shared_ptr<uniform> samplers::sampler(string const &key) const
+const Uniform *Samplers::sampler(const std::string &key) const
 {
-    auto i = m_sampler_dictionary.find(key);
-    if (i != m_sampler_dictionary.cend())
-        return i->second;
+    auto i = m_samplers.find(key);
+    if (i != m_samplers.cend())
+    {
+        return &(i->second);
+    }
     return nullptr;
 }
 
-void samplers::seal()
+void Samplers::seal()
 {
-    m_textures.reserve(m_sampler_dictionary.size());
+    m_textures.reserve(m_samplers.size());
 }
 
 static char const *const c_str(gl::active_uniform_type::value type)
@@ -80,24 +80,24 @@ static char const *const c_str(gl::active_uniform_type::value type)
     }
 }
 
-shared_ptr<uniform> samplers::add(string const &name, gl::active_uniform_type::value type, shared_ptr<class sampler> sampler)
+Uniform &Samplers::add(const std::string &name, gl::active_uniform_type::value type, Sampler *sampler)
 {
-    auto uniform = make_shared<class uniform>(name, -1, 1, type);
-    uniform->set_sampler(sampler);
-    uniform->set_texture_unit_index(static_cast<int>(m_samplers.size()));
-    m_samplers.push_back(uniform);
-    m_sampler_dictionary[name] = uniform;
-    return uniform;
+    //auto uniform = make_shared<Uniform>(name, -1, 1, type);
+    //uniform->set_sampler(sampler);
+    //uniform->set_texture_unit_index(static_cast<int>(m_samplers.size()));
+    auto i = m_samplers.emplace(std::piecewise_construct, 
+                                std::forward_as_tuple(name),
+                                std::forward_as_tuple(name, sampler, m_samplers.size(), type));
+    return i.first->second;
 }
 
-string samplers::str() const
+string Samplers::str() const
 {
     stringstream sb;
-    for (auto i = m_samplers.cbegin(); i != m_samplers.cend(); ++i)
+    for (auto &i : m_samplers)
     {
-        auto &uniform = *i;
-
-        sb << "uniform " << c_str(uniform->type()) << " " << uniform->name() << ";\n";
+        auto &uniform = i.second;
+        sb << "uniform " << c_str(uniform.type()) << " " << uniform.name() << ";\n";
     }
     return sb.str();
 }

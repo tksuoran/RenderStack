@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
     try
 #endif
     {
-        g_application = make_shared<application>();
+        g_application = make_shared<Application>();
         if (g_application->on_load())
         {
             g_application->run();

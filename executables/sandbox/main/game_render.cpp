@@ -46,9 +46,9 @@ using namespace gl;
 using namespace glm;
 using namespace std;
 
-void game::render_meshes()
+void Game::render_meshes()
 {
-    slog_trace("game::render_meshes()\n");
+    slog_trace("Game::render_meshes()\n");
 
     if (m_debug_renderer)
     {
@@ -69,19 +69,17 @@ void game::render_meshes()
     if (true && m_forward && m_forward_renderer)
     {
         m_forward_renderer->set_max_lights(m_max_lights);
-        m_forward_renderer->render_pass(
-            m_scene_manager->materials(),
-            m_scene_manager->models(),
-            m_scene_manager->lights(),
-            m_scene_manager->camera());
+        m_forward_renderer->render_pass(m_scene_manager->materials(),
+                                        m_scene_manager->models(),
+                                        m_scene_manager->lights(),
+                                        m_scene_manager->camera());
     }
 
     if (true && m_debug_lights && m_light_debug_renderer)
     {
         m_light_debug_renderer->set_max_lights(m_max_lights);
-        m_light_debug_renderer->light_pass(
-            m_scene_manager->lights(),
-            m_scene_manager->camera());
+        m_light_debug_renderer->light_pass(m_scene_manager->lights(),
+                                           m_scene_manager->camera());
     }
 
     if (true && m_debug_renderer)
@@ -92,9 +90,9 @@ void game::render_meshes()
     }
 }
 
-void game::render()
+void Game::render()
 {
-    slog_trace("game::render()\n");
+    slog_trace("Game::render()\n");
 
     int iw = m_application->width();
     int ih = m_application->height();
@@ -160,7 +158,7 @@ void game::render()
 
 // ID render pass
 #if 0
-   shared_ptr<model> hover_model;
+   shared_ptr<Model> hover_model;
    {
       double dx;
       double dy;
@@ -227,11 +225,11 @@ void game::render()
       {
          //auto model = *i;
          auto model = hover_model;
-         auto geometry_mesh = model->geometry_mesh();
+         auto Geometry_mesh = model->Geometry_mesh();
          mat4 world_from_model = model->frame()->world_from_local().matrix();
 
          m_debug_renderer->set_model(world_from_model);
-         m_debug_renderer->add_box(geometry_mesh->min(), geometry_mesh->max());
+         m_debug_renderer->add_box(Geometry_mesh->min(), Geometry_mesh->max());
       }
       m_debug_renderer->end_edit();
       m_debug_renderer->render();

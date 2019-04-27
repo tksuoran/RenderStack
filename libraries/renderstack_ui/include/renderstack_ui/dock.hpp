@@ -11,57 +11,54 @@ namespace renderstack
 namespace ui
 {
 
-namespace orientation
-{
-enum value
-{
-    horizontal,
-    vertical
-};
-}
-
-class dock : public area
+class Dock : public Area
 {
 public:
-    dock(
-        std::shared_ptr<class gui_renderer> renderer,
-        std::shared_ptr<class style>        style,
-        orientation::value                  orientation,
-        area_layout_style::value            child_layout_style = area_layout_style::normal);
-    virtual ~dock()
-    {
-    }
+    Dock(Gui_renderer &renderer,
+         Style        &style,
+         Orientation  orientation,
+         Flow_mode    child_layout_style = Flow_mode::normal);
 
-    orientation::value orientation() const
+    virtual ~Dock() = default;
+
+    Orientation orientation() const
     {
         return m_orientation;
     }
-    void set_orientation(orientation::value value)
+
+    void set_orientation(Orientation value)
     {
         m_orientation = value;
     }
-    area_layout_style::value child_layout_style() const
+
+    Area::Flow_mode child_layout_style() const
     {
         return m_child_layout_style;
     }
-    void set_child_layout_style(area_layout_style::value value)
+
+    void set_child_layout_style(Area::Flow_mode value)
     {
         m_child_layout_style = value;
     }
 
-    void                        begin_size(glm::vec2 const &free_size_reference);
-    void                        call_size(std::shared_ptr<class area> area);
-    std::shared_ptr<class area> add(std::shared_ptr<class area> area);
-    void                        end_size();
-    void                        begin_place(rectangle const &reference, glm::vec2 const &container_grow_direction);
-    void                        call_place(std::shared_ptr<class area> area);
+    void begin_size(glm::vec2 free_size_reference) override;
+
+    void call_size(Area *area) override;
+
+    Area *add(Area *area) override;
+
+    void end_size() override;
+
+    void begin_place(Rectangle reference, glm::vec2 container_grow_direction) override;
+
+    void call_place(Area *area) override;
 
 private:
-    orientation::value       m_orientation;
-    glm::vec2                m_cursor_start;
-    glm::vec2                m_cursor_end;
-    glm::vec2                m_grow_direction;
-    area_layout_style::value m_child_layout_style;
+    Orientation     m_orientation;
+    glm::vec2       m_cursor_start;
+    glm::vec2       m_cursor_end;
+    glm::vec2       m_grow_direction;
+    Area::Flow_mode m_child_layout_style;
 };
 
 } // namespace ui

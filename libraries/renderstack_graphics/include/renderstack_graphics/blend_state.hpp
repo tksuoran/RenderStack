@@ -11,63 +11,34 @@ namespace renderstack
 namespace graphics
 {
 
-class blend_state_component
+struct Blend_state_component
 {
-public:
-    blend_state_component();
-
-    gl::blend_equation_mode::value  equation_mode() const;
-    gl::blending_factor_src::value  source_factor() const;
-    gl::blending_factor_dest::value destination_factor() const;
-
-    void set_equation_mode(gl::blend_equation_mode::value value);
-    void set_source_factor(gl::blending_factor_src::value value);
-    void set_destination_factor(gl::blending_factor_dest::value value);
-
     void reset();
 
-private:
-    gl::blend_equation_mode::value  m_equation_mode;
-    gl::blending_factor_src::value  m_source_factor;
-    gl::blending_factor_dest::value m_destination_factor;
+    gl::blend_equation_mode::value  equation_mode{gl::blend_equation_mode::func_add};
+    gl::blending_factor_src::value  source_factor{gl::blending_factor_src::one};
+    gl::blending_factor_dest::value destination_factor{gl::blending_factor_dest::one};
 };
 
-class blend_state
+struct Blend_state
 {
-public:
-    blend_state();
-
     void reset();
 
-    bool                         enabled() const;
-    blend_state_component const &rgb() const;
-    blend_state_component &      rgb();
-    blend_state_component const &alpha() const;
-    blend_state_component &      alpha();
-    glm::vec4 const &            color() const;
-    glm::vec4 &                  color();
-
-    void set_enabled(bool value);
-    void set_color(glm::vec4 const &value);
-
-private:
-    bool                  m_enabled;
-    blend_state_component m_rgb;
-    blend_state_component m_alpha;
-    glm::vec4             m_color;
+    bool                  enabled{false};
+    Blend_state_component rgb;
+    Blend_state_component alpha;
+    glm::vec4             color{0.0f, 0.0f, 0.0f, 0.0f};
 };
 
-class blend_state_tracker
+class Blend_state_tracker
 {
 public:
-    blend_state_tracker();
-
     void reset();
-    void execute(blend_state const *state);
+    void execute(Blend_state const *state);
 
 private:
-    blend_state const *m_last;
-    blend_state        m_cache;
+    Blend_state const *m_last{nullptr};
+    Blend_state        m_cache;
 };
 
 } // namespace graphics

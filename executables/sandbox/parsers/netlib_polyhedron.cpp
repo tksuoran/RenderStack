@@ -10,14 +10,14 @@ using namespace std;
 using namespace glm;
 
 template <typename T>
-T string_to_number(string const &text)
+T string_to_number(const std::string &text)
 {
     stringstream ss(text);
     T            result;
     return ss >> result ? result : 0;
 }
 
-bool replace(string &str, string const &from, string const &to)
+bool replace(string &str, const std::string &from, const std::string &to)
 {
     size_t start_pos = str.find(from);
     if (start_pos == string::npos)
@@ -27,7 +27,7 @@ bool replace(string &str, string const &from, string const &to)
     return true;
 }
 
-bool netlib_polyhedron::seek(string const &label)
+bool netlib_polyhedron::seek(const std::string &label)
 {
     auto fi = m_text.find(label, 0);
     if (fi == string::npos)
@@ -302,7 +302,7 @@ void netlib_polyhedron::parse_vertices()
     }
 }
 
-netlib_polyhedron::netlib_polyhedron(string const &path)
+netlib_polyhedron::netlib_polyhedron(const std::string &path)
 {
     m_text = renderstack::toolkit::read(path);
     replace(m_text, "\r\n", "\n");

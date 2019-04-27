@@ -2,7 +2,7 @@
 #define area_hpp_renderstack_ui
 
 #include "renderstack_toolkit/enable_shared_from_this.hpp"
-#include "renderstack_toolkit/platform.hpp"
+#include "renderstack_ui/gui_renderer.hpp"
 #include "renderstack_ui/rectangle.hpp"
 #include "renderstack_ui/style.hpp"
 #include <algorithm>
@@ -23,266 +23,134 @@ struct ui_context
     bool      mouse_buttons[3]; // 0 left 1 right 2 middle
 };
 
-namespace area_order
-{
-enum value
-{
-    self_first, //  Draw self before children
-    post_self,  //  Draw self last, after children
-    separate    //  Separate DrawSelf() call
-};
-}
+class Gui_renderer;
 
-namespace area_layout_style
-{
-enum value
-{
-    normal,
-    extend_horizontal,
-    extend_vertical
-};
-}
-
-namespace area_layout_order
-{
-enum value
-{
-    increasing,
-    decreasing,
-    none
-};
-}
-
-class gui_renderer;
-
-class area : public renderstack::toolkit::enable_shared_from_this<area>
+class Area
 {
 public:
-    area(std::shared_ptr<class gui_renderer> renderer);
-    area(std::shared_ptr<class gui_renderer> renderer, std::shared_ptr<class style> style);
-    area(std::shared_ptr<class gui_renderer> renderer, std::shared_ptr<class style> style, area_layout_order::value layout_x_order, area_layout_order::value layout_y_order);
-    virtual ~area();
+    using Collection = std::vector<Area*>;
 
-    typedef std::vector<std::shared_ptr<area>> area_collection;
+    enum class Orientation
+    {
+        horizontal,
+        vertical
+    };
 
-public:
-    std::string const &name() const
+    enum class Flow_mode
     {
-        return m_name;
-    }
-    void set_name(std::string const &value)
+        normal,
+        extend_horizontal,
+        extend_vertical
+    };
+
+    enum class Flow_direction
     {
-        m_name = value;
-    }
-    bool hidden() const
+        increasing,
+        decreasing,
+        none
+    };
+
+    enum class Order
     {
-        return m_hidden;
-    }
-    void set_hidden(bool value)
+        self_first, //  Draw self before children
+        post_self,  //  Draw self last, after children
+        separate    //  Separate DrawSelf() call
+    };
+
+    Area(Gui_renderer &renderer)
+        : renderer(renderer)
+        , style(renderer.default_style())
     {
-        m_hidden = value;
-    }
-    glm::vec2 const &offset_pixels() const
-    {
-        return m_offset_pixels;
-    }
-    void set_offset_pixels(glm::vec2 const &value)
-    {
-        m_offset_pixels = value;
-    }
-    glm::vec2 const &offset_self_size_relative() const
-    {
-        return m_offset_self_size_relative;
-    }
-    void set_offset_self_size_relative(glm::vec2 const &value)
-    {
-        m_offset_self_size_relative = value;
-    }
-    glm::vec2 const &offset_free_size_relative() const
-    {
-        return m_offset_free_size_relative;
-    }
-    void set_offset_free_size_relative(glm::vec2 const &value)
-    {
-        m_offset_free_size_relative = value;
-    }
-    glm::vec2 const &fill_base_pixels() const
-    {
-        return m_fill_base_pixels;
-    }
-    void set_fill_base_pixels(glm::vec2 const &value)
-    {
-        m_fill_base_pixels = value;
-    }
-    glm::vec2 const &fill_free_size_relative() const
-    {
-        return m_fill_free_size_relative;
-    }
-    void fill_free_size_relative(glm::vec2 const &value)
-    {
-        m_fill_free_size_relative = value;
-    }
-    glm::vec2 const &size() const
-    {
-        return m_size;
-    }
-    glm::vec2 &size()
-    {
-        return m_size;
-    }
-    void set_size(glm::vec2 const &value)
-    {
-        m_size = value;
-    }
-    rectangle const &rect() const
-    {
-        return m_rect;
-    }
-    rectangle const &in_rect() const
-    {
-        return m_in_rect;
-    }
-    area_collection const &children() const
-    {
-        return m_children;
-    }
-    bool clip_to_reference() const
-    {
-        return m_clip_to_reference;
-    }
-    void set_clip_to_reference(bool value)
-    {
-        m_clip_to_reference = value;
-    }
-    std::weak_ptr<area> link() const
-    {
-        return m_link;
-    }
-    void set_link(std::weak_ptr<area> value)
-    {
-        m_link = value;
-    }
-    std::weak_ptr<area> parent() const
-    {
-        return m_parent;
-    }
-    void set_parent(std::weak_ptr<area> value)
-    {
-        m_parent = value;
-    }
-    void reset_parent()
-    {
-        m_parent.reset();
-    }
-    area_order::value draw_ordering() const
-    {
-        return m_draw_ordering;
-    }
-    void set_draw_ordering(area_order::value value)
-    {
-        m_draw_ordering = value;
-    }
-    area_order::value event_ordering() const
-    {
-        return m_event_ordering;
-    }
-    void set_event_ordering(area_order::value value)
-    {
-        m_event_ordering = value;
-    }
-    area_layout_order::value layout_x_order() const
-    {
-        return m_layout_x_order;
-    }
-    area_layout_order::value layout_y_order() const
-    {
-        return m_layout_y_order;
-    }
-    area_layout_style::value layout_style() const
-    {
-        return m_layout_style;
-    }
-    void set_layout_style(area_layout_style::value value)
-    {
-        m_layout_style = value;
-    }
-    std::shared_ptr<class style> style() const
-    {
-        return m_style;
-    }
-    void set_style(std::shared_ptr<class style> value)
-    {
-        m_style = value;
+
     }
 
-protected:
-    std::shared_ptr<class renderstack::ui::gui_renderer> renderer()
+    Area(Gui_renderer &renderer, Style &style)
+        : renderer(renderer)
+        , style(style)
     {
-        return m_renderer;
-    }
-    rectangle &rect()
-    {
-        return m_rect;
-    }
-    void set_rect(rectangle const &value)
-    {
-        m_rect = value;
-    }
-    void update_in_rect()
-    {
-        m_in_rect = rect().shrink(style()->padding());
+
     }
 
-public:
-    virtual std::shared_ptr<class area> add(std::shared_ptr<class area> area);
-    std::shared_ptr<class area>         remove(std::shared_ptr<class area> a);
-    std::shared_ptr<class area>         get_hit(glm::vec2 hit_position);
+    Area(Gui_renderer &renderer, Style &style, Flow_direction layout_x_order, Flow_direction layout_y_order)
+        : renderer(renderer)
+        , style(style)
+        , layout_x_order(layout_x_order)
+        , layout_y_order(layout_y_order)
+    {
+
+    }
+
+    virtual ~Area() = default;
+
+    virtual Area *add(Area *area);
+
+    Area *remove(Area *area);
+    
+    Area *get_hit(glm::vec2 hit_position);
 
     virtual void draw_self(ui_context &context);
-    void         draw(ui_context &context);
+    
+    void draw(ui_context &context);
 
-    //  Layout
-    virtual void begin_size(glm::vec2 const &free_size_reference);
-    virtual void call_size(std::shared_ptr<area> area);
+    // Layout
+    virtual void begin_size(glm::vec2 free_size_reference);
+
+    virtual void call_size(Area *area);
+
     virtual void end_size();
+
     // Do not make this virtual.
     // Derived classes should override begin_size() instead
-    glm::vec2 const &do_size(glm::vec2 const &free_size_reference);
+    glm::vec2 do_size(glm::vec2 free_size_reference);
 
-    virtual void begin_place(rectangle const &reference, glm::vec2 const &container_grow_direction);
-    virtual void call_place(std::shared_ptr<class area> area);
+    virtual void begin_place(Rectangle reference, glm::vec2 container_grow_direction);
+
+    virtual void call_place(Area *area);
+
     virtual void end_place();
+
     // Do not make this virtual.
     // Derived classes should override begin_place() instead
-    glm::vec2 const &do_place(rectangle const &reference_location, glm::vec2 const &grow_direction);
+    glm::vec2 do_place(Rectangle reference_location, glm::vec2 grow_direction);
+
+    std::string    name;
+    Gui_renderer   &renderer;
+    Area           *parent{nullptr};
+    Area           *link{nullptr};
+    const Style    &style;
+    bool           hidden{false};
+    bool           clip_to_reference{true};
+    glm::vec2      offset_pixels{0.0f};
+    glm::vec2      offset_self_size_relative{0.0f};
+    glm::vec2      offset_free_size_relative{0.0f};
+    glm::vec2      fill_base_pixels{0.0f};
+    glm::vec2      fill_free_size_relative{0.0f};
+    glm::vec2      size{0.0f};
+    Rectangle      rect;
+    Rectangle      in_rect;
+    Order          draw_ordering{Order::self_first};
+    Order          event_ordering{Order::post_self};
+    Flow_mode      layout_style{Flow_mode::normal};
+    Flow_direction layout_x_order{Flow_direction::none};
+    Flow_direction layout_y_order{Flow_direction::none};
+    Collection     children;
+
+protected:
+    void update_in_rect()
+    {
+        in_rect = rect.shrink(style.padding);
+    }
+
+    inline void assert_size_valid()
+    {
+        assert(std::isfinite(size.x));
+        assert(std::isfinite(size.y));
+    }
 
 private:
-    std::string m_name;
-    std::shared_ptr<class renderstack::ui::gui_renderer>
-        m_renderer;
-    std::shared_ptr<class style> m_style;
-    bool                         m_hidden;
-    glm::vec2                    m_offset_pixels;
-    glm::vec2                    m_offset_self_size_relative;
-    glm::vec2                    m_offset_free_size_relative;
-    glm::vec2                    m_fill_base_pixels;
-    glm::vec2                    m_fill_free_size_relative;
-    std::weak_ptr<class area>    m_parent;
-    area_collection              m_children;
-    area_order::value            m_draw_ordering;
-    area_order::value            m_event_ordering;
-    area_layout_style::value     m_layout_style;
-    area_layout_order::value     m_layout_x_order;
-    area_layout_order::value     m_layout_y_order;
-    std::weak_ptr<class area>    m_link;
-    glm::vec2                    m_size;
-    rectangle                    m_rect;
-    rectangle                    m_in_rect;
-    bool                         m_clip_to_reference;
-
-    bool            m_in_draw;
-    area_collection m_add_list;
-    area_collection m_remove_list;
+    bool       m_in_draw{false};
+    Collection m_add_list;
+    Collection m_remove_list;
 };
 
 } // namespace ui

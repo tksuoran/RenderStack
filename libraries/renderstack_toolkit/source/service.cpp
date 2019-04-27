@@ -8,12 +8,8 @@ namespace renderstack
 namespace toolkit
 {
 
-service::service(string const &name)
+service::service(const std::string &name)
     : m_name(name), m_initialized(false), m_is_registered(false)
-{
-}
-
-service::~service()
 {
 }
 

@@ -22,66 +22,76 @@ using namespace renderstack::mesh;
 using namespace std;
 using namespace glm;
 
-color_picker::color_picker(
-    shared_ptr<class gui_renderer> gui_renderer,
-    shared_ptr<class style>        style)
-    : area(gui_renderer, style), m_ninepatch(gui_renderer, style->ninepatch_style()), m_size(251.0f), m_h(0.0f), m_s(1.0f), m_v(1.0f)
+Color_picker::Color_picker(Gui_renderer &gui_renderer,
+                           Style        &style)
+    : Area(gui_renderer, style)
+    , m_size(251.0f)
+    , m_h(0.0f)
+    , m_s(1.0f)
+    , m_v(1.0f)
 {
+    if (style.ninepatch_style != nullptr)
+    {
+        m_ninepatch = std::make_unique<Ninepatch>(gui_renderer, *style.ninepatch_style);
+    }
+
     float inner_radius   = 0.70f;
     m_disc_handle_radius = 0.90f;
     m_quad_edge_length   = std::sqrt(2.0f) * inner_radius;
-    auto  gr             = gui_renderer;
-    auto &r              = *gr->renderer();
 
-    m_color_mesh = make_shared<geometry_mesh>(
-        //new renderstack::geometry::shapes::disc(1.0, 0.9, 256, 2),
-        r,
-        make_shared<renderstack::geometry::shapes::quad>(std::sqrt(2.0f)),
-        normal_style::polygon_normals);
-    m_handle_mesh = make_shared<geometry_mesh>(
-        r,
-        make_shared<renderstack::geometry::shapes::disc>(4.0, 1.00f, 12, 2),
-        normal_style::polygon_normals);
-    m_handle2_mesh = make_shared<geometry_mesh>(
-        r,
-        make_shared<renderstack::geometry::shapes::disc>(3.0, 2.00f, 12, 2),
-        normal_style::polygon_normals);
-    m_hsv_disc_mesh = make_shared<geometry_mesh>(
-        r,
-        make_shared<renderstack::geometry::shapes::disc>(1.0, m_disc_handle_radius, 256, 2),
-        normal_style::polygon_normals);
-    m_hsv_disc2_mesh = make_shared<geometry_mesh>(
-        r,
-        make_shared<renderstack::geometry::shapes::disc>(m_disc_handle_radius, inner_radius, 256, 2),
-        normal_style::polygon_normals);
-    m_hsv_quad_mesh = make_shared<geometry_mesh>(
-        r,
-        make_shared<renderstack::geometry::shapes::quad>(inner_radius),
-        normal_style::polygon_normals);
+    auto &gr = gui_renderer;
+    auto &r  = gr.renderer();
 
-    set_fill_base_pixels(vec2(m_size, m_size));
+    m_color_mesh = make_unique<Geometry_mesh>(r,
+                                              renderstack::geometry::shapes::make_quad(std::sqrt(2.0)),
+                                              Normal_style::polygon_normals);
+
+    m_handle_mesh = make_unique<Geometry_mesh>(r,
+                                               renderstack::geometry::shapes::make_disc(4.0, 1.00f, 12, 2),
+                                               Normal_style::polygon_normals);
+
+    m_handle2_mesh = make_unique<Geometry_mesh>(r,
+                                                renderstack::geometry::shapes::make_disc(3.0, 2.00f, 12, 2),
+                                                Normal_style::polygon_normals);
+
+    m_hsv_disc_mesh = make_unique<Geometry_mesh>(r,
+                                                 renderstack::geometry::shapes::make_disc(1.0, m_disc_handle_radius, 256, 2),
+                                                 Normal_style::polygon_normals);
+
+    m_hsv_disc2_mesh = make_unique<Geometry_mesh>(r,
+                                                  renderstack::geometry::shapes::make_disc(m_disc_handle_radius, inner_radius, 256, 2),
+                                                  Normal_style::polygon_normals);
+
+    m_hsv_quad_mesh = make_unique<Geometry_mesh>(r,
+                                                 renderstack::geometry::shapes::make_quad(inner_radius),
+                                                 Normal_style::polygon_normals);
+
+    fill_base_pixels = vec2(m_size, m_size);
 }
-void color_picker::begin_place(rectangle const &reference, vec2 const &grow_direction)
+
+void Color_picker::begin_place(Rectangle reference, vec2 grow_direction)
 {
-    area::begin_place(reference, grow_direction);
-    mat4 b;
-    create_translation(rect().min(), b);
-    mat4 const &o      = renderer()->ortho();
-    m_background_frame = o * b;
+    Area::begin_place(reference, grow_direction);
+    mat4 translation;
+    create_translation(rect.min(), translation);
+    m_background_frame = translation * renderer.ortho();
 }
-void color_picker::draw_self(ui_context &context)
+
+void Color_picker::draw_self(ui_context &context)
 {
-    auto  gr = renderer();
-    auto &r  = *gr->renderer();
+    auto &gr = renderer;
+    auto &r  = gr.renderer();
 
     //r->push();
-
-    gr->set_program(style()->ninepatch_style()->program());
-    gr->set_texture(style()->ninepatch_style()->texture_unit(), style()->ninepatch_style()->texture());
-    gr->set_transform(m_background_frame);
-    gr->set_color_scale(vec4(1.0f, 1.0f, 1.0f, 1.0f));
-    gr->set_color_add(vec4(0.0f, 0.0f, 0.0f, 0.0f));
-    m_ninepatch.render(gr);
+    gr.set_program(style.ninepatch_style->program);
+    gr.set_texture(style.ninepatch_style->texture_unit, style.ninepatch_style->texture.get());
+    gr.set_transform(m_background_frame);
+    gr.set_color_scale(vec4(1.0f, 1.0f, 1.0f, 1.0f));
+    gr.set_color_add(vec4(0.0f, 0.0f, 0.0f, 0.0f));
+    if (m_ninepatch)
+    {
+        m_ninepatch->render(gr);
+    }
 
     {
         animate();
@@ -190,32 +200,35 @@ void color_picker::draw_self(ui_context &context)
         h0[2][3] = 0.0f;
         h0[3][3] = 0.0f;
 
-        gr->set_program(style()->program());
+        gr.set_program(style.program);
 
-        gr->blend_disable();
+        gr.blend_disable();
 
-        auto old_vbo = r.set_buffer(buffer_target::array_buffer, m_color_mesh->get_mesh()->vertex_buffer());
+        auto vbo     = m_color_mesh->get_mesh()->vertex_buffer().get();
+        auto old_vbo = r.set_buffer(Buffer::Target::array_buffer, vbo);
 
         // TODO must access VAO instead!
-        auto old_ibo = r.set_buffer(buffer_target::element_array_buffer, m_color_mesh->get_mesh()->index_buffer());
+        assert(false);
+        auto ibo     = m_color_mesh->get_mesh()->index_buffer().get();
+        auto old_ibo = r.set_buffer(Buffer::Target::element_array_buffer, ibo);
 
-        gr->set_transform(m_hsv_transform);
-        gr->set_hsv_matrix(c);
-        gr->set_color_scale(vec4(1.0f, 1.0f, 1.0f, 1.0f));
-        gr->set_color_add(vec4(0.0f, 0.0f, 0.0f, 1.0f));
+        gr.set_transform(m_hsv_transform);
+        gr.set_hsv_matrix(c);
+        gr.set_color_scale(vec4(1.0f, 1.0f, 1.0f, 1.0f));
+        gr.set_color_add(vec4(0.0f, 0.0f, 0.0f, 1.0f));
         //m_color_mesh->render(m_color_mesh->fill_indices());
 
-        gr->set_hsv_matrix(d);
+        gr.set_hsv_matrix(d);
         //m_hsv_disc_mesh->render(gl::begin_mode::triangles, m_hsv_disc_mesh->fill_indices());
 
-        gr->set_hsv_matrix(d2);
+        gr.set_hsv_matrix(d2);
         //m_hsv_disc2_mesh->render(gl::begin_mode::triangles, m_hsv_disc2_mesh->fill_indices());
 
-        gr->set_hsv_matrix(t);
-        gr->set_color_add(vec4(0.0f, 0.0f, 0.0f, 0.5f));
+        gr.set_hsv_matrix(t);
+        gr.set_color_add(vec4(0.0f, 0.0f, 0.0f, 0.5f));
         //m_hsv_quad_mesh->render(gl::begin_mode::triangles, m_hsv_quad_mesh->fill_indices());
 
-        if (rect().hit(context.mouse))
+        if (rect.hit(context.mouse))
         {
             if (context.mouse_buttons[0 /* TODO glfw_mouse_button_left*/])
             {
@@ -272,35 +285,33 @@ void color_picker::draw_self(ui_context &context)
 #endif
     }
 
-    gr->prepare();
+    gr.prepare();
 }
 
-void color_picker::animate()
+void Color_picker::animate()
 {
     float scale = (m_size - 10.0f) / 2.0f;
 
-    mat4 const &o = renderer()->ortho();
+    mat4 o = renderer.ortho();
 
     mat4 t;
-    create_translation(rect().min() + rect().half_size(), t);
+    create_translation(rect.min() + rect.half_size(), t);
     //m_background_frame = o * t;
 
     m_disc_handle_transform = o * t;
 
     mat4 qh;
-    create_translation(
-        rect().min() +
-            rect().half_size() - (0.5f * scale * vec2(m_quad_edge_length)) +
-            (scale * vec2(m_s * m_quad_edge_length, m_v * m_quad_edge_length)),
-        qh);
+    create_translation(rect.min() +
+                          rect.half_size() - (0.5f * scale * vec2(m_quad_edge_length)) +
+                          (scale * vec2(m_s * m_quad_edge_length, m_v * m_quad_edge_length)),
+                       qh);
     m_quad_handle_transform = o * qh;
 
     mat4  dh;
     float sin = m_disc_handle_radius * std::sin(m_h * 2.0f * pi<float>());
     float cos = m_disc_handle_radius * std::cos(m_h * 2.0f * pi<float>());
-    create_translation(
-        rect().min() + rect().half_size() + scale * vec2(cos, sin),
-        dh);
+    create_translation(rect.min() + rect.half_size() + scale * vec2(cos, sin),
+                       dh);
     m_disc_handle_transform = o * dh;
 
     mat4 s;

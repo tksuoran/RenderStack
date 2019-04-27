@@ -25,7 +25,7 @@ textures::~textures()
 {
 }
 
-void textures::connect(shared_ptr<renderstack::graphics::renderer> renderer)
+void textures::connect(shared_ptr<Renderer> renderer)
 {
     m_renderer = renderer;
 
@@ -42,9 +42,9 @@ void textures::initialize_service()
 }
 
 #if 0
-shared_ptr<renderstack::graphics::texture> textures::load(
+shared_ptr<Texture> textures::load(
    unsigned int texture_unit,
-   string const &path
+   const std::string &path
 )
 {
    unsigned char* data = nullptr;
@@ -73,8 +73,8 @@ shared_ptr<renderstack::graphics::texture> textures::load(
 
    auto &r = *m_renderer;
 
-   auto texture = make_shared<renderstack::graphics::texture>(
-      renderstack::graphics::texture_target::texture_2d,
+   auto texture = make_shared<Texture>(
+      texture_target::texture_2d,
       GL_RGB8,
       false,
       w,
@@ -104,7 +104,7 @@ shared_ptr<renderstack::graphics::texture> textures::load(
    texture->apply(r, texture_unit);
 
    r.restore_texture(
-      renderstack::graphics::texture_target::texture_2d,
+      texture_target::texture_2d,
       old_texture,
       old_unit
    );
@@ -180,9 +180,17 @@ read_png(FILE *fp)
 }
 #endif
 
-shared_ptr<renderstack::graphics::texture> textures::load(
-    unsigned int  texture_unit,
-    string const &path)
+shared_ptr<Texture> textures::load(unsigned int texture_unit, const std::string &path)
 {
-    return load_png(*m_renderer, texture_unit, path);
+    shared_ptr<Texture> texture = std::make_shared<Texture>();
+    bool ok = load_png(*(texture.get()), *m_renderer, texture_unit, path);
+    if (ok)
+    {
+        return texture;
+    }
+    else
+    {
+        return shared_ptr<Texture>();
+    }
+    
 }

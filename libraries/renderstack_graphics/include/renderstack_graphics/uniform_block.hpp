@@ -13,62 +13,74 @@ namespace renderstack
 namespace graphics
 {
 
-class program;
-class uniform;
+class Program;
+class Uniform;
 
-class uniform_block : public std::enable_shared_from_this<uniform_block>
+class Uniform_block : public std::enable_shared_from_this<Uniform_block>
 {
 public:
-    typedef std::vector<std::shared_ptr<uniform>> uniform_collection;
+    using Uniform_collection = std::vector<Uniform>;
 
     // Create uniforms to default block
-    uniform_block(std::string const &name);
+    Uniform_block(const std::string &name);
 
-    uniform_block(unsigned int binding_point, std::string const &name);
-    uniform_block(unsigned int binding_point, std::string const &name, std::string const &block_name);
-    ~uniform_block()
-    {
-    }
+    Uniform_block(unsigned int binding_point, const std::string &name);
 
-    void                      map_program(std::shared_ptr<renderstack::graphics::program> program) const;
-    uniform_collection const &uniforms() const;
-    uniform_collection &      uniforms();
-    std::string const &       name() const;
-    std::string const &       block_name() const;
-    void                      set_name(std::string const &value);
-    unsigned int              binding_point() const;
-    std::string               source(int glsl_shader) const;
-    std::size_t               num_uniforms() const;
-    std::size_t               size_bytes() const;
-    std::size_t               offset() const;
-    bool                      default_block() const;
+    Uniform_block(unsigned int binding_point, const std::string &name, const std::string &block_name);
+
+    ~Uniform_block() = default;
+
+    void map_program(renderstack::graphics::Program &program) const;
+
+    Uniform_collection const &uniforms() const;
+
+    Uniform_collection &      uniforms();
+
+    const std::string &name() const;
+
+    const std::string &block_name() const;
+
+    void set_name(const std::string &value);
+
+    unsigned int binding_point() const;
+
+    std::string source(int glsl_shader) const;
+
+    size_t num_uniforms() const;
+
+    size_t size_bytes() const;
+
+    size_t offset() const;
+
+    bool default_block() const;
 
 public:
-    void                     seal();
-    std::shared_ptr<uniform> add_float(std::string const &name);
-    std::shared_ptr<uniform> add_float(std::string const &name, unsigned int dimension);
-    std::shared_ptr<uniform> add_vec2(std::string const &name);
-    std::shared_ptr<uniform> add_vec2(std::string const &name, unsigned int dimension);
-    std::shared_ptr<uniform> add_vec3(std::string const &name);
-    std::shared_ptr<uniform> add_vec3(std::string const &name, unsigned int dimension);
-    std::shared_ptr<uniform> add_vec4(std::string const &name);
-    std::shared_ptr<uniform> add_vec4(std::string const &name, unsigned int dimension);
-    std::shared_ptr<uniform> add_mat4(std::string const &name);
-    std::shared_ptr<uniform> add_mat4(std::string const &name, unsigned int dimension);
-    std::shared_ptr<uniform> add_int(std::string const &name);
-    std::shared_ptr<uniform> add_int(std::string const &name, unsigned int dimension);
+    void seal();
+
+    const Uniform &add_float(const std::string &name);
+    const Uniform &add_float(const std::string &name, unsigned int dimension);
+    const Uniform &add_vec2(const std::string &name);
+    const Uniform &add_vec2(const std::string &name, unsigned int dimension);
+    const Uniform &add_vec3(const std::string &name);
+    const Uniform &add_vec3(const std::string &name, unsigned int dimension);
+    const Uniform &add_vec4(const std::string &name);
+    const Uniform &add_vec4(const std::string &name, unsigned int dimension);
+    const Uniform &add_mat4(const std::string &name);
+    const Uniform &add_mat4(const std::string &name, unsigned int dimension);
+    const Uniform &add_int(const std::string &name);
+    const Uniform &add_int(const std::string &name, unsigned int dimension);
     // TODO add_ivecN(), add_uvecN()
-    std::shared_ptr<uniform> add_uint(std::string const &name);
-    std::shared_ptr<uniform> add_uint(std::string const &name, unsigned int dimension);
+    const Uniform &add_uint(const std::string &name);
+    const Uniform &add_uint(const std::string &name, unsigned int dimension);
 
 private:
     std::string  m_name;
     std::string  m_block_name;
-    bool         m_default_block;
-    unsigned int m_binding_point;
-    std::size_t  m_offset;
+    bool         m_default_block{false};
+    unsigned int m_binding_point{0U};
+    size_t       m_offset{0U};
 
-    std::vector<std::shared_ptr<uniform>> m_uniforms;
+    std::vector<Uniform> m_uniforms;
 };
 
 } // namespace graphics

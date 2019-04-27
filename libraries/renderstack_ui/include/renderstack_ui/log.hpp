@@ -15,6 +15,7 @@ extern renderstack::toolkit::log_category log_ninepatch;
 extern renderstack::toolkit::log_category log_ninepatch_style;
 extern renderstack::toolkit::log_category log_text_buffer;
 extern renderstack::toolkit::log_category log_font;
+extern renderstack::toolkit::log_category log_layout;
 
 } // namespace ui
 } // namespace renderstack

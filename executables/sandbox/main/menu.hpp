@@ -16,16 +16,16 @@ namespace renderstack
 {
 namespace graphics
 {
-class uniform_buffer;
-class uniform_buffer_range;
+class Uniform_buffer;
+class Uniform_buffer_range;
 } // namespace graphics
 namespace ui
 {
-class button;
-class font;
-class gui_renderer;
-class text_buffer;
-class layer;
+class Button;
+class Font;
+class Gui_renderer;
+class Text_buffer;
+class Layer;
 } // namespace ui
 namespace toolkit
 {
@@ -33,64 +33,77 @@ class window;
 }
 } // namespace renderstack
 
-class game;
+class Game;
+class Application;
+class Programs;
+
 class window;
-class programs;
 class textures;
 
-class menu
-    : public screen,
-      public renderstack::ui::action_sink,
+class Menu
+    : public Screen,
+      public renderstack::ui::Action_sink,
       public renderstack::toolkit::service
 {
 public:
-    menu();
-    /*virtual*/ ~menu();
+    Menu();
 
-    void connect(
-        std::shared_ptr<renderstack::graphics::renderer> renderer,
-        std::shared_ptr<renderstack::ui::gui_renderer>   gui_renderer,
-        std::shared_ptr<programs>                        programs_,
-        std::shared_ptr<textures>                        textures_,
-        std::shared_ptr<class game>                      game_,
-        std::shared_ptr<class application>               application_);
-    void             disconnect();
-    /*virtual*/ void initialize_service();
+    virtual ~Menu() = default;
 
-    void action(std::weak_ptr<renderstack::ui::action_source> source);
+    void connect(std::shared_ptr<renderstack::graphics::Renderer> renderer,
+                 std::shared_ptr<renderstack::ui::Gui_renderer>   gui_renderer,
+                 std::shared_ptr<Programs>                        programs,
+                 std::shared_ptr<textures>                        textures,
+                 std::shared_ptr<Game>                            game,
+                 std::shared_ptr<Application>                     application);
+
+    void disconnect();
+
+    void initialize_service() override;
+
+    void action(renderstack::ui::Action_source* source) override;
 
     void on_load();
-    void on_enter();
-    void on_exit();
-    void on_resize(int width, int height);
-    void on_focus(bool has_focus);
 
-    void update();
-    void on_key(int key, int scancode, int action, int mods);
-    void on_mouse_moved(double s, double y);
-    void on_mouse_button(int button, int action, int mods);
-    void on_scroll(double x, double y);
-    void on_3d_mouse(long tx, long ty, long tz, long rx, long ry, long rz, long period);
+    void update() override;
+
+    void on_enter() override;
+
+    void on_exit() override;
+
+    void on_resize(int width, int height) override;
+
+    void on_focus(bool has_focus) override;
+
+    void on_key(int key, int scancode, int action, int mods) override;
+
+    void on_mouse_moved(double s, double y) override;
+
+    void on_mouse_button(int button, int action, int mods) override;
+
+    void on_scroll(double x, double y) override;
+
+    void on_3d_mouse(long tx, long ty, long tz, long rx, long ry, long rz, long period) override;
 
 private:
     void resize(float w, float h);
     void render();
 
-private: /* services */
-    std::shared_ptr<renderstack::graphics::renderer> m_renderer;
-    std::shared_ptr<renderstack::ui::gui_renderer>   m_gui_renderer;
-    std::shared_ptr<programs>                        m_programs;
+    std::shared_ptr<renderstack::graphics::Renderer> m_renderer;
+    std::shared_ptr<renderstack::ui::Gui_renderer>   m_gui_renderer;
+    std::shared_ptr<Programs>                        m_programs;
     std::shared_ptr<textures>                        m_textures;
-    std::shared_ptr<class game>                      m_game;
-    std::shared_ptr<application>                     m_application;
+    std::shared_ptr<Game>                            m_game;
+    std::shared_ptr<Application>                     m_application;
 
-    std::shared_ptr<renderstack::graphics::buffer> m_uniform_buffer;
-    std::shared_ptr<renderstack::ui::font>         m_font;
-    std::shared_ptr<renderstack::ui::text_buffer>  m_text_buffer;
+    std::shared_ptr<renderstack::graphics::Buffer> m_uniform_buffer;
+    std::shared_ptr<renderstack::ui::Font>         m_font;
+    std::shared_ptr<renderstack::ui::Text_buffer>  m_text_buffer;
     std::shared_ptr<renderstack::mesh::mesh>       m_mesh;
-    std::shared_ptr<renderstack::ui::layer>        m_root_layer;
-    std::shared_ptr<renderstack::ui::button>       m_sandbox_button;
-    std::shared_ptr<renderstack::ui::button>       m_quit;
+    std::shared_ptr<renderstack::ui::Layer>        m_root_layer;
+    std::shared_ptr<renderstack::ui::Button>       m_sandbox_button;
+    std::shared_ptr<renderstack::ui::Button>       m_quit;
+    std::shared_ptr<renderstack::ui::Menulist>     m_menulist;
 
     bool m_resize;
 };

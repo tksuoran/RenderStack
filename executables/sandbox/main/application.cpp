@@ -24,17 +24,17 @@ using namespace gl;
 using namespace glm;
 using namespace std;
 
-application::application()
-    : service("application")
+Application::Application()
+    : service("Application")
 {
 }
 
-application::~application()
+Application::~Application()
 {
     on_exit(); // TODO figure out how to get ~window call to on_exit() to call derived on_exit?
 }
 
-void application::connect(shared_ptr<game> game_, shared_ptr<menu> menu_)
+void Application::connect(shared_ptr<Game> game_, shared_ptr<Menu> menu_)
 {
     m_game = game_;
     m_menu = menu_;
@@ -43,41 +43,41 @@ void application::connect(shared_ptr<game> game_, shared_ptr<menu> menu_)
     initialization_depends_on(menu_);
 }
 
-void application::initialize_service()
+void Application::initialize_service()
 {
-    if (m_game)
-    {
-        set_screen(m_game);
-    }
-    else if (m_menu)
+    if (m_menu)
     {
         set_screen(m_menu);
+    }
+    else if (m_game)
+    {
+        set_screen(m_game);
     }
 
     m_last_screen.reset();
 }
 
-void application::set_screen(shared_ptr<screen> screen)
+void Application::set_screen(shared_ptr<Screen> screen)
 {
     m_screen = screen;
 }
 
-void application::reset_screen()
+void Application::reset_screen()
 {
     m_screen.reset();
 }
 
-void application::on_resize(int width, int height)
+void Application::on_resize(int width, int height)
 {
     m_screen->on_resize(width, height);
 }
 
-void application::on_focus(bool has_focus)
+void Application::on_focus(bool has_focus)
 {
     m_screen->on_focus(has_focus);
 }
 
-void application::update()
+void Application::update()
 {
     if (m_last_screen != m_screen)
     {
@@ -93,27 +93,27 @@ void application::update()
     m_screen->update();
 }
 
-void application::on_key(int key, int scancode, int action, int mods)
+void Application::on_key(int key, int scancode, int action, int mods)
 {
     m_screen->on_key(key, scancode, action, mods);
 }
 
-void application::on_mouse_moved(double x, double y)
+void Application::on_mouse_moved(double x, double y)
 {
     m_screen->on_mouse_moved(x, y);
 }
 
-void application::on_mouse_button(int button, int action, int mods)
+void Application::on_mouse_button(int button, int action, int mods)
 {
     m_screen->on_mouse_button(button, action, mods);
 }
 
-void application::on_scroll(double x, double y)
+void Application::on_scroll(double x, double y)
 {
     m_screen->on_scroll(x, y);
 }
 
-void application::on_3d_mouse(long tx, long ty, long tz, long rx, long ry, long rz, long period)
+void Application::on_3d_mouse(long tx, long ty, long tz, long rx, long ry, long rz, long period)
 {
     m_screen->on_3d_mouse(tx, ty, tz, rx, ry, rz, period);
 }

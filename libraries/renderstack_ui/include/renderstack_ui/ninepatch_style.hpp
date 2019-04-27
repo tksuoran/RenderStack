@@ -11,9 +11,9 @@ namespace renderstack
 namespace graphics
 {
 
-class program;
-class renderer;
-class texture;
+class Program;
+class Renderer;
+class Texture;
 
 } // namespace graphics
 } // namespace renderstack
@@ -23,35 +23,19 @@ namespace renderstack
 namespace ui
 {
 
-class ninepatch_style
+class Ninepatch_style
 {
 public:
-    ninepatch_style(
-        renderstack::graphics::renderer &               renderer,
-        std::string const &                             path,
-        std::shared_ptr<renderstack::graphics::program> background_program,
-        int                                             texture_unit);
+    Ninepatch_style(renderstack::graphics::Renderer &renderer,
+                    const std::string               &path,
+                    renderstack::graphics::Program  *background_program,
+                    int                             texture_unit);
 
-    glm::vec2 const &border_pixels() const;
-    glm::vec2 const &border_uv() const;
-    void             set_texture_unit(unsigned int value)
-    {
-        m_texture_unit = value;
-    }
-    unsigned int texture_unit() const
-    {
-        return m_texture_unit;
-    }
-
-    std::shared_ptr<renderstack::graphics::texture> texture() const;
-    std::shared_ptr<renderstack::graphics::program> program() const;
-
-private:
-    std::shared_ptr<renderstack::graphics::texture> m_texture;
-    std::shared_ptr<renderstack::graphics::program> m_program;
-    unsigned int                                    m_texture_unit;
-    glm::vec2                                       m_border_uv;
-    glm::vec2                                       m_border_pixels;
+    std::unique_ptr<renderstack::graphics::Texture> texture;
+    renderstack::graphics::Program                  *program{nullptr};
+    unsigned int                                    texture_unit{0U};
+    glm::vec2                                       border_uv;
+    glm::vec2                                       border_pixels;
 };
 
 } // namespace ui

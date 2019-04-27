@@ -44,28 +44,23 @@ using namespace renderstack::toolkit;
 #define RENDER_GUI 1
 //#define DEBUG_FONT 1
 
-menu::menu()
-    : service("menu"), m_renderer(nullptr), m_gui_renderer(nullptr), m_programs(nullptr), m_textures(nullptr), m_game(nullptr), m_application(nullptr), m_uniform_buffer(nullptr), m_font(nullptr), m_text_buffer(nullptr), m_mesh(nullptr), m_root_layer(nullptr), m_sandbox_button(nullptr), m_quit(nullptr), m_resize(true)
+Menu::Menu()
+    : service("Menu"), m_resize(true)
 {
 }
 
-menu::~menu()
-{
-}
-
-void menu::connect(
-    shared_ptr<renderstack::graphics::renderer> renderer,
-    shared_ptr<renderstack::ui::gui_renderer>   gui_renderer,
-    shared_ptr<programs>                        programs,
-    shared_ptr<textures>                        textures,
-    shared_ptr<class game>                      game,
-    shared_ptr<application>                     application)
+void Menu::connect(shared_ptr<Renderer>     renderer,
+                   shared_ptr<Gui_renderer> gui_renderer,
+                   shared_ptr<Programs>     programs,
+                   shared_ptr<textures>     textures,
+                   shared_ptr<Game>         Game,
+                   shared_ptr<Application>  application)
 {
     m_renderer     = renderer;
     m_gui_renderer = gui_renderer;
     m_programs     = programs;
     m_textures     = textures;
-    m_game         = game;
+    m_game         = Game;
     m_application  = application;
 
     initialization_depends_on(renderer);
@@ -73,9 +68,10 @@ void menu::connect(
     initialization_depends_on(programs);
     initialization_depends_on(textures);
 }
-void menu::disconnect()
+
+void Menu::disconnect()
 {
-    slog_trace("menu::disconnect()");
+    slog_trace("Menu::disconnect()");
 
     m_renderer.reset();
     m_gui_renderer.reset();
@@ -84,32 +80,33 @@ void menu::disconnect()
     m_programs.reset();
     m_textures.reset();
 }
-void menu::initialize_service()
+
+void Menu::initialize_service()
 {
     assert(m_renderer);
     assert(m_gui_renderer);
     assert(m_programs);
     assert(m_textures);
 
-    slog_trace("menu::on_load()");
+    slog_trace("Menu::on_load()");
 
+    auto &gr = *(m_gui_renderer.get());
     auto &r = *m_renderer;
 
-    m_font        = make_shared<font>(r, "res/fonts/Ubuntu-R.ttf", 48, 4.0f);
-    m_text_buffer = make_shared<text_buffer>(m_gui_renderer, m_font);
+    m_font        = std::make_shared<Font>(r, "res/fonts/Ubuntu-R.ttf", 48, 4.0f);
+    m_text_buffer = std::make_shared<Text_buffer>(gr, *(m_font.get()));
 
-    auto p  = m_programs->textured;
-    auto m  = p->vertex_attribute_mappings();
-    auto gr = m_gui_renderer;
+    //auto p = m_programs->textured.get();
+    //auto m  = p->vertex_attribute_mappings();
 
     // Background
-    m_mesh = make_shared<renderstack::mesh::mesh>();
-    m_mesh->allocate_vertex_buffer(gr->vertex_buffer(), 4);
-    m_mesh->allocate_index_buffer(gr->index_buffer(), 6);
+    m_mesh = std::make_shared<mesh>();
+    m_mesh->allocate_vertex_buffer(gr.vertex_buffer(), 4);
+    m_mesh->allocate_index_buffer(gr.index_buffer(), 6);
 
-    /*  Write indices for one quad  */
+    // Write indices for one quad 
     {
-        gr->set_index_buffer();
+        gr.set_index_buffer();
         unsigned short *start = static_cast<unsigned short *>(
             m_mesh->index_buffer()->map(
                 r,
@@ -133,81 +130,81 @@ void menu::initialize_service()
     }
 
     // GUI
-    auto bs = gr->button_style();
-    auto ms = gr->menulist_style();
+    auto &bs = gr.button_style();
+    auto &ms = gr.menulist_style();
 
     {
-        float     w = (float)m_application->width();
-        float     h = (float)m_application->height();
-        rectangle size(w, h);
+        float w = static_cast<float>(m_application->width());
+        float h = static_cast<float>(m_application->height());
+        Rectangle size(w, h);
 
-        m_root_layer = smart_ptr_builder::create_shared_ptr<area>(new layer(gr, size));
-        m_root_layer->set_name("m_root_layer");
+        m_root_layer = std::make_shared<Layer>(gr, size);
+        m_root_layer->name = "m_root_layer";
     }
 
-    auto d = smart_ptr_builder::create_shared_ptr<area>(new menulist(gr, ms, orientation::vertical));
-    d->set_offset_free_size_relative(glm::vec2(0.50f, 0.25f));
-    d->set_offset_self_size_relative(glm::vec2(-0.50f, -0.50f));
-    d->set_child_layout_style(area_layout_style::extend_horizontal);
+    m_menulist = std::make_shared<Menulist>(gr, ms, Area::Orientation::vertical);
+    m_menulist->offset_free_size_relative = vec2(0.50f, 0.25f);
+    m_menulist->offset_self_size_relative = vec2(-0.50f, -0.50f);
+    m_menulist->set_child_layout_style(Area::Flow_mode::extend_horizontal);
 
-    weak_ptr<action_sink> as = action_sink::shared_from_this();
-
-    m_quit = smart_ptr_builder::create_shared_ptr<action_source, area>(new button(gr, "Quit", bs));
-    m_quit->set_sink(as);
-    d->add(m_quit);
+    m_quit = std::make_shared<Button>(gr, "Quit", bs);
+    m_quit->set_sink(this);
+    m_menulist->add(m_quit.get());
 
     if (m_game)
     {
-        m_sandbox_button = smart_ptr_builder::create_shared_ptr<action_source, area>(new button(gr, "Sandbox", bs));
-        m_sandbox_button->set_sink(as);
-        d->add(m_sandbox_button);
+        m_sandbox_button = std::make_shared<Button>(gr, "Sandbox", bs);
+        m_sandbox_button->set_sink(this);
+        m_menulist->add(m_sandbox_button.get());
     }
 
-    m_root_layer->add(d);
+    m_root_layer->add(m_menulist.get());
 
-    if (renderstack::graphics::configuration::can_use.uniform_buffer_object)
+    if (configuration::can_use.uniform_buffer_object)
     {
         intptr_t size = 0;
-        size += m_programs->models_block->size_bytes();
-        size += m_programs->materials_block->size_bytes();
-        size += m_programs->camera_block->size_bytes();
+        size += m_programs->models_block.size_bytes();
+        size += m_programs->materials_block.size_bytes();
+        size += m_programs->camera_block.size_bytes();
 
-        m_uniform_buffer = make_shared<buffer>(
-            renderstack::graphics::buffer_target::uniform_buffer,
-            size,
-            1,
-            gl::buffer_usage_hint::stream_draw);
+        m_uniform_buffer = make_shared<Buffer>(Buffer::Target::uniform_buffer, size, 1, gl::buffer_usage_hint::stream_draw);
         m_uniform_buffer->allocate_storage(r);
     }
 }
-void menu::action(weak_ptr<action_source> source)
+
+void Menu::action(Action_source* source)
 {
-    auto s = source.lock();
-    if (s == m_sandbox_button)
+    if (source == dynamic_cast<Action_source*>(m_sandbox_button.get()))
     {
         if (m_game)
+        {
             m_application->set_screen(m_game);
+        }
     }
 
-    if (s == m_quit)
+    if (source == dynamic_cast<Action_source*>(m_quit.get()))
+    {
         m_application->close();
+    }
 }
-void menu::on_resize(int width, int height)
+
+void Menu::on_resize(int width, int height)
 {
-    (void)width;
-    (void)height;
+    static_cast<void>(width);
+    static_cast<void>(height);
     m_resize = true;
-    slog_trace("menu::on_resize()");
+    slog_trace("Menu::on_resize()");
 }
-void menu::resize(float w, float h)
+
+void Menu::resize(float w, float h)
 {
-    auto  gr = m_gui_renderer;
-    auto &r  = *m_renderer;
+    auto &gr = *(m_gui_renderer.get());
+    auto &r  = *(m_renderer.get());
 
     // Background
     {
-        /*  Write corner vertices for one quad  */
-        gr->set_vertex_buffer();
+        // Write corner vertices for one quad
+        gr.set_vertex_buffer();
         float *ptr = static_cast<float *>(
             m_mesh->vertex_buffer()->map(
                 r,
@@ -261,41 +258,48 @@ void menu::resize(float w, float h)
 
     m_resize = false;
 }
-void menu::on_focus(bool has_focus)
+
+void Menu::on_focus(bool has_focus)
 {
     (void)has_focus;
 }
-void menu::update()
+
+void Menu::update()
 {
-    slog_trace("menu::update()");
+    slog_trace("Menu::update()");
 
     m_programs->update_fixed_step();
     render();
 }
-void menu::on_key(int key, int scancode, int action, int mods)
+
+void Menu::on_key(int key, int scancode, int action, int mods)
 {
     (void)key;
     (void)scancode;
     (void)action;
     (void)mods;
 }
-void menu::on_mouse_moved(double x, double y)
+
+void Menu::on_mouse_moved(double x, double y)
 {
     (void)x;
     (void)y;
 }
-void menu::on_mouse_button(int button, int action, int mods)
+
+void Menu::on_mouse_button(int button, int action, int mods)
 {
     (void)button;
     (void)action;
     (void)mods;
 }
-void menu::on_scroll(double x, double y)
+
+void Menu::on_scroll(double x, double y)
 {
     (void)x;
     (void)y;
 }
-void menu::on_3d_mouse(long tx, long ty, long tz, long rx, long ry, long rz, long period)
+
+void Menu::on_3d_mouse(long tx, long ty, long tz, long rx, long ry, long rz, long period)
 {
     (void)tx;
     (void)ty;
@@ -306,22 +310,24 @@ void menu::on_3d_mouse(long tx, long ty, long tz, long rx, long ry, long rz, lon
     (void)period;
 }
 
-void menu::on_enter()
+void Menu::on_enter()
 {
-    slog_trace("menu::on_enter()");
+    slog_trace("Menu::on_enter()");
 
     m_gui_renderer->prepare(); // disable cull face, depth test & mask, blend
     gl::clear_color(0.3f, 0.1f, 0.2f, 0.0f);
     gl::disable(gl::enable_cap::scissor_test); // TODO stencil_state
     on_resize(m_application->width(), m_application->height());
 }
-void menu::on_exit()
+
+void Menu::on_exit()
 {
-    slog_trace("menu::on_exit()");
+    slog_trace("Menu::on_exit()");
 }
-void menu::render()
+
+void Menu::render()
 {
-    slog_trace("menu::render()");
+    slog_trace("Menu::render()");
 
     assert(m_application);
     assert(m_programs);
@@ -331,12 +337,12 @@ void menu::render()
     float w  = static_cast<float>(iw);
     float h  = static_cast<float>(ih);
 
-    auto  gr = m_gui_renderer;
-    auto &r  = *m_renderer;
+    auto &gr = *(m_gui_renderer.get());
+    auto &r  = *(m_renderer.get());
 
     if (m_resize)
     {
-        gr->on_resize(iw, ih);
+        gr.on_resize(iw, ih);
         resize(w, h);
         m_root_layer->set_layer_size(w, h);
         m_root_layer->update();
@@ -345,21 +351,21 @@ void menu::render()
     //  viewport
     gl::viewport(0, 0, (GLsizei)w, (GLsizei)h);
 
-    mat4      ortho = glm::ortho(0.0f, (float)w, 0.0f, (float)h);
-    glm::vec4 white(1.0f, 1.0f, 1.0f, 1.0f);
+    mat4 ortho = glm::ortho(0.0f, (float)w, 0.0f, (float)h);
+    vec4 white(1.0f, 1.0f, 1.0f, 1.0f);
 
     gl::clear_color(0.5f, 0.0f, 0.0f, 1.0f);
     gl::clear(clear_buffer_mask::color_buffer_bit | clear_buffer_mask::depth_buffer_bit | clear_buffer_mask::depth_buffer_bit);
 
-    if (renderstack::graphics::configuration::can_use.uniform_buffer_object)
+    if (configuration::can_use.uniform_buffer_object)
     {
         intptr_t models_offset    = 0;
-        intptr_t materials_offset = m_programs->models_block->size_bytes();
-        intptr_t camera_offset    = materials_offset + m_programs->materials_block->size_bytes();
-        intptr_t size             = camera_offset + m_programs->camera_block->size_bytes();
+        intptr_t materials_offset = m_programs->models_block.size_bytes();
+        intptr_t camera_offset    = materials_offset + m_programs->materials_block.size_bytes();
+        intptr_t size             = camera_offset + m_programs->camera_block.size_bytes();
 
         // Update and bind uniform buffer
-        r.set_buffer(renderstack::graphics::buffer_target::uniform_buffer, m_uniform_buffer);
+        r.set_buffer(Buffer::Target::uniform_buffer, m_uniform_buffer.get());
         unsigned char *ptr = (unsigned char *)m_uniform_buffer->map(
             r,
             0,
@@ -369,41 +375,35 @@ void menu::render()
                 gl::buffer_access_mask::map_write_bit));
 
         // Update models
-        memcpy(
-            ptr + models_offset + m_programs->models_block_access.clip_from_model,
-            value_ptr(ortho),
-            16 * sizeof(float));
+        memcpy(ptr + models_offset + m_programs->models_block_access.clip_from_model,
+               value_ptr(ortho),
+               16 * sizeof(float));
 
         // Update camera
-        memcpy(
-            ptr + camera_offset + m_programs->camera_block_access.clip_from_world,
-            value_ptr(ortho),
-            16 * sizeof(float));
+        memcpy(ptr + camera_offset + m_programs->camera_block_access.clip_from_world,
+               value_ptr(ortho),
+               16 * sizeof(float));
 
         // Update materials
-        memcpy(
-            ptr + materials_offset + m_programs->materials_block_access.color,
-            value_ptr(white),
-            4 * sizeof(float));
+        memcpy(ptr + materials_offset + m_programs->materials_block_access.color,
+               value_ptr(white),
+               4 * sizeof(float));
         m_uniform_buffer->unmap(r);
 
         // bind models
-        m_uniform_buffer->bind_range(
-            m_programs->models_block->binding_point(),
-            models_offset,
-            m_programs->models_block->size_bytes());
+        m_uniform_buffer->bind_range(m_programs->models_block.binding_point(),
+                                     models_offset,
+                                     m_programs->models_block.size_bytes());
 
         // bind materials
-        m_uniform_buffer->bind_range(
-            m_programs->materials_block->binding_point(),
-            materials_offset,
-            m_programs->materials_block->size_bytes());
+        m_uniform_buffer->bind_range(m_programs->materials_block.binding_point(),
+                                     materials_offset,
+                                     m_programs->materials_block.size_bytes());
 
         // bind camera
-        m_uniform_buffer->bind_range(
-            m_programs->camera_block->binding_point(),
-            camera_offset,
-            m_programs->materials_block->size_bytes());
+        m_uniform_buffer->bind_range(m_programs->camera_block.binding_point(),
+                                     camera_offset,
+                                     m_programs->materials_block.size_bytes());
     }
 
     //  Background
@@ -419,7 +419,7 @@ void menu::render()
         t->apply(*m_renderer, 1);
 #else
         auto  t     = m_textures->background_texture;
-        (void)r.set_texture(1, t);
+        (void)r.set_texture(1, t.get());
         t->set_min_filter(texture_min_filter::linear);
         t->set_mag_filter(texture_mag_filter::linear);
         t->set_wrap(0, gl::texture_wrap_mode::clamp_to_edge);
@@ -437,15 +437,16 @@ void menu::render()
                                 ? static_cast<GLint>(m_mesh->first_vertex())
                                 : 0;
 
-        auto p = m_programs->textured;
+        auto p = m_programs->textured.get();
+        assert(p);
         r.set_program(p);
-        if (!renderstack::graphics::configuration::can_use.uniform_buffer_object)
+        if (!configuration::can_use.uniform_buffer_object)
         {
             gl::uniform_matrix_4fv(p->uniform_at(m_programs->models_block_access.clip_from_model), 1, GL_FALSE, value_ptr(ortho));
             gl::uniform_4fv(p->uniform_at(m_programs->materials_block_access.color), 1, value_ptr(white));
         }
 
-        gr->draw_elements_base_vertex(begin_mode, count, index_type, index_pointer, base_vertex);
+        gr.draw_elements_base_vertex(begin_mode, count, index_type, index_pointer, base_vertex);
     }
 
     // Label text
@@ -463,9 +464,10 @@ void menu::render()
         t->set_wrap(1, gl::texture_wrap_mode::clamp_to_edge);
         t->apply(r, 0);
 
-        auto p = m_programs->font;
+        auto p = m_programs->font.get();
+        assert(p != nullptr);
         r.set_program(p);
-        if (!renderstack::graphics::configuration::can_use.uniform_buffer_object)
+        if (!configuration::can_use.uniform_buffer_object)
         {
             gl::uniform_matrix_4fv(p->uniform_at(m_programs->models_block_access.clip_from_model), 1, GL_FALSE, value_ptr(ortho));
             gl::uniform_4fv(p->uniform_at(m_programs->materials_block_access.color), 1, value_ptr(white));

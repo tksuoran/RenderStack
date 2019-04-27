@@ -34,81 +34,71 @@ using namespace gl;
 using namespace glm;
 using namespace std;
 
-forward_renderer::forward_renderer()
-    : service("forward_renderer")
+Forward_renderer::Forward_renderer()
+    : service("Forward_renderer")
 {
 }
 
-/*virtual*/ forward_renderer::~forward_renderer()
+void Forward_renderer::connect(
+    shared_ptr<Renderer>       renderer,
+    shared_ptr<Debug_renderer> debug_renderer,
+    shared_ptr<Programs>       programs)
 {
-}
-
-void forward_renderer::connect(
-    shared_ptr<renderstack::graphics::renderer> renderer_,
-    shared_ptr<debug_renderer>                  debug_renderer,
-    shared_ptr<class programs>                  programs_)
-{
-    base_connect(renderer_, programs_, nullptr);
+    base_connect(renderer, programs, nullptr);
 
     m_debug_renderer = debug_renderer;
 
-    initialization_depends_on(renderer_);
-    initialization_depends_on(programs_);
+    initialization_depends_on(renderer);
+    initialization_depends_on(programs);
 }
 
-void forward_renderer::initialize_service()
+void Forward_renderer::initialize_service()
 {
     base_initialize_service();
 
-    m_first_pass_render_states.depth.set_enabled(true);
-    m_other_pass_render_states.depth.set_function(gl::depth_function::less);
-    m_first_pass_render_states.face_cull.set_enabled(true);
-    m_first_pass_render_states.blend.set_enabled(false);
+    m_first_pass_render_states.depth.enabled     = true;
+    m_other_pass_render_states.depth.function    = gl::depth_function::less;
+    m_first_pass_render_states.face_cull.enabled = true;
+    m_first_pass_render_states.blend.enabled     = false;
 
-    m_other_pass_render_states.depth.set_enabled(true);
-    m_other_pass_render_states.depth.set_function(gl::depth_function::l_equal);
-    m_other_pass_render_states.face_cull.set_enabled(true);
-    m_other_pass_render_states.blend.set_enabled(true);
-    m_other_pass_render_states.blend.rgb().set_equation_mode(gl::blend_equation_mode::func_add);
-    m_other_pass_render_states.blend.rgb().set_source_factor(gl::blending_factor_src::one);
-    m_other_pass_render_states.blend.rgb().set_destination_factor(gl::blending_factor_dest::one);
-    m_other_pass_render_states.blend.alpha().set_equation_mode(gl::blend_equation_mode::func_add);
-    m_other_pass_render_states.blend.alpha().set_source_factor(gl::blending_factor_src::one);
-    m_other_pass_render_states.blend.alpha().set_destination_factor(gl::blending_factor_dest::one);
+    m_other_pass_render_states.depth.enabled                  = true;
+    m_other_pass_render_states.depth.function                 = gl::depth_function::l_equal;
+    m_other_pass_render_states.face_cull.enabled              = true;
+    m_other_pass_render_states.blend.enabled                  = true;
+    m_other_pass_render_states.blend.rgb.equation_mode        = gl::blend_equation_mode::func_add;
+    m_other_pass_render_states.blend.rgb.source_factor        = gl::blending_factor_src::one;
+    m_other_pass_render_states.blend.rgb.destination_factor   = gl::blending_factor_dest::one;
+    m_other_pass_render_states.blend.alpha.equation_mode      = gl::blend_equation_mode::func_add;
+    m_other_pass_render_states.blend.alpha.source_factor      = gl::blending_factor_src::one;
+    m_other_pass_render_states.blend.alpha.destination_factor = gl::blending_factor_dest::one;
 
-    auto m = make_shared<material>(
-        0,                            // index
-        "dummy",                      // name
-        vec4(1.0f, 1.0f, 1.0f, 1.0f), // color
-        0.10f,                        // roughness
-        0.02f                         // isotropy
-    );
+    auto m = make_shared<Material>(0,                            // index
+                                   "dummy",                      // name
+                                   vec4(1.0f, 1.0f, 1.0f, 1.0f), // color
+                                   0.10f,                        // roughness
+                                   0.02f);                       // isotropy
     m_placeholder_materials.push_back(m);
 }
 
-void forward_renderer::print_matrix(mat4 const &m, std::string const &desc)
+void Forward_renderer::print_matrix(mat4 const &m, const std::string &desc)
 {
-    m_debug_renderer->printf(
-        "Matrix %s:\n"
-        "\t% 6.4f  % 6.4f  % 6.4f  % 6.4f\n"
-        "\t% 6.4f  % 6.4f  % 6.4f  % 6.4f\n"
-        "\t% 6.4f  % 6.4f  % 6.4f  % 6.4f\n"
-        "\t% 6.4f  % 6.4f  % 6.4f  % 6.4f\n",
-        desc.c_str(),
-        m[0][0], m[1][0], m[2][0], m[3][0],
-        m[0][1], m[1][1], m[2][1], m[3][1],
-        m[0][2], m[1][2], m[2][2], m[3][2],
-        m[0][3], m[1][3], m[2][3], m[3][3]);
+    m_debug_renderer->printf("Matrix %s:\n"
+                             "\t% 6.4f  % 6.4f  % 6.4f  % 6.4f\n"
+                             "\t% 6.4f  % 6.4f  % 6.4f  % 6.4f\n"
+                             "\t% 6.4f  % 6.4f  % 6.4f  % 6.4f\n"
+                             "\t% 6.4f  % 6.4f  % 6.4f  % 6.4f\n",
+                             desc.c_str(),
+                             m[0][0], m[1][0], m[2][0], m[3][0],
+                             m[0][1], m[1][1], m[2][1], m[3][1],
+                             m[0][2], m[1][2], m[2][2], m[3][2],
+                             m[0][3], m[1][3], m[2][3], m[3][3]);
 }
 
-void forward_renderer::render_pass(
-    vector<shared_ptr<material>> const &materials,
-    vector<shared_ptr<model>> const &   models,
-    vector<shared_ptr<light>> const &   lights,
-    shared_ptr<class camera>            camera)
+void Forward_renderer::render_pass(const Material_collection &materials,
+                                   const Model_collection    &models,
+                                   const Light_collection    &lights,
+                                   const Camera              &camera)
 {
-    assert(camera);
-
     if (models.size() == 0)
     {
         return;
@@ -147,16 +137,16 @@ void forward_renderer::render_pass(
 
         bind_light(light_index);
 
-        switch (l->type())
+        switch (l->type)
         {
-            case light_type::directional:
+            case Light::Type::directional:
             {
-                r.set_program(programs()->anisotropic_directional);
+                r.set_program(programs()->anisotropic_directional.get());
                 break;
             }
-            case light_type::spot:
+            case Light::Type::spot:
             {
-                r.set_program(programs()->anisotropic_spot);
+                r.set_program(programs()->anisotropic_spot.get());
                 break;
             }
             default:
@@ -171,14 +161,15 @@ void forward_renderer::render_pass(
         size_t model_index = 0;
         for (auto model : models)
         {
-            auto   geometry_mesh  = model->geometry_mesh();
-            auto   vertex_stream  = geometry_mesh->vertex_stream();
+            auto   geometry_mesh  = model->geometry_mesh;
+            auto   vertex_stream  = geometry_mesh->vertex_stream().get();
             auto   mesh           = geometry_mesh->get_mesh();
-            auto   material       = model->material();
-            size_t material_index = material->index();
+            auto   material       = model->material;
+            size_t material_index = material->index;
+            assert(vertex_stream);
 
             gl::begin_mode::value         begin_mode    = gl::begin_mode::triangles;
-            index_range const &           index_range   = geometry_mesh->fill_indices();
+            Index_range const &           index_range   = geometry_mesh->fill_indices();
             GLsizei                       count         = static_cast<GLsizei>(index_range.index_count);
             gl::draw_elements_type::value index_type    = gl::draw_elements_type::unsigned_int;
             GLvoid *                      index_pointer = reinterpret_cast<GLvoid *>((index_range.first_index + mesh->first_index()) * mesh->index_buffer()->stride());
@@ -189,7 +180,7 @@ void forward_renderer::render_pass(
             bind_model(model_index);
             bind_material(material_index);
 
-            r.draw_elements_base_vertex(model->geometry_mesh()->vertex_stream(),
+            r.draw_elements_base_vertex(*vertex_stream,
                                         begin_mode,
                                         count,
                                         index_type,

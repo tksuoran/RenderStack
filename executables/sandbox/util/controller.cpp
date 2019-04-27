@@ -56,7 +56,7 @@ void controller::adjust(float delta)
 
 void controller::dampen()
 {
-    /*  Dampening by multiplying by a constant  */
+    //  Dampening by multiplying by a constant
     if (m_dampen_multiply)
     {
         float old_value = m_current_value;
@@ -67,7 +67,7 @@ void controller::dampen()
             m_current_value = 0.0f;
         }
     }
-    else if (m_dampen_linear && !m_active) /*  Constant velocity dampening  */
+    else if (m_dampen_linear && !m_active) //  Constant velocity dampening
     {
         if (m_current_value > m_max_delta)
         {
@@ -85,7 +85,7 @@ void controller::dampen()
                 m_current_value = 0.0f;
             }
         }
-        else /*  Close to 0.0  */
+        else //  Close to 0.0
         {
             float old_value = m_current_value;
             m_current_value *= m_damp;
@@ -101,10 +101,12 @@ void controller::set_inhibit(bool value)
 {
     m_inhibit = value;
 }
+
 bool controller::more() const
 {
     return m_more;
 }
+
 void controller::set_more(bool value)
 {
     m_more = value;
@@ -126,16 +128,18 @@ void controller::set_more(bool value)
         }
     }
 }
+
 bool controller::less() const
 {
     return m_less;
 }
+
 void controller::set_less(bool value)
 {
     m_less = value;
     if (m_less)
     {
-        m_active        = true;
+        m_active = true;
         m_current_delta = -m_max_delta;
     }
     else
@@ -146,15 +150,17 @@ void controller::set_less(bool value)
         }
         else
         {
-            m_active        = false;
+            m_active = false;
             m_current_delta = 0.0f;
         }
     }
 }
+
 bool controller::stop() const
 {
     return m_stop;
 }
+
 void controller::set_stop(bool value)
 {
     m_stop = value;

@@ -18,80 +18,81 @@ namespace graphics
 using namespace std;
 using namespace renderstack::toolkit;
 
-renderer::renderer()
-    : service("renderstack::graphics::renderer"), m_cache_enabled(true), m_default_vertex_array(nullptr)
+Renderer::Renderer()
+    : service("renderstack::graphics::Renderer"), m_cache_enabled(true)
 {
     static int init_count = 0;
 
     assert(init_count == 0);
     ++init_count;
 
-    for (int i = 0; i < buffer_target::all_buffer_target_count; ++i)
+    for (int i = 0; i < m_mapped_buffer.size(); ++i)
     {
-        m_mapped_buffer[i].reset();
+        m_mapped_buffer[i] = nullptr;
     }
 }
-/*virtual*/ renderer::~renderer()
+
+Renderer::~Renderer()
 {
 }
-/*virtual*/ void renderer::initialize_service()
-{
-    // When vertex arrays are not used, we use this to keep track
-    // of enabled attributes and set vertex attribute pointers.
-    m_default_vertex_array = make_shared<class vertex_array>(true);
 
-    (void)set_vertex_array(m_default_vertex_array);
+void Renderer::initialize_service()
+{
+    (void)set_vertex_array(&m_default_vertex_array);
 }
 
-void renderer::push()
+void Renderer::push()
 {
     m_request_stack.push(m_requested);
 }
-void renderer::pop()
+
+void Renderer::pop()
 {
     m_requested = m_request_stack.top();
     m_request_stack.pop();
 }
-void renderer::trash()
+
+void Renderer::trash()
 {
-    slog_trace("renderer::trash()\n");
+    slog_trace("Renderer::trash()\n");
 
-    m_effective.current_program.reset();
     gl::use_program(0);
+    m_effective.current_program = nullptr;
 
-    for (int i = 0; i < buffer_target::count_in_context(); ++i)
+    for (int i = 0; i < m_effective.buffer_binding.size(); ++i)
     {
-        buffer_target::value target = static_cast<buffer_target::value>(i);
-        m_effective.buffer_binding[i].reset();
-        gl::bind_buffer(buffer_target::gl_buffer_target(target), 0);
+        Buffer::Target target = static_cast<Buffer::Target>(i);
+        gl::bind_buffer(Buffer::gl_buffer_target(target), 0);
+        m_effective.buffer_binding[i] = nullptr;
     }
 
-    m_effective.vertex_array_binding->trash();
     gl::bind_vertex_array(0);
+    m_effective.vertex_array_binding = nullptr;
 
-    for (int i = 0; i < RS_TEXTURE_UNIT_COUNT; ++i)
+    for (int i = 0; i < m_effective.texture_unit.size(); ++i)
     {
         gl::active_texture(GL_TEXTURE0 + i);
         m_effective.texture_unit[i].trash(i);
     }
-    m_effective.active_texture = 0;
     gl::active_texture(GL_TEXTURE0);
+    m_effective.active_texture = 0;
 
-    for (int i = 0; i < RS_UNIFORM_BINDING_POINT_COUNT; ++i)
+    for (int i = 0; i < m_effective.uniform_buffer_binding_indexed.size(); ++i)
     {
         gl::bind_buffer_range(gl::buffer_target::uniform_buffer, i, 0, 0, 0);
-        m_effective.uniform_buffer_binding_indexed[i].reset();
+        m_effective.uniform_buffer_binding_indexed[i] = nullptr;
     }
 }
-shared_ptr<class program> renderer::set_program(shared_ptr<class program> program)
+
+Program *Renderer::set_program(Program *program)
 {
     if (!program)
     {
-        log_error("renderer::set_program() program is empty\n");
-        throw runtime_error("renderer::set_program() program is empty");
+        log_error("Renderer::set_program() program is empty\n");
+        throw runtime_error("Renderer::set_program() program is empty");
     }
 
-    shared_ptr<class program> old = m_effective.current_program;
+    auto *old = m_effective.current_program;
 
     m_requested.current_program = program;
     if (!cache_enabled() || (m_effective.current_program != m_requested.current_program))
@@ -110,15 +111,15 @@ shared_ptr<class program> renderer::set_program(shared_ptr<class program> progra
 
     return old;
 }
-shared_ptr<class texture> renderer::set_texture(
-    unsigned int              unit,
-    shared_ptr<class texture> texture,
-    unsigned int *            old_unit)
+
+Texture *Renderer::set_texture(unsigned int unit,
+                               Texture      *texture,
+                               unsigned int *old_unit)
 {
     assert(texture);
 
     auto target = texture->target();
-    if (target >= texture_target::count)
+    if (!Texture::is_valid(target))
     {
         throw runtime_error("invalid texture target");
     }
@@ -129,15 +130,19 @@ shared_ptr<class texture> renderer::set_texture(
         throw runtime_error("texture unit index out of supported range");
     }
 
-    auto old = m_effective.texture_unit[unit].texture_binding[target];
+    auto old = m_effective.texture_unit[unit].texture_binding[static_cast<size_t>(target)];
     if (old_unit)
     {
         *old_unit = m_effective.active_texture;
     }
 
-    m_requested.texture_unit[unit].texture_binding[target] = texture;
-    auto          old_texture                              = m_effective.texture_unit[unit].texture_binding[target];
-    string const &old_label                                = old_texture ? old_texture->debug_label() : "";
+    size_t slot = static_cast<size_t>(target);
+    auto &requested_texture = m_requested.texture_unit[unit].texture_binding[slot];
+    auto &effective_texture = m_effective.texture_unit[unit].texture_binding[slot];
+
+    requested_texture = texture;
+    auto               old_texture = effective_texture;
+    const std::string &old_label   = old_texture ? old_texture->debug_label() : "";
 
     slog_trace("set_texture(unit = %d, gl_name = %d %s) old_unit = %d, old_texture = %d %s\n",
                unit,
@@ -147,9 +152,7 @@ shared_ptr<class texture> renderer::set_texture(
                (old_texture ? old_texture->gl_name() : 0),
                old_label.c_str());
 
-    if (!cache_enabled() ||
-        (m_effective.texture_unit[unit].texture_binding[target] !=
-         m_requested.texture_unit[unit].texture_binding[target]))
+    if (!cache_enabled() || (effective_texture != requested_texture))
     {
         m_requested.active_texture = unit;
         if (!cache_enabled() || (m_effective.active_texture != m_requested.active_texture))
@@ -157,9 +160,9 @@ shared_ptr<class texture> renderer::set_texture(
             gl::active_texture(gl::texture_unit::texture0 + m_requested.active_texture);
             m_effective.active_texture = m_requested.active_texture;
         }
-        gl::bind_texture(texture_target::gl_texture_target(target), texture->gl_name());
+        gl::bind_texture(Texture::gl_texture_target(target), texture->gl_name());
 
-        m_effective.texture_unit[unit].texture_binding[target] = m_requested.texture_unit[unit].texture_binding[target];
+        effective_texture = requested_texture;
 
         // TODO Do this or not?
         texture->apply(*this, unit);
@@ -167,18 +170,10 @@ shared_ptr<class texture> renderer::set_texture(
 
     return old;
 }
-shared_ptr<class texture> renderer::reset_texture(
-    unsigned int unit, texture_target::value target, unsigned int *old_unit)
-{
-    slog_trace("reset_texture(unit = %d, target = %s) old_unit = %d\n",
-               unit,
-               texture_target::desc(target),
-               m_effective.texture_unit[unit].texture_binding[target].get());
 
-    if (target >= texture_target::count)
-    {
-        throw runtime_error("invalid texture target");
-    }
+Texture *Renderer::reset_texture(unsigned int unit, Texture::Target target, unsigned int *old_unit)
+{
+    size_t slot = static_cast<size_t>(target);
 
     unsigned int count = std::min(RS_TEXTURE_UNIT_COUNT, configuration::max_combined_texture_image_units);
     if (unit >= count)
@@ -186,15 +181,26 @@ shared_ptr<class texture> renderer::reset_texture(
         throw runtime_error("texture unit index out of supported range");
     }
 
-    auto old = m_effective.texture_unit[unit].texture_binding[target];
+    auto old = m_effective.texture_unit[unit].texture_binding[slot];
+
+    slog_trace("reset_texture(unit = %d, target = %s) old_unit = %d\n",
+               unit,
+               Texture::desc(target),
+               old_unit ? *old_unit : -1);
+
+    if (!Texture::is_valid(target))
+    {
+        throw runtime_error("invalid texture target");
+    }
+
     if (old_unit)
     {
         *old_unit = m_effective.active_texture;
     }
 
-    m_requested.texture_unit[unit].texture_binding[target].reset();
+    m_requested.texture_unit[unit].texture_binding[slot] = nullptr;
 
-    if (!cache_enabled() || (m_effective.texture_unit[unit].texture_binding[target]))
+    if (!cache_enabled() || (m_effective.texture_unit[unit].texture_binding[slot]))
     {
         m_requested.active_texture = unit;
         if (!cache_enabled() || (m_effective.active_texture != m_requested.active_texture))
@@ -202,15 +208,15 @@ shared_ptr<class texture> renderer::reset_texture(
             gl::active_texture(gl::texture_unit::texture0 + m_requested.active_texture);
             m_effective.active_texture = m_requested.active_texture;
         }
-        gl::bind_texture(texture_target::gl_texture_target(target), 0);
+        gl::bind_texture(Texture::gl_texture_target(target), 0);
 
-        m_effective.texture_unit[unit].texture_binding[target].reset();
+        m_effective.texture_unit[unit].texture_binding[slot] = nullptr;
     }
 
     return old;
 }
 
-unsigned int renderer::set_texture_unit(unsigned int unit)
+unsigned int Renderer::set_texture_unit(unsigned int unit)
 {
     unsigned int old_unit = m_effective.active_texture;
 
@@ -226,23 +232,24 @@ unsigned int renderer::set_texture_unit(unsigned int unit)
 }
 
 // Restores old texture to effective texture unit and then restores effective texture unit to old_unit
-void renderer::restore_texture(texture_target::value target, shared_ptr<class texture> old_texture, unsigned int old_unit)
+void Renderer::restore_texture(Texture::Target target, Texture *old_texture, unsigned int old_unit)
 {
+    size_t slot = static_cast<size_t>(target);
     unsigned int unit = m_effective.active_texture;
 
     slog_trace("restore_texture(target = %s, old_texture = %d %s, old_unit = %d) unit = %d\n",
-               texture_target::desc(target),
+               Texture::desc(target),
                (old_texture ? old_texture->gl_name() : 0),
                (old_texture ? old_texture->debug_label().c_str() : ""),
                old_unit);
 
-    m_requested.texture_unit[unit].texture_binding[target] = old_texture;
+    m_requested.texture_unit[unit].texture_binding[slot] = old_texture;
     if (!cache_enabled() ||
-        (m_effective.texture_unit[unit].texture_binding[target] !=
-         m_requested.texture_unit[unit].texture_binding[target]))
+        (m_effective.texture_unit[unit].texture_binding[slot] !=
+         m_requested.texture_unit[unit].texture_binding[slot]))
     {
         unsigned int gl_name = old_texture ? old_texture->gl_name() : 0;
-        gl::bind_texture(texture_target::gl_texture_target(target), gl_name);
+        gl::bind_texture(Texture::gl_texture_target(target), gl_name);
 
         m_requested.active_texture = old_unit;
         if (!cache_enabled() || (m_effective.active_texture != m_requested.active_texture))
@@ -250,16 +257,16 @@ void renderer::restore_texture(texture_target::value target, shared_ptr<class te
             gl::active_texture(gl::texture_unit::texture0 + m_requested.active_texture);
             m_effective.active_texture = m_requested.active_texture;
         }
-        m_effective.texture_unit[unit].texture_binding[target] = m_requested.texture_unit[unit].texture_binding[target];
+        m_effective.texture_unit[unit].texture_binding[slot] = m_requested.texture_unit[unit].texture_binding[slot];
     }
 }
 
 #if 0
 #    if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
-shared_ptr<uniform_buffer_range> renderer::set_uniform_buffer_range(
+Uniform_buffer_range *Renderer::set_uniform_buffer_range(
    unsigned int binding_point,
-   shared_ptr<uniform_buffer_range> buffer_range,
-   std::size_t offset
+   Uniform_buffer_range *buffer_range,
+   size_t offset
 )
 {
    unsigned int count = std::min(RS_UNIFORM_BINDING_POINT_COUNT, configuration::max_uniform_buffer_bindings);
@@ -273,7 +280,7 @@ shared_ptr<uniform_buffer_range> renderer::set_uniform_buffer_range(
    if (!configuration::can_use.uniform_buffer_object)
       throw runtime_error("uniform buffer objects not supported by current context");
 
-   shared_ptr<uniform_buffer_range> old = m_requested.uniform_buffer_binding_indexed[binding_point];
+   Uniform_buffer_range *old = m_requested.uniform_buffer_binding_indexed[binding_point];
 
    m_requested.uniform_buffer_binding_indexed[binding_point] = buffer_range;
 
@@ -283,7 +290,7 @@ shared_ptr<uniform_buffer_range> renderer::set_uniform_buffer_range(
       !cache_enabled() ||
       (
          (m_effective.uniform_buffer_binding_indexed[binding_point] != m_requested.uniform_buffer_binding_indexed[binding_point]) ||
-         (m_effective.buffer_binding[buffer_target::uniform_buffer] != buffer)
+         (m_effective.buffer_binding[Buffer::Target::uniform_buffer] != buffer)
       )
    )
    {
@@ -310,7 +317,7 @@ shared_ptr<uniform_buffer_range> renderer::set_uniform_buffer_range(
       }
 
       auto buffer = buffer_range->uniform_buffer().lock();
-      m_effective.buffer_binding[buffer_target::uniform_buffer] = buffer;
+      m_effective.buffer_binding[Buffer::Target::uniform_buffer] = Buffer;
       m_effective.uniform_buffer_binding_indexed[binding_point] = m_requested.uniform_buffer_binding_indexed[binding_point];
    }
 
@@ -319,31 +326,34 @@ shared_ptr<uniform_buffer_range> renderer::set_uniform_buffer_range(
 #    endif
 #endif
 
-shared_ptr<class buffer> renderer::set_buffer(buffer_target::value target, shared_ptr<class buffer> buffer)
+Buffer *Renderer::set_buffer(Buffer::Target target, Buffer *buffer)
 {
-    if (target >= buffer_target::count_in_context())
-        throw runtime_error("invalid buffer target");
-
-    shared_ptr<class buffer> old = m_effective.buffer_binding[target];
-
-    m_requested.buffer_binding[target] = buffer;
-    if (!cache_enabled() || (m_effective.buffer_binding[target] != m_requested.buffer_binding[target]))
+    size_t slot = static_cast<size_t>(target);
+    if (!Buffer::is_valid(target))
     {
-        if (m_requested.buffer_binding[target])
+        throw runtime_error("invalid buffer target");
+    }
+
+    auto old = m_effective.buffer_binding[slot];
+
+    m_requested.buffer_binding[slot] = buffer;
+    if (!cache_enabled() || (m_effective.buffer_binding[slot] != m_requested.buffer_binding[slot]))
+    {
+        if (m_requested.buffer_binding[slot])
         {
             unsigned int gl_name = buffer ? buffer->gl_name() : 0;
-            gl::bind_buffer(buffer_target::gl_buffer_target(target),
-                            gl_name);
+            gl::bind_buffer(Buffer::gl_buffer_target(target), gl_name);
         }
 
-        m_effective.buffer_binding[target] = m_requested.buffer_binding[target];
+        m_effective.buffer_binding[slot] = m_requested.buffer_binding[slot];
     }
 
     return old;
 }
-shared_ptr<class vertex_array> renderer::set_vertex_array(shared_ptr<class vertex_array> vertex_array)
+
+Vertex_array *Renderer::set_vertex_array(Vertex_array *vertex_array)
 {
-    shared_ptr<class vertex_array> old = m_effective.vertex_array_binding;
+    auto old = m_effective.vertex_array_binding;
 
     assert(vertex_array);
 
@@ -390,12 +400,13 @@ shared_ptr<class vertex_array> renderer::set_vertex_array(shared_ptr<class verte
 
     return old;
 }
-void renderer::reset_vertex_array()
+
+void Renderer::reset_vertex_array()
 {
-    set_vertex_array(m_default_vertex_array);
+    set_vertex_array(&m_default_vertex_array);
 }
 
-void renderer::setup_attribute_pointers(shared_ptr<class vertex_stream> vertex_stream, GLint base_vertex)
+void Renderer::setup_attribute_pointers(Vertex_stream &vertex_stream, GLint base_vertex)
 {
     if (configuration::use_gl1)
     {
@@ -414,12 +425,10 @@ void renderer::setup_attribute_pointers(shared_ptr<class vertex_stream> vertex_s
         setup_attribute_pointers_new(vertex_stream, base_vertex);
     }
 }
-void renderer::setup_attribute_pointers_new(
-    shared_ptr<class vertex_stream> vertex_stream, GLint base_vertex)
-{
-    assert(vertex_stream);
 
-    slog_trace("renderer::setup_attribute_pointers_new(base_vertex = %d\n",
+void Renderer::setup_attribute_pointers_new(Vertex_stream &vertex_stream, GLint base_vertex)
+{
+    slog_trace("Renderer::setup_attribute_pointers_new(base_vertex = %d\n",
                base_vertex);
 
     bool use_vao = configuration::must_use_vertex_array_object ||
@@ -428,7 +437,7 @@ void renderer::setup_attribute_pointers_new(
 
     if (use_vao)
     {
-        set_vertex_array(vertex_stream->vertex_array());
+        set_vertex_array(vertex_stream.vertex_array());
     }
 
     auto va = m_effective.vertex_array_binding;
@@ -437,56 +446,49 @@ void renderer::setup_attribute_pointers_new(
 
     unsigned int count = std::min(RS_ATTRIBUTE_COUNT, configuration::max_vertex_attribs);
 
-    for (auto i = vertex_stream->bindings().cbegin(); i != vertex_stream->bindings().cend(); ++i)
+    for (auto &binding : vertex_stream.bindings())
     {
-        auto &binding   = *i;
-        auto  vbo       = binding.vertex_buffer().lock();
-        auto  attribute = binding.vertex_attribute().lock();
-        auto  mapping   = binding.vertex_attribute_mapping().lock();
+        auto vbo       = binding.vertex_buffer;
+        auto attribute = binding.vertex_attribute;
+        auto mapping   = binding.vertex_attribute_mapping;
 
         assert(vbo);
         assert(attribute);
-        assert(mapping);
 
-        if (mapping->dst_index() >= count)
+        if (mapping.dst_index >= count)
         {
             throw runtime_error("vertex attribute index out of supported range");
         }
 
-        set_buffer(buffer_target::array_buffer, vbo);
+        set_buffer(Buffer::Target::array_buffer, vbo);
 
-        va->enable_attrib(mapping->dst_index(),
-                          attribute->dimension(),
-                          attribute->shader_type(),
-                          attribute->data_type(),
-                          binding.stride(),
-                          base_vertex * binding.stride() + attribute->offset(),
-                          attribute->normalized(),
-                          attribute->divisor());
+        va->enable_attrib(mapping.dst_index,
+                          attribute->dimension,
+                          attribute->shader_type,
+                          attribute->data_type,
+                          binding.stride,
+                          base_vertex * binding.stride + attribute->offset,
+                          attribute->normalized,
+                          attribute->divisor);
     }
 
     va->apply_attrib_enables();
 }
 
-void renderer::use_vertex_stream(shared_ptr<class vertex_stream> vertex_stream)
+void Renderer::use_vertex_stream(Vertex_stream &vertex_stream)
 {
-    assert(vertex_stream);
-
-    set_vertex_array(vertex_stream->vertex_array());
+    set_vertex_array(vertex_stream.vertex_array());
 }
 
-void renderer::draw_elements_base_vertex(
-    shared_ptr<class vertex_stream> vertex_stream,
+void Renderer::draw_elements_base_vertex(Vertex_stream &vertex_stream,
     GLenum begin_mode, GLsizei count, GLenum index_type, const GLvoid *indices,
     GLint base_vertex)
 {
-    assert(vertex_stream);
-
     bool use_vao = configuration::must_use_vertex_array_object ||
                    (configuration::can_use.vertex_array_object &&
                     configuration::use_vertex_array_object);
 
-    set_vertex_array(vertex_stream->vertex_array());
+    set_vertex_array(vertex_stream.vertex_array());
 
     if (use_vao)
     {
@@ -508,65 +510,75 @@ void renderer::draw_elements_base_vertex(
     }
 }
 
-bool renderer::map_buffer(buffer_target::value target, shared_ptr<class buffer> buffer)
+bool Renderer::map_buffer(Buffer::Target target, Buffer *buffer)
 {
-    assert(target < buffer_target::all_buffer_target_count);
+    size_t slot = static_cast<size_t>(target);
+    assert(Buffer::is_valid(target));
     bool binding_ok = false;
 
-    if (target == buffer_target::element_array_buffer)
+    if (target == Buffer::Target::element_array_buffer)
     {
         binding_ok = m_effective.vertex_array_binding->index_buffer() == buffer;
     }
     else
     {
-        binding_ok = m_effective.buffer_binding[target] == buffer;
+        binding_ok = m_effective.buffer_binding[slot] == buffer;
     }
 
-    bool not_mapped   = m_mapped_buffer[target] == nullptr;
+    bool not_mapped   = m_mapped_buffer[slot] == nullptr;
     bool target_match = buffer->target() == target;
     bool map_ok       = not_mapped && target_match;
     bool all_ok       = binding_ok && map_ok;
 
     if (all_ok)
     {
-        m_mapped_buffer[target] = buffer;
+        m_mapped_buffer[slot] = buffer;
     }
 
     return all_ok;
 }
-bool renderer::buffer_is_bound(buffer_target::value target, shared_ptr<class buffer> buffer)
+
+bool Renderer::buffer_is_bound(Buffer::Target target, Buffer *buffer)
 {
-    assert(target < buffer_target::count_in_context());
-    bool ok = (m_effective.buffer_binding[target] == buffer) && (buffer->target() == target);
+    size_t slot = static_cast<size_t>(target);
+    assert(Buffer::is_valid(target));
+    bool ok = (m_effective.buffer_binding[slot] == buffer) && (buffer->target() == target);
     return ok;
 }
-bool renderer::buffer_is_mapped(buffer_target::value target, shared_ptr<class buffer> buffer)
+
+bool Renderer::buffer_is_mapped(Buffer::Target target, Buffer *buffer)
 {
-    assert(target < buffer_target::all_buffer_target_count);
-    bool ok = (m_mapped_buffer[target] == buffer) && (buffer->target() == target);
+    size_t slot = static_cast<size_t>(target);
+    assert(Buffer::is_valid(target));
+    bool ok = (m_mapped_buffer[slot] == buffer) && (buffer->target() == target);
     return ok;
 }
-bool renderer::unmap_buffer(buffer_target::value target, shared_ptr<class buffer> buffer)
+
+bool Renderer::unmap_buffer(Buffer::Target target, Buffer *buffer)
 {
-    assert(target < buffer_target::all_buffer_target_count);
-    bool ok = (m_mapped_buffer[target] == buffer) && (buffer->target() == target);
-    m_mapped_buffer[target].reset();
+    size_t slot = static_cast<size_t>(target);
+    assert(Buffer::is_valid(target));
+    bool ok = (m_mapped_buffer[slot] == buffer) && (buffer->target() == target);
+    m_mapped_buffer[slot] = nullptr;
     return ok;
 }
-bool renderer::texture_is_bound(unsigned int unit, texture_target::value target, shared_ptr<class texture> texture)
+
+bool Renderer::texture_is_bound(unsigned int unit, Texture::Target target, Texture *texture)
 {
+    size_t slot = static_cast<size_t>(target);
     unsigned int count = std::min(RS_TEXTURE_UNIT_COUNT, configuration::max_combined_texture_image_units);
     if (unit >= count)
     {
         throw runtime_error("texture unit index out of supported range");
     }
 
-    assert(target < texture_target::count);
+    assert(Texture::is_valid(target));
 
-    bool ok = (m_effective.texture_unit[unit].texture_binding[target] == texture);
+    bool ok = (m_effective.texture_unit[unit].texture_binding[slot] == texture);
     return ok;
 }
-unsigned int renderer::effective_texture_unit() const
+
+unsigned int Renderer::effective_texture_unit() const
 {
     return m_effective.active_texture;
 }
@@ -576,13 +588,13 @@ unsigned int renderer::effective_texture_unit() const
 
 #if defined(RENDERSTACK_GL_API_OPENGL_WITH_LEGACY)
 // This path is outdated
-void vertex_stream::setup_attribute_pointers_old(GLint basevertex)
+void Vertex_stream::setup_attribute_pointers_old(GLint basevertex)
 {
     for (auto i = m_vertex_stream_bindings.begin(); i != m_vertex_stream_bindings.end(); ++i)
     {
-        vertex_stream_binding * binding   = *i;
-        class vertex_attribute *attribute = binding->vertex_attribute();
-        vertex_stream_mapping * mapping   = binding->vertex_stream_mapping();
+        Vertex_stream_binding *binding   = *i;
+        Vertex_attribute *     attribute = binding->vertex_attribute();
+        vertex_stream_mapping *mapping   = binding->vertex_stream_mapping();
 
         switch (mapping->dst_usage())
         {
@@ -636,13 +648,13 @@ void vertex_stream::setup_attribute_pointers_old(GLint basevertex)
         }
     }
 }
-void vertex_stream::disable_attributes_old()
+void Vertex_stream::disable_attributes_old()
 {
     for (auto i = vertex_stream_bindings().begin(); i != vertex_stream_bindings().end(); ++i)
     {
-        vertex_stream_binding * binding   = *i;
-        class vertex_attribute *attribute = binding->vertex_attribute();
-        vertex_stream_mapping * mapping   = binding->vertex_stream_mapping();
+        Vertex_stream_binding *binding   = *i;
+        Vertex_attribute *     attribute = binding->vertex_attribute();
+        vertex_stream_mapping *mapping   = binding->vertex_stream_mapping();
 
         switch (mapping->dst_usage())
         {

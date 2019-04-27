@@ -11,43 +11,23 @@
 #include <memory>
 #include <string>
 
-class material
+struct Material
 {
-public:
-    material(
-        std::size_t        index,
-        std::string const &name,
+    Material(
+        size_t        index,
+        const std::string &name,
         glm::vec4 const &  color,
         float              roughness,
-        float              isotropy);
-
-    std::size_t index() const
+        float              isotropy)
+    : index(index), name(name), color(color), roughness(roughness), isotropy(isotropy)
     {
-        return m_index;
-    }
-    std::string const &name() const
-    {
-        return m_name;
-    }
-    glm::vec4 const &color() const
-    {
-        return m_color;
-    }
-    float roughness() const
-    {
-        return m_roughness;
-    }
-    float isotropy() const
-    {
-        return m_isotropy;
     }
 
-private:
-    std::size_t m_index;
-    std::string m_name;
-    glm::vec4   m_color;
-    float       m_roughness;
-    float       m_isotropy;
+    size_t index;
+    std::string name;
+    glm::vec4   color;
+    float       roughness;
+    float       isotropy;
 };
 
 #endif

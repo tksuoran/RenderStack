@@ -12,15 +12,14 @@ namespace toolkit
 using namespace glm;
 using namespace std;
 
-vec3 unproject(
-    mat4 const &inverse_model_view_projection,
-    float       win_x,
-    float       win_y,
-    float       win_z,
-    float       viewport_x,
-    float       viewport_y,
-    float       viewport_width,
-    float       viewport_height)
+vec3 unproject(mat4 const &inverse_model_view_projection,
+               float       win_x,
+               float       win_y,
+               float       win_z,
+               float       viewport_x,
+               float       viewport_y,
+               float       viewport_width,
+               float       viewport_height)
 {
     vec4 in;
     vec4 out;
@@ -37,14 +36,14 @@ vec3 unproject(
 
     return vec3(out.x / out.w, out.y / out.w, out.z / out.w);
 }
-vec2 project_to_screen_space(
-    mat4 const &model_view_projection,
-    vec3 const &position_in_world,
-    float       viewport_x,
-    float       viewport_y,
-    float       viewport_width,
-    float       viewport_height,
-    float &     depth)
+
+vec2 project_to_screen_space(mat4 const &model_view_projection,
+                             vec3 const &position_in_world,
+                             float       viewport_x,
+                             float       viewport_y,
+                             float       viewport_width,
+                             float       viewport_height,
+                             float      &depth)
 {
     vec4 clip = model_view_projection * vec4(position_in_world, 1.0f);
 
@@ -53,16 +52,14 @@ vec2 project_to_screen_space(
     float halffar__minusnear_ = 0.5f * (depth_rangefar_ - depth_rangenear_);
     float halfnear__plusfar_  = 0.5f * (depth_rangenear_ + depth_rangefar_);
 
-    vec3 ndc(
-        clip.x / clip.w,
-        clip.y / clip.w,
-        clip.z / clip.w);
+    vec3 ndc(clip.x / clip.w,
+             clip.y / clip.w,
+             clip.z / clip.w);
 
     depth = halffar__minusnear_ * ndc.z + halfnear__plusfar_;
 
-    vec2 window = vec2(
-        (0.5f + (ndc.x * 0.5f)) * viewport_width + viewport_x,
-        (0.5f + (ndc.y * 0.5f)) * viewport_height + viewport_y);
+    vec2 window = vec2((0.5f + (ndc.x * 0.5f)) * viewport_width + viewport_x,
+                       (0.5f + (ndc.y * 0.5f)) * viewport_height + viewport_y);
 
     return window;
 }
@@ -96,6 +93,7 @@ void create_frustum(float left, float right, float bottom, float top, float near
     result[2][3] = -1.0f;
     result[3][3] = 0;
 }
+
 void create_frustum_simple(float width, float height, float near_, float far_, mat4 &result)
 {
     float x;
@@ -134,6 +132,7 @@ void create_frustum_simple(float width, float height, float near_, float far_, m
     result[2][3] = -1.0f;
     result[3][3] = 0;
 }
+
 void create_perspective(float fov_x, float fov_y, float near_, float far_, mat4 &result)
 {
     fov_y               = (std::max)(fov_y, 0.01f);
@@ -146,6 +145,7 @@ void create_perspective(float fov_x, float fov_y, float near_, float far_, mat4 
     float height        = 2.0f * near_ * tanYHalfAngle;
     create_frustum_simple(width, height, near_, far_, result);
 }
+
 void create_perspective_vertical(float fov_y, float aspect_ratio, float near_, float far_, mat4 &result)
 {
     fov_y              = std::max(fov_y, 0.01f);
@@ -156,6 +156,7 @@ void create_perspective_vertical(float fov_y, float aspect_ratio, float near_, f
 
     create_frustum_simple(width, height, near_, far_, result);
 }
+
 void create_perspective_horizontal(float fov_x, float aspect_ratio, float near_, float far_, mat4 &result)
 {
     fov_x                = std::max(fov_x, 0.001f);
@@ -166,11 +167,12 @@ void create_perspective_horizontal(float fov_x, float aspect_ratio, float near_,
 
     create_frustum_simple(width, height, near_, far_, result);
 }
-/*  http://and-what-happened.blogspot.com/p/just-formulas.html  */
-/*  The projection produced by this formula has x, y and z extents of -1:+1.  */
-/*  The perspective control value p is not restricted to integer values.  */
-/*  The view plane is defined by z.  */
-/*  Objects on the view plane will have a homogeneous w value of 1.0 after the transform. */
+
+//  http://and-what-happened.blogspot.com/p/just-formulas.html
+//  The projection produced by this formula has x, y and z extents of -1:+1.
+//  The perspective control value p is not restricted to integer values.
+//  The view plane is defined by z.
+//  Objects on the view plane will have a homogeneous w value of 1.0 after the transform.
 void create_projection(
     float s,          //  Stereo-scopic 3D eye separation
     float p,          //  Perspective (0 == parallel, 1 == perspective)
@@ -200,12 +202,13 @@ void create_projection(
     result[3][2] = p / (v.z - e.z);
     result[3][3] = (v.z * (1.0f - p) - e.z) / (v.z - e.z);
 
-    /*  Changes handedness  */
+    // Changes handedness
     result[0][2] = -result[0][2];
     result[1][2] = -result[1][2];
     result[2][2] = -result[2][2];
     result[3][2] = -result[3][2];
 }
+
 void create_orthographic(float left, float right, float bottom, float top, float near, float far, mat4 &result)
 {
     float width  = right - left;
@@ -235,6 +238,7 @@ void create_orthographic(float left, float right, float bottom, float top, float
     result[2][3] = 0.0f;
     result[3][3] = 1.0f;
 }
+
 void create_orthographic_centered(float width, float height, float near_, float far_, mat4 &result)
 {
     float depth = far_ - near_;
@@ -261,6 +265,7 @@ void create_orthographic_centered(float width, float height, float near_, float 
     result[2][3] = 0.0f;
     result[3][3] = 1.0f;
 }
+
 void create_translation(vec2 const &t, mat4 &result)
 {
     result[0][0] = 1.0f;
@@ -280,6 +285,7 @@ void create_translation(vec2 const &t, mat4 &result)
     result[2][3] = 0.0f;
     result[3][3] = 1.0f;
 }
+
 void create_translation(glm::vec3 const &t, glm::mat4 &result)
 {
     result[0][0] = 1.0f;
@@ -299,6 +305,7 @@ void create_translation(glm::vec3 const &t, glm::mat4 &result)
     result[2][3] = 0.0f;
     result[3][3] = 1.0f;
 }
+
 void create_translation(float x, float y, float z, mat4 &result)
 {
     result[0][0] = 1.0f;
@@ -318,6 +325,7 @@ void create_translation(float x, float y, float z, mat4 &result)
     result[2][3] = 0.0f;
     result[3][3] = 1.0f;
 }
+
 void create_rotation(float angle_radians, vec3 const &axis, mat4 &result)
 {
     float rsin = sin(angle_radians);
@@ -327,30 +335,31 @@ void create_rotation(float angle_radians, vec3 const &axis, mat4 &result)
     float v = axis.y;
     float w = axis.z;
 
-    /*  Set the first row  */
+    // Set the first row
     result[0][0] = rcos + u * u * (1 - rcos);
     result[1][0] = -w * rsin + v * u * (1 - rcos);
     result[2][0] = v * rsin + w * u * (1 - rcos);
     result[3][0] = 0;
 
-    /*  Set the second row  */
+    // Set the second row
     result[0][1] = w * rsin + u * v * (1 - rcos);
     result[1][1] = rcos + v * v * (1 - rcos);
     result[2][1] = -u * rsin + w * v * (1 - rcos);
     result[3][1] = 0;
 
-    /*  Set the third row  */
+    // Set the third row
     result[0][2] = -v * rsin + u * w * (1 - rcos);
     result[1][2] = u * rsin + v * w * (1 - rcos);
     result[2][2] = rcos + w * w * (1 - rcos);
     result[3][2] = 0;
 
-    /*  Set the fourth row  */
+    // Set the fourth row
     result[0][3] = 0.0f;
     result[1][3] = 0.0f;
     result[2][3] = 0.0f;
     result[3][3] = 1.0f;
 }
+
 void create_scale(float x, float y, float z, mat4 &result)
 {
     result[0][0] = x;
@@ -370,6 +379,7 @@ void create_scale(float x, float y, float z, mat4 &result)
     result[2][3] = 0.0f;
     result[3][3] = 1.0f;
 }
+
 void create_scale(float s, mat4 &result)
 {
     result[0][0] = s;
@@ -389,6 +399,7 @@ void create_scale(float s, mat4 &result)
     result[2][3] = 0.0f;
     result[3][3] = 1.0f;
 }
+
 void create_look_at(vec3 const &eye, vec3 const &center, vec3 up0, mat4 &result)
 {
     if (eye == center)
@@ -474,15 +485,19 @@ void hsv_to_rgb(float h, float s, float v, float &r, float &g, float &b)
                 b = v;
                 break;
             case 5:
+            {
                 r = v;
                 g = p;
                 b = q;
                 break;
+            }
             default:
+            {
                 r = 1.0f;
                 g = 1.0f;
                 b = 1.0f;
                 break;
+            }
         }
     }
 }
@@ -502,45 +517,71 @@ void rgb_to_hsv(float r, float g, float b, float &h, float &s, float &v)
     float min;
 
     if (r > g)
+    {
         max = r;
+    }
     else
+    {
         max = g;
+    }
 
     if (b > max)
+    {
         max = b;
+    }
 
     if (r < g)
+    {
         min = r;
+    }
     else
+    {
         min = g;
+    }
 
     if (b < min)
+    {
         min = b;
+    }
 
     diff = max - min;
     v    = max;
 
     if (max < 0.0001f)
+    {
         s = 0;
+    }
     else
+    {
         s = diff / max;
+    }
 
     if (s == 0)
+    {
         h = undefined;
+    }
     else
     {
         r_dist = (max - r) / diff;
         g_dist = (max - g) / diff;
         b_dist = (max - b) / diff;
         if (r == max)
+        {
             h = b_dist - g_dist;
+        }
         else if (g == max)
+        {
             h = 2.0f + r_dist - b_dist;
+        }
         else if (b == max)
+        {
             h = 4.0f + g_dist - r_dist;
+        }
         h = h * 60.0f;
         if (h < 0)
+        {
             h += 360.0f;
+        }
     }
 }
 
@@ -552,11 +593,13 @@ float srgb_to_linear(float cs)
     cs = (std::min)(cs, 1.0f);
 
     if (cs <= 0.04045f)
+    {
         cl = cs / 12.92f;
+    }
     else
-        cl = std::pow(
-            (cs + 0.055f) / 1.055f,
-            2.4f);
+    {
+        cl = std::pow((cs + 0.055f) / 1.055f, 2.4f);
+    }
 
     return cl;
 }
@@ -564,29 +607,35 @@ float srgb_to_linear(float cs)
 float linear_rgb_to_srgb(float cl)
 {
     if (cl > 1.0f)
+    {
         return 1.0f;
+    }
     else if (cl < 0.0)
+    {
         return 0.0f;
+    }
     else if (cl < 0.0031308f)
+    {
         return 12.92f * cl;
+    }
     else
+    {
         return 1.055f * std::pow(cl, 0.41666f) - 0.055f;
+    }
 }
 
 vec3 srgb_to_linear_rgb(vec3 const &srgb)
 {
-    return vec3(
-        srgb_to_linear(srgb.x),
-        srgb_to_linear(srgb.y),
-        srgb_to_linear(srgb.z));
+    return vec3(srgb_to_linear(srgb.x),
+                srgb_to_linear(srgb.y),
+                srgb_to_linear(srgb.z));
 }
 
 vec3 linear_rgb_to_srgb(vec3 const linear_rgb)
 {
-    return vec3(
-        linear_rgb_to_srgb(linear_rgb.x),
-        linear_rgb_to_srgb(linear_rgb.y),
-        linear_rgb_to_srgb(linear_rgb.z));
+    return vec3(linear_rgb_to_srgb(linear_rgb.x),
+                linear_rgb_to_srgb(linear_rgb.y),
+                linear_rgb_to_srgb(linear_rgb.z));
 }
 
 void cartesian_to_spherical(vec3 v, float &theta, float &phi)

@@ -39,7 +39,7 @@ double window::time() const
     return 0.0;
 }
 
-window::window(int width, int height, std::string const &title, int major, int minor)
+window::window(int width, int height, const std::string &title, int major, int minor)
 {
     (void)width;
     (void)height;

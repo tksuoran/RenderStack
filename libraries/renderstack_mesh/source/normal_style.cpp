@@ -6,13 +6,13 @@ namespace renderstack
 namespace mesh
 {
 
-const char *normal_style::desc(enum value a)
+const char *Normal_style::desc(enum value a)
 {
     switch (a)
     {
-        case normal_style::corner_normals: return "corner_normals";
-        case normal_style::polygon_normals: return "polygon_normals";
-        case normal_style::point_normals: return "point_normals";
+        case Normal_style::corner_normals: return "corner_normals";
+        case Normal_style::polygon_normals: return "polygon_normals";
+        case Normal_style::point_normals: return "point_normals";
         default: return "???";
     }
 }

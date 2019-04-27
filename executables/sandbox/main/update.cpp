@@ -14,7 +14,7 @@ using namespace renderstack::toolkit;
 using namespace std;
 using namespace glm;
 
-void game::update()
+void Game::update()
 {
     //if (!m_paused)
     {
@@ -49,7 +49,7 @@ void game::update()
     render();
 }
 
-void game::update_fixed_steps()
+void Game::update_fixed_steps()
 {
     double dt      = 1.0 / 120.0;
     int    updates = 0;
@@ -67,7 +67,7 @@ void game::update_fixed_steps()
     }
 }
 
-void game::update_fixed_step()
+void Game::update_fixed_step()
 {
     m_programs->update_fixed_step();
     m_controls.update_fixed_step();
@@ -78,7 +78,7 @@ void controls::update_fixed_step()
     camera_controller.update_fixed_step();
 }
 
-void game::update_once_per_frame()
+void Game::update_once_per_frame()
 {
     static int counter = 0;
 
@@ -96,7 +96,7 @@ void game::update_once_per_frame()
 
     if (m_scene_manager)
     {
-        m_scene_manager->camera()->update(m_viewport);
+        m_scene_manager->camera().update(m_viewport);
 
 #if 1
         if (!m_paused)
@@ -116,8 +116,8 @@ void game::update_once_per_frame()
                                    vec3(10.0f * cos(t), 0.2f, 9.0f + 10.0f * sin(t)), // center
                                    vec3(0.0f, 0.0f, 1.0f),                            // up
                                    m);
-                    l->frame()->parent_from_local().set(m);
-                    l->frame()->update_hierarchical_no_cache();
+                    l->camera.frame.parent_from_local.set(m);
+                    l->camera.frame.update_hierarchical_no_cache();
                 }
                 else if (light_index > 1)
                 {
@@ -125,8 +125,7 @@ void game::update_once_per_frame()
                     float t   = 1.8f * static_cast<float>(m_simulation_time) + rel * pi<float>() * 2.0f;
                     mat4  m;
 
-                    vec3 eye = vec3(
-                        l->frame()->world_from_local().matrix() * vec4(0.0f, 0.0f, 0.0f, 1.0f));
+                    vec3 eye     = vec3(l->camera.frame.world_from_local.matrix() * vec4(0.0f, 0.0f, 0.0f, 1.0f));
                     eye.y        = 16.0f + 5.0f * std::sin(t * 2.5f);
                     float R      = 2.0f + std::sin(t * 2.5f);
                     vec3  center = eye * 0.5f + vec3(R * std::sin(rel + t * 1.0f),
@@ -138,8 +137,8 @@ void game::update_once_per_frame()
                                    center,
                                    vec3(0.0f, 0.0f, 1.0f), // up
                                    m);
-                    l->frame()->parent_from_local().set(m);
-                    l->frame()->update_hierarchical_no_cache();
+                    l->camera.frame.parent_from_local.set(m);
+                    l->camera.frame.update_hierarchical_no_cache();
                 }
                 light_index++;
             }

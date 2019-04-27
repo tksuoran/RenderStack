@@ -10,25 +10,23 @@ namespace operation
 
 using namespace std;
 
-clone::clone(
-    shared_ptr<geometry> src
-    /*, HashSet<uint> selectedPolygonIndices*/
-)
+Clone::Clone(Geometry &src/*, HashSet<uint> selectedPolygonIndices*/) 
+    : Geometry_operation(src)
 {
-    set_source(src);
+    for (auto src_point : src.points())
+    {
+        make_new_point_from_point(src_point);
+    }
 
-    for (auto i = src->points().cbegin(); i != src->points().cend(); ++i)
-        make_new_point_from_point(*i);
-
-    for (size_t polygon_index = 0; polygon_index < src->polygons().size(); ++polygon_index)
+    for (size_t polygon_index = 0; polygon_index < src.polygons().size(); ++polygon_index)
     {
         /*if(
          (selectedPolygonIndices == null) || 
          selectedPolygonIndices.Contains(polygonIndex)
       ) */
         {
-            polygon *old_polygon = src->polygons()[polygon_index];
-            polygon *new_polygon = make_new_polygon_from_polygon(old_polygon);
+            Polygon *old_polygon = src.polygons()[polygon_index];
+            Polygon *new_polygon = make_new_polygon_from_polygon(old_polygon);
             add_polygon_corners(new_polygon, old_polygon);
         }
     }

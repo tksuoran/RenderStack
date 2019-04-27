@@ -11,47 +11,19 @@ namespace geometry
 namespace shapes
 {
 
-class triangle : public geometry
-{
-public:
-    triangle(double radius);
-};
+Geometry make_triangle(double radius);
 
-class quad : public geometry
-{
-public:
-    quad(double edge);
-};
+Geometry make_quad(double edge);
 
-class cuboctahedron : public geometry
-{
-public:
-    cuboctahedron(double radius);
-};
+Geometry make_cuboctahedron(double radius);
 
-class dodecahedron : public geometry
-{
-public:
-    dodecahedron(double radius);
-};
+Geometry make_dodecahedron(double radius);
 
-class icosahedron : public geometry
-{
-public:
-    icosahedron(double radius);
-};
+Geometry make_icosahedron(double radius);
 
-class octahedron : public geometry
-{
-public:
-    octahedron(double radius);
-};
+Geometry make_octahedron(double radius);
 
-class tetrahedron : public geometry
-{
-public:
-    tetrahedron(double radius);
-};
+Geometry make_tetrahedron(double radius);
 
 } // namespace shapes
 } // namespace geometry

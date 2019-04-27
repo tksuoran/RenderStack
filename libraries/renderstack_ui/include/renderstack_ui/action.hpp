@@ -9,39 +9,40 @@ namespace renderstack
 namespace ui
 {
 
-class action_sink;
+class Action_sink;
 
-class action_source : public renderstack::toolkit::enable_shared_from_this<
-                          class action_source>
+class Action_source
 {
-private:
-    std::weak_ptr<class action_sink> m_action_sink;
-
-protected:
-    action_source() {}
-    action_source(std::weak_ptr<class action_sink> sink)
-        : m_action_sink(sink) {}
-
 public:
-    std::weak_ptr<class action_sink> sink() const
+    Action_sink* sink() const
     {
         return m_action_sink;
     }
-    void set_sink(std::weak_ptr<class action_sink> value)
+
+    void set_sink(Action_sink *value)
     {
         m_action_sink = value;
     }
+
+protected:
+    Action_source() = default;
+
+    Action_source(Action_sink *sink)
+        : m_action_sink(sink)
+    {}
+
+private:
+    Action_sink *m_action_sink{nullptr};
 };
 
-class action_sink
-    : public renderstack::toolkit::enable_shared_from_this<class action_sink>
+class Action_sink
 {
 public:
-    virtual ~action_sink() {}
+    virtual ~Action_sink() = default;
 
-    virtual void action(std::weak_ptr<class action_source> source)
+    virtual void action(Action_source *source)
     {
-        (void)source;
+        static_cast<void>(source);
     }
 };
 

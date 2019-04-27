@@ -13,36 +13,40 @@ namespace renderstack
 namespace graphics
 {
 
-class program;
+class Program;
 
-class shader_monitor : public renderstack::toolkit::service
+class Shader_monitor : public renderstack::toolkit::service
 {
 public:
-    shader_monitor();
-    /*virtual*/ ~shader_monitor();
+    Shader_monitor();
 
-    /*virtual*/ void initialize_service();
+    virtual ~Shader_monitor() = default;
 
-    void add(std::string const &path, std::shared_ptr<program> program_);
+    void initialize_service() override;
+
+    void add(const std::string &path, Program *program);
+
+    void remove(Program *program);
+
     void poll();
-    void set_src_path(std::string const &src_path);
-    void set_dst_path(std::string const &dst_path);
 
-    std::string most_recent_version(std::string const &path);
+    void set_src_path(const std::string &src_path);
+
+    void set_dst_path(const std::string &dst_path);
+
+    std::string most_recent_version(const std::string &path);
 
 private:
-    struct file
+    struct File
     {
-        time_t      src_last_time;
-        time_t      dst_last_time;
-        std::string src_path;
-        std::string dst_path;
-        std::set<
-            std::shared_ptr<class program>>
-            programs;
+        time_t             src_last_time;
+        time_t             dst_last_time;
+        std::string        src_path;
+        std::string        dst_path;
+        std::set<Program*> programs;
     };
 
-    std::map<std::string, file> m_files;
+    std::map<std::string, File> m_files;
     std::string                 m_src_path;
     std::string                 m_dst_path;
 };

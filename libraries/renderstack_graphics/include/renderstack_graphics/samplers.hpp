@@ -1,10 +1,8 @@
 #ifndef samplers_hpp_renderstack_graphics
 #define samplers_hpp_renderstack_graphics
 
-#include "renderstack_toolkit/platform.hpp"
-#include "renderstack_toolkit/strong_gl_enums.hpp"
-#include <map>
-#include <memory>
+#include "renderstack_graphics/uniform.hpp"
+#include <unordered_map>
 #include <string>
 #include <vector>
 
@@ -13,23 +11,26 @@ namespace renderstack
 namespace graphics
 {
 
-class sampler;
-class uniform;
+class Sampler;
 
-class samplers
+class Samplers
 {
 public:
-    std::vector<std::shared_ptr<uniform>> const &sampler_uniforms();
+    using Uniform_collection = std::unordered_map<std::string, Uniform>;
 
-    std::shared_ptr<uniform> sampler(std::string const &key) const;
-    void                     seal();
-    std::shared_ptr<uniform> add(std::string const &name, gl::active_uniform_type::value type, std::shared_ptr<class sampler> sampler);
-    std::string              str() const;
+    Uniform_collection const &sampler_uniforms();
+
+    const Uniform *sampler(const std::string &key) const;
+
+    void seal();
+
+    Uniform &add(const std::string &name, gl::active_uniform_type::value type, Sampler *sampler);
+
+    std::string str() const;
 
 private:
-    std::map<std::string, std::shared_ptr<uniform>> m_sampler_dictionary;
-    std::vector<std::shared_ptr<uniform>>           m_samplers;
-    std::vector<unsigned int>                       m_textures;
+    Uniform_collection        m_samplers;
+    std::vector<unsigned int> m_textures;
 };
 
 } // namespace graphics

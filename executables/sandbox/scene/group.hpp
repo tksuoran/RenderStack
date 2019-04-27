@@ -6,10 +6,10 @@
 #    include <memory>
 #    include <vector>
 
-class model;
+class Model;
 
 template <typename T>
-class group
+class Group
 {
 public:
     void clear()
@@ -23,21 +23,24 @@ public:
     {
         return m_models;
     }
+
     std::vector<std::shared_ptr<T>> const &models() const
     {
         return m_models;
     }
+
     bool visible() const
     {
         return m_visible;
     }
+
     void set_visible(bool value)
     {
         m_visible = value;
     }
 
 private:
-    std::vector<std::shared_ptr<model>> m_models;
+    std::vector<std::shared_ptr<Model>> m_models;
     bool                                m_visible;
 };
 

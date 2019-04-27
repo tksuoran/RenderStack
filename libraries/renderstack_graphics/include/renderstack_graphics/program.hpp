@@ -2,11 +2,12 @@
 #define program_hpp_renderstack_graphics
 
 #include "renderstack_graphics/vertex_attribute_mappings.hpp"
+#include "renderstack_graphics/uniform.hpp"
 #include "renderstack_toolkit/gl.hpp"
 #include "renderstack_toolkit/log.hpp"
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_toolkit/strong_gl_enums.hpp"
-#include <map>
+#include <unordered_map>
 #include <memory>
 #include <string>
 #include <vector>
@@ -16,64 +17,87 @@ namespace renderstack
 namespace graphics
 {
 
-class renderer;
-class shader_monitor;
+class Fragment_outputs;
+class Renderer;
+class Samplers;
+class Shader_monitor;
+class Uniform_block;
 
-class program : public std::enable_shared_from_this<program>
+class Program : public std::enable_shared_from_this<Program>
 {
 public:
-    program(
-        std::string const &                              name,
-        int                                              glsl_version,
-        std::shared_ptr<class samplers>                  samplers,
-        std::shared_ptr<class vertex_attribute_mappings> vertex_attributes,
-        std::shared_ptr<class fragment_outputs>          fragment_output_mappings);
+    Program(const std::string &       name,
+            int                       glsl_version,
+            Samplers                  *samplers,
+            Vertex_attribute_mappings *vertex_attributes,
+            Fragment_outputs          *fragment_output_mappings);
 
-    std::string const &name() const
+    const std::string &name() const
     {
         return m_name;
     }
-    std::shared_ptr<class samplers> samples()
+
+    Samplers *samplers()
     {
         return m_samplers;
     }
-    std::shared_ptr<class vertex_attribute_mappings> vertex_attribute_mappings()
+
+    Vertex_attribute_mappings *vertex_attribute_mappings()
     {
         return m_vertex_attribute_mappings;
     }
 
     void dump_shaders() const;
 
-    void map_uniform(size_t key, std::string const &name);
-    int  uniform_at(std::size_t index) const;
+    void map_uniform(size_t key, const std::string &name);
+
+    int uniform_at(size_t index) const;
 
     bool use_uniform_buffers() const;
 
-    void bind_attrib_location(int location, std::string const name);
-    void bind_frag_data_location(int location, std::string const name);
+    void bind_attrib_location(int location, const std::string &name);
 
-    void define(std::string const &key, std::string const &value);
-    int  get_uniform_location(const char *name);
-    void load_shader(gl::shader_type::value type, std::string const &path);
-    void set_shader(gl::shader_type::value type, std::string const &source);
+    void bind_frag_data_location(int location, const std::string &name);
 
-    program &                      load_vs(std::string const &path);
-    program &                      load_tcs(std::string const &path);
-    program &                      load_tes(std::string const &path);
-    program &                      load_gs(std::string const &path);
-    program &                      load_fs(std::string const &path);
-    program &                      set_vs(std::string const &source);
-    program &                      set_tcs(std::string const &source);
-    program &                      set_tes(std::string const &source);
-    program &                      set_gs(std::string const &source);
-    program &                      set_fs(std::string const &source);
-    std::shared_ptr<class uniform> uniform(std::string const &name);
-    void                           transform_feedback(std::vector<std::string> varyings, GLenum buffer_mode);
-    void                           add(std::shared_ptr<class uniform_block> uniform_block);
-    void                           link();
-    void                           reload(class shader_monitor &monitor);
+    void define(const std::string &key, const std::string &value);
 
-    friend class renderer;
+    int get_uniform_location(const char *name);
+
+    void load_shader(gl::shader_type::value type, const std::string &path);
+
+    void set_shader(gl::shader_type::value type, const std::string &source);
+
+    Program &load_vs(const std::string &path);
+
+    Program &load_tcs(const std::string &path);
+
+    Program &load_tes(const std::string &path);
+
+    Program &load_gs(const std::string &path);
+
+    Program &load_fs(const std::string &path);
+
+    Program &set_vs(const std::string &source);
+
+    Program &set_tcs(const std::string &source);
+
+    Program &set_tes(const std::string &source);
+
+    Program &set_gs(const std::string &source);
+
+    Program &set_fs(const std::string &source);
+
+    Uniform &uniform(const std::string &name);
+
+    void transform_feedback(std::vector<std::string> varyings, GLenum buffer_mode);
+
+    void add(Uniform_block *uniform_block);
+
+    void link();
+
+    void reload(Shader_monitor &monitor);
+
+    friend class Renderer;
 
 private:
     unsigned int gl_name() const
@@ -92,26 +116,25 @@ private:
         std::string            compiled_src;
     };
 
-    std::string                                               m_name;
-    int                                                       m_glsl_version;
-    unsigned int                                              m_gl_name;
-    std::map<std::string, std::weak_ptr<class uniform_block>> m_uniform_blocks;
-    std::map<std::string, std::shared_ptr<class uniform>>     m_uniforms;
-    std::shared_ptr<class samplers>                           m_samplers;
-    std::shared_ptr<class vertex_attribute_mappings>          m_vertex_attribute_mappings;
-    std::shared_ptr<class fragment_outputs>                   m_fragment_outputs;
-    std::vector<loaded_shader>                                m_loaded_shaders;
-    std::vector<std::pair<std::string, std::string>>          m_defines;
-    std::vector<GLint>                                        m_uniform_map;
+    std::string                                         m_name;
+    int                                                 m_glsl_version;
+    unsigned int                                        m_gl_name{~0U};
+    std::unordered_map<std::string, Uniform_block*>     m_uniform_blocks;
+    std::unordered_map<std::string, Uniform>            m_uniforms;
+    Samplers                                            *m_samplers{nullptr};
+    Vertex_attribute_mappings                           *m_vertex_attribute_mappings{nullptr};
+    Fragment_outputs                                    *m_fragment_outputs{nullptr};
+    std::vector<loaded_shader>                          m_loaded_shaders;
+    std::vector<std::pair<std::string, std::string>>    m_defines;
+    std::vector<GLint>                                  m_uniform_map;
 
 private:
-    static std::string format(std::string const &source);
+    static std::string format(const std::string &source);
 
 private:
-    unsigned int make_shader(
-        gl::shader_type::value type,
-        std::string            source_str,
-        std::string &          compiled_src);
+    unsigned int make_shader(gl::shader_type::value type,
+                             std::string            source_str,
+                             std::string            &compiled_src);
 };
 
 } // namespace graphics

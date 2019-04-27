@@ -8,29 +8,24 @@ namespace ui
 using namespace std;
 using namespace renderstack::toolkit;
 
-choice_item::choice_item(
-    shared_ptr<class gui_renderer> renderer,
-    string const &                 label,
-    shared_ptr<class style>        style)
-    : push_button(renderer, label, style)
+Choice::Item::Item(Gui_renderer &     renderer,
+                   const std::string &label,
+                   Style &            style)
+    : Push_button(renderer, label, style)
 {
-    set_name("choice item: " + label);
+    name = "choice item: " + label;
 }
 
-choice_item::~choice_item()
+void Choice::Item::action(Action_source *source)
 {
-}
-
-void choice_item::action(weak_ptr<action_source> source)
-{
-    (void)source; // TODO
-    auto choice = m_choice.lock();
-    if (choice)
+    static_cast<void>(source); // TODO
+    if (m_choice)
     {
-        weak_ptr<choice_item> weak_this = enable_shared_from_this<choice_item>::shared_from_this();
-        auto                  selected  = choice->selected().lock();
-        if (selected != weak_this.lock())
-            choice->set_selected(weak_this);
+        auto selected = m_choice->selected();
+        if (selected != this)
+        {
+            m_choice->set_selected(this);
+        }
     }
     else
     {
@@ -38,72 +33,84 @@ void choice_item::action(weak_ptr<action_source> source)
     }
 }
 
-void choice_item::connect(weak_ptr<class choice> choice)
+void Choice::Item::connect(Choice *choice)
 {
     m_choice = choice;
 }
 
-choice::choice(
-    shared_ptr<class gui_renderer> renderer,
-    shared_ptr<class style>        style,
-    shared_ptr<class style>        choice_item_style,
-    orientation::value             orientation_in)
-    : dock(renderer, style, orientation_in), m_choice_item_style(choice_item_style)
+Choice::Choice(Gui_renderer &renderer,
+               Style        &style,
+               Style        &choice_item_style,
+               Orientation  orientation_in)
+    : Dock(renderer, style, orientation_in)
+    , m_choice_item_style(choice_item_style)
 {
-    set_name("choice");
+    name = "choice";
 }
 
-choice::~choice()
+std::shared_ptr<Choice::Item> Choice::add_item(std::shared_ptr<Choice::Item> item)
 {
-}
-
-shared_ptr<choice_item> choice::add(shared_ptr<choice_item> item)
-{
-    item->connect(enable_shared_from_this<choice>::shared_from_this());
+    item->connect(this);
 
     switch (orientation())
     {
-        case orientation::horizontal: item->set_layout_style(area_layout_style::extend_vertical); break;
-        case orientation::vertical: item->set_layout_style(area_layout_style::extend_horizontal); break;
+        case Orientation::horizontal:
+        {
+            item->layout_style = Flow_mode::extend_vertical;
+            break;
+        }
+
+        case Orientation::vertical:
+        {
+            item->layout_style = Flow_mode::extend_horizontal;
+            break;
+        }
     }
 
     m_items.push_back(item);
-    dock::add(item);
-    if (m_selected.lock() != item)
+    Dock::add(item.get());
+    if (m_selected != item.get())
+    {
         item->set_pressed(false);
+    }
 
     return item;
 }
 
-void choice::set_selected(weak_ptr<choice_item> value)
+void Choice::set_selected(Choice::Item *new_selected)
 {
-    auto old_selected = m_selected.lock();
-    auto new_selected = value.lock();
+    auto old_selected = m_selected;
 
-    if (value.lock() != old_selected)
+    if (new_selected != old_selected)
     {
         if (old_selected)
+        {
             old_selected->set_pressed(false);
+        }
 
-        m_selected = value;
+        m_selected = new_selected;
         if (new_selected)
+        {
             new_selected->set_pressed(true);
+        }
 
-        auto s = sink().lock();
-        if (s)
-            s->action(selected());
+        if (sink())
+        {
+            sink()->action(m_selected);
+        }
     }
 }
 
-shared_ptr<choice_item> choice::add_choice_item(string const &label, bool select)
+shared_ptr<Choice::Item> Choice::make_item(const std::string &label, bool select)
 {
-    shared_ptr<choice_item> item = smart_ptr_builder::create_shared_ptr<action_source, choice_item, area>(
-        new choice_item(renderer(), label, m_choice_item_style));
+    shared_ptr<Item> item = std::make_shared<Item>(renderer, label, m_choice_item_style);
     // choice_item handles actions itself
-    item->set_sink(item); // this can not be done in constructor as shared_from_this won't work
-    add(item);
+    item->set_sink(item.get()); // this can not be done in constructor as shared_from_this won't work
+    add_item(item);
     if (select)
-        set_selected(item);
+    {
+        set_selected(item.get());
+    }
 
     return item;
 }

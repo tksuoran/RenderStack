@@ -10,67 +10,75 @@ namespace renderstack
 {
 namespace geometry
 {
-class polygon;
-class point;
+class Polygon;
+class Point;
 } // namespace geometry
 namespace graphics
 {
-class renderer;
+class Renderer;
 }
 } // namespace renderstack
 
-class debug_renderer;
-class id_renderer;
+class Debug_renderer;
+class Id_renderer;
 class manipulator_manager;
-class scene_manager;
-class model;
-class group;
+class Scene_manager;
+class Model;
+class Group;
 
 class selection_manager : public renderstack::toolkit::service
 {
 public:
     selection_manager();
-    /*virtual*/ ~selection_manager();
 
-    void connect(
-        std::shared_ptr<renderstack::graphics::renderer> renderer,
-        std::shared_ptr<debug_renderer>                  debug_renderer_,
-        std::shared_ptr<id_renderer>                     id_renderer_,
-        std::shared_ptr<manipulator_manager>             manipulator_manager_,
-        std::shared_ptr<scene_manager>                   scene_manager_);
+    virtual ~selection_manager() = default;
 
-    /*virtual*/ void initialize_service();
+    void connect(std::shared_ptr<renderstack::graphics::Renderer> Renderer,
+                 std::shared_ptr<Debug_renderer>                  debug_renderer_,
+                 std::shared_ptr<Id_renderer>                     id_renderer_,
+                 std::shared_ptr<manipulator_manager>             manipulator_manager_,
+                 std::shared_ptr<Scene_manager>                   scene_manager_);
+
+    void initialize_service() override;
 
     void clear_hover();
+
     void clear_selection();
-    void remove(std::shared_ptr<model> m);
-    void add(std::shared_ptr<model> m);
-    bool contains(std::shared_ptr<model> m) const;
+
+    void remove(std::shared_ptr<Model> m);
+
+    void add(std::shared_ptr<Model> m);
+    
+    bool contains(std::shared_ptr<Model> m) const;
+
     void reset_hover();
+
     void update();
+
     void render_bounding_boxes();
+
     void render();
 
-private: /* services */
-    std::shared_ptr<renderstack::graphics::renderer> m_renderer;
-    std::shared_ptr<debug_renderer>                  m_debug_renderer;
-    std::shared_ptr<id_renderer>                     m_id_renderer;
+private:
+    std::shared_ptr<renderstack::graphics::Renderer> m_renderer;
+    std::shared_ptr<Debug_renderer>                  m_debug_renderer;
+    std::shared_ptr<Id_renderer>                     m_id_renderer;
     std::shared_ptr<manipulator_manager>             m_manipulator_manager;
-    std::shared_ptr<scene_manager>                   m_scene_manager;
+    std::shared_ptr<Scene_manager>                   m_scene_manager;
 
 private:
     struct hover
     {
-        std::shared_ptr<class model> model;
-        std::shared_ptr<class group> group;
-        class polygon *              polygon;
-        class point *                point;
-        float                        depth;
-        glm::vec3                    position;
+        std::shared_ptr<Model>          Model;
+        std::shared_ptr<Group>          group;
+        renderstack::geometry::Polygon  *polygon{nullptr};
+        renderstack::geometry::Point    *point{nullptr};
+        float                           depth;
+        glm::vec3                       position;
 
         void clear()
         {
-            model.reset();
+            Model.reset();
             group.reset();
             polygon  = nullptr;
             point    = nullptr;
@@ -78,7 +86,7 @@ private:
             position = glm::vec3(0.0f);
         }
     };
-    std::set<std::shared_ptr<model>> m_models;
+    std::set<std::shared_ptr<Model>> m_models;
     hover                            m_hover;
 };
 

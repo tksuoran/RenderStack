@@ -3,7 +3,7 @@
 
 #include "renderstack_geometry/exception.hpp"
 #include "renderstack_geometry/property_map.hpp"
-#include "renderstack_toolkit/platform.hpp"
+//#include "renderstack_toolkit/platform.hpp"
 #include <map>
 #include <memory>
 
@@ -12,49 +12,159 @@ namespace renderstack
 namespace geometry
 {
 
-template <typename key_type>
-class property_map_collection
+template <typename T, T prime, T offset>
+struct fnv1ah {
+	using key_type = T;
+	static constexpr T hash(const char *p, size_t len, T seed = offset) {
+		T hash = seed;
+		for (size_t i = 0; i < len; ++i) {
+			hash = (hash ^ static_cast<unsigned char>(p[i])) * prime;
+		}
+		return hash;
+	}
+	template <size_t N>
+	static constexpr T hash(const char(&s)[N], T seed = offset) {
+		return hash(s, N - 1, seed);
+	}
+	static T hash(const std::string& str, T seed = offset) {
+		return hash(str.data(), str.size(), seed);
+	}
+	template <typename... Args>
+	constexpr T operator()(Args&&... args) const {
+		return hash(std::forward<Args>(args)...);
+	}
+};
+using fnv1ah32 = fnv1ah<std::uint32_t, 0x1000193UL, 2166136261UL>;
+using fnv1ah64 = fnv1ah<std::uint64_t, 0x100000001b3ULL, 14695981039346656037ULL>;
+
+constexpr std::uint32_t operator"" _fnv1a(const char* s, size_t size) {
+	return fnv1ah64::hash(s, size);
+}
+
+template <typename Key_type>
+class Property_map_collection
 {
 private:
-    typedef std::map<std::string, std::shared_ptr<property_map_base<key_type>>> map_map;
+    using Hash = fnv1ah32;
+    struct Entry
+    {
+        Entry() = default;
+        ~Entry() = default;
+        Entry(const std::string &key, Property_map_base<Key_type> *p)
+        : key(key)
+        , value(p)
+        {
+        }
+        Entry(const Entry &) = delete;
+        Entry& operator=(const Entry &) = delete;
+
+        Entry(Entry &&other) 
+        {
+            key = other.key;
+            value = std::move(other.value);
+        }
+        Entry& operator=(Entry &&other)
+        {
+            key = other.key;
+            value = std::move(other.value);
+        }
+
+        std::string key;
+        std::unique_ptr<Property_map_base<Key_type>> value;
+    };
+
+    struct Chain
+    {
+        Chain() = default;
+        ~Chain() = default;
+        Chain(Hash::key_type hash, const std::string &name, Property_map_base<Key_type> *p) : hash(hash) {
+            values.emplace_back(name, p);
+        }
+        Chain(const Chain&) = delete;
+        Chain& operator=(const Chain &) = delete;        
+        Chain(Chain &&other)
+        {
+            hash = other.hash;
+            values = std::move(other.values);
+        }
+        Chain& operator=(Chain &&other)
+        {
+            hash = other.hash;
+            values = std::move(other.values);
+            return *this;
+        }
+
+        Hash::key_type hash{0U};
+        std::vector<Entry> values;
+    };
+
+    struct Chain_comparator
+    {
+        // for lower_bound() and upper_bound
+        bool operator()(const Chain &chain, const Hash::key_type hash_value) const
+        {
+            return chain.hash < hash_value;
+        }
+        // for sort()
+        bool operator()(const Chain &lhs, const Chain &rhs) const
+        {
+            return lhs.hash < rhs.hash;
+        }        
+    };
+    using Collection_type = std::vector<Chain>;
 
 public:
-    typedef typename map_map::const_iterator const_iterator;
-
-    property_map_collection();
-
     void clear();
 
     size_t size() const;
 
-    template <typename value_type>
-    std::shared_ptr<property_map<key_type, value_type>> create(std::string const &name);
+    template <typename Value_type>
+    Property_map<Key_type, Value_type> *create(const std::string &name);
 
-    void insert(std::string const &name, std::shared_ptr<property_map_base<key_type>> const &map);
-    void remove(std::string const &name);
-    template <typename value_type>
-    bool contains(std::string const &name) const;
+    // Inserts map to collection
+#if 0
+    template <typename Value_type>
+    void insert(const std::string &name, Property_map<Key_type, Value_type> *map);
+#endif
 
-    std::shared_ptr<property_map_base<key_type>> find_any(std::string const &name) const;
-    std::shared_ptr<property_map_base<key_type>> maybe_find_any(std::string const &name) const;
+    void insert(const std::string &name, Property_map_base<Key_type> *map);
+    
 
-    template <typename value_type>
-    std::shared_ptr<property_map<key_type, value_type>> find(std::string const &name) const;
-    template <typename value_type>
-    std::shared_ptr<property_map<key_type, value_type>> maybe_find(std::string const &name) const;
-    template <typename value_type>
-    std::shared_ptr<property_map<key_type, value_type>> find_or_create(std::string const &name);
-    void                                                replace(std::string const &name, std::string const &temp);
+    // Removes map from collections
+    void remove(const std::string &name);
 
-    const_iterator begin() const;
-    const_iterator end() const;
+    // not const because calls ensure_optimized()
+    template <typename Value_type>
+    bool contains(const std::string &name);
 
-    void interpolate(
-        property_map_collection<key_type> &                         destination,
-        std::map<key_type, std::vector<std::pair<float, key_type>>> key_new_to_olds) const;
+    template <typename Value_type>
+    bool contains(const std::string &name) const;
+
+    Property_map_base<Key_type> *find_any(const std::string &name);
+
+    template <typename Value_type>
+    Property_map<Key_type, Value_type> *find(const std::string &name);
+
+    template <typename Value_type>
+    Property_map<Key_type, Value_type> *maybe_find(const std::string &name);
+
+    template <typename Value_type>
+    Property_map<Key_type, Value_type> *maybe_find(const std::string &name) const;
+
+    template <typename Value_type>
+    Property_map<Key_type, Value_type> *find_or_create(const std::string &name);
+
+    template <typename Value_type>
+    void replace(const std::string &name, const std::string &replacement);
+
+    void interpolate(Property_map_collection<Key_type> &                         destination,
+                     std::map<Key_type, std::vector<std::pair<float, Key_type>>> key_new_to_olds);
+
+    void ensure_optimized();
 
 private:
-    map_map m_maps;
+    Collection_type m_collection;
+    bool m_is_optimized{false};
 };
 
 } // namespace geometry

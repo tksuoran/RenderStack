@@ -12,7 +12,7 @@ namespace mesh
 {
 
 class mesh;
-class geometry_mesh;
+class Geometry_mesh;
 
 } // namespace mesh
 } // namespace renderstack
@@ -22,37 +22,41 @@ namespace renderstack
 namespace ui
 {
 
-class color_picker : public area
+class Color_picker : public Area
 {
 public:
-    color_picker(std::shared_ptr<class gui_renderer> renderer, std::shared_ptr<class style> style);
-    virtual ~color_picker() {}
+    Color_picker(Gui_renderer &renderer, Style &style);
+
+    virtual ~Color_picker() = default;
 
     void animate();
 
-    void begin_place(rectangle const &reference, glm::vec2 const &grow_direction);
+    void begin_place(Rectangle reference, glm::vec2 grow_direction);
+
     void draw_self(ui_context &context);
 
 private:
-    std::shared_ptr<renderstack::mesh::mesh>          m_disc;
-    std::shared_ptr<renderstack::mesh::mesh>          m_triangle;
-    ninepatch                                         m_ninepatch;
-    float                                             m_size;
-    std::shared_ptr<renderstack::mesh::geometry_mesh> m_hsv_disc_mesh;
-    std::shared_ptr<renderstack::mesh::geometry_mesh> m_hsv_disc2_mesh;
-    std::shared_ptr<renderstack::mesh::geometry_mesh> m_hsv_quad_mesh;
-    std::shared_ptr<renderstack::mesh::geometry_mesh> m_color_mesh;
-    std::shared_ptr<renderstack::mesh::geometry_mesh> m_handle_mesh;
-    std::shared_ptr<renderstack::mesh::geometry_mesh> m_handle2_mesh;
-    glm::mat4                                         m_background_frame;
-    glm::mat4                                         m_hsv_transform;
-    glm::mat4                                         m_disc_handle_transform;
-    glm::mat4                                         m_quad_handle_transform;
-    float                                             m_disc_handle_radius;
-    float                                             m_quad_edge_length;
-    float                                             m_h;
-    float                                             m_s;
-    float                                             m_v;
+    std::unique_ptr<renderstack::mesh::mesh>          m_disc;
+    std::unique_ptr<renderstack::mesh::mesh>          m_triangle;
+    std::unique_ptr<renderstack::mesh::Geometry_mesh> m_hsv_disc_mesh;
+    std::unique_ptr<renderstack::mesh::Geometry_mesh> m_hsv_disc2_mesh;
+    std::unique_ptr<renderstack::mesh::Geometry_mesh> m_hsv_quad_mesh;
+    std::unique_ptr<renderstack::mesh::Geometry_mesh> m_color_mesh;
+    std::unique_ptr<renderstack::mesh::Geometry_mesh> m_handle_mesh;
+    std::unique_ptr<renderstack::mesh::Geometry_mesh> m_handle2_mesh;
+
+    std::unique_ptr<Ninepatch> m_ninepatch;
+    
+    float     m_size;
+    glm::mat4 m_background_frame;
+    glm::mat4 m_hsv_transform;
+    glm::mat4 m_disc_handle_transform;
+    glm::mat4 m_quad_handle_transform;
+    float     m_disc_handle_radius;
+    float     m_quad_edge_length;
+    float     m_h;
+    float     m_s;
+    float     m_v;
 };
 
 } // namespace ui

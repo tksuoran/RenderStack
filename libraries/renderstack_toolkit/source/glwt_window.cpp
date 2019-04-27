@@ -311,7 +311,7 @@ window::window()
 #    endif
 }
 
-bool window::open(int width, int height, std::string const &title, int major, int minor)
+bool window::open(int width, int height, const std::string &title, int major, int minor)
 {
     ::memset(&m_glwt_config, sizeof(::GLWTConfig), 0);
     m_glwt_config.red_bits          = 8;

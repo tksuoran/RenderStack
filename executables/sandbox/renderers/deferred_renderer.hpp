@@ -16,69 +16,75 @@ namespace renderstack
 {
 namespace graphics
 {
-class uniform_buffer;
-class uniform_buffer_range;
+class Uniform_buffer;
+class Uniform_buffer_range;
 } // namespace graphics
+
 namespace mesh
 {
-class geometry_mesh;
+class Geometry_mesh;
 }
 namespace scene
 {
-class camera;
-class light;
-class viewport;
+class Camera;
+class Light;
+struct Viewport;
 } // namespace scene
 } // namespace renderstack
 
-class light_mesh;
-class material;
+class Light_mesh;
+struct Material;
 
-class deferred_renderer
+class Deferred_renderer
     : public renderstack::toolkit::service,
-      public base_renderer
+      public Base_renderer
 {
 public:
-    deferred_renderer();
-    /*virtual*/ ~deferred_renderer();
+    Deferred_renderer();
 
-    void connect(std::shared_ptr<renderstack::graphics::renderer> renderer,
-                 std::shared_ptr<class programs>                  programs,
-                 std::shared_ptr<quad_renderer>                   quad_renderer,
-                 std::shared_ptr<class light_mesh>                light_mesh);
+    virtual ~Deferred_renderer() = default;
+
+    void connect(std::shared_ptr<renderstack::graphics::Renderer> renderer,
+                 std::shared_ptr<Programs>                        programs,
+                 std::shared_ptr<Quad_renderer>                   quad_renderer,
+                 std::shared_ptr<Light_mesh>                      light_mesh);
+
     void initialize_service() override;
 
-    void geometry_pass(std::vector<std::shared_ptr<material>> const &materials,
-                       std::vector<std::shared_ptr<model>> const &   models,
-                       std::shared_ptr<renderstack::scene::camera>   camera);
-    void light_pass(std::vector<std::shared_ptr<renderstack::scene::light>> const &lights,
-                    std::shared_ptr<renderstack::scene::camera>                    camera);
+    void geometry_pass(const Material_collection        &materials,
+                       const Model_collection           &models,
+                       const renderstack::scene::Camera &camera);
+
+    void light_pass(const Light_collection           &lights,
+                    const renderstack::scene::Camera &camera);
+
     void show_rt();
 
     void resize(int width, int height);
 
 private:
     void fbo_clear();
+
     void bind_gbuffer_fbo();
+
     void bind_linear_fbo();
 
-private:
-    std::shared_ptr<quad_renderer> m_quad_renderer;
+    std::shared_ptr<Quad_renderer> m_quad_renderer;
 
-    renderstack::graphics::render_states m_gbuffer_render_states;
-    renderstack::graphics::render_states m_light_stencil_render_states;
-    renderstack::graphics::render_states m_light_with_stencil_test_render_states;
-    renderstack::graphics::render_states m_light_render_states;
-    renderstack::graphics::render_states m_show_rt_render_states;
-    renderstack::graphics::render_states m_camera_render_states;
+    renderstack::graphics::Render_states m_gbuffer_render_states;
+    renderstack::graphics::Render_states m_light_stencil_render_states;
+    renderstack::graphics::Render_states m_light_with_stencil_test_render_states;
+    renderstack::graphics::Render_states m_light_render_states;
+    renderstack::graphics::Render_states m_show_rt_render_states;
+    renderstack::graphics::Render_states m_camera_render_states;
 
     // framebuffer
     unsigned int                                    m_gbuffer_fbo;
-    std::shared_ptr<renderstack::graphics::texture> m_gbuffer_rt[4];
-    std::shared_ptr<renderstack::graphics::texture> m_depth;
+    std::shared_ptr<renderstack::graphics::Texture> m_gbuffer_rt[4];
+    std::shared_ptr<renderstack::graphics::Texture> m_depth;
 
     unsigned int                                    m_linear_fbo;
-    std::shared_ptr<renderstack::graphics::texture> m_linear_rt[4];
+    std::shared_ptr<renderstack::graphics::Texture> m_linear_rt[4];
     unsigned int                                    m_stencil_rbo;
 };
 

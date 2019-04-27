@@ -9,7 +9,7 @@ using namespace std;
 #    if 0
 #        if defined(_WIN32)
 
-#            pragma warning(disable : 4074) //initializers put in compiler reserved initialization area
+#            pragma warning(disable : 4074) //initializers put in compiler reserved initialization Area
 #            pragma init_seg(compiler)      //global objects in this file get constructed very early on
 
 struct CrtBreakAllocSetter {
@@ -298,7 +298,7 @@ void window::mouse_button_event(int button, int state)
     m_buttons[button] = state;
 }
 
-bool window::open(int width, int height, string const &title, int major, int minor)
+bool window::open(int width, int height, const std::string &title, int major, int minor)
 {
     int   argc = 0;
     char *argv = NULL;

@@ -260,7 +260,7 @@ static string digits_only(string s)
     return s;
 }
 
-static bool contains(vector<string> const &collection, string const &key)
+static bool contains(vector<string> const &collection, const std::string &key)
 {
     auto i = find(collection.begin(), collection.end(), key);
     return i != collection.end();
@@ -273,8 +273,8 @@ static string get_string(int e)
     return (c_str != nullptr) ? string(c_str) : string();
 }
 
-void configuration::check(vector<string> const &extensions, bool &var, string const &name,
-                          int gl_min_ver, int gles_min_ver, string const &gl_ext)
+void configuration::check(vector<string> const &extensions, bool &var, const std::string &name,
+                          int gl_min_ver, int gles_min_ver, const std::string &gl_ext)
 {
 #if defined(RENDERSTACK_GL_API_OPENGL)
     (void)gles_min_ver;
@@ -295,8 +295,8 @@ void configuration::check(vector<string> const &extensions, bool &var, string co
 }
 
 void configuration::check(
-    vector<string> const &extensions, bool &var, string const &name,
-    int gl_min_ver, int gles_min_ver, string const &gl_ext, string const &gl_ext2)
+    vector<string> const &extensions, bool &var, const std::string &name,
+    int gl_min_ver, int gles_min_ver, const std::string &gl_ext, const std::string &gl_ext2)
 {
 #if defined(RENDERSTACK_GL_API_OPENGL)
     (void)gles_min_ver;
@@ -321,8 +321,8 @@ void configuration::check(
 }
 
 void configuration::check(
-    vector<string> const &extensions, bool &var, string const &name,
-    int gl_min_ver, int gles_min_ver, string const &gl_ext, string const &gl_ext2, string const &gl_ext3)
+    vector<string> const &extensions, bool &var, const std::string &name,
+    int gl_min_ver, int gles_min_ver, const std::string &gl_ext, const std::string &gl_ext2, const std::string &gl_ext3)
 {
 #if defined(RENDERSTACK_GL_API_OPENGL)
     (void)gles_min_ver;

@@ -10,24 +10,30 @@
 
 using namespace tinyxml2;
 using namespace glm;
-using namespace std;
+using namespace renderstack::geometry;
 
-xml_polyhedron::xml_polyhedron(string const &path)
+Geometry make_xml_polyhedron(const std::string &path)
 {
-    string text = renderstack::toolkit::read(path);
+    Geometry geometry;
+
+    std::string text = renderstack::toolkit::read(path);
 
     XMLDocument doc;
     doc.Parse(text.c_str());
 
-    XMLNode *xml_node = doc.FirstChild();
+    auto xml_node = doc.FirstChild();
     if (xml_node == nullptr)
-        return;
+    {
+        return geometry;
+    }
 
-    XMLNode *m = xml_node->NextSibling();
+    auto m = xml_node->NextSibling();
     if (m == nullptr)
-        return;
+    {
+        return geometry;
+    }
 
-    XMLElement *e = m->FirstChildElement();
+    auto e = m->FirstChildElement();
     while (e != nullptr)
     {
         const char *element_type = e->Value();
@@ -41,25 +47,29 @@ xml_polyhedron::xml_polyhedron(string const &path)
             float y = e->FloatAttribute("y");
             float z = e->FloatAttribute("z");
 
-            make_point(-x, -y, -z);
+            geometry.make_point(-x, -y, -z);
         }
 
         if (f)
         {
-            auto polygon = make_polygon();
+            auto polygon = geometry.make_polygon();
 
-            XMLElement *fe = e->FirstChildElement();
+            auto fe = e->FirstChildElement();
             while (fe != nullptr)
             {
                 const char *fe_type = fe->Value();
                 bool        v       = !strcmp("v", fe_type);
                 if (v)
                 {
-                    int      index;
-                    XMLError error = fe->QueryIntText(&index);
+                    int  index;
+                    auto error = fe->QueryIntText(&index);
                     if (error == XML_SUCCESS)
-                        if (index < (int)points().size())
-                            polygon->make_corner(points()[index]);
+                    {
+                        if (index < (int)geometry.points().size())
+                        {
+                            polygon->make_corner(geometry.points()[index]);
+                        }
+                    }
                 }
                 fe = fe->NextSiblingElement();
             }
@@ -67,4 +77,5 @@ xml_polyhedron::xml_polyhedron(string const &path)
 
         e = e->NextSiblingElement();
     }
+    return geometry;
 }

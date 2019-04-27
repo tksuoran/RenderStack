@@ -8,6 +8,7 @@
 #include "renderstack_toolkit/gl.hpp"
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_toolkit/strong_gl_enums.hpp"
+#include <memory>
 #include <cassert>
 #include <stdexcept>
 
@@ -18,30 +19,22 @@ namespace renderstack
 namespace graphics
 {
 
-using namespace std;
-
-vertex_stream::vertex_stream()
+Vertex_stream::Vertex_stream()
 {
-    m_vertex_array = make_shared<class vertex_array>();
+    m_vertex_array = std::make_unique<Vertex_array>();
 }
 
-vertex_stream::~vertex_stream()
+Vertex_stream_binding &Vertex_stream::add(
+    Buffer                         *vertex_buffer,
+    const Vertex_attribute_mapping &mapping,
+    const Vertex_attribute         *attribute,
+    size_t                         stride)
 {
-    m_vertex_array.reset();
-}
-
-vertex_stream_binding &vertex_stream::add(
-    weak_ptr<class buffer>             vertex_buffer,
-    weak_ptr<vertex_attribute_mapping> mapping,
-    weak_ptr<vertex_attribute>         attribute,
-    size_t                             stride)
-{
-    m_vertex_stream_bindings.push_back(
-        vertex_stream_binding(vertex_buffer, mapping, attribute, stride));
+    m_vertex_stream_bindings.emplace_back(vertex_buffer, mapping, attribute, stride);
     return m_vertex_stream_bindings.back();
 }
 
-void vertex_stream::clear()
+void Vertex_stream::clear()
 {
     m_vertex_stream_bindings.clear();
 }

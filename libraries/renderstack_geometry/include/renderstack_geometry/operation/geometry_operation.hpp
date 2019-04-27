@@ -18,24 +18,24 @@ namespace geometry
 namespace operation
 {
 
-class geometry_operation
+class Geometry_operation
 {
-protected:
-    std::shared_ptr<geometry>                                     m_source;
-    std::shared_ptr<geometry>                                     m_destination;
-    std::map<point *, point *>                                    m_point_old_to_new;
-    std::map<polygon *, polygon *>                                m_polygon_old_to_new;
-    std::map<corner *, corner *>                                  m_corner_old_to_new;
-    std::map<edge *, edge *>                                      m_edge_old_to_new;
-    std::map<polygon *, point *>                                  m_old_polygon_centroid_to_new_points;
-    std::map<point *, std::vector<std::pair<float, point *>>>     m_new_point_sources;
-    std::map<point *, std::vector<std::pair<float, corner *>>>    m_new_point_corner_sources;
-    std::map<corner *, std::vector<std::pair<float, corner *>>>   m_new_corner_sources;
-    std::map<polygon *, std::vector<std::pair<float, polygon *>>> m_new_polygon_sources;
-    std::map<edge *, std::vector<std::pair<float, edge *>>>       m_new_edge_sources;
-
 public:
-    geometry_operation();
+    Geometry_operation(Geometry &source) : m_source(source) {}
+
+protected:
+    Geometry &m_source;
+    Geometry m_destination;
+    std::map<Point   *, Point   *>                                m_point_old_to_new;
+    std::map<Polygon *, Polygon *>                                m_polygon_old_to_new;
+    std::map<Corner  *, Corner  *>                                m_corner_old_to_new;
+    std::map<Edge    *, Edge    *>                                m_edge_old_to_new;
+    std::map<Polygon *, Point   *>                                m_old_polygon_centroid_to_new_points;
+    std::map<Point   *, std::vector<std::pair<float, Point   *>>> m_new_point_sources;
+    std::map<Point   *, std::vector<std::pair<float, Corner  *>>> m_new_point_corner_sources;
+    std::map<Corner  *, std::vector<std::pair<float, Corner  *>>> m_new_corner_sources;
+    std::map<Polygon *, std::vector<std::pair<float, Polygon *>>> m_new_polygon_sources;
+    std::map<Edge    *, std::vector<std::pair<float, Edge    *>>> m_new_edge_sources;
 
     // Creates a new point to Destination from old point.
     // The new point is linked to the old point in Source.
@@ -44,7 +44,7 @@ public:
     // weight      Weight for old point as source
     // old_point   Old point used as source for the new point
     // return      The new point.
-    point *make_new_point_from_point(float weight, point *old_point);
+    Point *make_new_point_from_point(float weight, Point *old_point);
 
     // Creates a new point to Destination from old point.
     // The new point is linked to the old point in Source.
@@ -52,36 +52,53 @@ public:
     //
     // old_point   Old point used as source for the new point
     // returns     The new point.
-    point *make_new_point_from_point(point *old_point);
+    Point *make_new_point_from_point(Point *old_point);
 
     // Creates a new point to Destination from centroid of old polygon.
     // The new point is linked to the old polygon in Source.
     // Each corner of the old polygon is added as source for the new point with weight 1.0.
-    point *make_new_point_from_polygon_centroid(polygon *old_polygon);
+    Point *make_new_point_from_polygon_centroid(Polygon *old_polygon);
 
-    void     add_polygon_centroid(point *new_point, float weight, polygon *old_polygon);
-    void     add_point_ring(point *new_point, float weight, point *old_point);
-    polygon *make_new_polygon_from_polygon(polygon *old_polygon);
-    corner * make_new_corner_from_polygon_centroid(polygon *new_polygon, polygon *old_polygon);
-    corner * make_new_corner_from_corner(polygon *new_polygon, corner *old_corner);
-    void     add_polygon_corners(polygon *new_polygon, polygon *old_polygon);
-    void     add_point_source(point *new_point, float weight, point *old_point);
-    void     add_point_source(point *new_point, float weight, corner *old_corner);
-    void     add_corner_source(corner *new_corner, float weight, corner *old_corner);
+    void add_polygon_centroid(Point *new_point, float weight, Polygon *old_polygon);
+
+    void add_point_ring(Point *new_point, float weight, Point *old_point);
+
+    Polygon *make_new_polygon_from_polygon(Polygon *old_polygon);
+
+    Corner *make_new_corner_from_polygon_centroid(Polygon *new_polygon, Polygon *old_polygon);
+
+    Corner *make_new_corner_from_corner(Polygon *new_polygon, Corner *old_corner);
+
+    void add_polygon_corners(Polygon *new_polygon, Polygon *old_polygon);
+
+    void add_point_source(Point *new_point, float weight, Point *old_point);
+
+    void add_point_source(Point *new_point, float weight, Corner *old_corner);
+
+    void add_corner_source(Corner *new_corner, float weight, Corner *old_corner);
 
     // Inherit point sources to corner
-    void distribute_corner_sources(corner *new_corner, float weight, point *new_point);
-    void add_polygon_source(polygon *new_polygon, float weight, polygon *old_polygon);
-    void add_edge_source(edge *new_edge, float weight, edge *old_edge);
+    void distribute_corner_sources(Corner *new_corner, float weight, Point *new_point);
+
+    void add_polygon_source(Polygon *new_polygon, float weight, Polygon *old_polygon);
+
+    void add_edge_source(Edge *new_edge, float weight, Edge *old_edge);
 
     void build_destination_edges_with_sourcing();
+
     void interpolate_all_property_maps();
 
-    void set_source(std::shared_ptr<geometry> value)
+    //void set_source(Geometry &value)
+    //{
+    //    m_source = value;
+    //}
+
+    Geometry &destination()
     {
-        m_source = value;
+        return m_destination;
     }
-    std::shared_ptr<geometry> destination() const
+
+    const Geometry &destination() const
     {
         return m_destination;
     }

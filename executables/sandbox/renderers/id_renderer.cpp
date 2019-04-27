@@ -25,23 +25,19 @@
 
 using namespace renderstack::toolkit;
 using namespace renderstack::graphics;
+using namespace renderstack::scene;
 using namespace renderstack::mesh;
 using namespace renderstack;
 using namespace gl;
 using namespace std;
 
-id_renderer::id_renderer()
-    : service("id_renderer"), m_renderer(nullptr), m_programs(nullptr), m_last_render(0), m_radius(64)
+Id_renderer::Id_renderer()
+    : service("Id_renderer")
 {
 }
 
-/*virtual*/ id_renderer::~id_renderer()
-{
-}
-
-void id_renderer::connect(
-    shared_ptr<renderstack::graphics::renderer> renderer_,
-    shared_ptr<programs>                        programs_)
+void Id_renderer::connect(shared_ptr<Renderer> renderer_,
+                          shared_ptr<Programs> programs_)
 {
     m_renderer = renderer_;
     m_programs = programs_;
@@ -50,30 +46,27 @@ void id_renderer::connect(
     initialization_depends_on(programs_);
 }
 
-void id_renderer::initialize_service()
+void Id_renderer::initialize_service()
 {
     assert(m_renderer);
     assert(m_programs);
 
-    m_id_render_states.depth.set_enabled(true);
-    m_id_render_states.face_cull.set_enabled(true);
+    m_id_render_states.depth.enabled     = true;
+    m_id_render_states.face_cull.enabled = true;
 
-    for (int i = 0; i < 4; ++i)
+    for (auto &idr : m_renders)
     {
-        id_render &idr = m_renders[i];
-
-        idr.pixel_pack_buffer = make_shared<buffer>(
-            renderstack::graphics::buffer_target::pixel_pack_buffer,
-            m_radius * m_radius * 8,
-            1,
-            gl::buffer_usage_hint::stream_read);
+        idr.pixel_pack_buffer = make_shared<Buffer>(Buffer::Target::pixel_pack_buffer,
+                                                    m_radius * m_radius * 8,
+                                                    1,
+                                                    gl::buffer_usage_hint::stream_read);
         idr.pixel_pack_buffer->allocate_storage(*m_renderer);
-        idr.state = id_render_state::unused;
+        idr.state = Render::State::unused;
         idr.data.resize(m_radius * m_radius * 8);
     }
 }
 
-void id_renderer::clear()
+void Id_renderer::clear()
 {
     gl::clear_color(1.0f, 1.0f, 1.0f, 1.0f);
     gl::clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
@@ -81,18 +74,17 @@ void id_renderer::clear()
     m_ranges.clear();
 }
 
-void id_renderer::render_pass(
-    shared_ptr<vector<shared_ptr<model>>>  models,
-    shared_ptr<renderstack::scene::camera> camera,
-    double                                 time,
-    int                                    x,
-    int                                    y)
+void Id_renderer::render_pass(const Model_collection &models,
+                              const Camera           &camera,
+                              double                 time,
+                              int                    x,
+                              int                    y)
 {
-    (void)models;
-    (void)camera;
-    (void)time;
-    (void)x;
-    (void)y;
+    static_cast<void>(models);
+    static_cast<void>(camera);
+    static_cast<void>(time);
+    static_cast<void>(x);
+    static_cast<void>(y);
 #if 0
    if (models->size() == 0)
       return;
@@ -135,12 +127,12 @@ void id_renderer::render_pass(
       auto model              = *i;
       mat4 world_from_model   = model->frame()->world_from_local().matrix();
       mat4 clip_from_model    = camera->clip_from_world().matrix() * world_from_model;
-      auto geometry_mesh      = model->geometry_mesh();
-      auto vertex_stream      = geometry_mesh->vertex_stream();
-      auto mesh               = geometry_mesh->get_mesh();
+      auto Geometry_mesh      = model->Geometry_mesh();
+      auto vertex_stream      = Geometry_mesh->vertex_stream();
+      auto mesh               = Geometry_mesh->get_mesh();
 
       gl::begin_mode::value         begin_mode     = gl::begin_mode::triangles;
-      index_range const             &index_range   = geometry_mesh->fill_indices();
+      Index_range const             &index_range   = Geometry_mesh->fill_indices();
       GLsizei                       count          = static_cast<GLsizei>(index_range.index_count);
       gl::draw_elements_type::value index_type     = gl::draw_elements_type::unsigned_int;
       GLvoid                        *index_pointer = reinterpret_cast<GLvoid*>((index_range.first_index + mesh->first_index()) * mesh->index_buffer()->stride());
@@ -174,7 +166,7 @@ void id_renderer::render_pass(
       }
 
       r.draw_elements_base_vertex(
-         model->geometry_mesh()->vertex_stream(),
+         model->Geometry_mesh()->vertex_stream(),
          begin_mode, count, index_type, index_pointer, base_vertex);
 
       id_range r;
@@ -188,7 +180,7 @@ void id_renderer::render_pass(
 
    gl::disable(GL_SCISSOR_TEST);
 
-   r.set_buffer(renderstack::graphics::buffer_target::pixel_pack_buffer, idr.pixel_pack_buffer);
+   r.set_buffer(Buffer::Target::pixel_pack_buffer, idr.pixel_pack_buffer);
    gl::read_pixels(idr.x_offset, idr.y_offset, m_radius, m_radius, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
    gl::read_pixels(idr.x_offset, idr.y_offset, m_radius, m_radius, GL_DEPTH_COMPONENT, GL_FLOAT, reinterpret_cast<void*>(m_radius * m_radius * 4));
    idr.sync = gl::fence_sync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
@@ -200,7 +192,7 @@ void id_renderer::render_pass(
 #endif
 }
 
-bool id_renderer::get(int x, int y, uint32_t &id, float &depth)
+bool Id_renderer::get(int x, int y, uint32_t &id, float &depth)
 {
     int try_render = m_last_render;
 
@@ -209,11 +201,13 @@ bool id_renderer::get(int x, int y, uint32_t &id, float &depth)
     {
         --try_render;
         if (try_render < 0)
+        {
             try_render = 3;
+        }
 
-        id_render &idr = m_renders[try_render];
+        auto &idr = m_renders[try_render];
 
-        if (idr.state == id_render_state::waiting_for_read)
+        if (idr.state == Render::State::waiting_for_read)
         {
             GLint sync_status = GL_UNSIGNALED;
             gl::get_sync_iv(idr.sync, GL_SYNC_STATUS, 4, nullptr, &sync_status);
@@ -221,20 +215,19 @@ bool id_renderer::get(int x, int y, uint32_t &id, float &depth)
             if (sync_status == GL_SIGNALED)
             {
                 auto &r = *m_renderer;
-                r.set_buffer(renderstack::graphics::buffer_target::pixel_pack_buffer, idr.pixel_pack_buffer);
+                r.set_buffer(Buffer::Target::pixel_pack_buffer, idr.pixel_pack_buffer.get());
 
-                void *src = idr.pixel_pack_buffer->map(
-                    *m_renderer,
-                    0,
-                    m_radius * m_radius * 8,
-                    gl::buffer_access_mask::map_read_bit);
+                void *src = idr.pixel_pack_buffer->map(*m_renderer,
+                                                       0,
+                                                       m_radius * m_radius * 8,
+                                                       gl::buffer_access_mask::map_read_bit);
                 ::memcpy(&idr.data[0], src, m_radius * m_radius * 8);
                 idr.pixel_pack_buffer->unmap(*m_renderer);
-                idr.state = id_render_state::read_complete;
+                idr.state = Render::State::read_complete;
             }
         }
 
-        if (idr.state == id_render_state::read_complete)
+        if (idr.state == Render::State::read_complete)
         {
             int x_ = x - idr.x_offset;
             int y_ = y - idr.y_offset;
@@ -255,7 +248,7 @@ bool id_renderer::get(int x, int y, uint32_t &id, float &depth)
     return false;
 }
 
-shared_ptr<class model> id_renderer::get(int x, int y)
+Model *Id_renderer::get(int x, int y)
 {
     uint32_t id;
     float    depth;
@@ -263,14 +256,16 @@ shared_ptr<class model> id_renderer::get(int x, int y)
     bool ok = get(x, y, id, depth);
 
     if (!ok)
-        return nullptr;
-
-    for (auto i = m_ranges.cbegin(); i != m_ranges.cend(); ++i)
     {
-        auto r = *i;
+        return nullptr;
+    }
 
+    for (auto &r : m_ranges)
+    {
         if (id >= r.offset && id < (r.offset + r.length))
+        {
             return r.model;
+        }
     }
 
     return nullptr;

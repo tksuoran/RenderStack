@@ -2,10 +2,11 @@
 #define game_hpp
 
 #include "renderstack_scene/viewport.hpp"
-#include "renderstack_toolkit/platform.hpp"
 #include "renderstack_toolkit/service.hpp"
 #include "renderstack_toolkit/window.hpp"
 #include "renderstack_ui/action.hpp"
+#include "renderstack_ui/choice.hpp"
+#include "renderstack_ui/menulist.hpp"
 
 #include "main/programs.hpp"
 #include "main/screen.hpp"
@@ -27,25 +28,25 @@ namespace renderstack
 {
 namespace graphics
 {
-class uniform_buffer;
-class uniform_buffer_range;
+class Uniform_buffer;
+class Uniform_buffer_range;
 } // namespace graphics
 namespace ui
 {
-class button;
-class font;
-class gui_renderer;
-class layer;
-class slider;
-class text_buffer;
+class Button;
+class Font;
+class Gui_renderer;
+class Layer;
+class Slider;
+class Text_buffer;
 } // namespace ui
 namespace mesh
 {
-class geometry_mesh;
+class Geometry_mesh;
 }
 namespace scene
 {
-class camera;
+class Camera;
 }
 namespace toolkit
 {
@@ -54,114 +55,131 @@ class window;
 } // namespace renderstack
 
 class vmap;
-class menu;
+class Menu;
 class textures;
-class application;
+class Application;
 
 struct controls
 {
-    bool             mouse_locked;
-    bool             ignore_mouse;
-    bool             left_shift;
-    bool             right_shift;
-    double           mouse_x;
-    double           mouse_y;
-    glm::vec3        home;
+    bool             mouse_locked{true};
+    bool             ignore_mouse{false};
+    bool             left_shift{false};
+    bool             right_shift{false};
+    double           mouse_x{0.0};
+    double           mouse_y{0.0};
+    glm::vec3        home{glm::vec3(0.0)};
     frame_controller camera_controller;
 
-public:
-    controls()
-        : mouse_locked(true), ignore_mouse(false), left_shift(false), right_shift(false)
-    {
-    }
     void reset();
+
     void update_fixed_step();
 };
 
-class game
-    : public screen,
-      public renderstack::ui::action_sink,
-      public renderstack::toolkit::service
+class Game
+    : public Screen
+    , public renderstack::ui::Action_sink
+    , public renderstack::toolkit::service
 {
 public:
-    game();
-    /*virtual*/ ~game();
+    Game();
+
+    virtual ~Game() = default;
 
     void connect(
-        std::shared_ptr<renderstack::graphics::renderer>       renderer,
-        std::shared_ptr<renderstack::graphics::shader_monitor> shader_monitor_,
-        std::shared_ptr<renderstack::ui::gui_renderer>         gui_renderer,
-        std::shared_ptr<programs>                              programs_,
+        std::shared_ptr<renderstack::graphics::Renderer>       renderer,
+        std::shared_ptr<renderstack::graphics::Shader_monitor> shader_monitor_,
+        std::shared_ptr<renderstack::ui::Gui_renderer>         gui_renderer,
+        std::shared_ptr<Programs>                              programs_,
         std::shared_ptr<textures>                              textures_,
-        std::shared_ptr<debug_renderer>                        debug_renderer_,
-        std::shared_ptr<forward_renderer>                      forward_renderer_,
-        std::shared_ptr<deferred_renderer>                     deferred_renderer_,
-        std::shared_ptr<light_debug_renderer>                  light_debug_renderer_,
-        std::shared_ptr<id_renderer>                           id_renderer_,
-        std::shared_ptr<menu>                                  menu_,
-        std::shared_ptr<application>                           application_,
-        std::shared_ptr<scene_manager>                         scene_manager_);
+        std::shared_ptr<Debug_renderer>                        debug_renderer_,
+        std::shared_ptr<Forward_renderer>                      forward_renderer_,
+        std::shared_ptr<Deferred_renderer>                     deferred_renderer_,
+        std::shared_ptr<Light_debug_renderer>                  light_debug_renderer_,
+        std::shared_ptr<Id_renderer>                           id_renderer_,
+        std::shared_ptr<Menu>                                  menu_,
+        std::shared_ptr<Application>                           application_,
+        std::shared_ptr<Scene_manager>                         scene_manager_);
+
     void disconnect();
+
     void initialize_service() override;
 
-    void action(std::weak_ptr<renderstack::ui::action_source> source) override;
+    void action(renderstack::ui::Action_source* source) override;
 
-public:
     void on_load();
+
     void on_resize(int width, int height) override;
+
     void on_focus(bool has_focus) override;
+
     void on_enter() override;
+
     void on_exit() override;
+
     void update() override;
+
     void on_key(int key, int scancode, int action, int mods) override;
+
     void on_mouse_moved(double x, double y) override;
+
     void on_mouse_button(int button, int action, int mods) override;
+
     void on_scroll(double x, double y) override;
+
     void on_3d_mouse(long tx, long ty, long tz, long rx, long ry, long rz, long period) override;
 
 private:
     void reset();
+
     void setup_gui();
 
     void shift(bool left, bool value);
+
     void lock_mouse(bool lock);
+
     void toggle_mouse_lock();
+
     void toggle_pause();
+
     void toggle_deferred();
 
     void render();
+
     void render_meshes();
 
     void update_fixed_steps();
+
     void update_fixed_step();
+
     void update_once_per_frame();
 
-private:
     // services
-    std::shared_ptr<renderstack::graphics::renderer>       m_renderer;
-    std::shared_ptr<renderstack::graphics::shader_monitor> m_shader_monitor;
-    std::shared_ptr<renderstack::ui::gui_renderer>         m_gui_renderer;
-    std::shared_ptr<programs>                              m_programs;
+    std::shared_ptr<renderstack::graphics::Renderer>       m_renderer;
+    std::shared_ptr<renderstack::graphics::Shader_monitor> m_shader_monitor;
+    std::shared_ptr<renderstack::ui::Gui_renderer>         m_gui_renderer;
+    std::shared_ptr<Programs>                              m_programs;
     std::shared_ptr<textures>                              m_textures;
-    std::shared_ptr<debug_renderer>                        m_debug_renderer;
-    std::shared_ptr<forward_renderer>                      m_forward_renderer;
-    std::shared_ptr<deferred_renderer>                     m_deferred_renderer;
-    std::shared_ptr<light_debug_renderer>                  m_light_debug_renderer;
-    std::shared_ptr<id_renderer>                           m_id_renderer;
-    std::shared_ptr<menu>                                  m_menu;
-    std::shared_ptr<application>                           m_application;
-    std::shared_ptr<scene_manager>                         m_scene_manager;
+    std::shared_ptr<Debug_renderer>                        m_debug_renderer;
+    std::shared_ptr<Forward_renderer>                      m_forward_renderer;
+    std::shared_ptr<Deferred_renderer>                     m_deferred_renderer;
+    std::shared_ptr<Light_debug_renderer>                  m_light_debug_renderer;
+    std::shared_ptr<Id_renderer>                           m_id_renderer;
+    std::shared_ptr<Menu>                                  m_menu;
+    std::shared_ptr<Application>                           m_application;
+    std::shared_ptr<Scene_manager>                         m_scene_manager;
 
 private:
     // self owned parts
-    std::shared_ptr<renderstack::scene::frame>           m_manipulator_frame;
-    std::shared_ptr<std::vector<std::shared_ptr<model>>> m_manipulator_models;
-    std::shared_ptr<renderstack::ui::layer>              m_root_layer;
-    std::shared_ptr<renderstack::ui::button>             m_menu_button;
-    std::shared_ptr<renderstack::ui::slider>             m_slider;
+    std::shared_ptr<renderstack::scene::Frame>           m_manipulator_frame;
+    std::shared_ptr<std::vector<std::shared_ptr<Model>>> m_manipulator_models;
+    std::shared_ptr<renderstack::ui::Layer>              m_root_layer;
+    std::shared_ptr<renderstack::ui::Button>             m_menu_button;
+    std::shared_ptr<renderstack::ui::Slider>             m_slider;
+    std::shared_ptr<renderstack::ui::Menulist>           m_menulist;
+    std::shared_ptr<renderstack::ui::Choice>             m_choice;
 
     controls                     m_controls;
-    renderstack::scene::viewport m_viewport;
+    renderstack::scene::Viewport m_viewport;
 
     double m_update_time;
     double m_frame_dt;

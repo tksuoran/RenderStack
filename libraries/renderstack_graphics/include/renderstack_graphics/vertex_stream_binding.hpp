@@ -14,56 +14,36 @@ namespace renderstack
 namespace graphics
 {
 
-class vertex_attribute;
-class vertex_attribute_mapping;
+class Buffer;
+class Vertex_attribute;
+class Vertex_attribute_mapping;
 
-class vertex_stream_binding
+class Vertex_stream_binding
 {
 public:
-    vertex_stream_binding(
-        std::weak_ptr<class buffer>                   vertex_buffer,
-        std::weak_ptr<class vertex_attribute_mapping> mapping,
-        std::weak_ptr<class vertex_attribute>         attribute,
-        std::size_t                                   stride);
+    Vertex_stream_binding(Buffer                         *vertex_buffer,
+                          const Vertex_attribute_mapping &mapping,
+                          const Vertex_attribute         *attribute,
+                          size_t                         stride)
+        : vertex_buffer(vertex_buffer)
+        , vertex_attribute_mapping(mapping)
+        , vertex_attribute(attribute)
+        , stride(stride)
+    {}
 
-    vertex_stream_binding(vertex_stream_binding const &other)
-        : m_vertex_buffer(other.vertex_buffer()), m_vertex_attribute_mapping(other.vertex_attribute_mapping()), m_vertex_attribute(other.vertex_attribute()), m_stride(other.stride())
-    {
-    }
+    Vertex_stream_binding(const Vertex_stream_binding &other)
+        : vertex_buffer(other.vertex_buffer)
+        , vertex_attribute_mapping(other.vertex_attribute_mapping)
+        , vertex_attribute(other.vertex_attribute)
+        , stride(other.stride)
+    {}
 
-    vertex_stream_binding &operator=(vertex_stream_binding other)
-    {
-        swap(other);
-        return *this;
-    }
+    Vertex_stream_binding &operator=(const Vertex_stream_binding &other) = delete;
 
-    void swap(vertex_stream_binding &other)
-    {
-        m_vertex_buffer.swap(other.vertex_buffer());
-        m_vertex_attribute_mapping.swap(other.vertex_attribute_mapping());
-        m_vertex_attribute.swap(other.vertex_attribute());
-        std::swap(m_stride, other.stride_());
-    }
-
-    std::weak_ptr<class buffer> const &                  vertex_buffer() const;
-    std::weak_ptr<class buffer> &                        vertex_buffer();
-    std::weak_ptr<class vertex_attribute_mapping> const &vertex_attribute_mapping() const;
-    std::weak_ptr<class vertex_attribute_mapping> &      vertex_attribute_mapping();
-    std::weak_ptr<class vertex_attribute> const &        vertex_attribute() const;
-    std::weak_ptr<class vertex_attribute> &              vertex_attribute();
-    std::size_t                                          stride() const;
-
-private:
-    std::size_t &stride_()
-    {
-        return m_stride;
-    }
-
-private:
-    std::weak_ptr<class buffer>                   m_vertex_buffer;
-    std::weak_ptr<class vertex_attribute_mapping> m_vertex_attribute_mapping;
-    std::weak_ptr<class vertex_attribute>         m_vertex_attribute;
-    std::size_t                                   m_stride;
+    Buffer                         *vertex_buffer{nullptr};
+    const Vertex_attribute_mapping &vertex_attribute_mapping;
+    const Vertex_attribute         *vertex_attribute{nullptr};
+    size_t                          stride{0U};
 };
 
 } // namespace graphics

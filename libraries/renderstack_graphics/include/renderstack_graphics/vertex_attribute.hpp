@@ -10,7 +10,7 @@ namespace renderstack
 namespace graphics
 {
 
-std::size_t size_of_type(gl::vertex_attrib_pointer_type::value type);
+size_t size_of_type(gl::vertex_attrib_pointer_type::value type);
 
 class vertex_attribute_usage
 {
@@ -32,46 +32,61 @@ public:
     static const char *desc(enum value);
 };
 
-class vertex_attribute
+class Vertex_attribute
 {
 public:
-    vertex_attribute(
+    Vertex_attribute(
         vertex_attribute_usage::value         usage,
         gl::vertex_attrib_pointer_type::value data_type,
         gl::vertex_attrib_pointer_type::value shader_type,
-        std::size_t                           index,
-        std::size_t                           dimension,
-        std::size_t                           offset     = 0,
+        size_t                                index,
+        size_t                                dimension,
+        size_t                                offset     = 0,
         bool                                  normalized = false,
-        unsigned int                          divisor    = 0);
+        unsigned int                          divisor    = 0)
+        : usage(usage)
+        , data_type(data_type)
+        , shader_type(shader_type)
+        , index(index)
+        , dimension(dimension)
+        , offset(offset)
+        , normalized(normalized)
+        , divisor(divisor)
+    {}
 
-    vertex_attribute_usage::value         usage() const;
-    void                                  set_usage(vertex_attribute_usage::value value);
-    gl::vertex_attrib_pointer_type::value data_type() const;
-    void                                  set_data_type(gl::vertex_attrib_pointer_type::value value);
-    gl::vertex_attrib_pointer_type::value shader_type() const;
-    void                                  set_shader_type(gl::vertex_attrib_pointer_type::value value);
-    std::size_t                           index() const;
-    std::size_t                           dimension() const;
-    std::size_t                           offset() const;
-    void                                  set_offset(std::size_t value);
-    bool                                  normalized() const;
-    std::size_t                           stride() const;
-    unsigned int                          divisor() const;
-    void                                  set_divisor(unsigned int value);
+    size_t stride() const
+    {
+        return dimension * size_of_type(data_type);
+    }
 
-    bool operator==(vertex_attribute const &other) const;
-    bool operator!=(vertex_attribute const &other) const;
+    bool operator==(Vertex_attribute const &other) const
+    {
+        return (usage == other.usage) &&
+            (data_type == other.data_type) &&
+            (shader_type == other.shader_type) &&
+            (dimension == other.dimension) &&
+            (offset == other.offset) &&
+            (normalized == other.normalized);
+    }
 
-private:
-    vertex_attribute_usage::value         m_usage;
-    gl::vertex_attrib_pointer_type::value m_data_type;
-    gl::vertex_attrib_pointer_type::value m_shader_type;
-    std::size_t                           m_index;
-    std::size_t                           m_dimension;
-    std::size_t                           m_offset;
-    bool                                  m_normalized;
-    unsigned int                          m_divisor;
+    bool operator!=(Vertex_attribute const &other) const
+    {
+        return (usage != other.usage) ||
+            (data_type != other.data_type) ||
+            (shader_type != other.shader_type) ||
+            (dimension != other.dimension) ||
+            (offset != other.offset) ||
+            (normalized != other.normalized);
+    }
+
+    vertex_attribute_usage::value         usage;
+    gl::vertex_attrib_pointer_type::value data_type;
+    gl::vertex_attrib_pointer_type::value shader_type;
+    size_t                                index;
+    size_t                                dimension;
+    size_t                                offset;
+    bool                                  normalized;
+    unsigned int                          divisor;
 };
 
 } // namespace graphics

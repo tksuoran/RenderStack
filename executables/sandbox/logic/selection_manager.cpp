@@ -9,24 +9,19 @@
 using namespace std;
 
 selection_manager::selection_manager()
-    : service("selection_manager"), m_renderer(nullptr), m_debug_renderer(nullptr), m_id_renderer(nullptr), m_manipulator_manager(nullptr), m_scene_manager(nullptr)
+    : service("selection_manager")
 {
 }
 
-selection_manager::~selection_manager()
+void selection_manager::initialize_service()
 {
 }
 
-/*virtual*/ void selection_manager::initialize_service()
-{
-}
-
-void selection_manager::connect(
-    shared_ptr<renderstack::graphics::renderer> renderer_,
-    shared_ptr<debug_renderer>                  debug_renderer_,
-    shared_ptr<id_renderer>                     id_renderer_,
-    shared_ptr<manipulator_manager>             manipulator_manager_,
-    shared_ptr<scene_manager>                   scene_manager_)
+void selection_manager::connect(shared_ptr<renderstack::graphics::Renderer> renderer_,
+                                shared_ptr<Debug_renderer>                  debug_renderer_,
+                                shared_ptr<Id_renderer>                     id_renderer_,
+                                shared_ptr<manipulator_manager>             manipulator_manager_,
+                                shared_ptr<Scene_manager>                   scene_manager_)
 {
     m_renderer            = renderer_;
     m_debug_renderer      = debug_renderer_;
@@ -37,7 +32,7 @@ void selection_manager::connect(
     initialization_depends_on(m_manipulator_manager);
 }
 
-/*virtual*/ void initialize_service()
+void initialize_service()
 {
 }
 
@@ -48,20 +43,20 @@ void selection_manager::clear_hover()
 
 void selection_manager::clear_selection()
 {
-    for (auto i = m_models.cbegin(); i != m_models.cend(); ++i)
+    for (auto i : m_models)
     {
     }
 }
 
-void selection_manager::remove(std::shared_ptr<model> m)
+void selection_manager::remove(std::shared_ptr<Model> m)
 {
 }
 
-void selection_manager::add(std::shared_ptr<model> m)
+void selection_manager::add(std::shared_ptr<Model> m)
 {
 }
 
-bool selection_manager::contains(std::shared_ptr<model> m) const
+bool selection_manager::contains(std::shared_ptr<Model> m) const
 {
     return false;
 }

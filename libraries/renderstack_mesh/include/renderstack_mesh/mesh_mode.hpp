@@ -8,7 +8,7 @@ namespace renderstack
 namespace mesh
 {
 
-class mesh_mode
+class Mesh_mode
 {
 public:
     enum value

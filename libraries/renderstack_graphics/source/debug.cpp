@@ -28,7 +28,9 @@ void debug_program()
     GLint p = current_program;
 
     if (p == 0)
+    {
         return;
+    }
 
     gl::get_program_iv(p, GL_ACTIVE_ATTRIBUTES, &active_attributes);
     gl::get_program_iv(p, GL_LINK_STATUS, &link_status);
@@ -50,6 +52,7 @@ void debug_program()
         printf("Program attribute %d: %s size = %d, type %d, location = %d\n", i, buffer, size, type, location);
     }
 }
+
 void debug_buffer(GLenum target, GLint buffer, GLenum index_type)
 {
     GLint64 size;
@@ -63,7 +66,9 @@ void debug_buffer(GLenum target, GLint buffer, GLenum index_type)
     GLint old_binding;
 
     if (buffer == 0)
+    {
         return;
+    }
 
     switch (target)
     {
@@ -111,7 +116,9 @@ void debug_buffer(GLenum target, GLint buffer, GLenum index_type)
                 gl::get_buffer_sub_data(target, 0, count * 4, data);
 
                 for (size_t i = 0; i < count && i < 16; ++i)
+                {
                     printf("%f ", data[i]);
+                }
 
                 printf("\n");
 
@@ -126,7 +133,9 @@ void debug_buffer(GLenum target, GLint buffer, GLenum index_type)
 
                 gl::get_buffer_sub_data(target, 0, count * sizeof(uint8_t), data);
                 for (size_t i = 0; i < count && i < 16; ++i)
+                {
                     printf("%u ", data[i]);
+                }
 
                 printf("\n");
 
@@ -141,7 +150,9 @@ void debug_buffer(GLenum target, GLint buffer, GLenum index_type)
 
                 gl::get_buffer_sub_data(target, 0, count * sizeof(uint16_t), data);
                 for (size_t i = 0; i < count && i < 16; ++i)
+                {
                     printf("%u ", data[i]);
+                }
 
                 printf("\n");
 
@@ -156,7 +167,9 @@ void debug_buffer(GLenum target, GLint buffer, GLenum index_type)
 
                 gl::get_buffer_sub_data(target, 0, count * sizeof(uint32_t), data);
                 for (size_t i = 0; i < count && i < 16; ++i)
+                {
                     printf("%u ", data[i]);
+                }
 
                 printf("\n");
 
@@ -170,8 +183,11 @@ void debug_buffer(GLenum target, GLint buffer, GLenum index_type)
     }
 
     if (old_binding != -1)
+    {
         gl::bind_buffer(target, old_binding);
+    }
 }
+
 void debug_vao()
 {
     GLint max_vertex_attribs;

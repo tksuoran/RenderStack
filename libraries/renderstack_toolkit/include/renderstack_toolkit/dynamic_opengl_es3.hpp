@@ -239,7 +239,7 @@ typedef void(GL_APIENTRY *RS_ES3_PFNGLGETINTEGER64V)(GLenum pname, GLint64 *para
 typedef void(GL_APIENTRY *RS_ES3_PFNGLGETSYNCIV)(GLsync sync, GLenum pname, GLsizei bufSize, GLsizei *length, GLint *values);
 typedef void(GL_APIENTRY *RS_ES3_PFNGLGETINTEGER64I_V)(GLenum target, GLuint index, GLint64 *data);
 typedef void(GL_APIENTRY *RS_ES3_PFNGLGETBUFFERPARAMETERI64V)(GLenum target, GLenum pname, GLint64 *params);
-typedef void(GL_APIENTRY *RS_ES3_PFNGLGENSAMPLERS)(GLsizei count, GLuint *samplers);
+typedef void(GL_APIENTRY *RS_ES3_PFNGLGENSAMPLERS)(GLsizei count, GLuint *Samplers);
 typedef void(GL_APIENTRY *RS_ES3_PFNGLDELETESAMPLERS)(GLsizei count, const GLuint *samplers);
 typedef GLboolean(GL_APIENTRY *RS_ES3_PFNGLISSAMPLER)(GLuint sampler);
 typedef void(GL_APIENTRY *RS_ES3_PFNGLBINDSAMPLER)(GLuint unit, GLuint sampler);

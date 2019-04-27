@@ -11,20 +11,7 @@ namespace geometry
 namespace shapes
 {
 
-class torus : public geometry
-{
-public:
-    torus(double major_radius, double minor_radius, unsigned int slice_count, unsigned int stack_division);
-
-protected:
-    struct make_info;
-
-protected:
-    point *torus_point(make_info &info, double rel_slice, double rel_stack);
-
-private:
-    void make_corner(make_info &info, polygon *polygon, int slice, int stack_base0);
-};
+Geometry make_torus(double major_radius, double minor_radius, int major_axis_steps, int minor_axis_steps);
 
 } // namespace shapes
 } // namespace geometry

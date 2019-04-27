@@ -41,7 +41,7 @@ DEF GreatRhombicuboctahedron Transform{
   children[
     Shape{
       appearance Appearance{
-        material Material{
+        Material Material{
           diffuseColor 0.404490576218957 0.292970634057218 0.255323504377939
           specularColor 0.241473703547908 0.242637261870085 0.338168494843853
           shininess .9

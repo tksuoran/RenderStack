@@ -9,16 +9,13 @@ namespace renderstack
 namespace scene
 {
 
-class stereo_parameters
+struct Stereo_parameters
 {
-public:
-    float     eye_separation;
-    float     perspective;
-    glm::vec3 viewport_center;
-    glm::vec3 eye_position;
-    glm::vec2 view_plane_size;
-
-    stereo_parameters();
+    float     eye_separation{0.065f};
+    float     perspective{1.0f};
+    glm::vec3 viewport_center{0.0f, 0.0f, 4.0f};
+    glm::vec3 eye_position{0.0f, 0.0f, 0.0f};
+    glm::vec2 view_plane_size{2.0f, 1.0f};
 };
 
 } // namespace scene

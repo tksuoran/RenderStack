@@ -15,35 +15,39 @@ namespace renderstack
 namespace graphics
 {
 
-class program;
-class vertex_format;
-class vertex_stream;
+class Buffer;
+class Program;
+class Vertex_format;
+class Vertex_stream;
 
-class vertex_attribute_mappings : public std::enable_shared_from_this<vertex_attribute_mappings>
+class Vertex_attribute_mappings : public std::enable_shared_from_this<Vertex_attribute_mappings>
 {
 public:
-    vertex_attribute_mappings();
-    ~vertex_attribute_mappings();
+    Vertex_attribute_mappings() = default;
 
-public:
+    ~Vertex_attribute_mappings() = default;
+
     void clear();
-    void add(std::string const &name, vertex_attribute_usage::value usage, unsigned int index);
-    void add(std::string const &name, vertex_attribute_usage::value usage, unsigned int src_index, unsigned int dst_index);
-    void add(std::string const &name, vertex_attribute_usage::value src_usage, unsigned int src_index, vertex_attribute_usage::value dst_usage, unsigned int dst_index);
 
-    void add_to_vertex_stream(
-        std::shared_ptr<class vertex_stream> vertex_stream,
-        std::shared_ptr<class buffer>        vertex_buffer,
-        std::shared_ptr<class vertex_format> vertex_format) const;
+    void add(const std::string &name, vertex_attribute_usage::value usage, unsigned int index);
 
-    void                                                          bind_attrib_locations(program &program);
-    std::vector<std::shared_ptr<vertex_attribute_mapping>> const &mappings() const
+    void add(const std::string &name, vertex_attribute_usage::value usage, unsigned int src_index, unsigned int dst_index);
+
+    void add(const std::string &name, vertex_attribute_usage::value src_usage, unsigned int src_index, vertex_attribute_usage::value dst_usage, unsigned int dst_index);
+
+    void add_to_vertex_stream(Vertex_stream &vertex_stream,
+                              Buffer        *vertex_buffer,
+                              Vertex_format &vertex_format) const;
+
+    void bind_attrib_locations(Program &program);
+
+    std::vector<Vertex_attribute_mapping> const &mappings() const
     {
         return m_mappings;
     }
 
 private:
-    std::vector<std::shared_ptr<vertex_attribute_mapping>> m_mappings;
+    std::vector<Vertex_attribute_mapping> m_mappings;
 };
 
 } // namespace graphics

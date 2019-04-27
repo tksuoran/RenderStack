@@ -6,101 +6,90 @@ namespace renderstack
 namespace scene
 {
 
-projection::projection()
+void Projection::update(Transform &transform, Viewport viewport)
 {
-    m_near            = 1.0f;
-    m_far             = 100.0f;
-    m_projection_type = projection_type::perspective_vertical;
-    m_fov_x           = glm::half_pi<float>();
-    m_fov_y           = glm::half_pi<float>();
-    m_ortho_width     = 1.0f;
-    m_ortho_height    = 1.0f;
-}
-
-void projection::update(transform &transform, viewport const &viewport)
-{
-    switch (m_projection_type)
+    switch (projection_type)
     {
-        case projection_type::perspective:
-            transform.set_perspective(
-                m_fov_x,
-                m_fov_y,
-                m_near,
-                m_far);
+        case Projection::Type::perspective:
+        {
+            transform.set_perspective(fov_x, fov_y, near, far);
             break;
+        }
 
-        case projection_type::perspective_horizontal:
-            transform.set_perspective_horizontal(
-                m_fov_x,
-                viewport.aspect_ratio(),
-                m_near,
-                m_far);
+        case Projection::Type::perspective_horizontal:
+        {
+            transform.set_perspective_horizontal(fov_x, viewport.aspect_ratio(), near, far);
             break;
+        }
 
-        case projection_type::perspective_vertical:
-            transform.set_perspective_vertical(
-                m_fov_y,
-                viewport.aspect_ratio(),
-                m_near,
-                m_far);
+        case Projection::Type::perspective_vertical:
+        {
+            transform.set_perspective_vertical(fov_y, viewport.aspect_ratio(), near, far);
             break;
+        }
 
-        case projection_type::orthogonal_horizontal:
-            transform.set_orthographic(
-                -0.5f * m_ortho_width,
-                0.5f * m_ortho_width,
-                -0.5f * m_ortho_width / viewport.aspect_ratio(),
-                0.5f * m_ortho_width / viewport.aspect_ratio(),
-                m_near,
-                m_far);
+        case Projection::Type::orthogonal_horizontal:
+        {
+            transform.set_orthographic(-0.5f * ortho_width,
+                                        0.5f * ortho_width,
+                                       -0.5f * ortho_width / viewport.aspect_ratio(),
+                                        0.5f * ortho_width / viewport.aspect_ratio(),
+                                       near,
+                                       far);
             break;
+        }
 
-        case projection_type::orthogonal_vertical:
-            transform.set_orthographic(
-                -0.5f * m_ortho_height / viewport.aspect_ratio(),
-                0.5f * m_ortho_height / viewport.aspect_ratio(),
-                -0.5f * m_ortho_height,
-                0.5f * m_ortho_height,
-                m_near,
-                m_far);
+        case Projection::Type::orthogonal_vertical:
+        {
+            transform.set_orthographic(-0.5f * ortho_height / viewport.aspect_ratio(),
+                                        0.5f * ortho_height / viewport.aspect_ratio(),
+                                       -0.5f * ortho_height,
+                                        0.5f * ortho_height,
+                                       near,
+                                       far);
             break;
-        case projection_type::orthogonal:
-            transform.set_orthographic(
-                -0.5f * m_ortho_width,
-                0.5f * m_ortho_width,
-                -0.5f * m_ortho_height,
-                0.5f * m_ortho_height,
-                m_near,
-                m_far);
-            break;
+        }
 
-        case projection_type::orthogonal_rectangle:
-            transform.set_orthographic(
-                m_ortho_left,
-                m_ortho_left + m_ortho_width,
-                m_ortho_bottom,
-                m_ortho_bottom + m_ortho_height,
-                m_near,
-                m_far);
+        case Projection::Type::orthogonal:
+        {
+            transform.set_orthographic(-0.5f * ortho_width,
+                                        0.5f * ortho_width,
+                                       -0.5f * ortho_height,
+                                        0.5f * ortho_height,
+                                       near,
+                                       far);
             break;
+        }
 
-        case projection_type::generic_frustum:
-            transform.set_frustum(
-                m_frustum_left,
-                m_frustum_right,
-                m_frustum_bottom,
-                m_frustum_top,
-                m_near,
-                m_far);
+        case Projection::Type::orthogonal_rectangle:
+        {
+            transform.set_orthographic(ortho_left,
+                                       ortho_left + ortho_width,
+                                       ortho_bottom,
+                                       ortho_bottom + ortho_height,
+                                       near,
+                                       far);
             break;
+        }
 
-        case projection_type::stereoscopic_horizontal:
-        case projection_type::stereoscopic_vertical:
-        case projection_type::other:
+        case Projection::Type::generic_frustum:
+        {
+            transform.set_frustum(frustum_left,
+                                  frustum_right,
+                                  frustum_bottom,
+                                  frustum_top,
+                                  near,
+                                  far);
+            break;
+        }
+
+        case Projection::Type::stereoscopic_horizontal:
+        case Projection::Type::stereoscopic_vertical:
+        case Projection::Type::other:
             // TODO
             break;
 #if 0
-   case projection_type::stereoscopic_horizontal:
+   case Projection::Type::stereoscopic_horizontal:
    {
       float fov = m_fov_x;
       fov = std::max(fov, 0.001f);

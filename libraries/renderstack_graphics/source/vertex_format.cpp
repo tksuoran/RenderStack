@@ -1,7 +1,7 @@
 #include "renderstack_graphics/vertex_format.hpp"
-#include "renderstack_toolkit/platform.hpp"
 #include <algorithm>
 #include <stdexcept>
+#include <cassert>
 
 namespace renderstack
 {
@@ -10,16 +10,14 @@ namespace graphics
 
 using namespace std;
 
-vertex_format::vertex_format()
-    : m_stride(0) {}
 
-void vertex_format::clear()
+void Vertex_format::clear()
 {
     m_attributes.clear();
-    m_stride = 0;
+    m_stride = 0U;
 }
 
-shared_ptr<vertex_attribute> vertex_format::make_attribute(
+Vertex_attribute &Vertex_format::make_attribute(
     vertex_attribute_usage::value         usage,
     gl::vertex_attrib_pointer_type::value data_type,
     gl::vertex_attrib_pointer_type::value shader_type,
@@ -27,51 +25,70 @@ shared_ptr<vertex_attribute> vertex_format::make_attribute(
     size_t                                dimension,
     bool                                  normalized)
 {
-    auto attribute = make_shared<vertex_attribute>(
-        usage,
-        data_type,
-        shader_type,
-        index,
-        dimension,
-        m_stride,
-        normalized);
+    size_t stride = dimension * size_of_type(data_type);
 
     // Align attributes to their type
-    switch (attribute->stride())
+    switch (stride)
     {
+        case 1:
+        {
+            break;
+        }
         case 2:
+        {
             while (m_stride & 1)
+            {
                 ++m_stride;
+            }
+            break;
+        }
+        default:
         case 4:
+        {
             while (m_stride & 3)
+            {
                 ++m_stride;
+            }
+            break;
+        }
     }
 
-    attribute->set_offset(m_stride);
-    m_attributes.push_back(attribute);
-    m_stride += attribute->stride();
-    return m_attributes.back();
+    auto &attribute = m_attributes.emplace_back(usage,
+                                                data_type,
+                                                shader_type,
+                                                index,
+                                                dimension,
+                                                m_stride,
+                                                normalized);
+
+    assert(stride == attribute.stride());
+    m_stride += stride;
+    return attribute;
 }
 
-bool vertex_format::match(vertex_format const &other) const
+bool Vertex_format::match(Vertex_format const &other) const
 {
     if (m_attributes.size() != other.m_attributes.size())
+    {
         return false;
+    }
 
     for (size_t i = 0; i < m_attributes.size(); ++i)
+    {
         if (m_attributes[i] != other.m_attributes[i])
+        {
             return false;
+        }
+    }
 
     return true;
 }
 
-bool vertex_format::has_attribute(vertex_attribute_usage::value usage, unsigned int index) const
+bool Vertex_format::has_attribute(vertex_attribute_usage::value usage, unsigned int index) const
 {
-    for (auto i = m_attributes.cbegin(); i != m_attributes.cend(); ++i)
+    for (auto &i : m_attributes)
     {
-        if (
-            ((*i)->usage() == usage) &&
-            ((*i)->index() == index))
+        if ((i.usage == usage) && (i.index == index))
         {
             return true;
         }
@@ -80,34 +97,26 @@ bool vertex_format::has_attribute(vertex_attribute_usage::value usage, unsigned 
     return false;
 }
 
-shared_ptr<vertex_attribute> vertex_format::find_attribute_maybe(
-    vertex_attribute_usage::value usage,
-    unsigned int                  index) const
+const Vertex_attribute *Vertex_format::find_attribute_maybe(vertex_attribute_usage::value usage, unsigned int index) const
 {
-    for (auto i = m_attributes.begin(); i != m_attributes.end(); ++i)
+    for (auto &i : m_attributes)
     {
-        if (
-            ((*i)->usage() == usage) &&
-            ((*i)->index() == index))
+        if ((i.usage == usage) && (i.index == index))
         {
-            return *i;
+            return &(i);
         }
     }
 
     return nullptr;
 }
 
-shared_ptr<vertex_attribute> vertex_format::find_attribute(
-    vertex_attribute_usage::value usage,
-    unsigned int                  index) const
+const Vertex_attribute *Vertex_format::find_attribute(vertex_attribute_usage::value usage, unsigned int index) const
 {
-    for (auto i = m_attributes.begin(); i != m_attributes.end(); ++i)
+    for (auto &i : m_attributes)
     {
-        if (
-            ((*i)->usage() == usage) &&
-            ((*i)->index() == index))
+        if ((i.usage == usage) && (i.index == index))
         {
-            return *i;
+            return &(i);
         }
     }
 

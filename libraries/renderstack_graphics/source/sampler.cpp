@@ -8,59 +8,62 @@ namespace renderstack
 namespace graphics
 {
 
-sampler::sampler()
-    : m_gl_name(~0u), m_min_filter(gl::texture_min_filter::nearest), m_mag_filter(gl::texture_mag_filter::nearest), m_wrap(gl::texture_wrap_mode::clamp_to_edge), m_compare_mode(gl::texture_compare_mode::none), m_compare_func(gl::depth_function::less)
+Sampler::Sampler()
 {
 #if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
     if (configuration::can_use.sampler_object)
+    {
         gl::gen_samplers(1, &m_gl_name);
+    }
 #endif
 }
 
-sampler::~sampler()
+Sampler::~Sampler()
 {
 #if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
     if (configuration::can_use.sampler_object)
+    {
         gl::delete_samplers(1, &m_gl_name);
+    }
 #endif
 }
 
-void sampler::set_min_filter(gl::texture_min_filter::value value)
+void Sampler::set_min_filter(gl::texture_min_filter::value value)
 {
     m_min_filter = value;
 }
 
-void sampler::set_mag_filter(gl::texture_mag_filter::value value)
+void Sampler::set_mag_filter(gl::texture_mag_filter::value value)
 {
     m_mag_filter = value;
 }
 
-gl::texture_min_filter::value sampler::min_filter() const
+gl::texture_min_filter::value Sampler::min_filter() const
 {
     return m_min_filter;
 }
 
-gl::texture_mag_filter::value sampler::mag_filter() const
+gl::texture_mag_filter::value Sampler::mag_filter() const
 {
     return m_mag_filter;
 }
 
-gl::texture_wrap_mode::value sampler::wrap() const
+gl::texture_wrap_mode::value Sampler::wrap() const
 {
     return m_wrap;
 }
 
-gl::texture_compare_mode::value sampler::compare_mode() const
+gl::texture_compare_mode::value Sampler::compare_mode() const
 {
     return m_compare_mode;
 }
 
-gl::depth_function::value sampler::compare_func() const
+gl::depth_function::value Sampler::compare_func() const
 {
     return m_compare_func;
 }
 
-void sampler::apply(unsigned int texture_unit, gl::texture_target::value bind_target)
+void Sampler::apply(unsigned int texture_unit, gl::texture_target::value bind_target)
 {
     //  Workarounds for AMD driver bug
     //  http://www.opengl.org/discussion_boards/ubbthreads.php?ubb=showflat&Number=298749#Post298749

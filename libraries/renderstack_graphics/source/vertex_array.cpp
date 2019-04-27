@@ -19,27 +19,27 @@ namespace graphics
 
 using namespace std;
 
-vertex_array::vertex_array(bool default_)
-    : m_gl_name(0), m_bound(false)
+Vertex_array::Vertex_array(bool default_)
 {
 #if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
     if (configuration::can_use.vertex_array_object && !default_)
+    {
         gl::gen_vertex_arrays(1, &m_gl_name);
+    }
 #endif
 
     int count = std::min(RS_ATTRIBUTE_COUNT, configuration::max_vertex_attribs);
 
     for (int i = 0; i < count; ++i)
     {
-        m_requested.attrib_enabled[i] = false;
-        m_effective.attrib_enabled[i] = false;
+        m_requested.attrib[i].enabled = false;
+        m_effective.attrib[i].enabled = false;
     }
 }
-vertex_array::~vertex_array()
+Vertex_array::~Vertex_array()
 {
 #if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
-    if (
-        configuration::can_use.vertex_array_object &&
+    if (configuration::can_use.vertex_array_object &&
         (m_gl_name != 0))
     {
         gl::delete_vertex_arrays(1, &m_gl_name);
@@ -47,61 +47,66 @@ vertex_array::~vertex_array()
 #endif
 }
 
-void vertex_array::set_bound(bool value)
+void Vertex_array::set_bound(bool value)
 {
     //log_warn("set_bound(value = %s) gl_name = %d", (value ? "true" : "false"), m_gl_name);
     m_bound = value;
 }
 
-void vertex_array::clear_enabled_attribs()
+void Vertex_array::clear_enabled_attribs()
 {
     int count = std::min(RS_ATTRIBUTE_COUNT, configuration::max_vertex_attribs);
 
     for (int i = 0; i < count; ++i)
     {
-        m_requested.attrib_enabled[i] = false;
-        m_requested.attrib_divisor[i] = 0;
+        m_requested.attrib[i].enabled = false;
+        m_requested.attrib[i].divisor = 0;
     }
 }
-void vertex_array::apply_attrib_enables()
+void Vertex_array::apply_attrib_enables()
 {
     int count = std::min(RS_ATTRIBUTE_COUNT, configuration::max_vertex_attribs);
 
     for (int i = 0; i < count; ++i)
     {
-        if (m_effective.attrib_enabled[i] != m_requested.attrib_enabled[i])
+        if (m_effective.attrib[i].enabled != m_requested.attrib[i].enabled)
         {
-            if (m_requested.attrib_enabled[i])
+            if (m_requested.attrib[i].enabled)
+            {
                 gl::enable_vertex_attrib_array(i);
+            }
             else
+            {
                 gl::disable_vertex_attrib_array(i);
+            }
 
-            m_effective.attrib_enabled[i] = m_requested.attrib_enabled[i];
+            m_effective.attrib[i].enabled = m_requested.attrib[i].enabled;
         }
-#if !defined(__APPLE__)
-        if (m_effective.attrib_divisor[i] != m_requested.attrib_divisor[i])
+        if (m_effective.attrib[i].divisor != m_requested.attrib[i].divisor)
         {
-            gl::vertex_attrib_divisor(i, m_requested.attrib_divisor[i]);
-            m_effective.attrib_divisor[i] = m_requested.attrib_divisor[i];
+            gl::vertex_attrib_divisor(i, m_requested.attrib[i].divisor);
+            m_effective.attrib[i].divisor = m_requested.attrib[i].divisor;
         }
-#endif
     }
 }
 
-shared_ptr<class buffer> vertex_array::set_index_buffer(shared_ptr<class buffer> buffer)
+Buffer *Vertex_array::set_index_buffer(Buffer *buffer)
 {
-    shared_ptr<class buffer> old = m_effective.element_array_buffer_binding;
+    Buffer *old = m_effective.element_array_buffer_binding;
 
     if (!m_bound)
+    {
         throw runtime_error("vertex array is not currently bound, cannot bind index buffer");
+    }
 
     m_requested.element_array_buffer_binding = buffer;
     if (m_effective.element_array_buffer_binding != m_requested.element_array_buffer_binding)
     {
         if (m_requested.element_array_buffer_binding)
-            gl::bind_buffer(
-                gl::buffer_target::element_array_buffer,
-                buffer->gl_name());
+        {
+            gl::bind_buffer(gl::buffer_target::element_array_buffer,
+                            buffer->gl_name());
+        }
 
         m_effective.element_array_buffer_binding = m_requested.element_array_buffer_binding;
     }
@@ -109,12 +114,12 @@ shared_ptr<class buffer> vertex_array::set_index_buffer(shared_ptr<class buffer>
     return old;
 }
 
-shared_ptr<class buffer> vertex_array::index_buffer() const
+Buffer *Vertex_array::index_buffer() const
 {
     return m_effective.element_array_buffer_binding;
 }
 
-void vertex_array::enable_attrib(
+void Vertex_array::enable_attrib(
     uint32_t                              index,
     uint32_t                              dimension,
     gl::vertex_attrib_pointer_type::value shader_type,
@@ -127,10 +132,12 @@ void vertex_array::enable_attrib(
     unsigned int count = std::min(RS_ATTRIBUTE_COUNT, configuration::max_vertex_attribs);
 
     if (index >= count)
+    {
         throw runtime_error("vertex attrib index out of supported range");
+    }
 
-    m_requested.attrib_enabled[index] = true;
-    m_requested.attrib_divisor[index] = divisor;
+    m_requested.attrib[index].enabled = true;
+    m_requested.attrib[index].divisor = divisor;
 
 #if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
     switch (shader_type)

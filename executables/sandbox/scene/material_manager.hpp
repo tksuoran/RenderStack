@@ -4,13 +4,14 @@
 #include "renderstack_toolkit/platform.hpp"
 #include "renderstack_toolkit/service.hpp"
 
-class material_manager : public renderstack::toolkit::service
+class Material_manager : public renderstack::toolkit::service
 {
 public:
-    material_manager();
-    /*virtual*/ ~material_manager();
+    Material_manager();
 
-    /*virtual*/ void initialize_service();
+    virtual ~Material_manager() = default;
+
+    void initialize_service() override;
 };
 
 #endif

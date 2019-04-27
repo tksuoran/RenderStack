@@ -11,45 +11,31 @@ namespace renderstack
 namespace graphics
 {
 
-class depth_state
+struct Depth_state
 {
-public:
-    depth_state();
-    depth_state(bool enabled);
+    Depth_state() = default;
+
+    Depth_state(bool enabled) : enabled(enabled) {}
 
     void reset();
 
-    bool                      enabled() const;
-    gl::depth_function::value function() const;
-    float                     near_() const;
-    float                     far_() const;
-    bool                      depth_mask() const;
-
-    void set_enabled(bool value);
-    void set_function(gl::depth_function::value value);
-    void set_near(float value);
-    void set_far(float value);
-    void set_depth_mask(bool value);
-
-private:
-    bool                      m_enabled;
-    gl::depth_function::value m_function;
-    float                     m_near;
-    float                     m_far;
-    bool                      m_depth_mask;
+    bool                      enabled{false};
+    gl::depth_function::value function{gl::depth_function::less};
+    float                     near_{0.0f};
+    float                     far_{1.0f};
+    bool                      depth_mask{true};
 };
 
-class depth_state_tracker
+class Depth_state_tracker
 {
 public:
-    depth_state_tracker();
-
     void reset();
-    void execute(depth_state const *state);
+
+    void execute(Depth_state const *state);
 
 private:
-    depth_state const *m_last;
-    depth_state        m_cache;
+    Depth_state const *m_last{nullptr};
+    Depth_state        m_cache;
 };
 
 } // namespace graphics

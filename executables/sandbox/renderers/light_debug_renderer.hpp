@@ -14,44 +14,44 @@ namespace renderstack
 {
 namespace graphics
 {
-class uniform_buffer;
-class uniform_buffer_range;
+class Uniform_buffer;
+class Uniform_buffer_range;
 } // namespace graphics
 
 namespace mesh
 {
-class geometry_mesh;
+class Geometry_mesh;
 }
 namespace scene
 {
-class camera;
-class light;
-class viewport;
+class Camera;
+class Light;
+struct Viewport;
 } // namespace scene
 } // namespace renderstack
 
-class light_mesh;
+class Light_mesh;
 
-class light_debug_renderer
+class Light_debug_renderer
     : public renderstack::toolkit::service,
-      public base_renderer
+      public Base_renderer
 {
 public:
-    light_debug_renderer();
-    /*virtual*/ ~light_debug_renderer();
+    Light_debug_renderer();
 
-    void connect(
-        std::shared_ptr<renderstack::graphics::renderer> renderer,
-        std::shared_ptr<class programs>                  programs,
-        std::shared_ptr<class light_mesh>                light_mesh);
+    virtual ~Light_debug_renderer() = default;
+
+    void connect(std::shared_ptr<renderstack::graphics::Renderer> renderer,
+                 std::shared_ptr<Programs>                        programs,
+                 std::shared_ptr<Light_mesh>                      light_mesh);
+
     void initialize_service() override;
 
-    void light_pass(
-        std::vector<std::shared_ptr<renderstack::scene::light>> const &lights,
-        std::shared_ptr<renderstack::scene::camera>                    camera);
+    void light_pass(const Light_collection           &lights,
+                    const renderstack::scene::Camera &camera);
 
 private:
-    renderstack::graphics::render_states m_debug_light_render_states;
+    renderstack::graphics::Render_states m_debug_light_render_states;
 };
 
 #endif

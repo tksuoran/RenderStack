@@ -15,89 +15,107 @@ namespace renderstack
 namespace geometry
 {
 
-typedef size_t index_type;
-
-template <typename key_type>
-class property_map_base
+template <typename Key_type>
+class Property_map_base
 {
 public:
-    typedef std::vector<key_type>          key_array;
-    typedef std::map<key_type, index_type> key_index_map;
-
-    virtual ~property_map_base();
+    virtual ~Property_map_base() = default;
 
 public:
-    virtual property_map_base *constructor() const = 0;
+    virtual Property_map_base *constructor() const = 0;
 
-    virtual void                  clear()                                     = 0;
-    virtual bool                  empty() const                               = 0;
-    virtual index_type            size() const                                = 0;
-    virtual void                  begin_insertion(index_type estimated_count) = 0;
-    virtual bool                  is_inserting() const                        = 0;
-    virtual bool                  has(key_type const &key) const              = 0;
-    virtual void                  optimize()                                  = 0;
-    virtual bool                  is_optimized() const                        = 0;
-    virtual std::type_info const &value_type_id() const                       = 0;
-    virtual void                  interpolate(
-                         property_map_base<key_type> *                               destination,
-                         std::map<key_type, std::vector<std::pair<float, key_type>>> key_new_to_olds) const = 0;
+    virtual void clear() = 0;
+
+    virtual bool empty() const = 0;
+
+    virtual size_t size() const = 0;
+
+    //virtual bool is_inserting() const = 0;
+
+    virtual bool has(Key_type key) const = 0;
+
+    virtual void optimize() = 0;
+
+    //virtual bool is_optimized() const = 0;
+
+    //virtual std::type_info const &value_type_id() const = 0;
+
+    virtual void interpolate(Property_map_base<Key_type> *                               destination,
+                             std::map<Key_type, std::vector<std::pair<float, Key_type>>> key_new_to_olds) const = 0;
 
 protected:
-    property_map_base();
+    Property_map_base() = default;
 };
 
-/**  \brief contains attributes (like positions, normals, texcoords) for keys (polygon, point, corner)  */
-template <typename key_type, typename value_type>
-class property_map
-    : public property_map_base<key_type>
+template <typename Key_type, typename Value_type>
+class Property_map
+    : public Property_map_base<Key_type>
 {
 public:
-    property_map();
+    Property_map() = default;
 
-    void       put(key_type const &key, value_type const &value);
-    value_type get(key_type const &key) const;
+    void put(Key_type key, Value_type value);
 
-    void       clear();
-    bool       empty() const;
-    index_type size() const;
-    void       begin_insertion(index_type estimated_count = 0);
-    void       insert(key_type const &key, value_type const &value);
-    void       end_insertion();
-    bool       is_inserting() const;
-    bool       has(key_type const &key) const;
-    void       optimize();
-    bool       is_optimized() const;
+    Value_type get(Key_type key) const;
 
-    /*virtual*/ void interpolate(
-        property_map_base<key_type> *                               destination,
-        std::map<key_type, std::vector<std::pair<float, key_type>>> key_new_to_olds) const;
+    bool maybe_get(Key_type key, Value_type &value) const;
 
-    property_map_base<key_type> *constructor() const;
+    void clear() override;
 
-    std::type_info const &value_type_id() const;
+    bool empty() const override;
+
+    size_t size() const override;
+
+    void begin_insertion(size_t estimated_count = 0);
+
+    void insert(Key_type key, Value_type value);
+
+    void end_insertion();
+
+    bool has(Key_type key) const override;
+
+    void optimize() override;
+
+    void interpolate(Property_map_base<Key_type> *                               destination,
+                     std::map<Key_type, std::vector<std::pair<float, Key_type>>> key_new_to_olds) const override;
+
+    Property_map_base<Key_type> *constructor() const override;
+
+    // std::type_info const &value_type_id() const;
 
 private:
-    struct entry
+    struct Entry
     {
-        bool operator==(entry const &other) const;
-        bool operator<(entry const &other) const;
+        Entry(Key_type key) : key(key) {}
+        Entry(Key_type key, Value_type value) : key(key), value(value) {}
 
-        key_type   key;
-        value_type value;
+        bool operator==(Entry const &other) const;
+        bool operator<(Entry const &other) const;
+
+        Key_type   key;
+        Value_type value;
     };
 
-    typedef std::vector<entry> entry_container;
+    struct Entry_comparator
+    {
+        // for equal_range()
+        bool operator()(const Entry &lhs, const Entry &rhs) const
+        {
+            return lhs.key < rhs.key;
+        }
+    };
 
-private:
-    typename entry_container::const_iterator find(key_type const &key) const;
-    typename entry_container::iterator       find(key_type const &key);
+    typedef std::vector<Entry> Entry_container;
 
-    void insert_entry(key_type const &key, value_type const &value);
+    typename Entry_container::const_iterator find(Key_type key) const;
 
-private:
-    entry_container m_entries;
-    bool            m_is_optimized;
-    bool            m_is_inserting;
+    typename Entry_container::iterator find(Key_type key);
+
+    void insert_entry(Key_type key, Value_type value);
+
+    Entry_container m_entries;
+    bool            m_is_optimized{true};
+    bool            m_is_inserting{false};
 };
 
 } // namespace geometry

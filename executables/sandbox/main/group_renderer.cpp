@@ -6,7 +6,7 @@
 #include "renderstack_graphics/renderer.hpp"
 #include "renderstack_graphics/uniform.hpp"
 #include "renderstack_graphics/uniform_block.hpp"
-#include "renderstack_graphics/uniform_buffer_range.hpp"
+#include "renderstack_graphics/Uniform_buffer_range.hpp"
 #include "renderstack_graphics/vertex_format.hpp"
 #include "renderstack_mesh/geometry_mesh.hpp"
 #include "renderstack_mesh/mesh.hpp"
@@ -41,9 +41,9 @@ using namespace gl;
 using namespace glm;
 using namespace std;
 
-void game::render_ui()
+void Game::render_ui()
 {
-    slog_trace("game::render_ui()\n");
+    slog_trace("Game::render_ui()\n");
 
     assert(m_programs);
     assert(m_text_buffer);
@@ -113,13 +113,13 @@ void game::render_ui()
         m_text_buffer->render();
     }
 
-    void game::render(shared_ptr<renderstack::mesh::geometry_mesh> geometry_mesh)
+    void Game::render(shared_ptr<Geometry_mesh> Geometry_mesh)
     {
-        auto vertex_stream = geometry_mesh->vertex_stream();
-        auto mesh          = geometry_mesh->get_mesh();
+        auto Vertex_stream = Geometry_mesh->vertex_stream();
+        auto mesh          = Geometry_mesh->get_mesh();
 
         gl::begin_mode::value         begin_mode    = gl::begin_mode::triangles;
-        index_range const &           index_range   = geometry_mesh->fill_indices();
+        Index_range const &           index_range   = Geometry_mesh->fill_indices();
         GLsizei                       count         = static_cast<GLsizei>(index_range.index_count);
         gl::draw_elements_type::value index_type    = gl::draw_elements_type::unsigned_int;
         GLvoid *                      index_pointer = reinterpret_cast<GLvoid *>(
@@ -132,9 +132,9 @@ void game::render_ui()
         m_renderer->draw_elements_base_vertex(vertex_stream, begin_mode, count, index_type, index_pointer, base_vertex);
     }
 
-    void game::render_meshes()
+    void Game::render_meshes()
     {
-        slog_trace("game::render_meshes()\n");
+        slog_trace("Game::render_meshes()\n");
 
         if (m_models.size() == 0)
         {
@@ -178,9 +178,9 @@ void game::render_ui()
                 mat4 world_from_model = model->frame()->world_from_local().matrix();
                 mat4 clip_from_model  = m_controls.clip_from_world * world_from_model;
                 mat4 view_from_model  = m_controls.camera_controller.local_from_parent() * world_from_model;
-                auto geometry_mesh    = model->geometry_mesh();
-                auto vertex_stream    = geometry_mesh->vertex_stream();
-                auto mesh             = geometry_mesh->get_mesh();
+                auto Geometry_mesh    = model->Geometry_mesh();
+                auto vertex_stream    = Geometry_mesh->vertex_stream();
+                auto mesh             = Geometry_mesh->get_mesh();
 
                 material_parameters.x = m_slider->current_display_value();
 
@@ -201,7 +201,7 @@ void game::render_ui()
 
                 {
                     gl::begin_mode::value         begin_mode    = gl::begin_mode::triangles;
-                    index_range const &           index_range   = geometry_mesh->fill_indices();
+                    Index_range const &           index_range   = Geometry_mesh->fill_indices();
                     GLsizei                       count         = static_cast<GLsizei>(index_range.index_count);
                     gl::draw_elements_type::value index_type    = gl::draw_elements_type::unsigned_int;
                     GLvoid *                      index_pointer = reinterpret_cast<GLvoid *>((index_range.first_index +
@@ -212,7 +212,7 @@ void game::render_ui()
                                             : 0;
 
                     r->draw_elements_base_vertex(
-                        model->geometry_mesh()->vertex_stream(),
+                        model->Geometry_mesh()->vertex_stream(),
                         begin_mode, count, index_type, index_pointer, base_vertex);
                 }
             }
@@ -240,7 +240,7 @@ void game::render_ui()
             auto p = m_programs->light;
             r->set_program(p);
             // Don't bind emission texture for now
-            r->reset_texture(0, renderstack::graphics::texture_target::texture_2d, nullptr);
+            r->reset_texture(0, Texture::Target::texture_2d, nullptr);
             r->set_texture(1, m_rt[1], nullptr);
             r->set_texture(2, m_rt[2], nullptr);
             r->set_texture(3, m_rt[3], nullptr);
@@ -297,9 +297,8 @@ void game::render_ui()
         {
             r->set_texture(0, m_rt[i], nullptr);
 
-            std::shared_ptr<renderstack::graphics::program> p = (i == 2)
-                                                                    ? m_programs->show_rt_spherical
-                                                                    : m_programs->show_rt;
+            std::shared_ptr<Program> p = (i == 2) ? m_programs->show_rt_spherical
+                                                  : m_programs->show_rt;
             r->set_program(p);
 
             mat4 identity = mat4(1.0f);
@@ -375,9 +374,9 @@ void game::render_ui()
       GL_NEAREST);
 #endif
     }
-    void game::render()
+    void Game::render()
     {
-        slog_trace("game::render()\n");
+        slog_trace("Game::render()\n");
 
         int iw = m_application->width();
         int ih = m_application->height();

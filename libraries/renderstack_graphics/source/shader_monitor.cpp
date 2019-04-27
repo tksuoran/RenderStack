@@ -15,16 +15,12 @@ namespace graphics
 using namespace std;
 using namespace renderstack::toolkit;
 
-shader_monitor::shader_monitor()
-    : service("shader_monitor")
+Shader_monitor::Shader_monitor()
+    : service("Shader_monitor")
 {
 }
 
-/*virtual*/ shader_monitor::~shader_monitor()
-{
-}
-
-/*virtual*/ void shader_monitor::initialize_service()
+void Shader_monitor::initialize_service()
 {
     try
     {
@@ -47,26 +43,26 @@ shader_monitor::shader_monitor()
     }
     catch (...)
     {
-        //log_warn("programs::initialize_service() setting up shader monitor failed");
+        //log_warn("Programs::initialize_service() setting up shader monitor failed");
     }
 }
 
-void shader_monitor::set_src_path(string const &src_path)
+void Shader_monitor::set_src_path(const std::string &src_path)
 {
     m_src_path = src_path;
 }
 
-void shader_monitor::set_dst_path(string const &dst_path)
+void Shader_monitor::set_dst_path(const std::string &dst_path)
 {
     m_dst_path = dst_path;
 }
 
-void shader_monitor::add(string const &path, shared_ptr<program> program_)
+void Shader_monitor::add(const std::string &path, Program *program)
 {
     auto i = m_files.find(path);
     if (i == m_files.end())
     {
-        file f;
+        File f;
         m_files[path] = f;
     }
 
@@ -76,14 +72,18 @@ void shader_monitor::add(string const &path, shared_ptr<program> program_)
     struct stat st;
     int         res = ::stat(path.c_str(), &st);
     if (res != 0)
+    {
         throw runtime_error("file not found");
+    }
 
     f.src_path = m_src_path + "/" + path;
     f.dst_path = m_dst_path + "/" + path;
 
     res = stat(f.src_path.c_str(), &st);
     if (res != 0)
+    {
         f.src_path.clear();
+    }
     else
     {
         f.src_last_time = st.st_mtime;
@@ -92,7 +92,9 @@ void shader_monitor::add(string const &path, shared_ptr<program> program_)
 
     res = ::stat(f.dst_path.c_str(), &st);
     if (res != 0)
+    {
         f.dst_path.clear();
+    }
     else
     {
         f.dst_last_time = st.st_mtime;
@@ -101,15 +103,17 @@ void shader_monitor::add(string const &path, shared_ptr<program> program_)
 
     assert(ok > 0); // TODO
     if (ok)
-        f.programs.insert(program_);
+    {
+        f.programs.insert(program);
+    }
 }
 
-string shader_monitor::most_recent_version(string const &path)
+string Shader_monitor::most_recent_version(const std::string &path)
 {
     auto i = m_files.find(path);
     if (i != m_files.end())
     {
-        file &      f = i->second;
+        auto        &f = i->second;
         struct stat src_st;
         struct stat dst_st;
         int         src_res = stat(f.src_path.c_str(), &src_st);
@@ -117,9 +121,13 @@ string shader_monitor::most_recent_version(string const &path)
         if (src_res == 0 && dst_res == 0)
         {
             if (src_st.st_mtime >= dst_st.st_mtime)
+            {
                 return f.src_path;
+            }
             else
+            {
                 return f.dst_path;
+            }
         }
         else if (src_res != 0 && dst_res == 0)
         {
@@ -133,19 +141,21 @@ string shader_monitor::most_recent_version(string const &path)
     return "";
 }
 
-void shader_monitor::poll()
+void Shader_monitor::poll()
 {
-    for (auto i = m_files.begin(); i != m_files.end(); ++i)
+    for (auto &i : m_files)
     {
-        file &      f = i->second;
+        auto &f = i.second;
         struct stat st;
         int         res = stat(f.src_path.c_str(), &st);
         if (res == 0)
         {
             if (f.src_last_time != st.st_mtime)
             {
-                for (auto j = f.programs.cbegin(); j != f.programs.cend(); ++j)
-                    (*j)->reload(*this);
+                for (auto program : f.programs)
+                {
+                    program->reload(*this);
+                }
 
                 f.src_last_time = st.st_mtime;
                 continue;
@@ -156,8 +166,10 @@ void shader_monitor::poll()
         {
             if (f.dst_last_time != st.st_mtime)
             {
-                for (auto j = f.programs.cbegin(); j != f.programs.cend(); ++j)
-                    (*j)->reload(*this);
+                for (auto program : f.programs)
+                {
+                    program->reload(*this);
+                }
 
                 f.dst_last_time = st.st_mtime;
                 continue;

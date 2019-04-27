@@ -13,7 +13,6 @@ namespace renderstack
 namespace graphics
 {
 
-using namespace std;
 using namespace renderstack::toolkit;
 
 static char const *const gl_fragment_output_type_name(gl::fragment_output_type::value type)
@@ -37,36 +36,35 @@ static char const *const gl_fragment_output_type_name(gl::fragment_output_type::
         case gl::fragment_output_type::double_vec3: return "dvec3  ";
         case gl::fragment_output_type::double_vec4: return "dvec4  ";
         default:
-            throw runtime_error("unknown fragment outout type");
+            throw std::runtime_error("unknown fragment outout type");
     }
 }
 
-void fragment_outputs::clear()
+void Fragment_outputs::clear()
 {
     m_outputs.clear();
 }
 
-void fragment_outputs::add(
-    string const &                  name,
-    gl::fragment_output_type::value type,
-    unsigned int                    location)
+void Fragment_outputs::add(const std::string &             name,
+                           gl::fragment_output_type::value type,
+                           unsigned int                    location)
 {
-    m_outputs.push_back(
-        make_shared<fragment_output>(
-            name,
-            type,
-            location));
+    m_outputs.push_back(std::make_shared<Fragment_output>(name,
+                                                          type,
+                                                          location));
 }
 
-void fragment_outputs::bind(program &program)
+void Fragment_outputs::bind(Program &program)
 {
     for (auto i = m_outputs.begin(); i != m_outputs.end(); ++i)
+    {
         program.bind_frag_data_location((*i)->location(), (*i)->name());
+    }
 }
 
-string fragment_outputs::source(int glsl_version) const
+std::string Fragment_outputs::source(int glsl_version) const
 {
-    stringstream ss;
+    std::stringstream ss;
 
     for (auto i = m_outputs.begin(); i != m_outputs.end(); ++i)
     {

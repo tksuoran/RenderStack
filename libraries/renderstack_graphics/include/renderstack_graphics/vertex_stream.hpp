@@ -5,7 +5,6 @@
 #include "renderstack_graphics/vertex_attribute.hpp"
 #include "renderstack_graphics/vertex_stream_binding.hpp"
 #include "renderstack_toolkit/gl.hpp"
-#include "renderstack_toolkit/platform.hpp"
 #include "renderstack_toolkit/strong_gl_enums.hpp"
 #include <cstddef>
 #include <memory>
@@ -16,50 +15,48 @@ namespace renderstack
 namespace graphics
 {
 
-class buffer;
-class renderer;
-class vertex_attribute_mapping;
-class vertex_array;
+class Buffer;
+class Renderer;
+class Vertex_attribute_mapping;
+class Vertex_array;
 
-class vertex_stream : public std::enable_shared_from_this<vertex_stream>
+class Vertex_stream : public std::enable_shared_from_this<Vertex_stream>
 {
 public:
-    vertex_stream();
-    ~vertex_stream();
+    Vertex_stream();
 
-    vertex_stream_binding &add(
-        std::weak_ptr<class buffer>             vertex_buffer,
-        std::weak_ptr<vertex_attribute_mapping> vertex_attribute_mapping,
-        std::weak_ptr<vertex_attribute>         attribute,
-        std::size_t                             stride);
+    ~Vertex_stream() = default;
 
-    void        clear();
-    std::size_t count() const
+    Vertex_stream_binding &add(Buffer                         *vertex_buffer,
+                               const Vertex_attribute_mapping &vertex_attribute_mapping,
+                               const Vertex_attribute         *attribute,
+                               size_t                         stride);
+ 
+    void clear();
+
+    size_t count() const
     {
         return m_vertex_stream_bindings.size();
     }
 
-    std::shared_ptr<class vertex_array> &vertex_array()
+    Vertex_array *vertex_array()
     {
-        return m_vertex_array;
-    }
-    std::shared_ptr<class vertex_array> const &vertex_array() const
-    {
-        return m_vertex_array;
+        return m_vertex_array.get();
     }
 
-    std::vector<vertex_stream_binding> &bindings()
+    std::vector<Vertex_stream_binding> &bindings()
     {
         return m_vertex_stream_bindings;
     }
-    std::vector<vertex_stream_binding> const &bindings() const
+
+    std::vector<Vertex_stream_binding> const &bindings() const
     {
         return m_vertex_stream_bindings;
     }
 
 private:
-    std::vector<vertex_stream_binding>  m_vertex_stream_bindings;
-    std::shared_ptr<class vertex_array> m_vertex_array;
+    std::vector<Vertex_stream_binding> m_vertex_stream_bindings;
+    std::unique_ptr<Vertex_array> m_vertex_array;
 };
 
 } // namespace graphics

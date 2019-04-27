@@ -14,7 +14,7 @@ namespace shapes
 class polyhedron : public geometry
 {
 public:
-    polyhedron(std::string const &name)
+    polyhedron(const std::string &name)
         m_name(name)
     {
     }
@@ -153,7 +153,7 @@ public:
 #declare alfa=ouch-1/ouch;
 #declare veta=(ouch+tau+1/ouch)*tau;
  */
-        void set_name(std::string const &name);
+        void set_name(const std::string &name);
         void add_points_even_sign(double x, double y, double z);
         void add_points_sign(double x0, double y0, double z0, double x1, double y1, double z1);
         void auto_faces();

@@ -14,24 +14,36 @@ namespace renderstack
 namespace graphics
 {
 
-class vertex_attribute_mapping
+class Vertex_attribute_mapping
 {
 public:
-    vertex_attribute_mapping(std::string const &name, vertex_attribute_usage::value usage, unsigned int index);
-    vertex_attribute_mapping(std::string const &name, vertex_attribute_usage::value src_usage, unsigned int src_index, vertex_attribute_usage::value dst_usage, unsigned int dst_index);
+    Vertex_attribute_mapping(const std::string &name,
+                             vertex_attribute_usage::value usage,
+                             unsigned int index)
+        : name(name)
+        , src_usage(usage)
+        , dst_usage(usage)
+        , src_index(index)
+        , dst_index(index)
+    {}
 
-    std::string const &           name() const;
-    vertex_attribute_usage::value src_usage() const;
-    vertex_attribute_usage::value dst_usage() const;
-    unsigned int                  src_index() const;
-    unsigned int                  dst_index() const;
+    Vertex_attribute_mapping(const std::string &name,
+                             vertex_attribute_usage::value src_usage,
+                             unsigned int src_index,
+                             vertex_attribute_usage::value dst_usage,
+                             unsigned int dst_index)
+        : name(name)
+        , src_usage(src_usage)
+        , dst_usage(dst_usage)
+        , src_index(src_index)
+        , dst_index(dst_index)
+    {}
 
-private:
-    std::string                   m_name;
-    vertex_attribute_usage::value m_src_usage;
-    vertex_attribute_usage::value m_dst_usage;
-    unsigned int                  m_src_index;
-    unsigned int                  m_dst_index;
+    std::string                   name;
+    vertex_attribute_usage::value src_usage;
+    vertex_attribute_usage::value dst_usage;
+    unsigned int                  src_index;
+    unsigned int                  dst_index;
 };
 
 } // namespace graphics

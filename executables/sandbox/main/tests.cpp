@@ -37,7 +37,7 @@ using namespace renderstack::toolkit;
 using namespace renderstack::mesh;
 using namespace renderstack::ui;
 
-void application::execute_tests()
+void Application::execute_tests()
 {
 #if 1
     check_memory_system();
@@ -47,15 +47,15 @@ void application::execute_tests()
 
     begin_memory_compare();
 
-    m_renderer     = make_shared<renderstack::graphics::renderer>();
-    m_gui_renderer = make_shared<renderstack::ui::gui_renderer>(m_renderer);
+    m_renderer     = make_shared<renderstack::graphics::Renderer>();
+    m_gui_renderer = make_shared<renderstack::ui::Gui_renderer>(m_renderer);
 
     /*auto cone = make_shared<renderstack::geometry::shapes::cone>(
    0.0f, 1.0f, 1.0f, 0.1f, true, true, 24, 8
    );*/
     auto triangle = make_shared<renderstack::geometry::shapes::triangle>(1.0);
 
-    auto tri_mesh = make_shared<geometry_mesh>(*m_renderer, triangle, normal_style::corner_normals);
+    auto tri_mesh = make_shared<Geometry_mesh>(*m_renderer, triangle, Normal_style::corner_normals);
 
     tri_mesh.reset();
     //cone.reset();

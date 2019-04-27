@@ -10,14 +10,14 @@ namespace renderstack
 namespace graphics
 {
 
-class renderer;
-class texture;
+class Renderer;
+class Texture;
 
 // Currently creates immutable texture without mipmaps
-extern std::shared_ptr<renderstack::graphics::texture> load_png(
-    renderstack::graphics::renderer &renderer,
-    unsigned int                     texture_unit,
-    std::string const &              path);
+bool load_png(renderstack::graphics::Texture  &texture,
+              renderstack::graphics::Renderer &renderer,
+              unsigned int                     texture_unit,
+              const std::string &              path);
 
 } // namespace graphics
 } // namespace renderstack

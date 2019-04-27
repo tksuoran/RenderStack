@@ -1,7 +1,6 @@
 #ifndef exception_hpp_renderstack_geometry
 #define exception_hpp_renderstack_geometry
 
-#include "renderstack_toolkit/platform.hpp"
 #include <cstdint>
 #include <stdexcept>
 #include <string>
@@ -11,50 +10,43 @@ namespace renderstack
 namespace geometry
 {
 
-struct property_map_not_found_exception
+struct Property_map_not_found_exception
 {
-    property_map_not_found_exception(std::string const &name_)
-    {
-        this->name = name_;
-    }
+    Property_map_not_found_exception(const std::string &name) : name(name) {}
+
     std::string name;
 };
 
-struct incompatible_attribute_type_exception
+struct Incompatible_attribute_type_exception
 {
-    incompatible_attribute_type_exception(
-        std::string name_,
-        std::string type_name_,
-        std::string expected_type_name_)
-    {
-        this->name               = name_;
-        this->type_name          = type_name_;
-        this->expected_type_name = expected_type_name_;
-    }
+    Incompatible_attribute_type_exception(const std::string &name,
+                                          const std::string &type_name,
+                                          const std::string &expected_type_name) 
+        : name(name)
+        , type_name(type_name)
+        , expected_type_name(expected_type_name) {}
+
     std::string name;
     std::string type_name;
     std::string expected_type_name;
 };
 
-struct invalid_index_exception
+struct Invalid_index_exception
 {
-    invalid_index_exception(uint32_t index_, uint32_t max_index_)
-    {
-        this->index     = index_;
-        this->max_index = max_index_;
-    }
+    Invalid_index_exception(uint32_t index, uint32_t max_index) 
+        : index(index)
+        , max_index(max_index) {}
+
     uint32_t index;
     uint32_t max_index;
 };
 
-template <typename key_type>
-struct key_not_found_exception
+template <typename Key_type>
+struct Key_not_found_exception
 {
-    key_not_found_exception(key_type key_)
-    {
-        this->key = key_;
-    }
-    key_type key;
+    Key_not_found_exception(Key_type key) : key (key) {}
+
+    Key_type key;
 };
 
 } // namespace geometry

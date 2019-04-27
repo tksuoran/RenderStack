@@ -22,12 +22,11 @@ using namespace std;
 using namespace gl;
 using namespace renderstack::graphics;
 
-ninepatch::ninepatch(
-    shared_ptr<class gui_renderer> gui_renderer,
-    shared_ptr<ninepatch_style>    style)
+Ninepatch::Ninepatch(Gui_renderer    &gui_renderer,
+                     Ninepatch_style &style)
     : m_style(style)
 {
-    auto &r = *gui_renderer->renderer();
+    auto &r = gui_renderer.renderer();
 
     //  16 vertices, 9 quads
 
@@ -38,10 +37,10 @@ ninepatch::ninepatch(
     //   4  5  6  7
     //
     //   0  1  2  3
-    m_mesh.allocate_vertex_buffer(gui_renderer->vertex_buffer(), 16);
-    m_mesh.allocate_index_buffer(gui_renderer->index_buffer(), 9 * 6);
+    m_mesh.allocate_vertex_buffer(gui_renderer.vertex_buffer(), 16);
+    m_mesh.allocate_index_buffer(gui_renderer.index_buffer(), 9 * 6);
 
-    gui_renderer->set_index_buffer();
+    gui_renderer.set_index_buffer();
     unsigned short *start = static_cast<unsigned short *>(
         m_mesh.index_buffer()->map(
             r,
@@ -78,21 +77,16 @@ ninepatch::ninepatch(
     m_mesh.index_buffer()->unmap(r);
 }
 
-void ninepatch::place(
-    shared_ptr<class gui_renderer> gui_renderer,
-    float                          x0,
-    float                          y0,
-    float                          width,
-    float                          height)
+void Ninepatch::place(Gui_renderer &gui_renderer, float x0, float y0, float width, float height)
 {
-    slog_trace("ninepatch::place(x0 = %f, y0 = %f, width = %f, height = %f)", x0, y0, width, height);
+    slog_trace("Ninepatch::place(x0 = %f, y0 = %f, width = %f, height = %f)", x0, y0, width, height);
 
     m_size.x = width;
     m_size.y = height;
 
-    gui_renderer->set_vertex_buffer();
+    gui_renderer.set_vertex_buffer();
 
-    auto &r = *gui_renderer->renderer();
+    auto &r = gui_renderer.renderer();
 
     float *ptr = (float *)m_mesh.vertex_buffer()->map(
         r,
@@ -104,26 +98,26 @@ void ninepatch::place(
 
     float u[4];
     u[0] = 0.0f;
-    u[1] = m_style->border_uv().x;
-    u[2] = 1.0f - m_style->border_uv().x;
+    u[1] = m_style.border_uv.x;
+    u[2] = 1.0f - m_style.border_uv.x;
     u[3] = 1.0f;
 
     float v[4];
     v[0] = 0.0f;
-    v[1] = m_style->border_uv().y;
-    v[2] = 1.0f - m_style->border_uv().y;
+    v[1] = m_style.border_uv.y;
+    v[2] = 1.0f - m_style.border_uv.y;
     v[3] = 1.0f;
 
     float x[4];
     x[0] = x0;
-    x[1] = x0 + m_style->border_pixels().x;         // m_style.Texture.Size.Width;
-    x[2] = x0 + width - m_style->border_pixels().x; // * style.Texture.Size.Width;
+    x[1] = x0 + m_style.border_pixels.x;         // m_style.Texture.Size.Width;
+    x[2] = x0 + width - m_style.border_pixels.x; // * style.Texture.Size.Width;
     x[3] = x0 + width;
 
     float y[4];
     y[0] = y0;
-    y[1] = y0 + m_style->border_pixels().y;          // * style.Texture.Size.Height;
-    y[2] = y0 + height - m_style->border_pixels().y; // * style.Texture.Size.Height;
+    y[1] = y0 + m_style.border_pixels.y;          // * style.Texture.Size.Height;
+    y[2] = y0 + height - m_style.border_pixels.y; // * style.Texture.Size.Height;
     y[3] = y0 + height;
 
     for (int yi = 0; yi < 4; ++yi)
@@ -140,9 +134,9 @@ void ninepatch::place(
     m_mesh.vertex_buffer()->unmap(r);
 }
 
-void ninepatch::render(shared_ptr<class gui_renderer> renderer)
+void Ninepatch::render(Gui_renderer &renderer)
 {
-    slog_trace("ninepatch::render()");
+    slog_trace("Ninepatch::render()");
 
     gl::begin_mode::value         begin_mode    = gl::begin_mode::triangles;
     GLsizei                       count         = static_cast<GLsizei>(mesh().index_count());
@@ -152,12 +146,11 @@ void ninepatch::render(shared_ptr<class gui_renderer> renderer)
                             ? static_cast<GLint>(mesh().first_vertex())
                             : 0;
 
-    renderer->draw_elements_base_vertex(
-        begin_mode,
-        count,
-        index_type,
-        index_pointer,
-        base_vertex);
+    renderer.draw_elements_base_vertex(begin_mode,
+                                       count,
+                                       index_type,
+                                       index_pointer,
+                                       base_vertex);
 }
 
 } // namespace ui

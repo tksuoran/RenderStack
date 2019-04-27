@@ -17,38 +17,47 @@ namespace renderstack
 namespace ui
 {
 
-class text_buffer
+class Gui_renderer;
+
+class Text_buffer
 {
 public:
-    text_buffer(
-        std::shared_ptr<class gui_renderer> renderer,
-        std::shared_ptr<class font>         font);
-    ~text_buffer();
+    Text_buffer(Gui_renderer &renderer, Font &font, unsigned int max_chars = 3000);
 
-    rectangle const &bounding_box() const
+    ~Text_buffer() = default;
+
+    Rectangle bounding_box() const
     {
         return m_bounding_box;
     }
+
     float line_height() const
     {
-        return m_font->line_height();
+        return m_font.line_height();
     }
-    void                        begin_print();
-    std::size_t                 end_print();
-    void                        print(std::string const &text, int x, int y);
-    void                        measure(std::string const &text);
-    void                        print_center(std::string const &text, float x, float y);
-    void                        render();
-    std::shared_ptr<class font> font();
+
+    void begin_print();
+
+    size_t end_print();
+
+    void print(const std::string &text, int x, int y);
+
+    void measure(const std::string &text);
+
+    void print_center(const std::string &text, float x, float y);
+
+    void render();
+
+    Font &font();
 
 private:
-    std::shared_ptr<class gui_renderer> m_renderer;
-    std::shared_ptr<class font>         m_font;
-    unsigned int                        m_max_chars;
-    rectangle                           m_bounding_box;
-    renderstack::mesh::mesh             m_mesh;
-    float *                             m_vertex_ptr;
-    std::size_t                         m_chars_printed;
+    Gui_renderer            &m_renderer;
+    Font                    &m_font;
+    unsigned int            m_max_chars{0};
+    Rectangle               m_bounding_box;
+    renderstack::mesh::mesh m_mesh;
+    float *                 m_vertex_ptr{nullptr};
+    size_t                  m_chars_printed;
 };
 
 } // namespace ui

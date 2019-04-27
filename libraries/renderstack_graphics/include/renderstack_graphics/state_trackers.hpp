@@ -23,52 +23,66 @@ namespace renderstack
 namespace graphics
 {
 
+class Sampler;
+
 #define RS_TEXTURE_UNIT_COUNT 32          // TODO Get rid of this kind of defines?
 #define RS_UNIFORM_BINDING_POINT_COUNT 16 // TODO Get rid of this kind of defines?
 
-class texture_unit_state
+class Texture_unit_state
 {
 public:
-    texture_unit_state();
-    texture_unit_state(texture_unit_state const &other);
+    Texture_unit_state()
+    {
+        std::fill(begin(texture_binding), end(texture_binding), nullptr);
+    }
+
+    Texture_unit_state(const Texture_unit_state &other);
 
     void trash(unsigned int unit);
 
     // table 6.8: Textures (selector, state per texture unit)
-    std::shared_ptr<class texture> texture_binding[texture_target::count];
-    std::shared_ptr<class sampler> sampler_binding;
+    std::array<Texture *, Texture::target_count> texture_binding;
+
+    Sampler *sampler_binding{nullptr};
 };
 
-class state // context_state
+class State
 {
 public:
-    state();
-    state(state const &other);
+    State()
+    {
+        std::fill(begin(buffer_binding), end(buffer_binding), nullptr);
+        std::fill(begin(uniform_buffer_binding_indexed), end(uniform_buffer_binding_indexed), nullptr);
+    }
+
+    ~State() = default;
+
+    State(const State &other);
 
     // Buffer binding points in context, non indexed
-    std::shared_ptr<buffer> buffer_binding[buffer_target::all_buffer_target_count];
+    std::array<Buffer *, Buffer::all_buffer_target_count> buffer_binding;
 
     // Buffer binding points in context, indexed
 #if defined(RENDERSTACK_GL_API_OPENGL) || defined(RENDERSTACK_GL_API_OPENGL_ES_3)
-    std::shared_ptr<uniform_buffer_range> uniform_buffer_binding_indexed[RS_UNIFORM_BINDING_POINT_COUNT]; // 6.25
+    std::array<Uniform_buffer_range *, RS_UNIFORM_BINDING_POINT_COUNT> uniform_buffer_binding_indexed;
 #endif
 
-    std::shared_ptr<vertex_array> vertex_array_binding; // 6.3   (bound VAO)
-    std::shared_ptr<program>      current_program;      // 6.18
+    Vertex_array *vertex_array_binding{nullptr}; // 6.3   (bound VAO)
+    Program      *current_program{nullptr};      // 6.18
 
-    texture_unit_state texture_unit[RS_TEXTURE_UNIT_COUNT];
+    std::array<Texture_unit_state, RS_TEXTURE_UNIT_COUNT> texture_unit;
 
     // Not yet objectified
 
-    unsigned int transform_feedback_binding; // 6.5
-    unsigned int active_texture;             // 6.8
-    unsigned int draw_framebuffer_binding;   // 6.12
-    unsigned int read_framebuffer_binding;   // 6.12
-    unsigned int renderbuffer_binding;       // 6.12
-    unsigned int current_query;              // 6.36
+    unsigned int transform_feedback_binding{0U}; // 6.5
+    unsigned int active_texture{0U};             // 6.8
+    unsigned int draw_framebuffer_binding{0U};   // 6.12
+    unsigned int read_framebuffer_binding{0U};   // 6.12
+    unsigned int renderbuffer_binding{0U};       // 6.12
+    unsigned int current_query{0U};              // 6.36
 };
 
-class transform_feedback_state
+class Transform_feedback_state
 {
 public:
     // Table 6.24: Transform feedback state
@@ -76,51 +90,29 @@ public:
     unsigned int transform_feedback_buffer_binding_indexed[4];
 };
 
-struct render_states
+struct Render_states
 {
-    color_mask_state color_mask;
-    blend_state      blend;
-    depth_state      depth;
-    face_cull_state  face_cull;
-    stencil_state    stencil;
+    Color_mask_state color_mask;
+    Blend_state      blend;
+    Depth_state      depth;
+    Face_cull_state  face_cull;
+    Stencil_state    stencil;
 };
 
-class state_trackers
+class State_trackers
 {
 public:
-    state_trackers();
-    ~state_trackers();
+    ~State_trackers() = default;
 
     void reset();
-    void execute(render_states const *states);
 
-    color_mask_state_tracker &color_mask()
-    {
-        return m_color_mask;
-    }
-    blend_state_tracker &blend()
-    {
-        return m_blend;
-    }
-    depth_state_tracker &depth()
-    {
-        return m_depth;
-    }
-    face_cull_state_tracker &face_cull()
-    {
-        return m_face_cull;
-    }
-    stencil_state_tracker &stencil()
-    {
-        return m_stencil;
-    }
+    void execute(Render_states const *states);
 
-private:
-    color_mask_state_tracker m_color_mask;
-    blend_state_tracker      m_blend;
-    depth_state_tracker      m_depth;
-    face_cull_state_tracker  m_face_cull;
-    stencil_state_tracker    m_stencil;
+    Color_mask_state_tracker color_mask;
+    Blend_state_tracker      blend;
+    Depth_state_tracker      depth;
+    Face_cull_state_tracker  face_cull;
+    Stencil_state_tracker    stencil;
 };
 
 } // namespace graphics

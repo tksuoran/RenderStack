@@ -11,14 +11,16 @@ namespace renderstack
 namespace graphics
 {
 
-class fragment_output
+class Fragment_output
 {
 public:
-    fragment_output(std::string const &name, gl::fragment_output_type::value type, unsigned int location);
+    Fragment_output(const std::string &name, gl::fragment_output_type::value type, unsigned int location);
 
-    std::string const &             name() const;
+    const std::string &name() const;
+
     gl::fragment_output_type::value type() const;
-    unsigned int                    location() const;
+
+    unsigned int location() const;
 
 private:
     std::string                     m_name;

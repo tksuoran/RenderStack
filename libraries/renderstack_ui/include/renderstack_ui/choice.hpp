@@ -15,69 +15,67 @@ namespace renderstack
 namespace ui
 {
 
-class choice;
-class push_button;
+class Choice;
+class Push_button;
 
-class choice_item
-    : public push_button,
-      public action_sink,
-      public renderstack::toolkit::enable_shared_from_this<choice_item>
+
+class Choice : public Dock, public Action_source
 {
-private:
-    std::weak_ptr<class choice> m_choice;
-    std::string                 m_label;
-
 public:
-    std::string const &label() const
+
+    class Item : public Push_button, public Action_sink
     {
-        return m_label;
-    }
-    void set_label(std::string const &value)
-    {
-        m_label = value;
-    }
+    public:
+        Item(Gui_renderer &renderer, const std::string &label, Style &style);
 
-public:
-    choice_item(
-        std::shared_ptr<class gui_renderer> renderer,
-        std::string const &                 label,
-        std::shared_ptr<class style>        style);
-    virtual ~choice_item();
+        virtual ~Item() = default;
 
-    void action(std::weak_ptr<action_source> source);
-    void connect(std::weak_ptr<class choice> choice);
-};
+        const std::string &label() const
+        {
+            return m_label;
+        }
 
-class choice
-    : public dock,
-      public action_source,
-      public renderstack::toolkit::enable_shared_from_this<choice>
-{
-private:
-    std::weak_ptr<choice_item>                m_selected;
-    std::vector<std::shared_ptr<choice_item>> m_items;
-    std::shared_ptr<class style>              m_choice_item_style;
+        void set_label(const std::string &value)
+        {
+            m_label = value;
+        }
 
-public:
-    std::vector<std::shared_ptr<choice_item>> const &items() const
+        void action(Action_source *source);
+
+        void connect(Choice *choice);
+
+    private:
+        Choice      *m_choice{nullptr};
+        std::string m_label;
+    };
+
+    Choice(Gui_renderer &renderer,
+           Style        &style,
+           Style        &choice_item_style,
+           Orientation  orientation_in);
+
+    virtual ~Choice() = default;
+
+    std::vector<std::shared_ptr<Item>> const &items() const
     {
         return m_items;
     }
-    std::weak_ptr<choice_item> selected() const
+
+    Item *selected() const
     {
         return m_selected;
     }
-    void set_selected(std::weak_ptr<choice_item> value);
 
-    choice(
-        std::shared_ptr<class gui_renderer> renderer,
-        std::shared_ptr<class style>        style,
-        std::shared_ptr<class style>        choice_item_style,
-        orientation::value                  orientation_in);
-    virtual ~choice();
+    void set_selected(Item *value);
 
-    std::shared_ptr<choice_item> add(std::shared_ptr<choice_item> item);
-    std::shared_ptr<choice_item> add_choice_item(std::string const &label, bool select = false);
+    std::shared_ptr<Item> add_item(std::shared_ptr<Item> item);
+
+    std::shared_ptr<Item> make_item(const std::string &label, bool select = false);
+
+private:
+    Item                               *m_selected{nullptr};
+    std::vector<std::shared_ptr<Item>> m_items;
+    Style                              &m_choice_item_style;
 };
 
 } // namespace ui

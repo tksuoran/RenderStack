@@ -10,13 +10,10 @@ namespace geometry
 namespace operation
 {
 
-class clone : public geometry_operation
+class Clone : public Geometry_operation
 {
 public:
-    clone(
-        std::shared_ptr<geometry> src
-        /*, HashSet<uint> selectedPolygonIndices*/
-    );
+    Clone(Geometry &src/*, HashSet<uint> selectedPolygonIndices*/ );
 };
 
 } // namespace operation

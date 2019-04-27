@@ -10,43 +10,55 @@ namespace ui
 {
 
 using namespace renderstack::toolkit;
+using namespace glm;
 
-void menulist::update()
+void Menulist::update()
 {
-    if (m_ninepatch.size() != rect().size())
-        m_ninepatch.place(renderer(), 0.0f, 0.0f, rect().size().x, rect().size().y);
+    if (m_ninepatch)
+    {
+        if (m_ninepatch->size() != rect.size())
+        {
+            m_ninepatch->place(renderer, 0.0f, 0.0f, rect.size().x, rect.size().y);
+        }
+    }
 }
 
-void menulist::begin_place(rectangle const &reference, glm::vec2 const &grow_direction)
+void Menulist::begin_place(Rectangle reference, vec2 grow_direction)
 {
-    dock::begin_place(reference, grow_direction);
-    glm::mat4 a;
-    create_translation(rect().min(), a);
-    glm::mat4 const &o = renderer()->ortho();
+    Dock::begin_place(reference, grow_direction);
+    mat4 a;
+    create_translation(rect.min(), a);
+    mat4 o = renderer.ortho();
     m_background_frame = o * a;
 }
-void menulist::draw_self(ui_context &context)
+
+void Menulist::draw_self(ui_context &context)
 {
     update();
 
-    auto gr = renderer();
-
-    gr->blend_add();
-    gr->set_program(style()->ninepatch_style()->program());
-    gr->set_texture(style()->ninepatch_style()->texture_unit(), style()->ninepatch_style()->texture());
-    gr->set_transform(m_background_frame);
-    if (rect().hit(context.mouse))
+    if (!m_ninepatch)
     {
-        gr->set_color_scale(glm::vec4(1.00f, 1.00f, 1.0f, 0.125f));
-        gr->set_color_add(glm::vec4(-0.25f, -0.25f, 0.1f, 0.0f));
+        return;
+    }
+
+    auto &gr = renderer;
+
+    gr.blend_add();
+    gr.set_program(style.ninepatch_style->program);
+    gr.set_texture(style.ninepatch_style->texture_unit, style.ninepatch_style->texture.get());
+    gr.set_transform(m_background_frame);
+    if (rect.hit(context.mouse))
+    {
+        gr.set_color_scale(vec4(1.00f, 1.00f, 1.0f, 0.125f));
+        gr.set_color_add(vec4(-0.25f, -0.25f, 0.1f, 0.0f));
     }
     else
     {
-        gr->set_color_scale(glm::vec4(1.0f, 1.0f, 1.0f, 0.125f));
-        gr->set_color_add(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+        gr.set_color_scale(vec4(1.0f, 1.0f, 1.0f, 0.125f));
+        gr.set_color_add(vec4(0.0f, 0.0f, 0.0f, 0.0f));
     }
-    m_ninepatch.render(gr);
-    gr->blend_disable();
+    m_ninepatch->render(gr);
+    gr.blend_disable();
 }
 
 } // namespace ui

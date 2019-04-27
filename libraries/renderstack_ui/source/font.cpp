@@ -54,43 +54,43 @@ font::font()
    m_texture_width     = 0;
    m_texture_height    = 0;
    m_line_height       = 0.0f;
-   m_bitmap = make_shared<bitmap>(m_texture_width, m_texture_height, 2);
+   m_bitmap = make_shared<Bitmap>(m_texture_width, m_texture_height, 2);
    //m_bitmap->load_data(nullptr);
    post_process();
 }*/
 
-font::~font()
+Font::Font(renderstack::graphics::Renderer &renderer,
+           const std::string               &path,
+           unsigned int                     size,
+           float                            outline_thickness)
+    : m_path(path)
+    , m_bolding((size > 10) ? 0.5f : 0.0f)
+    , m_outline_thickness(outline_thickness)
 {
-}
-
-font::font(
-    renderstack::graphics::renderer &renderer,
-    string const &                   path,
-    unsigned int                     size,
-    float                            outline_thickness)
-    : m_path(path), m_hinting(true), m_regular_grid(false), m_rgb(false), m_dpi(96), m_gamma(1.0f), m_saturation(1.0f), m_bolding((size > 10) ? 0.5f : 0.0f), m_outline_thickness(outline_thickness), m_spacing_delta(0)
-{
-    slog_trace("font::font(path = %s, size = %u, outline_thickness = %f)", path.c_str(), size, outline_thickness);
+    slog_trace("Font::Font(path = %s, size = %u, outline_thickness = %f)", path.c_str(), size, outline_thickness);
 
     if (m_hinting)
+    {
         //m_hint_mode = FT_LOAD_FORCE_AUTOHINT | FT_LOAD_TARGET_LIGHT;
         //m_hint_mode = FT_LOAD_FORCE_AUTOHINT;
         m_hint_mode = 0;
+    }
 #if defined(RENDERSTACK_USE_FREETYPE)
     else
+    {
         m_hint_mode = FT_LOAD_NO_HINTING;
+    }
 #endif
 
 #if 0
    m_chars = "volumetric";
 #else
-    m_chars =
-        " !\"#$%&'()*+,-./" // latin
-        "0123456789:;<=>?"
-        "@ABCDEFGHIJKLMNO"
-        "PQRSTUVWXYZ[\\]^_"
-        "&`abcdefghijklmno"
-        "pqrstuvwxyz{|}~";
+    m_chars = " !\"#$%&'()*+,-./" // latin
+              "0123456789:;<=>?"
+              "@ABCDEFGHIJKLMNO"
+              "PQRSTUVWXYZ[\\]^_"
+              "&`abcdefghijklmno"
+              "pqrstuvwxyz{|}~";
 #endif
 
     m_pixel_size = size;
@@ -99,18 +99,24 @@ font::font(
     render(renderer);
 #endif
 }
+
 #if defined(RENDERSTACK_USE_FREETYPE)
-void font::validate(FT_Error error)
+void Font::validate(FT_Error error)
 {
     if (error == FT_Err_Unknown_File_Format)
-        log_error("font::validate(): FT_Err_Unknown_File_Format");
+    {
+        log_error("Font::validate(): FT_Err_Unknown_File_Format");
+    }
 
     if (error)
+    {
         throw runtime_error("freetype error");
+    }
 }
-void font::render(renderstack::graphics::renderer &renderer)
+
+void Font::render(Renderer &renderer)
 {
-    slog_trace("font::render()");
+    slog_trace("Font::render()");
 
     FT_Library library;
     FT_Face    face;
@@ -121,11 +127,12 @@ void font::render(renderstack::graphics::renderer &renderer)
 
     try
     {
-
         FT_F26Dot6 xsize = m_pixel_size << 6;
         FT_F26Dot6 ysize = m_pixel_size << 6;
         if (m_rgb)
+        {
             xsize *= 3;
+        }
 
         validate(FT_Set_Char_Size(face, xsize, ysize, m_dpi, m_dpi));
 
@@ -134,38 +141,68 @@ void font::render(renderstack::graphics::renderer &renderer)
         log() << "face index    " << face->face_index << '\n';
         log() << "face flags    ";
         if (face->face_flags & FT_FACE_FLAG_SCALABLE)
+        {
             log() << "scalable ";
+        }
         if (face->face_flags & FT_FACE_FLAG_FIXED_WIDTH)
+        {
             log() << "fixed_width ";
+        }
         if (face->face_flags & FT_FACE_FLAG_SFNT)
+        {
             log() << "sfnt ";
+        }
         if (face->face_flags & FT_FACE_FLAG_HORIZONTAL)
+        {
             log() << "horizontal ";
+        }
         if (face->face_flags & FT_FACE_FLAG_VERTICAL)
+        {
             log() << "vertical ";
+        }
         if (face->face_flags & FT_FACE_FLAG_KERNING)
+        {
             log() << "kerning ";
+        }
         if (face->face_flags & FT_FACE_FLAG_FAST_GLYPHS)
+        {
             log() << "fast_glyphs ";
+        }
         if (face->face_flags & FT_FACE_FLAG_MULTIPLE_MASTERS)
+        {
             log() << "multiple_masters ";
+        }
         if (face->face_flags & FT_FACE_FLAG_GLYPH_NAMES)
+        {
             log() << "glyph_names ";
+        }
         if (face->face_flags & FT_FACE_FLAG_EXTERNAL_STREAM)
+        {
             log() << "external_stream ";
+        }
         if (face->face_flags & FT_FACE_FLAG_HINTER)
+        {
             log() << "hinter ";
+        }
         if (face->face_flags & FT_FACE_FLAG_CID_KEYED)
+        {
             log() << "cid_keyed ";
+        }
         if (face->face_flags & FT_FACE_FLAG_TRICKY)
+        {
             log() << "tricky ";
+        }
         log() << '\n';
         log().flush();
         log() << "style flags   ";
         if (->style_flags & FT_STYLE_FLAG_ITALIC)
+        {
             log() << "italic ";
+        }
         if (->style_flags & FT_STYLE_FLAG_BOLD)
+        {
             log() << "bold ";
+        }
         log() << '\n';
         log().flush();
         log() << "num glyphs    " << face->num_glyphs << '\n';
@@ -173,7 +210,9 @@ void font::render(renderstack::graphics::renderer &renderer)
         log() << "style name    " << face->style_name << '\n';
         log() << "fixed sizes   " << face->num_fixed_sizes << ": ";
         for (int i = 0; i < face->num_fixed_sizes; ++i)
+        {
             log() << face->available_sizes[i].width << " * " << face->available_sizes[i].height << ", ";
+        }
 
         log() << '\n';
         log().flush();
@@ -217,8 +256,8 @@ void font::render(renderstack::graphics::renderer &renderer)
 
         m_line_height = std::ceil(static_cast<float>(face->size->metrics.height) / 64.0f);
 
-        map<char, shared_ptr<glyph>> glyphs;
-        map<char, shared_ptr<glyph>> outline_glyphs;
+        map<char, shared_ptr<Glyph>> glyphs;
+        map<char, shared_ptr<Glyph>> outline_glyphs;
 
         int max_bm_size = 0;
 
@@ -229,19 +268,27 @@ void font::render(renderstack::graphics::renderer &renderer)
             unsigned char uc = static_cast<unsigned char>(c);
             try
             {
-                auto g = glyphs[c] = make_shared<glyph>(library, face, uc, m_bolding, 0.0f, m_rgb, m_hint_mode);
+                auto g = glyphs[c] = make_shared<Glyph>(library, face, uc, m_bolding, 0.0f, m_rgb, m_hint_mode);
                 if (g->bm_width() > max_bm_size)
+                {
                     max_bm_size = g->bm_width();
+                }
                 if (g->bm_height() > max_bm_size)
+                {
                     max_bm_size = g->bm_height();
+                }
 
                 if (m_outline_thickness > 0.0f)
                 {
-                    auto og = outline_glyphs[c] = make_shared<glyph>(library, face, uc, m_bolding, m_outline_thickness, m_rgb, m_hint_mode);
+                    auto og = outline_glyphs[c] = make_shared<Glyph>(library, face, uc, m_bolding, m_outline_thickness, m_rgb, m_hint_mode);
                     if (og->bm_width() > max_bm_size)
+                    {
                         max_bm_size = og->bm_width();
+                    }
                     if (og->bm_height() > max_bm_size)
+                    {
                         max_bm_size = og->bm_height();
+                    }
                 }
             }
             catch (...)
@@ -266,7 +313,9 @@ void font::render(renderstack::graphics::renderer &renderer)
                 auto g  = glyphs[c];
                 auto og = outline_glyphs[c];
                 if (g == nullptr)
+                {
                     continue;
+                }
 
                 int w = g->bm_width();
                 int h = g->bm_height();
@@ -300,12 +349,18 @@ void font::render(renderstack::graphics::renderer &renderer)
             if (pack_failed == true)
             {
                 if (m_texture_width <= m_texture_height)
+                {
                     m_texture_width *= 2;
+                }
                 else
+                {
                     m_texture_height *= 2;
+                }
 
                 if (m_texture_width >= 16384)
+                {
                     throw runtime_error("unable to pack glyphs to texture");
+                }
             }
             else
             {
@@ -318,7 +373,7 @@ void font::render(renderstack::graphics::renderer &renderer)
 #    endif
 
         // Third pass: render glyphs
-        m_bitmap = make_shared<bitmap>(m_texture_width, m_texture_height, m_rgb ? 3 : 2);
+        m_bitmap = make_unique<Bitmap>(m_texture_width, m_texture_height, m_rgb ? 3 : 2);
         m_bitmap->fill(0);
         for (auto i = m_chars.cbegin(); i != m_chars.cend(); ++i)
         {
@@ -329,7 +384,9 @@ void font::render(renderstack::graphics::renderer &renderer)
                 auto g  = glyphs[c];
                 auto og = outline_glyphs[c];
                 if (g == nullptr)
+                {
                     continue;
+                }
 
                 bool render = (g->width() != 0) && (g->height() != 0);
 
@@ -429,17 +486,16 @@ void font::render(renderstack::graphics::renderer &renderer)
                         rotated);
                     if (og)
                     {
-                        m_bitmap->blit(
-                            og->bm_width(),
-                            og->bm_height(),
-                            r.x + 1,
-                            r.y + 1,
-                            og->buffer(),
-                            og->bm_pitch(),
-                            og->bm_width(),
-                            1,
-                            1,
-                            rotated);
+                        m_bitmap->blit(og->bm_width(),
+                                       og->bm_height(),
+                                       r.x + 1,
+                                       r.y + 1,
+                                       og->buffer(),
+                                       og->bm_pitch(),
+                                       og->bm_width(),
+                                       1,
+                                       1,
+                                       rotated);
                     }
                 }
                 m_chars_256[uc] = d;
@@ -450,7 +506,9 @@ void font::render(renderstack::graphics::renderer &renderer)
                     char    c2           = *j;
                     FT_UInt glyph_index2 = FT_Get_Char_Index(face, static_cast<FT_ULong>(c2));
                     if (glyph_index2 == 0)
+                    {
                         continue;
+                    }
 
                     FT_Vector k;
                     validate(FT_Get_Kerning(face, g->glyph_index(), glyph_index2, FT_KERNING_DEFAULT, &k));
@@ -458,7 +516,9 @@ void font::render(renderstack::graphics::renderer &renderer)
                     {
                         float kx = k.x / 64.0f;
                         if (m_rgb)
+                        {
                             kx /= 3.0f;
+                        }
 
                         kx             = std::ceil(kx);
                         short   amount = static_cast<short>(kx);
@@ -484,17 +544,17 @@ void font::render(renderstack::graphics::renderer &renderer)
 }
 #endif
 
-void font::post_process(renderstack::graphics::renderer &renderer)
+void Font::post_process(Renderer &renderer)
 {
-    slog_trace("font::post_process()");
+    slog_trace("Font::post_process()");
 
-    bitmap bm(m_bitmap->width(), m_bitmap->height(), m_bitmap->components());
+    Bitmap bm(m_bitmap->width(), m_bitmap->height(), m_bitmap->components());
     m_bitmap->post_process(bm, m_gamma);
 
     gl::pixel_internal_format::value i;
     gl::pixel_format::value          f;
 
-    if (renderstack::graphics::configuration::can_use.texture_rg)
+    if (configuration::can_use.texture_rg)
     {
         i = m_rgb ? gl::pixel_internal_format::rgb8 : gl::pixel_internal_format::rg8;
         f = m_rgb ? gl::pixel_format::rgb : gl::pixel_format::rg;
@@ -505,39 +565,37 @@ void font::post_process(renderstack::graphics::renderer &renderer)
         f = m_rgb ? gl::pixel_format::rgb : gl::pixel_format::luminance_alpha;
     }
 
-    m_texture = make_shared<renderstack::graphics::texture>(
-        renderstack::graphics::texture_target::texture_2d,
-        i,
-        false,
-        m_texture_width,
-        m_texture_height);
+    m_texture = std::make_unique<Texture>(Texture::Target::texture_2d,
+                                          i,
+                                          false,
+                                          m_texture_width,
+                                          m_texture_height);
     m_texture->allocate_storage(renderer);
     m_texture->set_debug_label("font");
     unsigned int old_unit;
-    auto         old_texture = renderer.set_texture(0, m_texture, &old_unit);
+    auto         old_texture = renderer.set_texture(0, m_texture.get(), &old_unit);
 
-    gl::tex_sub_image_2d(
-        gl::texture_target::texture_2d,
-        0,
-        0,
-        0,
-        m_bitmap->width(),
-        m_bitmap->height(),
-        f,
-        gl::pixel_type::unsigned_byte,
-        bm.ptr());
+    gl::tex_sub_image_2d(gl::texture_target::texture_2d,
+                         0,
+                         0,
+                         0,
+                         m_bitmap->width(),
+                         m_bitmap->height(),
+                         f,
+                         gl::pixel_type::unsigned_byte,
+                         bm.ptr());
 
     m_texture->set_min_filter(texture_min_filter::nearest);
     m_texture->set_mag_filter(texture_mag_filter::nearest);
 
     m_texture->apply(renderer, 0);
 
-    renderer.restore_texture(texture_target::texture_2d, old_texture, old_unit);
+    renderer.restore_texture(Texture::Target::texture_2d, old_texture, old_unit);
 }
 
-void font::save() const
+void Font::save() const
 {
-    slog_trace("font::save()");
+    slog_trace("Font::save()");
 
     printf("   glGenTextures(1, &m_texture_object);\n");
     printf("   glBindTexture(GL_TEXTURE_2D, m_texture_object);\n");
@@ -583,7 +641,7 @@ void font::save() const
             }
         }
     }
-    printf("   m_bitmap = make_shared<bitmap>(%d, %d, %d);\n",
+    printf("   m_bitmap = make_shared<Bitmap>(%d, %d, %d);\n",
            m_bitmap->width(), m_bitmap->height(), m_bitmap->components());
     printf("   static const unsigned char data[] = {\n");
     m_bitmap->dump_data();
@@ -591,16 +649,19 @@ void font::save() const
     printf("   m_bitmap->load_data(&data[0]);\n");
     printf("   post_process();\n");
 }
-size_t font::print(string const &text, rectangle &bounds, float *&ptr, float x, float y, std::size_t max_chars) const
+
+size_t Font::print(const std::string &text, Rectangle &bounds, float *&ptr, float x, float y, size_t max_chars) const
 {
-    slog_trace("font::print(ptr = %p, text = %s, x = % 7.2, y = % 7.2)",
+    slog_trace("Font::print(ptr = %p, text = %s, x = % 7.2, y = % 7.2)",
                ptr,
                text.c_str(),
                x,
                y);
 
     if (text.size() == 0)
+    {
         return 0;
+    }
 
     size_t chars_printed = 0;
     for (size_t i = 0; i < text.size(); ++i)
@@ -652,7 +713,9 @@ size_t font::print(string const &text, rectangle &bounds, float *&ptr, float x, 
 
             ++chars_printed;
             if (chars_printed == max_chars)
+            {
                 break;
+            }
         }
 
         x += a;
@@ -679,13 +742,16 @@ size_t font::print(string const &text, rectangle &bounds, float *&ptr, float x, 
     }
     return chars_printed;
 }
-void font::measure(string const &text, rectangle &bounds) const
+
+void Font::measure(const std::string &text, Rectangle &bounds) const
 {
     float x = 0.0f;
     float y = 0.0f;
 
     if (text.size() == 0)
+    {
         return;
+    }
 
     //y += m_common.base;
     for (size_t i = 0; i < text.size(); ++i)
@@ -695,7 +761,9 @@ void font::measure(string const &text, rectangle &bounds) const
 
         ft_char const &font_char = m_chars_256[uc];
         if (font_char.width == 0)
+        {
             continue;
+        }
 
         float a  = static_cast<float>(font_char.xadvance);
         float w  = static_cast<float>(font_char.width);
@@ -725,7 +793,7 @@ void font::measure(string const &text, rectangle &bounds) const
 
             if (j != font_char.kernings.cend())
             {
-                kerning const &k = *j;
+                const kerning &k = *j;
                 x += static_cast<float>(k.amount);
             }
         }

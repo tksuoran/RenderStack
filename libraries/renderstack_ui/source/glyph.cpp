@@ -18,29 +18,24 @@ namespace ui
 
 using namespace std;
 
-void glyph::validate(FT_Error error)
+void Glyph::validate(FT_Error error)
 {
     // if (error == FT_Err_Unknown_File_Format)
     //   log() << "FT_Err_Unknown_File_Format\n";
 
     if (error)
+    {
         throw runtime_error("freetype error");
+    }
 }
 
-/*
-   FT_Library  m_library;
-   FT_Bitmap   m_bitmap;
-   FT_UInt     m_glyph_index;
-*/
-
-glyph::glyph(
-    FT_Library    library,
-    FT_Face       font_face,
-    unsigned char c,
-    float         bolding,
-    float         outline_thickness,
-    bool          rgb,
-    int           hint_mode)
+Glyph::Glyph(FT_Library    library,
+             FT_Face       font_face,
+             unsigned char c,
+             float         bolding,
+             float         outline_thickness,
+             bool          rgb,
+             int           hint_mode)
 {
     m_outline_thickness = outline_thickness;
 
@@ -60,11 +55,9 @@ glyph::glyph(
         return;
     }
 
-    validate(
-        FT_Load_Glyph(
-            font_face,
-            m_glyph_index,
-            ((m_outline_thickness == 0.0f) ? FT_LOAD_RENDER : 0) | hint_mode));
+    validate(FT_Load_Glyph(font_face,
+                           m_glyph_index,
+                           ((m_outline_thickness == 0.0f) ? FT_LOAD_RENDER : 0) | hint_mode));
 
     bool has_width  = (font_face->glyph->metrics.width != 0);
     bool has_height = (font_face->glyph->metrics.height != 0);
@@ -87,12 +80,11 @@ glyph::glyph(
 
             validate(FT_Stroker_New(library, &stroker));
 
-            FT_Stroker_Set(
-                stroker,
-                static_cast<int>(outline_thickness * 64.0f),
-                FT_STROKER_LINECAP_ROUND,
-                FT_STROKER_LINEJOIN_ROUND,
-                0);
+            FT_Stroker_Set(stroker,
+                           static_cast<int>(outline_thickness * 64.0f),
+                           FT_STROKER_LINECAP_ROUND,
+                           FT_STROKER_LINEJOIN_ROUND,
+                           0);
 
             {
                 validate(FT_Load_Glyph(font_face, m_glyph_index, hint_mode));
@@ -202,7 +194,7 @@ glyph::glyph(
     m_crop_y_max = m_bm_height - 1 - m_crop_y_max;
 }
 
-void glyph::dump() const
+void Glyph::dump() const
 {
     const char *shades = " -+#";
     printf("\nglyph dump: w = %d h = %d\n", m_bm_width, m_bm_height);
@@ -210,7 +202,7 @@ void glyph::dump() const
     {
         for (int ix = 0; ix < m_bm_width; ++ix)
         {
-            std::size_t   offset = static_cast<size_t>(ix + (iy * m_bm_pitch));
+            size_t        offset = static_cast<size_t>(ix + (iy * m_bm_pitch));
             unsigned char value  = m_buffer[offset];
             printf("%c", shades[value / 64]);
         }

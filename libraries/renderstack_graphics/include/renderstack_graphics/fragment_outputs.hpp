@@ -14,20 +14,20 @@ namespace renderstack
 namespace graphics
 {
 
-class program;
+class Program;
 
-class fragment_outputs : public std::enable_shared_from_this<fragment_outputs>
+class Fragment_outputs : public std::enable_shared_from_this<Fragment_outputs>
 {
 public:
     void clear();
-    void add(std::string const &name, gl::fragment_output_type::value type, unsigned int location);
+    void add(const std::string &name, gl::fragment_output_type::value type, unsigned int location);
 
-    void bind(program &program);
+    void bind(Program &program);
 
     std::string source(int glsl_version) const;
 
 private:
-    std::vector<std::shared_ptr<fragment_output>> m_outputs;
+    std::vector<std::shared_ptr<Fragment_output>> m_outputs;
 };
 
 } // namespace graphics

@@ -118,9 +118,9 @@ public:
     static void initialize();
 
 private:
-    static void check(std::vector<std::string> const &extensions, bool &var, std::string const &name, int gl_min_ver, int gles_min_ver, std::string const &gl_ext);
-    static void check(std::vector<std::string> const &extensions, bool &var, std::string const &name, int gl_min_ver, int gles_min_ver, std::string const &gl_ext, std::string const &gl_ext2);
-    static void check(std::vector<std::string> const &extensions, bool &var, std::string const &name, int gl_min_ver, int gles_min_ver, std::string const &gl_ext, std::string const &gl_ext2, std::string const &gl_ext3);
+    static void check(std::vector<std::string> const &extensions, bool &var, const std::string &name, int gl_min_ver, int gles_min_ver, const std::string &gl_ext);
+    static void check(std::vector<std::string> const &extensions, bool &var, const std::string &name, int gl_min_ver, int gles_min_ver, const std::string &gl_ext, const std::string &gl_ext2);
+    static void check(std::vector<std::string> const &extensions, bool &var, const std::string &name, int gl_min_ver, int gles_min_ver, const std::string &gl_ext, const std::string &gl_ext2, const std::string &gl_ext3);
 };
 
 } // namespace graphics

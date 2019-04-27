@@ -4,6 +4,18 @@
 namespace gl
 {
 
+
+namespace swizzle
+{
+enum value
+{
+    red   = ((int)0x1903),
+    green = ((int)0x1904),
+    blue  = ((int)0x1905),
+    alpha = ((int)0x1906)
+};
+}
+
 namespace active_attrib_type
 {
 enum value

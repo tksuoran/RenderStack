@@ -17,51 +17,30 @@ namespace renderstack
 namespace ui
 {
 
-using namespace gl;
-using namespace std;
 using namespace renderstack::graphics;
 
-//mesh *ninepatch::s_shared_indices = nullptr;
-ninepatch_style::ninepatch_style(
-    renderstack::graphics::renderer &          renderer,
-    string const &                             path,
-    shared_ptr<renderstack::graphics::program> program,
-    int                                        texture_unit)
-    : m_program(program), m_texture_unit(texture_unit), m_border_uv(0.25f, 0.25f)
+//mesh *Ninepatch::s_shared_indices = nullptr
+Ninepatch_style::Ninepatch_style(Renderer          &renderer,
+                                 const std::string &path,
+                                 Program           *program,
+                                 int               texture_unit)
+    : program(program)
+    , texture_unit(texture_unit)
+    , border_uv(0.25f, 0.25f)
 {
-    slog_trace("ninepatch_style::ninepatch_style(path = %s)", path.c_str());
+    slog_trace("Ninepatch_style::Ninepatch_style(path = %s)\n", path.c_str());
 
     if (path.length() > 0)
     {
-        m_texture = load_png(renderer, texture_unit, path);
-        m_texture->set_debug_label(path);
+        texture = std::make_unique<Texture>();
+        bool ok = load_png(*(texture.get()), renderer, texture_unit, path);
+        texture->set_debug_label(path);
+        texture->set_min_filter(gl::texture_min_filter::nearest);
+        texture->set_mag_filter(gl::texture_mag_filter::nearest);
 
-        m_texture->set_min_filter(gl::texture_min_filter::nearest);
-        m_texture->set_mag_filter(gl::texture_mag_filter::nearest);
-
-        m_border_pixels.x = m_border_uv.x * (float)m_texture->width();
-        m_border_pixels.y = m_border_uv.y * (float)m_texture->height();
+        border_pixels.x = border_uv.x * static_cast<float>(texture->width());
+        border_pixels.y = border_uv.y * static_cast<float>(texture->height());
     }
-}
-
-shared_ptr<renderstack::graphics::texture> ninepatch_style::texture() const
-{
-    return m_texture;
-}
-
-shared_ptr<renderstack::graphics::program> ninepatch_style::program() const
-{
-    return m_program;
-}
-
-glm::vec2 const &ninepatch_style::border_pixels() const
-{
-    return m_border_pixels;
-}
-
-glm::vec2 const &ninepatch_style::border_uv() const
-{
-    return m_border_uv;
 }
 
 } // namespace ui

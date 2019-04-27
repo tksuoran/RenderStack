@@ -26,11 +26,11 @@ static int point_id(point *p)
 #endif
 
 // Create a new point at the midpoint of source edge / average of source edge end points
-point *catmull_clark::make_new_point_from_edge(edge const &src_edge)
+Point *Catmull_clark::make_new_point_from_edge(Edge const &src_edge)
 {
     assert(src_edge.a());
     assert(src_edge.b());
-    point *new_point = destination()->make_point();
+    Point *new_point = destination().make_point();
     assert(new_point);
 
     //printf("adding edge %d, %d\n", point_id(src_edge.a()), point_id(src_edge.b()));
@@ -39,14 +39,15 @@ point *catmull_clark::make_new_point_from_edge(edge const &src_edge)
     add_point_source(new_point, 1.0f, src_edge.b());
     return new_point;
 }
-corner *catmull_clark::make_new_corner_from_edge_point(polygon *new_polygon, edge const &src_edge)
+
+Corner *Catmull_clark::make_new_corner_from_edge_point(Polygon *new_polygon, Edge const &src_edge)
 {
     //printf("looking for edge %d, %d\n", point_id(src_edge.a()), point_id(src_edge.b()));
 
-    point *edge_midpoint = m_old_edge_to_new_edge_points[src_edge];
+    Point *edge_midpoint = m_old_edge_to_new_edge_points[src_edge];
     assert(edge_midpoint);
 
-    corner *new_corner = new_polygon->make_corner(edge_midpoint);
+    Corner *new_corner = new_polygon->make_corner(edge_midpoint);
     assert(new_corner);
 
     distribute_corner_sources(new_corner, 1.0f, edge_midpoint);
@@ -67,18 +68,15 @@ corner *catmull_clark::make_new_corner_from_edge_point(polygon *new_polygon, edg
 //
 //  For each corner in the old polygon, add one quad
 //  (centroid, previous edge 'edge midpoint', corner, next edge 'edge midpoint')
-catmull_clark::catmull_clark(shared_ptr<geometry> src)
+Catmull_clark::Catmull_clark(Geometry &src) : Geometry_operation(src)
 {
     //s_point_id.clear();
-
-    set_source(src);
 
     //                        (n-3)P
     //  Make initial P's with ------
     //                           n
-    for (auto i = src->points().cbegin(); i != src->points().cend(); ++i)
+    for (auto src_point : src.points())
     {
-        point *src_point = *i;
         assert(src_point);
 
         float n      = (float)src_point->corners().size();
@@ -94,23 +92,22 @@ catmull_clark::catmull_clark(shared_ptr<geometry> src)
     //   2R  we add both edge end points with weight 1 so total edge weight is 2
     //   --
     //    n
-    for (auto i = src->edges().cbegin(); i != src->edges().cend(); ++i)
+    for (auto i : src.edges())
     {
-        edge const &src_edge = i->first;
+        const auto &src_edge = i.first;
         assert(src_edge.a());
         assert(src_edge.b());
-        auto   src_edge_polygons = i->second;
-        point *new_point         = make_new_point_from_edge(src_edge); //  these get weights 1 + 1
+        auto &src_edge_polygons = i.second;
+        Point *new_point = make_new_point_from_edge(src_edge); //  these get weights 1 + 1
         assert(new_point);
 
-        for (auto j = src_edge_polygons.cbegin(); j != src_edge_polygons.cend(); ++j)
+        for (auto src_polygon : src_edge_polygons)
         {
-            polygon *src_polygon = *j;
-            float    weight      = 1.0f / (float)src_polygon->corners().size();
+            float weight = 1.0f / (float)src_polygon->corners().size();
             add_polygon_centroid(new_point, weight, src_polygon);
         }
-        point *new_point_a = m_point_old_to_new[src_edge.a()];
-        point *new_point_b = m_point_old_to_new[src_edge.b()];
+        Point *new_point_a = m_point_old_to_new[src_edge.a()];
+        Point *new_point_b = m_point_old_to_new[src_edge.b()];
         assert(new_point_a);
         assert(new_point_b);
 
@@ -124,9 +121,8 @@ catmull_clark::catmull_clark(shared_ptr<geometry> src)
         add_point_source(new_point_b, weight_b, src_edge.b());
     }
 
-    for (auto i = src->polygons().cbegin(); i != src->polygons().cend(); ++i)
+    for (auto src_polygon : src.polygons())
     {
-        polygon *src_polygon = *i;
         assert(src_polygon);
 
         //  Make centroid point
@@ -137,13 +133,12 @@ catmull_clark::catmull_clark(shared_ptr<geometry> src)
         //   F    <- because F is average of all centroids, it adds extra /n
         //  ---
         //   n
-        for (auto j = src_polygon->corners().cbegin(); j != src_polygon->corners().cend(); ++j)
+        for (auto src_corner : src_polygon->corners())
         {
-            auto   src_corner = *j;
-            point *src_point  = src_corner->point();
+            Point *src_point = src_corner->point;
             assert(src_point);
 
-            point *new_point = m_point_old_to_new[src_point];
+            Point *new_point = m_point_old_to_new[src_point];
             assert(new_point);
 
             float point_weight  = 1.0f / (float)(src_point->corners().size());
@@ -153,26 +148,26 @@ catmull_clark::catmull_clark(shared_ptr<geometry> src)
     }
 
     //  Subdivide polygons, clone (and corners);
-    for (size_t polygon_index = 0; polygon_index < src->polygons().size(); ++polygon_index)
+    for (size_t polygon_index = 0; polygon_index < src.polygons().size(); ++polygon_index)
     {
-        polygon *src_polygon = m_source->polygons()[polygon_index];
+        Polygon *src_polygon = src.polygons()[polygon_index];
         assert(src_polygon);
 
         for (size_t i = 0; i < src_polygon->corners().size(); ++i) // Corner oldCorner in oldPolygon.Corners)
         {
-            corner *src_corner = src_polygon->corners()[i];
+            Corner *src_corner = src_polygon->corners()[i];
             assert(src_corner);
 
-            corner *previous_corner = src_polygon->corners()[(src_polygon->corners().size() + i - 1) % src_polygon->corners().size()];
+            Corner *previous_corner = src_polygon->corners()[(src_polygon->corners().size() + i - 1) % src_polygon->corners().size()];
             assert(previous_corner);
 
-            corner *next_corner = src_polygon->corners()[(i + 1) % src_polygon->corners().size()];
+            Corner *next_corner = src_polygon->corners()[(i + 1) % src_polygon->corners().size()];
             assert(next_corner);
 
-            edge previous_edge(previous_corner->point(), src_corner->point());
-            edge next_edge(src_corner->point(), next_corner->point());
+            Edge previous_edge(previous_corner->point, src_corner->point);
+            Edge next_edge(src_corner->point, next_corner->point);
 
-            polygon *new_polygon = make_new_polygon_from_polygon(src_polygon);
+            Polygon *new_polygon = make_new_polygon_from_polygon(src_polygon);
             assert(new_polygon);
 
             make_new_corner_from_polygon_centroid(new_polygon, src_polygon);
@@ -182,7 +177,7 @@ catmull_clark::catmull_clark(shared_ptr<geometry> src)
         }
     }
 
-    destination()->build_edges();
+    destination().build_edges();
     //  TODO can we map some edges to old edges? yes. Do it.
     interpolate_all_property_maps();
 }

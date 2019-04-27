@@ -3,11 +3,8 @@
 
 #include "renderstack_graphics/configuration.hpp"
 #include "renderstack_toolkit/gl.hpp"
-#include "renderstack_toolkit/platform.hpp"
 #include "renderstack_toolkit/strong_gl_enums.hpp"
 #include <cstddef>
-#include <deque>
-#include <map>
 #include <memory>
 #include <vector>
 
@@ -16,64 +13,85 @@ namespace renderstack
 namespace graphics
 {
 
-namespace buffer_target
-{
-enum value
-{
-    array_buffer                            = 0, // 6.3   (bound VBO)
-    pixel_pack_buffer                       = 1, // 6.16
-    pixel_unpack_buffer                     = 2, // 6.16
-    uniform_buffer                          = 3, // 6.25
-    texture_buffer                          = 4, // TODO
-    copy_read_buffer                        = 5, // 6.36
-    copy_write_buffer                       = 6, // 6.36
-    draw_indirect_buffer                    = 7, // TODO
-    element_array_buffer                    = 8,
-    non_indexed_context_buffer_target_count = 8, // TODO Badly named
-    all_buffer_target_count                 = 9,
-};
+class Renderer;
 
-int count_in_context();
+size_t count_in_context();
 
-gl::buffer_target::value gl_buffer_target(value rs_target);
-
-const char *const desc(value target);
-} // namespace buffer_target
-
-class buffer : public ::std::enable_shared_from_this<buffer>
+class Buffer //: public ::std::enable_shared_from_this<Buffer>
 {
 public:
-    buffer(
-        buffer_target::value         target,
-        ::std::size_t                capacity,
-        ::std::size_t                stride,
-        gl::buffer_usage_hint::value usage = gl::buffer_usage_hint::static_draw);
-    ~buffer();
+    enum class Target
+    {
+        array_buffer                            = 0, // 6.3   (bound VBO)
+        pixel_pack_buffer                       = 1, // 6.16
+        pixel_unpack_buffer                     = 2, // 6.16
+        uniform_buffer                          = 3, // 6.25
+        texture_buffer                          = 4, // TODO
+        copy_read_buffer                        = 5, // 6.36
+        copy_write_buffer                       = 6, // 6.36
+        draw_indirect_buffer                    = 7, // TODO
+        element_array_buffer                    = 8,
+    };
 
-    void               allocate_storage(class renderer &renderer);
-    void               set_debug_label(std::string const &value);
-    std::string const &debug_label() const;
+    static bool is_valid(Buffer::Target target);
 
-    ::std::size_t        stride() const;
-    ::std::size_t        capacity() const;
-    ::std::size_t        allocate(::std::size_t count);
-    void *               map(class renderer &renderer, ::std::size_t first, ::std::size_t count, gl::buffer_access_mask::value access);
-    void                 unmap(class renderer &renderer);
-    void                 flush(class renderer &renderer, ::std::size_t first, ::std::size_t count);
-    void                 flush_and_unmap(class renderer &renderer, ::std::size_t count);
-    ::std::size_t        free_capacity() const;
-    buffer_target::value target() const
+    static constexpr size_t non_indexed_context_buffer_target_count = 8;  // TODO Badly named
+    static constexpr size_t all_buffer_target_count = 9;
+
+    static const char *const desc(Target target);
+
+    static gl::buffer_target::value gl_buffer_target(Target rs_target);
+
+    Buffer() = default;
+
+    Buffer(Target                       target,
+           size_t                       capacity,
+           size_t                       stride,
+           gl::buffer_usage_hint::value usage = gl::buffer_usage_hint::static_draw);
+
+    ~Buffer();
+
+    void allocate(Target                       target,
+                  size_t                       capacity,
+                  size_t                       stride,
+                  gl::buffer_usage_hint::value usage = gl::buffer_usage_hint::static_draw);
+
+    void allocate_storage(Renderer &renderer);
+
+    void set_debug_label(const std::string &value);
+
+    const std::string &debug_label() const;
+
+    size_t stride() const;
+
+    size_t capacity() const;
+
+    size_t allocate(size_t count);
+
+    void *map(Renderer &renderer, size_t first, size_t count, gl::buffer_access_mask::value access);
+
+    void unmap(Renderer &renderer);
+
+    void flush(Renderer &renderer, size_t first, size_t count);
+
+    void flush_and_unmap(Renderer &renderer, size_t count);
+
+    size_t free_capacity() const;
+
+    Target target() const
     {
         return m_target;
     }
+
 #if defined(RENDERSTACK_GL_API_OPENGL)
     void dump() const;
 #endif
-    void bind_range(unsigned int binding_point, ::std::size_t offset, ::std::size_t size);
 
-    friend class renderer;
-    friend class vertex_array;
-    friend class texture;
+    void bind_range(unsigned int binding_point, size_t offset, size_t size);
+
+    friend class Renderer;
+    friend class Vertex_array;
+    friend class Texture;
 
 private:
     unsigned int gl_name() const
@@ -82,21 +100,21 @@ private:
     }
 
 private:
-    unsigned int                 m_gl_name;
-    std::string                  m_debug_label;
-    buffer_target::value         m_target;
-    ::std::size_t                m_stride;
-    ::std::size_t                m_capacity;
-    ::std::size_t                m_next_free;
+    unsigned int          m_gl_name{0};
+    std::string           m_debug_label;
+    Target                m_target;
+    size_t                m_stride;
+    size_t                m_capacity;
+    size_t                m_next_free{0};
     gl::buffer_usage_hint::value m_usage;
 
     // Storage if not using MapBuffer
-    ::std::vector<unsigned char> m_data_copy;
+    std::vector<unsigned char> m_data_copy;
 
     // Last MapBuffer
     void *                        m_mapped_ptr;
-    ::std::size_t                 m_mapped_offset;
-    ::std::size_t                 m_mapped_size;
+    size_t                        m_mapped_offset;
+    size_t                        m_mapped_size;
     gl::buffer_access_mask::value m_mapped_access;
 
     void validate();

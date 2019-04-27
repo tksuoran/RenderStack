@@ -18,7 +18,7 @@ using namespace std;
 using namespace gl;
 
 uniform_buffer::uniform_buffer(size_t byte_capacity, gl::buffer_usage_hint::value usage)
-    : m_buffer(buffer_target::uniform_buffer, byte_capacity, 1, usage)
+    : m_buffer(Buffer::Target::uniform_buffer, byte_capacity, 1, usage)
 {
 }
 
@@ -37,7 +37,9 @@ void uniform_buffer::flush_bytes(size_t first_byte, size_t byte_count)
     assert(context::current()->mapped_uniform_buffer() == this);
 
     if (context::current()->mapped_uniform_buffer() != this)
+    {
         throw runtime_error("ubo mapped to something else");
+    }
 
     m_buffer.flush(first_byte, byte_count);
 }
@@ -48,7 +50,9 @@ void *uniform_buffer::map_bytes(size_t first_byte, size_t byte_count, gl::buffer
     assert(context::current()->mapped_uniform_buffer() == nullptr);
 
     if (context::current()->mapped_uniform_buffer())
+    {
         throw runtime_error("ubo already mapped");
+    }
 
     context::current()->set_mapped_uniform_buffer(this);
     return m_buffer.map(first_byte, byte_count, access);
@@ -60,7 +64,9 @@ void uniform_buffer::flush_and_unmap_bytes(size_t byte_count)
     assert(context::current()->mapped_uniform_buffer() == this);
 
     if (context::current()->mapped_uniform_buffer() != this)
+    {
         throw runtime_error("ubo mapped to something else");
+    }
 
     context::current()->set_mapped_uniform_buffer(nullptr);
     m_buffer.flush_and_unmap(byte_count);
@@ -72,7 +78,9 @@ void uniform_buffer::unmap_bytes()
     assert(context::current()->mapped_uniform_buffer() == this);
 
     if (context::current()->mapped_uniform_buffer() != this)
+    {
         throw runtime_error("ubo mapped to something else");
+    }
 
     context::current()->set_mapped_uniform_buffer(nullptr);
     m_buffer.unmap();

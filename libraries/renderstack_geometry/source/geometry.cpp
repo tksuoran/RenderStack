@@ -1,7 +1,4 @@
 #include "renderstack_geometry/geometry.hpp"
-#include "renderstack_geometry/corner.hpp"
-#include "renderstack_geometry/point.hpp"
-#include "renderstack_geometry/polygon.hpp"
 #include "renderstack_toolkit/platform.hpp"
 #include <cmath>
 #include <glm/glm.hpp>
@@ -15,48 +12,52 @@ namespace geometry
 using namespace std;
 using namespace glm;
 
-geometry::geometry()
+Geometry::~Geometry()
 {
+    for (auto polygon : polygons())
+    {
+        delete polygon;
+    }
+
+    for (auto point : points())
+    {
+        delete point;
+    }
 }
 
-geometry::~geometry()
-{
-    for (auto i = polygons().begin(); i != polygons().end(); ++i)
-        delete *i;
-
-    for (auto i = points().begin(); i != points().end(); ++i)
-        delete *i;
-}
-
-size_t geometry::count_polygons() const
+size_t Geometry::count_polygons() const
 {
     return polygons().size();
 }
 
-size_t geometry::count_edges() const
+size_t Geometry::count_edges() const
 {
     return edges().size();
 }
 
-size_t geometry::count_polygon_triangles() const
+size_t Geometry::count_polygon_triangles() const
 {
     size_t triangle_count = 0;
-    for (auto polygon = polygons().cbegin(); polygon != polygons().cend(); ++polygon)
-        triangle_count += ((*polygon)->corners().size() - 2);
+    for (auto polygon : polygons())
+    {
+        triangle_count += polygon->corners().size() - 2;
+    }
 
     return triangle_count;
 }
 
-size_t geometry::count_corners() const
+size_t Geometry::count_corners() const
 {
     size_t corner_count = 0;
-    for (auto polygon = polygons().cbegin(); polygon != polygons().cend(); ++polygon)
-        corner_count += (*polygon)->corners().size();
+    for (auto polygon : polygons())
+    {
+        corner_count += polygon->corners().size();
+    }
 
     return corner_count;
 }
 
-void geometry::info(mesh_info &info) const
+void Geometry::info(Mesh_info &info) const
 {
     info.polygon_count  = count_polygons();
     info.corner_count   = count_corners();
@@ -73,7 +74,7 @@ void geometry::info(mesh_info &info) const
     info.index_count_centroid_points = info.polygon_count;
 }
 
-geometry::mesh_info &geometry::mesh_info::operator+=(geometry::mesh_info const &o)
+Geometry::Mesh_info &Geometry::Mesh_info::operator+=(Geometry::Mesh_info const &o)
 {
     polygon_count += o.polygon_count;
     corner_count += o.corner_count;
@@ -88,181 +89,200 @@ geometry::mesh_info &geometry::mesh_info::operator+=(geometry::mesh_info const &
     return *this;
 }
 
-void geometry::reserve_points(size_t point_count)
+void Geometry::reserve_points(size_t point_count)
 {
     if (point_count > m_points.size())
+    {
         m_points.reserve(point_count);
+    }
 }
 
-void geometry::reserve_polygons(size_t polygon_count)
+void Geometry::reserve_polygons(size_t polygon_count)
 {
     if (polygon_count > m_polygons.size())
+    {
         m_polygons.reserve(polygon_count);
+    }
 }
 
-point *geometry::make_point()
+Point *Geometry::make_point()
 {
-    renderstack::geometry::point *pnt = new renderstack::geometry::point();
+    Point *pnt = new Point();
     m_points.push_back(pnt);
     return pnt;
 }
 
-polygon *geometry::make_polygon()
+Polygon *Geometry::make_polygon()
 {
-    renderstack::geometry::polygon *pol = new renderstack::geometry::polygon();
+    Polygon *pol = new Polygon();
     m_polygons.push_back(pol);
     return pol;
 }
 
-geometry::point_collection &geometry::points()
+Geometry::Point_collection &Geometry::points()
 {
     return m_points;
 }
-geometry::point_collection const &geometry::points() const
+
+Geometry::Point_collection const &Geometry::points() const
 {
     return m_points;
 }
-geometry::polygon_collection &geometry::polygons()
+
+Geometry::Polygon_collection &Geometry::polygons()
 {
     return m_polygons;
 }
-geometry::polygon_collection const &geometry::polygons() const
+
+Geometry::Polygon_collection const &Geometry::polygons() const
 {
     return m_polygons;
 }
-geometry::edge_collection &geometry::edges()
-{
-    return m_edges;
-}
-geometry::edge_collection const &geometry::edges() const
+
+Geometry::Edge_collection &Geometry::edges()
 {
     return m_edges;
 }
 
-void geometry::compute_polygon_normals()
+Geometry::Edge_collection const &Geometry::edges() const
+{
+    return m_edges;
+}
+
+void Geometry::compute_polygon_normals()
 {
     if (points().size() == 0)
+    {
         return;
+    }
 
-    shared_ptr<property_map<polygon *, vec3>> polygon_normals = polygon_attributes().find_or_create<vec3>("polygon_normals");
-    shared_ptr<property_map<point *, vec3>>   point_locations = point_attributes().maybe_find<vec3>("point_locations");
+    Property_map<Polygon *, vec3> *polygon_normals = polygon_attributes().find_or_create<vec3>("polygon_normals");
+    Property_map<Point *, vec3> *point_locations = point_attributes().maybe_find<vec3>("point_locations");
 
     if (point_locations == nullptr)
-        return;
-
-    for (auto i = polygons().begin(); i != polygons().end(); ++i)
     {
-        polygon *pol = *i;
-        pol->compute_normal(
-            polygon_normals,
-            point_locations);
+        return;
+    }
+
+    for (auto pol : polygons())
+    {
+        pol->compute_normal(*polygon_normals, *point_locations);
     }
 }
-void geometry::compute_polygon_centroids()
+
+void Geometry::compute_polygon_centroids()
 {
-    shared_ptr<property_map<polygon *, vec3>> polygon_centroids = polygon_attributes().find_or_create<vec3>("polygon_centroids");
-    shared_ptr<property_map<point *, vec3>>   point_locations   = point_attributes().maybe_find<vec3>("point_locations");
+    auto polygon_centroids = polygon_attributes().find_or_create<vec3>("polygon_centroids");
+    auto point_locations   = point_attributes().maybe_find<vec3>("point_locations");
 
     if (point_locations == nullptr)
+    {
         return;
+    }
 
-    for (auto i = polygons().begin(); i != polygons().end(); ++i)
+    for (auto pol : polygons())
     {
-        polygon *pol = *i;
-        pol->compute_centroid(
-            polygon_centroids,
-            point_locations);
+        pol->compute_centroid(*polygon_centroids, *point_locations);
     }
 }
 
-void geometry::smooth_normalize(
-    string const &corner_attribute,
-    string const &polygon_attribute,
-    float         max_smoothing_angle_radians)
-{
-    auto corner_attributes2  = corner_attributes().find_or_create<vec3>(corner_attribute /*"corner_normals"*/);
-    auto polygon_attributes2 = polygon_attributes().maybe_find<vec3>(polygon_attribute /*"polygon_normals"*/);
-    auto polygon_normals     = polygon_attributes().maybe_find<vec3>("polygon_normals");
+//void Geometry::smooth_normalize(const string &corner_attribute,
+//                                const string &polygon_attribute,
+//                                float         max_smoothing_angle_radians)
+//{
+//    Property_map_base<Corner*> = find_any
+//    auto corner_attributes2  = corner_attributes().find_or_create<vec3>(corner_attribute /*"corner_normals"*/);
+//    auto polygon_attributes2 = polygon_attributes().maybe_find<vec3>(polygon_attribute /*"polygon_normals"*/);
+//    auto polygon_normals     = polygon_attributes().maybe_find<vec3>("polygon_normals");
+//}
 
-    if (polygon_attributes2 == nullptr || polygon_normals == nullptr)
-        return;
+// void Geometry::smooth_normalize(const std::string &corner_attribute,
+//                                 const std::string &polygon_attribute,
+//                                 float         max_smoothing_angle_radians)
+// {
+//     auto corner_attributes2  = corner_attributes().find_or_create<vec3>(corner_attribute /*"corner_normals"*/);
+//     auto polygon_attributes2 = polygon_attributes().maybe_find<vec3>(polygon_attribute /*"polygon_normals"*/);
+//     auto polygon_normals     = polygon_attributes().maybe_find<vec3>("polygon_normals");
+// 
+//     if (polygon_attributes2 == nullptr || polygon_normals == nullptr)
+//     {
+//         return;
+//     }
+// 
+//     float cos_max_smoothing_angle = cos(max_smoothing_angle_radians);
+// 
+//     corner_attributes2->clear();
+//     for (auto pol : polygons())
+//     {
+//         if (max_smoothing_angle_radians == 0.0f)
+//         {
+//             pol->copy_to_corners(*corner_attributes2, *polygon_attributes2);
+//         }
+//         else
+//         {
+//             pol->smooth_normalize(*corner_attributes2,
+//                                   *polygon_attributes2,
+//                                   *polygon_normals,
+//                                   cos_max_smoothing_angle);
+//         }
+//     }
+// }
+// 
+// void Geometry::smooth_average(const std::string &corner_attribute,
+//                               const std::string &point_normal_name)
+// {
+//     auto corner_attributes2 = corner_attributes().find_or_create<vec4>(corner_attribute);
+//     auto corner_normals     = corner_attributes().find_or_create<vec3>("corner_normals");
+//     auto point_normals      = point_attributes().maybe_find<vec3>(point_normal_name);
+// 
+//     if (point_normals == nullptr)
+//     {
+//         return; // TODO?
+//     }
+// 
+//     auto new_corner_attributes = corner_attributes().find_or_create<vec4>("temp");
+//     for (auto pol : polygons())
+//     {
+//         pol->smooth_average(*new_corner_attributes,
+//                             *corner_attributes2,
+//                             *corner_normals,
+//                             *point_normals);
+//     }
+//     corner_attributes().replace<vec4>(corner_attribute, "temp");
+// }
 
-    float cos_max_smoothing_angle = cos(max_smoothing_angle_radians);
-
-    corner_attributes2->clear();
-    for (auto i = polygons().cbegin(); i != polygons().end(); ++i)
-    {
-        polygon *polygon = *i;
-
-        if (max_smoothing_angle_radians == 0.0f)
-            polygon->copy_to_corners(
-                corner_attributes2,
-                polygon_attributes2);
-        else
-            polygon->smooth_normalize(
-                corner_attributes2,
-                polygon_attributes2,
-                polygon_normals,
-                cos_max_smoothing_angle);
-    }
-}
-
-void geometry::smooth_average(
-    string const &corner_attribute,
-    string const &point_normal_name)
-{
-    auto corner_attributes2 = corner_attributes().find_or_create<vec4>(corner_attribute);
-    auto corner_normals     = corner_attributes().find_or_create<vec3>("corner_normals");
-    auto point_normals      = point_attributes().maybe_find<vec3>(point_normal_name);
-
-    if (point_normals == nullptr)
-        return; // TODO?
-
-    auto new_corner_attributes = corner_attributes().find_or_create<vec4>("temp");
-    for (auto i = polygons().begin(); i != polygons().end(); ++i)
-    {
-        polygon *polygon = *i;
-        polygon->smooth_average(
-            new_corner_attributes,
-            corner_attributes2,
-            corner_normals,
-            point_normals);
-    }
-    corner_attributes().replace(corner_attribute, "temp");
-}
-void geometry::build_edges()
+void Geometry::build_edges()
 {
     m_edges.clear();
 
     int polygon_index = 0;
-    for (auto i = polygons().begin(); i != polygons().end(); ++i)
+    for (auto polygon : polygons())
     {
-        polygon *polygon        = *i;
-        point *  first_point    = polygon->corners().front()->point();
-        point *  previous_point = nullptr;
+        Point *first_point    = polygon->corners().front()->point;
+        Point *previous_point = nullptr;
 
         int corner_index = 0;
-        for (auto j = polygon->corners().begin(); j != polygon->corners().end(); ++j)
+        for (auto corner : polygon->corners())
         {
-            corner *corner = *j;
-
             if (previous_point)
             {
-                point *a = previous_point;
-                point *b = corner->point();
+                Point *a = previous_point;
+                Point *b = corner->point;
                 if (a == b)
+                {
                     throw runtime_error("duplicate point");
+                }
 
-                edge edge(a, b);
+                Edge edge(a, b);
                 //CheckEdge(edge);
                 m_edges[edge].insert(polygon);
             }
 
-            previous_point = corner->point();
+            previous_point = corner->point;
             ++corner_index;
         }
 
-        edge last_edge(previous_point, first_point);
+        Edge last_edge(previous_point, first_point);
         //CheckEdge(lastEdge);
         m_edges[last_edge].insert(polygon);
         ++polygon_index;
@@ -277,49 +297,50 @@ void geometry::build_edges()
    }
    }*/
 }
-vec3 geometry::compute_point_normal(point *point)
+
+vec3 Geometry::compute_point_normal(Point *point)
 {
     auto polygon_normals = polygon_attributes().find_or_create<vec3>("polygon_normals");
 
     vec3 normal_sum(0.0f, 0.0f, 0.0f);
 
-    for (auto i = point->corners().cbegin(); i != point->corners().cend(); ++i)
+    for (auto corner : point->corners())
     {
-        corner *cor = *i;
-        normal_sum += polygon_normals->get(cor->polygon());
+        normal_sum += polygon_normals->get(corner->polygon);
     }
     return normalize(normal_sum);
 }
-void geometry::compute_point_normals(string const &map_name)
+
+void Geometry::compute_point_normals(const std::string &map_name)
 {
     auto point_normals   = point_attributes().find_or_create<vec3>(map_name);
     auto polygon_normals = polygon_attributes().find<vec3>("polygon_normals");
 
     point_normals->clear();
-    for (auto i = points().cbegin(); i != points().cend(); ++i)
+    for (auto point : points())
     {
-        point *point = *i;
-        vec3   normal_sum(0.0f, 0.0f, 0.0f);
-        for (auto j = point->corners().cbegin(); j != point->corners().cend(); ++j)
+        vec3 normal_sum(0.0f, 0.0f, 0.0f);
+        for (auto corner : point->corners())
         {
-            corner *corner = *j;
-            normal_sum += polygon_normals->get(corner->polygon());
+            normal_sum += polygon_normals->get(corner->polygon);
         }
         point_normals->put(point, normalize(normal_sum));
     }
 }
-point *geometry::make_point(float x, float y, float z)
+
+Point *Geometry::make_point(float x, float y, float z)
 {
-    point *pnt             = make_point();
+    Point *pnt             = make_point();
     auto   point_positions = point_attributes().find_or_create<vec3>("point_locations");
 
     point_positions->put(pnt, vec3(x, y, z));
 
     return pnt;
 }
-point *geometry::make_point(float x, float y, float z, float s, float t)
+
+Point *Geometry::make_point(float x, float y, float z, float s, float t)
 {
-    point *pnt             = make_point();
+    Point *pnt             = make_point();
     auto   point_positions = point_attributes().find_or_create<vec3>("point_locations");
     auto   point_texcoords = point_attributes().find_or_create<vec2>("point_texcoords");
 
@@ -328,226 +349,38 @@ point *geometry::make_point(float x, float y, float z, float s, float t)
 
     return pnt;
 }
-point *geometry::make_point(double x, double y, double z)
+
+Point *Geometry::make_point(double x, double y, double z)
 {
     return make_point(float(x), float(y), float(z));
 }
-point *geometry::make_point(double x, double y, double z, double s, double t)
+
+Point *Geometry::make_point(double x, double y, double z, double s, double t)
 {
     return make_point(float(x), float(y), float(z), float(s), float(t));
 }
-polygon *geometry::make_polygon(point *p0)
+
+Polygon *Geometry::make_polygon(const std::initializer_list<Point *> point_list)
 {
-    polygon *p = make_polygon();
-    p->make_corner(p0);
-    return p;
-}
-polygon *geometry::make_polygon(point *p0, point *p1)
-{
-    polygon *p = make_polygon();
-    p->make_corner(p0);
-    p->make_corner(p1);
-    return p;
-}
-polygon *geometry::make_polygon(point *p0, point *p1, point *p2)
-{
-    polygon *p = make_polygon();
-    p->make_corner(p0);
-    p->make_corner(p1);
-    p->make_corner(p2);
-    return p;
-}
-polygon *geometry::make_polygon(point *p0, point *p1, point *p2, point *p3)
-{
-    polygon *p = make_polygon();
-    p->make_corner(p0);
-    p->make_corner(p1);
-    p->make_corner(p2);
-    p->make_corner(p3);
-    return p;
-}
-polygon *geometry::make_polygon(point *p0, point *p1, point *p2, point *p3, point *p4)
-{
-    polygon *p = make_polygon();
-    p->make_corner(p0);
-    p->make_corner(p1);
-    p->make_corner(p2);
-    p->make_corner(p3);
-    p->make_corner(p4);
-    return p;
-}
-polygon *geometry::make_polygon(point *p0, point *p1, point *p2, point *p3, point *p4, point *p5)
-{
-    polygon *p = make_polygon();
-    p->make_corner(p0);
-    p->make_corner(p1);
-    p->make_corner(p2);
-    p->make_corner(p3);
-    p->make_corner(p4);
-    p->make_corner(p5);
-    return p;
-}
-polygon *geometry::make_polygon(point *p0, point *p1, point *p2, point *p3, point *p4, point *p5, point *p6)
-{
-    polygon *p = make_polygon();
-    p->make_corner(p0);
-    p->make_corner(p1);
-    p->make_corner(p2);
-    p->make_corner(p3);
-    p->make_corner(p4);
-    p->make_corner(p5);
-    p->make_corner(p6);
-    return p;
-}
-polygon *geometry::make_polygon(point *p0, point *p1, point *p2, point *p3, point *p4, point *p5, point *p6, point *p7)
-{
-    polygon *p = make_polygon();
-    p->make_corner(p0);
-    p->make_corner(p1);
-    p->make_corner(p2);
-    p->make_corner(p3);
-    p->make_corner(p4);
-    p->make_corner(p5);
-    p->make_corner(p6);
-    p->make_corner(p7);
-    return p;
-}
-polygon *geometry::make_polygon(point *p0, point *p1, point *p2, point *p3, point *p4, point *p5, point *p6, point *p7, point *p8)
-{
-    polygon *p = make_polygon();
-    p->make_corner(p0);
-    p->make_corner(p1);
-    p->make_corner(p2);
-    p->make_corner(p3);
-    p->make_corner(p4);
-    p->make_corner(p5);
-    p->make_corner(p6);
-    p->make_corner(p7);
-    p->make_corner(p8);
-    return p;
-}
-polygon *geometry::make_polygon(point *p0, point *p1, point *p2, point *p3, point *p4, point *p5, point *p6, point *p7, point *p8, point *p9)
-{
-    polygon *p = make_polygon();
-    p->make_corner(p0);
-    p->make_corner(p1);
-    p->make_corner(p2);
-    p->make_corner(p3);
-    p->make_corner(p4);
-    p->make_corner(p5);
-    p->make_corner(p6);
-    p->make_corner(p7);
-    p->make_corner(p8);
-    p->make_corner(p9);
-    return p;
-}
-polygon *geometry::make_polygon(size_t p0)
-{
-    polygon *p = make_polygon();
-    p->make_corner(m_points[p0]);
-    return p;
-}
-polygon *geometry::make_polygon(size_t p0, size_t p1)
-{
-    polygon *p = make_polygon();
-    p->make_corner(m_points[p0]);
-    p->make_corner(m_points[p1]);
-    return p;
-}
-polygon *geometry::make_polygon(size_t p0, size_t p1, size_t p2)
-{
-    polygon *p = make_polygon();
-    p->make_corner(m_points[p0]);
-    p->make_corner(m_points[p1]);
-    p->make_corner(m_points[p2]);
-    return p;
-}
-polygon *geometry::make_polygon(size_t p0, size_t p1, size_t p2, size_t p3)
-{
-    polygon *p = make_polygon();
-    p->make_corner(m_points[p0]);
-    p->make_corner(m_points[p1]);
-    p->make_corner(m_points[p2]);
-    p->make_corner(m_points[p3]);
-    return p;
-}
-polygon *geometry::make_polygon(size_t p0, size_t p1, size_t p2, size_t p3, size_t p4)
-{
-    polygon *p = make_polygon();
-    p->make_corner(m_points[p0]);
-    p->make_corner(m_points[p1]);
-    p->make_corner(m_points[p2]);
-    p->make_corner(m_points[p3]);
-    p->make_corner(m_points[p4]);
-    return p;
-}
-polygon *geometry::make_polygon(size_t p0, size_t p1, size_t p2, size_t p3, size_t p4, size_t p5)
-{
-    polygon *p = make_polygon();
-    p->make_corner(m_points[p0]);
-    p->make_corner(m_points[p1]);
-    p->make_corner(m_points[p2]);
-    p->make_corner(m_points[p3]);
-    p->make_corner(m_points[p4]);
-    p->make_corner(m_points[p5]);
-    return p;
-}
-polygon *geometry::make_polygon(size_t p0, size_t p1, size_t p2, size_t p3, size_t p4, size_t p5, size_t p6)
-{
-    polygon *p = make_polygon();
-    p->make_corner(m_points[p0]);
-    p->make_corner(m_points[p1]);
-    p->make_corner(m_points[p2]);
-    p->make_corner(m_points[p3]);
-    p->make_corner(m_points[p4]);
-    p->make_corner(m_points[p5]);
-    p->make_corner(m_points[p6]);
-    return p;
-}
-polygon *geometry::make_polygon(size_t p0, size_t p1, size_t p2, size_t p3, size_t p4, size_t p5, size_t p6, size_t p7)
-{
-    polygon *p = make_polygon();
-    p->make_corner(m_points[p0]);
-    p->make_corner(m_points[p1]);
-    p->make_corner(m_points[p2]);
-    p->make_corner(m_points[p3]);
-    p->make_corner(m_points[p4]);
-    p->make_corner(m_points[p5]);
-    p->make_corner(m_points[p6]);
-    p->make_corner(m_points[p7]);
-    return p;
-}
-polygon *geometry::make_polygon(size_t p0, size_t p1, size_t p2, size_t p3, size_t p4, size_t p5, size_t p6, size_t p7, size_t p8)
-{
-    polygon *p = make_polygon();
-    p->make_corner(m_points[p0]);
-    p->make_corner(m_points[p1]);
-    p->make_corner(m_points[p2]);
-    p->make_corner(m_points[p3]);
-    p->make_corner(m_points[p4]);
-    p->make_corner(m_points[p5]);
-    p->make_corner(m_points[p6]);
-    p->make_corner(m_points[p7]);
-    p->make_corner(m_points[p8]);
-    return p;
-}
-polygon *geometry::make_polygon(size_t p0, size_t p1, size_t p2, size_t p3, size_t p4, size_t p5, size_t p6, size_t p7, size_t p8, size_t p9)
-{
-    polygon *p = make_polygon();
-    p->make_corner(m_points[p0]);
-    p->make_corner(m_points[p1]);
-    p->make_corner(m_points[p2]);
-    p->make_corner(m_points[p3]);
-    p->make_corner(m_points[p4]);
-    p->make_corner(m_points[p5]);
-    p->make_corner(m_points[p6]);
-    p->make_corner(m_points[p7]);
-    p->make_corner(m_points[p8]);
-    p->make_corner(m_points[p9]);
+    Polygon *p = make_polygon();
+    for (auto point : point_list)
+    {
+        p->make_corner(point);
+    }
     return p;
 }
 
-void geometry::transform(mat4 const &m)
+Polygon *Geometry::make_polygon(const std::initializer_list<size_t> point_list)
+{
+    Polygon *p = make_polygon();
+    for (auto i : point_list)
+    {
+        p->make_corner(m_points[i]);
+    }
+    return p;
+}
+
+void Geometry::transform(mat4 const &m)
 {
     mat4 it = glm::transpose(glm::inverse(m));
 
@@ -560,38 +393,50 @@ void geometry::transform(mat4 const &m)
     auto point_normals     = point_attributes().maybe_find<vec3>("point_normals");
     auto corner_normals    = corner_attributes().maybe_find<vec3>("corner_normals");
 
-    for (auto i = points().cbegin(); i != points().cend(); ++i)
+    for (auto point : points())
     {
-        auto point = *i;
-
         if (point_locations && point_locations->has(point))
+        {
             point_locations->put(point, vec3(m * vec4(point_locations->get(point), 1.0f)));
+        }
 
         if (point_normals && point_normals->has(point))
+        {
             point_normals->put(point, vec3(it * vec4(point_normals->get(point), 0.0f)));
+        }
     }
 
-    for (auto i = polygons().cbegin(); i != polygons().cend(); ++i)
+    for (auto polygon : polygons())
     {
-        auto *polygon = *i;
-
         if (polygon_centroids && polygon_centroids->has(polygon))
+        {
             polygon_centroids->put(polygon, vec3(m * vec4(polygon_centroids->get(polygon), 1.0f)));
+        }
 
         if (polygon_normals && polygon_normals->has(polygon))
+        {
             polygon_normals->put(polygon, vec3(it * vec4(polygon_normals->get(polygon), 0.0f)));
+        }
 
         if (corner_normals)
         {
-            for (auto j = polygon->corners().cbegin(); j != polygon->corners().cend(); ++j)
+            for (auto corner : polygon->corners())
             {
-                auto corner = *j;
-
                 if (corner_normals && corner_normals->has(corner))
+                {
                     corner_normals->put(corner, vec3(it * vec4(corner_normals->get(corner), 0.0f)));
+                }
             }
         }
     }
+}
+
+void Geometry::optimize_attribute_maps()
+{
+    m_point_property_map_collection.ensure_optimized();
+    m_corner_property_map_collection.ensure_optimized();
+    m_polygon_property_map_collection.ensure_optimized();
+    m_edge_property_map_collection.ensure_optimized();
 }
 
 } // namespace geometry

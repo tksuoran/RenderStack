@@ -5,7 +5,9 @@
 #include "main/programs.hpp"
 #include "renderers/base_renderer.hpp"
 #include "renderstack_graphics/renderer.hpp"
-#include "renderstack_toolkit/platform.hpp"
+#include "renderstack_graphics/vertex_format.hpp"
+#include "renderstack_graphics/vertex_stream.hpp"
+#include "renderstack_graphics/vertex_attribute_mappings.hpp"
 #include "renderstack_toolkit/service.hpp"
 #include <cstdint>
 #include <deque>
@@ -17,8 +19,9 @@ namespace renderstack
 {
 namespace graphics
 {
-class uniform_buffer;
-class uniform_buffer_range;
+class Renderer;
+class Uniform_buffer;
+class Uniform_buffer_range;
 } // namespace graphics
 } // namespace renderstack
 
@@ -26,8 +29,8 @@ namespace renderstack
 {
 namespace scene
 {
-class camera;
-class viewport;
+class Camera;
+struct Viewport;
 } // namespace scene
 } // namespace renderstack
 
@@ -35,9 +38,9 @@ namespace renderstack
 {
 namespace ui
 {
-class font;
-class gui_renderer;
-class text_buffer;
+class Font;
+class Gui_renderer;
+class Text_buffer;
 } // namespace ui
 } // namespace renderstack
 
@@ -59,40 +62,54 @@ struct print_at
     std::string text;
 };
 
-class debug_renderer
+class Application;
+
+class Debug_renderer
     : public renderstack::toolkit::service,
-      public base_renderer
+      public Base_renderer
 {
 public:
-    debug_renderer();
-    /*virtual*/ ~debug_renderer();
+    Debug_renderer();
 
-    void connect(std::shared_ptr<renderstack::graphics::renderer> renderer,
-                 std::shared_ptr<renderstack::ui::gui_renderer>   gui_renderer,
-                 std::shared_ptr<class programs>                  programs,
-                 std::shared_ptr<class application>               application_);
+    virtual ~Debug_renderer();
+
+    void connect(std::shared_ptr<renderstack::graphics::Renderer> renderer,
+                 std::shared_ptr<renderstack::ui::Gui_renderer>   gui_renderer,
+                 std::shared_ptr<Programs>                        programs,
+                 std::shared_ptr<Application>                     application);
 
     void initialize_service();
 
     void begin_edit();
+
     void end_edit();
+
     void render();
 
     void clear_text_lines();
+
     void record_frame_duration(float frame_duration);
-    void add_frame_duration_graph(renderstack::scene::viewport const &vp);
+
+    void add_frame_duration_graph(renderstack::scene::Viewport vp);
 
     void printf(const char *format, ...);
-    void printf(int x, int y, const char *format, ...);
-    void render_text_lines(renderstack::scene::viewport const &vp);
 
-    void set_camera(std::shared_ptr<renderstack::scene::camera> camera);
-    void set_model(glm::mat4 const &world_from_model);
-    void set_clip_from_model(glm::mat4 const &clip_from_model);
-    void set_ortho(renderstack::scene::viewport const &vp);
-    void set_color(glm::vec4 const &color);
+    void printf(int x, int y, const char *format, ...);
+
+    void render_text_lines(renderstack::scene::Viewport p);
+
+    void set_camera(renderstack::scene::Camera *camera);
+
+    void set_model(glm::mat4 world_from_model);
+
+    void set_clip_from_model(glm::mat4 clip_from_model);
+
+    void set_ortho(renderstack::scene::Viewport p);
+
+    void set_color(glm::vec4 color);
 
     void add_line(glm::vec3 start, glm::vec3 end);
+
     void add_box(glm::vec3 min_, glm::vec3 max_);
 
 private:
@@ -101,46 +118,47 @@ private:
     std::uint16_t add_point(glm::vec3 p);
 
 private:
-    std::shared_ptr<renderstack::ui::gui_renderer> m_gui_renderer;
-    std::shared_ptr<renderstack::scene::camera>    m_camera;
-    std::shared_ptr<class application>             m_application;
+    std::shared_ptr<renderstack::ui::Gui_renderer> m_gui_renderer;
+    std::shared_ptr<Application>                   m_application;
+
+    renderstack::scene::Camera *m_camera{nullptr};
 
     // Self owned
-    std::shared_ptr<renderstack::graphics::vertex_format>          m_vertex_format;
-    std::shared_ptr<renderstack::graphics::vertex_stream_mappings> m_mappings;
-    std::shared_ptr<renderstack::graphics::buffer>                 m_vertex_buffer;
-    std::shared_ptr<renderstack::graphics::buffer>                 m_index_buffer;
-    std::shared_ptr<renderstack::graphics::vertex_stream>          m_vertex_stream;
-
+    renderstack::graphics::Vertex_format           m_vertex_format;
+    //renderstack::graphics::Vertex_stream_mappings  m_mappings;
+    renderstack::graphics::Vertex_stream           m_vertex_stream;
+    std::shared_ptr<renderstack::graphics::Buffer> m_vertex_buffer;
+    std::shared_ptr<renderstack::graphics::Buffer> m_index_buffer;
+    
     // Debug text lines
     std::vector<std::string> m_debug_lines;
     std::vector<print_at>    m_debug_print_ats;
 
 #if defined(RENDERSTACK_USE_FREETYPE)
-    std::shared_ptr<renderstack::ui::font>        m_font;
-    std::shared_ptr<renderstack::ui::text_buffer> m_text_buffer;
-    renderstack::graphics::render_states          m_font_render_states;
+    std::shared_ptr<renderstack::ui::Font>        m_font;
+    std::shared_ptr<renderstack::ui::Text_buffer> m_text_buffer;
+    renderstack::graphics::Render_states          m_font_render_states;
 #endif
 
-    renderstack::graphics::render_states m_render_states;
+    renderstack::graphics::Render_states m_render_states;
 
-    bool           m_in_edit;
-    float *        m_vertex_ptr_start;
-    std::uint16_t *m_index_ptr_start;
-    float *        m_vertex_ptr;
-    std::uint16_t *m_index_ptr;
-    int            m_capacity_lines;
-    std::uint16_t  m_vertex_offset;
-    std::uint16_t  m_index_offset;
-    unsigned char *m_models_start;
-    std::size_t    m_model_index;
+    bool           m_in_edit{false};
+    float *        m_vertex_ptr_start{nullptr};
+    std::uint16_t *m_index_ptr_start{nullptr};
+    float *        m_vertex_ptr{nullptr};
+    std::uint16_t *m_index_ptr{nullptr};
+    int            m_capacity_lines{0};
+    std::uint16_t  m_vertex_offset{0U};
+    std::uint16_t  m_index_offset{0U};
+    unsigned char *m_models_start{nullptr};
+    size_t         m_model_index{0U};
 
-    glm::vec4 m_color;
+    glm::vec4      m_color;
 
     draw              m_current_draw;
     std::vector<draw> m_draws;
     std::deque<float> m_frame_durations; // TODO use ringbuffer, implement on top of vector<>
-    std::size_t       m_frame_duration_graph_size;
+    size_t            m_frame_duration_graph_size;
 };
 
 #endif

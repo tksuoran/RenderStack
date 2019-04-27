@@ -12,13 +12,11 @@ add_library(
    include/renderstack_geometry/property_map.inl
    include/renderstack_geometry/property_map_collection.hpp
    include/renderstack_geometry/property_map_collection.inl
-   include/renderstack_geometry/corner.hpp
-   include/renderstack_geometry/edge.hpp
    include/renderstack_geometry/exception.hpp
    include/renderstack_geometry/geometry.hpp
+   include/renderstack_geometry/geometry.inl
    include/renderstack_geometry/log.hpp
-   include/renderstack_geometry/point.hpp
-   include/renderstack_geometry/polygon.hpp
+   include/renderstack_geometry/corner.inl
    include/renderstack_geometry/polygon.inl
    include/renderstack_geometry/operation/geometry_operation.hpp
    include/renderstack_geometry/operation/clone.hpp
@@ -29,7 +27,6 @@ add_library(
    include/renderstack_geometry/shapes/triangle.hpp
    include/renderstack_geometry/shapes/cube.hpp
    include/renderstack_geometry/shapes/torus.hpp
-   source/corner.cpp
    source/geometry.cpp
    source/log.cpp
    source/polygon.cpp

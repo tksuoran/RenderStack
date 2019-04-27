@@ -8,9 +8,9 @@
 
 using namespace glm;
 
-void game::begin_patch()
+void Game::begin_patch()
 {
-    slog_trace("game::begin_patch()");
+    slog_trace("Game::begin_patch()");
 
     assert(m_voxel_renderer);
     assert(m_map);
@@ -20,9 +20,9 @@ void game::begin_patch()
     m_patch_list.clear();
 }
 
-void game::end_patch()
+void Game::end_patch()
 {
-    slog_trace("game::end_patch()");
+    slog_trace("Game::end_patch()");
 
     assert(m_voxel_renderer);
     assert(m_map);
@@ -39,13 +39,13 @@ void game::end_patch()
     //cout << ".\n";
 }
 
-void game::patch(glm::ivec3 const &pos, blockid_t brush)
+void Game::patch(glm::ivec3 const &pos, blockid_t brush)
 {
     coord_t x = static_cast<coord_t>(pos.x);
     coord_t y = static_cast<coord_t>(pos.y);
     coord_t z = static_cast<coord_t>(pos.z);
 
-    slog_trace("game::patch(%d, %d, %d, %u)", x, y, z, brush);
+    slog_trace("Game::patch(%d, %d, %d, %u)", x, y, z, brush);
 
     assert(m_voxel_renderer);
     assert(m_map);
@@ -68,9 +68,9 @@ void game::patch(glm::ivec3 const &pos, blockid_t brush)
         m_patch_list.insert(morton_encode(x, y, z + 1));
 }
 
-void game::patch_inner(coord_t x, coord_t y, coord_t z, blockid_t brush)
+void Game::patch_inner(coord_t x, coord_t y, coord_t z, blockid_t brush)
 {
-    slog_trace("game::patch_inner(%d, %d, %d, %u)", x, y, z, brush);
+    slog_trace("Game::patch_inner(%d, %d, %d, %u)", x, y, z, brush);
 
     assert(m_voxel_renderer);
     assert(m_map);
@@ -80,12 +80,12 @@ void game::patch_inner(coord_t x, coord_t y, coord_t z, blockid_t brush)
     m_patch_list.insert(morton_encode(x, y, z));
 }
 
-void game::paint(glm::ivec3 const &pos, blockid_t brush)
+void Game::paint(glm::ivec3 const &pos, blockid_t brush)
 {
     coord_t ox = static_cast<coord_t>(pos.x);
     coord_t oy = static_cast<coord_t>(pos.y);
     coord_t oz = static_cast<coord_t>(pos.z);
-    slog_trace("game::paint(%d, %d, %d, %u)", ox, oy, oz, brush);
+    slog_trace("Game::paint(%d, %d, %d, %u)", ox, oy, oz, brush);
 
     assert(m_voxel_renderer);
     assert(m_map);

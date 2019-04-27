@@ -13,7 +13,7 @@ namespace renderstack
 {
 namespace graphics
 {
-class renderer;
+class Renderer;
 }
 } // namespace renderstack
 
@@ -22,53 +22,25 @@ namespace renderstack
 namespace scene
 {
 
-namespace light_type
-{
-enum value
-{
-    directional = 0,
-    point,
-    spot
-};
-}
-
-class light
+class Light
 {
 public:
-    light();
+    enum class Type
+    {
+        directional = 0,
+        point,
+        spot
+    };
 
-    void update(viewport &viewport);
+    void update(Viewport viewport);
 
-    std::shared_ptr<class camera> camera();
-    std::string const &           name();
-    void                          set_name(std::string const &value);
-    std::shared_ptr<class frame>  frame();
-
-    light_type::value type() const;
-    void              set_type(light_type::value value);
-    glm::vec3         color() const;
-    void              set_color(glm::vec3 value);
-    float             intensity() const;
-    void              set_intensity(float value);
-    float             range() const;
-    void              set_range(float value);
-    float             spot_angle() const;
-    void              set_spot_angle(float value);
-
-    class projection const &projection() const;
-    class projection &      projection();
-    transform const &       shadow_from_world() const;
-    transform &             shadow_from_world();
-
-private:
-    light_type::value m_type;
-    glm::vec3         m_color;
-    float             m_intensity;
-    float             m_range;
-    float             m_spot_angle;
-
-    std::shared_ptr<class camera> m_camera;
-    transform                     m_shadow_from_world;
+    Type       type{Type::directional};
+    glm::vec3  color{glm::vec3(1.0f, 1.0f, 1.0f)};
+    float      intensity{1.0f};
+    float      range{100.0f};
+    float      spot_angle{glm::pi<float>() * 0.5f};
+    Camera     camera;
+    Transform  shadow_from_world{glm::mat4(1.0f), glm::mat4(1.0f)};
 
     static glm::mat4 s_texture;
     static glm::mat4 s_texture_inverse;

@@ -30,11 +30,11 @@ context::~context()
     s_current_context = context;
 }
 
-shared_ptr<class gui_renderer> context::gui_renderer()
+shared_ptr<Gui_renderer> context::gui_renderer()
 {
     if (!s_gui_renderer)
     {
-        s_gui_renderer = std::make_shared<class gui_renderer>();
+        s_gui_renderer = std::make_shared<Gui_renderer>();
     }
     return s_gui_renderer;
 }

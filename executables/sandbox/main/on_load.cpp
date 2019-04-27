@@ -27,7 +27,7 @@ using namespace std;
 using namespace renderstack::toolkit;
 using namespace renderstack::graphics;
 
-bool application::create_gl_window()
+bool Application::create_gl_window()
 {
 #if defined(RENDERSTACK_GL_API_OPENGL)
     int  versions[] = {46, 45, 44, 43, 42, 41, 40, 33, 32, 31, 30, 21, 20, 15, 14, 13, 12, 11, 10, 0};
@@ -69,41 +69,41 @@ bool application::create_gl_window()
     return true;
 }
 
-bool application::initialize_services()
+bool Application::initialize_services()
 {
     auto application_ = shared_from_this();
 
-    auto renderer     = make_shared<renderstack::graphics::renderer>();
-    auto gui_renderer = make_shared<renderstack::ui::gui_renderer>();
+    auto renderer     = make_shared<renderstack::graphics::Renderer>();
+    auto gui_renderer = make_shared<renderstack::ui::Gui_renderer>();
 
-    shared_ptr<programs>             programs_;
+    shared_ptr<Programs>             programs_;
     shared_ptr<textures>             textures_;
-    shared_ptr<debug_renderer>       debug_renderer_;
-    shared_ptr<quad_renderer>        quad_renderer_;
-    shared_ptr<forward_renderer>     forward_renderer_;
-    shared_ptr<deferred_renderer>    deferred_renderer_;
-    shared_ptr<light_debug_renderer> l_d_renderer_;
-    shared_ptr<id_renderer>          id_renderer_;
-    shared_ptr<light_mesh>           light_mesh_;
-    shared_ptr<scene_manager>        scene_manager_;
-    shared_ptr<menu>                 menu_;
-    programs_ = make_shared<programs>();
+    shared_ptr<Debug_renderer>       debug_renderer_;
+    shared_ptr<Quad_renderer>        quad_renderer_;
+    shared_ptr<Forward_renderer>     forward_renderer_;
+    shared_ptr<Deferred_renderer>    deferred_renderer_;
+    shared_ptr<Light_debug_renderer> l_d_renderer_;
+    shared_ptr<Id_renderer>          id_renderer_;
+    shared_ptr<Light_mesh>           light_mesh_;
+    shared_ptr<Scene_manager>        scene_manager_;
+    shared_ptr<Menu>                 menu_;
+    programs_ = make_shared<Programs>();
     textures_ = make_shared<textures>();
     //
-    debug_renderer_    = make_shared<debug_renderer>();
-    quad_renderer_     = make_shared<quad_renderer>();
-    forward_renderer_  = make_shared<forward_renderer>();
-    deferred_renderer_ = make_shared<deferred_renderer>();
-    l_d_renderer_      = make_shared<light_debug_renderer>();
-    id_renderer_       = make_shared<id_renderer>();
-    light_mesh_        = make_shared<light_mesh>();
+    debug_renderer_    = make_shared<Debug_renderer>();
+    quad_renderer_     = make_shared<Quad_renderer>();
+    forward_renderer_  = make_shared<Forward_renderer>();
+    deferred_renderer_ = make_shared<Deferred_renderer>();
+    l_d_renderer_      = make_shared<Light_debug_renderer>();
+    id_renderer_       = make_shared<Id_renderer>();
+    light_mesh_        = make_shared<Light_mesh>();
 
-    auto shader_monitor_ = make_shared<shader_monitor>();
+    auto shader_monitor_ = make_shared<Shader_monitor>();
 
-    scene_manager_ = make_shared<scene_manager>();
+    scene_manager_ = make_shared<Scene_manager>();
 
-    auto game_ = smart_ptr_builder::create_shared_ptr<renderstack::ui::action_sink>(new game());
-    menu_      = smart_ptr_builder::create_shared_ptr<renderstack::ui::action_sink>(new menu());
+    auto game_ = std::make_shared<Game>();
+    menu_      = std::make_shared<Menu>();
 
     m_services.add(renderer);
     m_services.add(gui_renderer);
@@ -230,7 +230,7 @@ bool application::initialize_services()
     return true;
 }
 
-bool application::on_load()
+bool Application::on_load()
 {
     try
     {
@@ -256,7 +256,7 @@ bool application::on_load()
     }
 }
 
-bool application::on_exit()
+bool Application::on_exit()
 {
     if (m_screen)
     {

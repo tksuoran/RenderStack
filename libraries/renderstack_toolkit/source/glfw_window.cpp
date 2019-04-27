@@ -17,7 +17,7 @@ using namespace std;
 #    if 0
 #        if defined(_WIN32)
 
-#            pragma warning(disable : 4074) //initializers put in compiler reserved initialization area
+#            pragma warning(disable : 4074) //initializers put in compiler reserved initialization Area
 #            pragma init_seg(compiler)      //global objects in this file get constructed very early on
 
 struct CrtBreakAllocSetter {
@@ -158,7 +158,7 @@ HGLRC window::get_native_context()
 }
 #    endif
 
-bool window::open(int width, int height, string const &title, int major, int minor)
+bool window::open(int width, int height, const std::string &title, int major, int minor)
 {
     if (!::glfwInit())
     {

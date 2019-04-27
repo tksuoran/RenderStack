@@ -17,18 +17,14 @@ using namespace renderstack;
 using namespace glm;
 using namespace std;
 
-light_mesh::light_mesh()
-    : service("light_mesh")
+Light_mesh::Light_mesh()
+    : service("Light_mesh")
 {
 }
 
-/*virtual*/ light_mesh::~light_mesh()
-{
-}
-
-void light_mesh::connect(
-    shared_ptr<renderstack::graphics::renderer> renderer,
-    shared_ptr<class programs>                  programs)
+void Light_mesh::connect(
+    shared_ptr<renderstack::graphics::Renderer> renderer,
+    shared_ptr<Programs>                  programs)
 {
     m_renderer = renderer;
     m_programs = programs;
@@ -37,34 +33,32 @@ void light_mesh::connect(
     initialization_depends_on(programs);
 }
 
-void light_mesh::initialize_service()
+void Light_mesh::initialize_service()
 {
-    renderstack::mesh::geometry_mesh_format_info format_info;
+    Geometry_mesh::Format_info format_info;
 
-    format_info.set_want_fill_triangles(true);
-    format_info.set_want_edge_lines(true);
-    format_info.set_want_position(true);
-    format_info.set_vertex_attribute_mappings(m_programs->attribute_mappings);
+    format_info.want_fill_triangles = true;
+    format_info.want_edge_lines = true;
+    format_info.want_position = true;
+    format_info.vertex_attribute_mappings = &m_programs->attribute_mappings;
 
     // Full screen quad
     {
         // -1 .. 1
-        auto g = make_shared<renderstack::geometry::shapes::quad>(2.0f);
-        g->build_edges();
-        renderstack::mesh::geometry_mesh_buffer_info buffer_info;
-        geometry_mesh::prepare_vertex_format(g, format_info, buffer_info);
+        auto quad_geometry = renderstack::geometry::shapes::make_quad(2.0f);
+        quad_geometry.build_edges();
+        Geometry_mesh::Buffer_info buffer_info;
+        Geometry_mesh::prepare_vertex_format(quad_geometry, format_info, buffer_info);
         auto &r = *m_renderer;
 
-        auto gm = make_shared<geometry_mesh>(r, g, format_info, buffer_info);
-
-        m_quad_mesh = gm;
+        m_quad_mesh = make_shared<Geometry_mesh>(r, quad_geometry, format_info, buffer_info);
     }
 
     // Spot light cone
     {
         m_light_cone_sides = 11;
 
-        auto g = make_shared<renderstack::geometry::shapes::conical_frustum>(
+        auto cone_geometry = renderstack::geometry::shapes::make_conical_frustum(
             0.0,                // min x
             1.0,                // max x
             0.0,                // bottom radius
@@ -75,38 +69,36 @@ void light_mesh::initialize_service()
             0                   // stack division
         );
 
-        g->transform(mat4_rotate_xz_cw);
-        g->build_edges();
-        renderstack::mesh::geometry_mesh_buffer_info buffer_info;
-        geometry_mesh::prepare_vertex_format(g, format_info, buffer_info);
+        cone_geometry.transform(mat4_rotate_xz_cw);
+        cone_geometry.build_edges();
+        Geometry_mesh::Buffer_info buffer_info;
+        Geometry_mesh::prepare_vertex_format(cone_geometry, format_info, buffer_info);
         auto &r = *m_renderer;
 
-        auto gm = make_shared<renderstack::mesh::geometry_mesh>(
-            r,
-            g,
-            format_info,
-            buffer_info);
+        auto gm = make_shared<Geometry_mesh>(r,
+                                             cone_geometry,
+                                             format_info,
+                                             buffer_info);
 
         m_cone_mesh = gm;
     }
 }
 
-glm::mat4 light_mesh::get_light_transform(
-    shared_ptr<renderstack::scene::light> l)
+glm::mat4 Light_mesh::get_light_transform(shared_ptr<Light> l)
 {
-    switch (l->type())
+    switch (l->type)
     {
-        case light_type::directional:
+        case Light::Type::directional:
         {
             return mat4(1.0f);
         }
 
-        case light_type::point:
+        case Light::Type::point:
         {
             return mat4(1.0f);
         }
 
-        case light_type::spot:
+        case Light::Type::spot:
         {
             //           Side:                     Bottom:              .
             //             .                    ______________          .
@@ -122,8 +114,8 @@ glm::mat4 light_mesh::get_light_transform(
             //   /         |         \         \______________/         .
             //  +----------+----------+                                 .
 
-            float alpha   = l->spot_angle();
-            float length  = l->range();
+            float alpha   = l->spot_angle;
+            float length  = l->range;
             float apothem = length * std::tan(alpha * 0.5f);
             float radius  = apothem / std::cos(glm::pi<float>() / static_cast<float>(m_light_cone_sides));
 
@@ -140,19 +132,19 @@ glm::mat4 light_mesh::get_light_transform(
     }
 }
 
-bool light_mesh::point_in_light(vec3 p, shared_ptr<renderstack::scene::light> l)
+bool Light_mesh::point_in_light(vec3 p, shared_ptr<Light> l)
 {
-    if (l->type() != light_type::spot)
+    if (l->type != Light::Type::spot)
     {
         return true;
     }
 
-    float spot_angle  = l->spot_angle() * 0.5f;
+    float spot_angle  = l->spot_angle * 0.5f;
     float outer_angle = spot_angle / std::cos(glm::pi<float>() / static_cast<float>(m_light_cone_sides));
     float spot_cutoff = std::cos(outer_angle);
-    float range       = l->range();
+    float range       = l->range;
 
-    mat4 const &light_from_world = l->frame()->world_from_local().inverse_matrix();
+    const mat4 &light_from_world = l->camera.frame.world_from_local.inverse_matrix();
     vec3        view_in_light    = vec3(light_from_world * vec4(p, 1.0f));
     float       distance         = -view_in_light.z;
     view_in_light                = normalize(view_in_light);
@@ -170,22 +162,21 @@ bool light_mesh::point_in_light(vec3 p, shared_ptr<renderstack::scene::light> l)
     }
 }
 
-shared_ptr<renderstack::mesh::geometry_mesh> light_mesh::get_light_mesh(
-    shared_ptr<light> l)
+shared_ptr<Geometry_mesh> Light_mesh::get_light_mesh(shared_ptr<Light> l)
 {
-    switch (l->type())
+    switch (l->type)
     {
-        case light_type::directional:
+        case Light::Type::directional:
         {
             return m_quad_mesh;
         }
 
-        case light_type::point:
+        case Light::Type::point:
         {
             return nullptr;
         }
 
-        case light_type::spot:
+        case Light::Type::spot:
         {
             return m_cone_mesh;
         }

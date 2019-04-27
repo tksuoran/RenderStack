@@ -1,243 +1,493 @@
-#ifndef property_map_collection_inl_renderstack_geometry
-#define property_map_collection_inl_renderstack_geometry
+#ifndef Property_map_collection_inl_renderstack_geometry
+#define Property_map_collection_inl_renderstack_geometry
 
 #include "renderstack_geometry/exception.hpp"
 
-namespace renderstack { namespace geometry {
+namespace renderstack
+{
+namespace geometry
+{
 
 namespace detail
 {
 
-void throw_incompatible_attribute_type(
-   std::string const   &name,
-   char const          *type_name, 
-   char const          *expected_type_name
-);
-
+void throw_incompatible_attribute_type(const std::string &name,
+                                       char const *       type_name,
+                                       char const *       expected_type_name);
 }
 
-template<typename key_type>
-inline property_map_collection<key_type>::property_map_collection()
+template <typename Key_type>
+inline void Property_map_collection<Key_type>::clear()
 {
+    m_collection.clear();
 }
 
-template<typename key_type>
-inline void property_map_collection<key_type>::clear()
+template <typename Key_type>
+inline size_t Property_map_collection<Key_type>::size() const
 {
-   m_maps.clear();
+    return m_collection.size();
 }
 
-
-template<typename key_type>
-inline size_t property_map_collection<key_type>::size() const
+#if 0
+template <typename Key_type>
+template <typename Value_type>
+inline void Property_map_collection<Key_type>::insert(const std::string &name, Property_map<Key_type, Value_type> *map)
 {
-   return m_maps.size();
-}
+    Hash::key_type hash = Hash::hash(name.c_str());
 
-template<typename key_type>
-inline void property_map_collection<key_type>::insert(
-   std::string const &name,
-   std::shared_ptr< property_map_base<key_type> > const &map_
-)
+    // Look for existing chain
+    ensure_optimized();
+    auto lower = std::lower_bound(m_collection.begin(), m_collection.end(), hash, Chain_comparator());
+    if (lower != m_collection.end())
+    {
+        Chain &chain = *lower;
+        for (auto &entry : chain.values)
+        {
+            if (entry.key == name)
+            {
+                // Key collision - bad
+                abort();
+            }
+        }
+
+        // Hash collision - add to chain
+        chain.values.emplace_back(name, map);
+    }
+
+    // New chain
+    m_collection.emplace_back(hash, name, map);
+
+    m_is_optimized = false;
+}
+#endif
+
+template <typename Key_type>
+inline void Property_map_collection<Key_type>::insert(const std::string &name, Property_map_base<Key_type> *map)
 {
-   assert(m_maps.find(name) == m_maps.end());
+    Hash::key_type hash = Hash::hash(name.c_str());
 
-   m_maps.insert(
-      // This works:
-      //std::map<std::string, std::shared_ptr<property_map_base<key_type> > >::value_type(name, map_)
+    // Look for existing chain
+    ensure_optimized();
+    auto lower = std::lower_bound(m_collection.begin(), m_collection.end(), hash, Chain_comparator());
+    if (lower != m_collection.end())
+    {
+        Chain &chain = *lower;
+        for (auto &entry : chain.values)
+        {
+            if (entry.key == name)
+            {
+                // Key collision - bad
+                abort();
+            }
+        }
 
-      // I have this:
-      // private: typedef std::map<std::string, std::shared_ptr<property_map_base<key_type> > > map_map;
-      // so this should work, right?
-      typename map_map::value_type(name, map_)
-   );
+        // Hash collision - add to chain
+        chain.values.emplace_back(name, map);
+    }
+
+    // New chain
+    m_collection.emplace_back(hash, name, map);
+
+    m_is_optimized = false;
 }
 
-template<typename key_type>
-inline void property_map_collection<key_type>::remove(std::string const &name)
+template <typename Key_type>
+inline void Property_map_collection<Key_type>::remove(const std::string &name)
 {
-   m_maps.erase(name);
+    Hash::key_type hash = Hash::hash(name.c_str());
+    auto lower = std::lower_bound(m_collection.begin(), m_collection.end(), hash, Chain_comparator());
+    if (lower != m_collection.end())
+    {
+        Chain &chain = *lower;
+        for (auto i = chain.values.begin(); chain.values.end();)
+        {
+            Entry &entry = *i;
+            if (entry.key == name)
+            {
+                i = chain.erase(i);
+            }
+            else
+            {
+                ++i;
+            }
+        }
+        if (chain.values.size() == 0)
+        {
+            m_collection.erase(lower);
+            m_is_optimized = false; // TODO is sorted vector optimized after erase?
+        }
+    }
 }
 
-template<typename key_type>
-template<typename value_type>
-inline bool property_map_collection<key_type>::contains(std::string const &name) const
+template <typename Key_type>
+template <typename Value_type>
+inline bool Property_map_collection<Key_type>::contains(const std::string &name)
 {
-   const_iterator i = m_maps.find(name);
+    Hash::key_type hash = Hash::hash(name.c_str());
+    ensure_optimized();
+    auto lower = std::lower_bound(m_collection.cbegin(), m_collection.cend(), hash, Chain_comparator());
+    if (lower != m_collection.end())
+    {
+        const Chain &chain = *lower;
+        for (auto &entry : chain.values)
+        {
+            if (entry.key == name)
+            {
+                auto p = entry.value.get();
+                auto t = dynamic_cast<Property_map<Key_type, Value_type>*>(p);
+                return (t != nullptr);
+            }
+        }
+    }
 
-   if (i == m_maps.end())
-      return false;
-
-   std::shared_ptr<property_map_base<key_type> > p = i->second;
-
-   if (
-      std::shared_ptr<property_map<key_type, value_type> > 
-      t = std::dynamic_pointer_cast<property_map<key_type, value_type> >(p)
-   )
-      return true;
-   else
-      return false;
+    return false;
 }
 
-template<typename key_type>
-inline std::shared_ptr<property_map_base<key_type> >
-   property_map_collection<key_type>::find_any(std::string const &name) const
+template <typename Key_type>
+template <typename Value_type>
+inline bool Property_map_collection<Key_type>::contains(const std::string &name) const
 {
-   const_iterator i = m_maps.find(name);
+    Hash::key_type hash = Hash::hash(name.c_str());
+    if (!m_is_optimized)
+    {
+        // not optimized
+        abort();
+    }
 
-   if (i == m_maps.end())
-      throw property_map_not_found_exception(name);
+    auto lower = std::lower_bound(m_collection.cbegin(), m_collection.cend(), hash, Chain_comparator());
+    if (lower != m_collection.end())
+    {
+        const Chain &chain = *lower;
+        for (auto &entry : chain.values)
+        {
+            if (entry.key == name)
+            {
+                auto p = entry.value.get();
+                auto t = dynamic_cast<Property_map<Key_type, Value_type>*>(p);
+                return (t != nullptr);
+            }
+        }
+    }
 
-   return i->second;
+    return false;
 }
 
-template<typename key_type>
-inline std::shared_ptr<property_map_base<key_type> >
-   property_map_collection<key_type>::maybe_find_any(std::string const &name) const
+template <typename Key_type>
+inline Property_map_base<Key_type> *
+Property_map_collection<Key_type>::find_any(const std::string &name)
 {
-   const_iterator i = m_maps.find(name);
-
-   if (i == m_maps.end())
-      return nullptr;;
-
-   return i->second;
+    Hash::key_type hash = Hash::hash(name.c_str());
+    ensure_optimized();
+    auto lower = std::lower_bound(m_collection.begin(), m_collection.end(), hash, Chain_comparator());
+    if (lower != m_collection.end())
+    {
+        Chain &chain = *lower;
+        for (auto &entry : chain.values)
+        {
+            if (entry.key == name)
+            {
+                auto p = entry.value.get();
+                return p;
+            }
+        }
+    }
+    return nullptr;
 }
 
-template<typename key_type>
-inline typename property_map_collection<key_type>::const_iterator
-   property_map_collection<key_type>::begin() const
+template <typename Key_type>
+template <typename Value_type>
+inline Property_map<Key_type, Value_type> *
+Property_map_collection<Key_type>::create(const std::string &name)
 {
-   return m_maps.begin();
+    Hash::key_type hash = Hash::hash(name.c_str());
+
+    // Look for existing chain
+    ensure_optimized();
+    auto lower = std::lower_bound(m_collection.begin(), m_collection.end(), hash, Chain_comparator());
+    if (lower != m_collection.end())
+    {
+        Chain &chain = *lower;
+        for (auto &entry : chain.values)
+        {
+            if (entry.key == name)
+            {
+                // Key collision - bad
+                abort();
+            }
+        }
+
+        // Hash collision - add to chain
+        auto p = new Property_map<Key_type, Value_type>();
+        chain.values.emplace_back(name, p);
+    }
+
+    // New chain
+    auto p = new Property_map<Key_type, Value_type>();
+    m_collection.emplace_back(hash, name, p);
+
+    m_is_optimized = false;
+    return p;
 }
 
-template<typename key_type>
-inline typename property_map_collection<key_type>::const_iterator
-   property_map_collection<key_type>::end() const
+template <typename Key_type>
+template <typename Value_type>
+inline Property_map<Key_type, Value_type> *
+Property_map_collection<Key_type>::find(const std::string &name)
 {
-   return m_maps.end();
+    Hash::key_type hash = Hash::hash(name.c_str());
+    ensure_optimized();
+    auto lower = std::lower_bound(m_collection.begin(), m_collection.end(), hash, Chain_comparator());
+    if (lower != m_collection.end())
+    {
+        Chain &chain = *lower;
+        for (auto &entry : chain.values)
+        {
+            if (entry.key == name)
+            {
+                auto p = entry.value.get();
+                auto t = dynamic_cast<Property_map<Key_type, Value_type>*>(p);
+                if (t != nullptr)
+                {
+                    return t;
+                }
+                else
+                {
+                    throw std::runtime_error("Incompatible_attribute_type_exception" + name);
+;
+                }
+            }
+        }
+    }
+    return nullptr;
 }
 
-template<typename key_type>
-template<typename value_type>
-inline std::shared_ptr<property_map<key_type, value_type> >
-   property_map_collection<key_type>::create(std::string const &name)
+template <typename Key_type>
+template <typename Value_type>
+inline Property_map<Key_type, Value_type> *
+Property_map_collection<Key_type>::maybe_find(const std::string &name)
 {
-   std::shared_ptr<property_map<key_type, value_type> > p(new property_map<key_type, value_type>());
-   insert(name, p);
-   //insert(name, std::make_shared<property_map<key_type, value_type> >(key_type, value_type));
-   return p;
+    Hash::key_type hash = Hash::hash(name.c_str());
+    ensure_optimized();
+    auto lower = std::lower_bound(m_collection.begin(), m_collection.end(), hash, Chain_comparator());
+    if (lower != m_collection.end())
+    {
+        Chain &chain = *lower;
+        for (auto &entry : chain.values)
+        {
+            if (entry.key == name)
+            {
+                auto p = entry.value.get();
+                auto t = dynamic_cast<Property_map<Key_type, Value_type>*>(p);
+                if (t != nullptr)
+                {
+                    return t;
+                }
+                else
+                {
+                    return nullptr;
+                }
+            }
+        }
+    }
+    return nullptr;
 }
 
-template<typename key_type>
-template<typename value_type>
-inline std::shared_ptr<property_map<key_type, value_type> >
-   property_map_collection<key_type>::find(std::string const &name) const
+
+template <typename Key_type>
+template <typename Value_type>
+inline Property_map<Key_type, Value_type> *
+Property_map_collection<Key_type>::maybe_find(const std::string &name) const
+{    
+    Hash::key_type hash = Hash::hash(name.c_str());
+
+    if (m_is_optimized)
+    {
+        auto i = std::lower_bound(m_collection.cbegin(), m_collection.cend(), hash, Chain_comparator());
+        if (i != m_collection.end())
+        {
+            const Chain &chain = *i;
+            for (auto &entry : chain.values)
+            {
+                if (entry.key == name)
+                {
+                    auto p = entry.value.get();
+                    auto t = dynamic_cast<Property_map<Key_type, Value_type>*>(p);
+                    if (t != nullptr)
+                    {
+                        return t;
+                    }
+                    else
+                    {
+                        return nullptr;
+                    }
+                }
+            }
+        }
+    }
+    else
+    {
+        for (auto &chain : m_collection)
+        {
+            for (auto &entry : chain.values)
+            {
+                if (entry.key == name)
+                {
+                    auto p = entry.value.get();
+                    auto t = dynamic_cast<Property_map<Key_type, Value_type>*>(p);
+                    if (t != nullptr)
+                    {
+                        return t;
+                    }
+                    else
+                    {
+                        return nullptr;
+                    }
+                }
+            }
+        }
+    }
+    
+    return nullptr;
+}
+
+template <typename Key_type>
+template <typename Value_type>
+inline Property_map<Key_type, Value_type> *
+Property_map_collection<Key_type>::find_or_create(const std::string &name)
 {
-   std::shared_ptr<property_map_base<key_type> > p = find_any(name);
+    Hash::key_type hash = Hash::hash(name.c_str());
+    ensure_optimized();
+    // Look for existing chain
+    auto lower = std::lower_bound(m_collection.begin(), m_collection.end(), hash, Chain_comparator());
+    if (lower != m_collection.end())
+    {
+        Chain &chain = *lower;
+        for (auto &entry : chain.values)
+        {
+            if (entry.key == name)
+            {
+                auto p = entry.value.get();
+                auto t = dynamic_cast<Property_map<Key_type, Value_type>*>(p);
+                if (t != nullptr)
+                {
+                    return t;
+                }
+                else
+                {
+                    throw std::runtime_error("Incompatible attribute type");
+                }
+            }
+        }
 
-   if (
-      std::shared_ptr<property_map<key_type, value_type> > 
-      t = std::dynamic_pointer_cast<property_map<key_type, value_type> >(p)
-   )
-      return t;
-   else
-      throw incompatible_attribute_type_exception(
-         name, 
-         p->value_type_id().name(),
-         typeid(value_type).name()
-      );
+        // Hash collision - add to chain
+        auto p = new Property_map<Key_type, Value_type>();
+        chain.values.emplace_back(name, p);
+        return p;
+    }
 
-      //return std::shared_ptr<property_map<key_type, value_type> >();
+    // New chain
+    auto p = new Property_map<Key_type, Value_type>();
+    m_collection.emplace_back(hash, name, p);
+    m_is_optimized = false;
+    return p;
 }
 
-template<typename key_type>
-template<typename value_type>
-inline std::shared_ptr<property_map<key_type, value_type> >
-   property_map_collection<key_type>::maybe_find(std::string const &name) const
+template <typename Key_type>
+template <typename Value_type>
+inline void Property_map_collection<Key_type>::replace(const std::string &name, const std::string &replacement)
 {
-   std::shared_ptr<property_map_base<key_type> > p = maybe_find_any(name);
+    Hash::key_type name_hash = Hash::hash(name.c_str());
+    Hash::key_type replacement_hash = Hash::hash(replacement.c_str());
+    ensure_optimized();
 
-   if (!p)
-      return nullptr;
-
-   if (
-      std::shared_ptr<property_map<key_type, value_type> > 
-      t = std::dynamic_pointer_cast<property_map<key_type, value_type> >(p)
-   )
-      return t;
-   else
-      return nullptr;
+    // Look for existing chain
+    auto lower   = std::lower_bound(m_collection.begin(), m_collection.end(), name_hash, Chain_comparator());
+    auto r_lower = std::lower_bound(m_collection.begin(), m_collection.end(), replacement_hash, Chain_comparator());
+    if (lower != m_collection.end() && r_lower != m_collection.end())
+    {
+        Chain &chain = *lower;
+        Chain &r_chain = *r_lower;
+        for (auto &entry : chain.values)
+        {
+            if (entry.key == name)
+            {
+                auto p = entry.value.get();
+                auto t = dynamic_cast<Property_map<Key_type, Value_type>*>(p);
+                if (t != nullptr)
+                {
+                    // Found old chain and entry with correct type
+                    for (auto &r_entry : r_chain.values)
+                    {
+                        if (r_entry.key == replacement)
+                        {
+                            auto r_p = entry.value.get();
+                            auto r_t = dynamic_cast<Property_map<Key_type, Value_type>*>(r_p);
+                            if (r_t != nullptr)
+                            {
+                                // Found new chain and entry with correct type
+                                // Rename new entry
+                                r_entry.key = name;
+                                // Throw away old entry
+                                m_collection.erase(lower);
+                                // Need to sort
+                                m_is_optimized = false;
+                                return;
+                            }
+                            else
+                            {
+                                throw Incompatible_attribute_type_exception(name,
+                                                                            p->value_type_id().name(),
+                                                                            typeid(Value_type).name());
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    throw Incompatible_attribute_type_exception(name,
+                                                                p->value_type_id().name(),
+                                                                typeid(Value_type).name());
+                }
+            }
+        }
+    }
+    abort(); // not found
 }
 
-template<typename key_type>
-template<typename value_type>
-inline std::shared_ptr<property_map<key_type, value_type> >
-   property_map_collection<key_type>::find_or_create(std::string const &name)
+template <typename Key_type>
+inline void Property_map_collection<Key_type>::ensure_optimized()
 {
-   typename map_map::iterator i = m_maps.find(name);
-
-   if (i != m_maps.end())
-   {
-      if (
-         std::shared_ptr<property_map<key_type, value_type> > 
-         t = std::dynamic_pointer_cast<property_map<key_type, value_type> >(i->second)
-      )
-         return t;
-      else
-         throw incompatible_attribute_type_exception(
-            name, 
-            t->value_type_id().name(),
-            typeid(value_type).name()
-         );
-
-         //return std::shared_ptr<property_map<key_type, value_type> >();
-   }
-   else
-   {
-      //shared_ptr<property_map<key_type, value_type> > res = create<value_type>(name);
-      auto res = create<value_type>(name);
-      return res;
-   }
+    if (m_is_optimized)
+    {
+        return;
+    }
+    std::sort(m_collection.begin(), m_collection.end(), Chain_comparator());
+    m_is_optimized = true;
 }
 
-template<typename key_type>
-inline void property_map_collection<key_type>::replace(std::string const &name, std::string const &temp)
+template <typename Key_type>
+inline void Property_map_collection<Key_type>::interpolate(
+    Property_map_collection<Key_type> &                         destination,
+    std::map<Key_type, std::vector<std::pair<float, Key_type>>> key_new_to_olds)
 {
-   typename map_map::iterator i = m_maps.find(name);
-   typename map_map::iterator j = m_maps.find(temp);
-   if (
-      (i != m_maps.end()) &&
-      (j != m_maps.end())
-   )
-   {
-      i->second = j->second;
-      m_maps.erase(j);
-   }
-   else
-      throw std::runtime_error("map not found");
+    // For all original attribute maps
+    for (auto &chain : m_collection)
+    {
+        for (auto &entry : chain.values)
+        {
+            const std::string &map_name = entry.key;
+            Property_map_base<Key_type> *src_map = entry.value.get();
+            Property_map_base<Key_type> *destination_map = src_map->constructor();
+
+            src_map->optimize();
+            src_map->interpolate(destination_map, key_new_to_olds);
+
+            destination.insert(map_name, destination_map);
+        }
+    }
 }
 
-template<typename key_type>
-inline void property_map_collection<key_type>::interpolate(
-   property_map_collection<key_type>                              &destination,
-   std::map<key_type, std::vector<std::pair<float, key_type> > >  key_new_to_olds
-) const
-{
-   /*  For all original attribute maps  */ 
-   for (auto i = m_maps.cbegin(); i != m_maps.cend(); ++i)
-   {
-      std::string                                     map_name             = i->first;
-      std::shared_ptr<property_map_base<key_type> >   src_map              = i->second;
-      property_map_base<key_type>                     *destination_map_ptr = src_map->constructor();
-      std::shared_ptr<property_map_base<key_type> >   destination_map(destination_map_ptr);
+} // namespace geometry
+} // namespace renderstack
 
-      src_map->optimize();
-      src_map->interpolate(destination_map_ptr, key_new_to_olds);
-
-      destination.insert(map_name, destination_map);
-   }
-}
-
-} }
-
-#endif 
+#endif

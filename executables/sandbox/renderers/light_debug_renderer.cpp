@@ -17,7 +17,6 @@
 #include "renderstack_scene/viewport.hpp"
 #include "renderstack_toolkit/gl.hpp"
 #include "renderstack_toolkit/math_util.hpp"
-#include "renderstack_toolkit/platform.hpp"
 #include "renderstack_toolkit/strong_gl_enums.hpp"
 #include <fstream>
 #include <glm/glm.hpp>
@@ -38,19 +37,15 @@ using namespace gl;
 using namespace glm;
 using namespace std;
 
-light_debug_renderer::light_debug_renderer()
-    : service("light_debug_renderer")
+Light_debug_renderer::Light_debug_renderer()
+    : service("Light_debug_renderer")
 {
 }
 
-/*virtual*/ light_debug_renderer::~light_debug_renderer()
-{
-}
-
-void light_debug_renderer::connect(
-    shared_ptr<renderstack::graphics::renderer> renderer_,
-    shared_ptr<class programs>                  programs_,
-    shared_ptr<class light_mesh>                light_mesh_)
+void Light_debug_renderer::connect(
+    shared_ptr<renderstack::graphics::Renderer> renderer_,
+    shared_ptr<Programs>                  programs_,
+    shared_ptr<Light_mesh>                light_mesh_)
 {
     base_connect(renderer_, programs_, light_mesh_);
 
@@ -58,27 +53,25 @@ void light_debug_renderer::connect(
     initialization_depends_on(programs_);
 }
 
-void light_debug_renderer::initialize_service()
+void Light_debug_renderer::initialize_service()
 {
     base_initialize_service();
 
-    m_debug_light_render_states.depth.set_enabled(true);
-    m_debug_light_render_states.depth.set_function(gl::depth_function::l_equal);
-    m_debug_light_render_states.face_cull.set_enabled(true);
-    m_debug_light_render_states.blend.set_enabled(true);
-    m_debug_light_render_states.blend.rgb().set_equation_mode(gl::blend_equation_mode::func_add);
-    m_debug_light_render_states.blend.rgb().set_source_factor(gl::blending_factor_src::src_alpha);
-    m_debug_light_render_states.blend.rgb().set_destination_factor(gl::blending_factor_dest::one);
-    m_debug_light_render_states.blend.alpha().set_equation_mode(gl::blend_equation_mode::func_add);
-    m_debug_light_render_states.blend.alpha().set_source_factor(gl::blending_factor_src::one);
-    m_debug_light_render_states.blend.alpha().set_destination_factor(gl::blending_factor_dest::one);
+    m_debug_light_render_states.depth.enabled                  = true;
+    m_debug_light_render_states.depth.function                 = gl::depth_function::l_equal;
+    m_debug_light_render_states.face_cull.enabled              = true;
+    m_debug_light_render_states.blend.enabled                  = true;
+    m_debug_light_render_states.blend.rgb.equation_mode        = gl::blend_equation_mode::func_add;
+    m_debug_light_render_states.blend.rgb.source_factor        = gl::blending_factor_src::src_alpha;
+    m_debug_light_render_states.blend.rgb.destination_factor   = gl::blending_factor_dest::one;
+    m_debug_light_render_states.blend.alpha.equation_mode      = gl::blend_equation_mode::func_add;
+    m_debug_light_render_states.blend.alpha.source_factor      = gl::blending_factor_src::one;
+    m_debug_light_render_states.blend.alpha.destination_factor = gl::blending_factor_dest::one;
 }
 
-void light_debug_renderer::light_pass(
-    vector<shared_ptr<light>> const &lights,
-    shared_ptr<class camera>         camera)
+void Light_debug_renderer::light_pass(const Light_collection &lights, const Camera &camera)
 {
-    slog_trace("base_renderer::light_pass(lights.size() = %u)\n", static_cast<unsigned int>(lights.size()));
+    slog_trace("Base_renderer::light_pass(lights.size() = %u)\n", static_cast<unsigned int>(lights.size()));
 
     bind_default_framebuffer();
 
@@ -110,7 +103,7 @@ void light_debug_renderer::light_pass(
     auto &t = r.track();
 
     t.execute(&m_debug_light_render_states);
-    r.set_program(programs()->debug_light);
+    r.set_program(programs()->debug_light.get());
 
     bind_camera();
 
@@ -124,8 +117,9 @@ void light_debug_renderer::light_pass(
         }
 
         auto geometry_mesh = light_mesh()->get_light_mesh(l);
-        auto vertex_stream = geometry_mesh->vertex_stream();
+        auto vertex_stream = geometry_mesh->vertex_stream().get();
         auto mesh          = geometry_mesh->get_mesh();
+        assert(vertex_stream != nullptr);
 
         log_trace("light_index = %u\n", static_cast<unsigned int>(light_index));
 
@@ -134,7 +128,7 @@ void light_debug_renderer::light_pass(
 
         //gl::begin_mode::value         begin_mode    = gl::begin_mode::points;
         gl::begin_mode::value         begin_mode    = gl::begin_mode::lines;
-        index_range const &           index_range   = geometry_mesh->edge_line_indices();
+        Index_range                   index_range   = geometry_mesh->edge_line_indices();
         GLsizei                       count         = static_cast<GLsizei>(index_range.index_count);
         gl::draw_elements_type::value index_type    = gl::draw_elements_type::unsigned_int;
         GLvoid *                      index_pointer = reinterpret_cast<GLvoid *>((index_range.first_index + mesh->first_index()) * mesh->index_buffer()->stride());
@@ -144,7 +138,7 @@ void light_debug_renderer::light_pass(
 
         assert(index_range.index_count > 0);
 
-        r.draw_elements_base_vertex(geometry_mesh->vertex_stream(),
+        r.draw_elements_base_vertex(*vertex_stream,
                                     begin_mode,
                                     count,
                                     index_type,

@@ -14,7 +14,7 @@
 
 namespace renderstack { namespace ui {
 
-class gui_renderer;
+class Gui_renderer;
 
 class context
 {
@@ -32,12 +32,12 @@ public:
    context_style        &style();
    context_ninepatch    &ninepatch();
 
-   std::shared_ptr<class gui_renderer> gui_renderer();
+   std::shared_ptr<gui_renderer> gui_renderer();
 
 private:
    context_style        m_style;
 
-   std::shared_ptr<class gui_renderer> s_gui_renderer;
+   std::shared_ptr<Gui_renderer> s_gui_renderer;
 
 private:
    static std::shared_ptr<context> s_current_context;

@@ -23,25 +23,10 @@ namespace geometry
 namespace shapes
 {
 
-class disc : public geometry
-{
-public:
-    disc(
-        double outer_radius,
-        double inner_radius,
-        int    slice_count,
-        int    stack_count);
-
-protected:
-    struct make_info;
-
-    point *get_point(make_info &info, int slice, int stack);
-
-    //  relStackIn is in range -1..1
-    //  relStack is in range 0..1
-    point * make_point(make_info &info, double rel_slice, double rel_stack);
-    corner *make_corner(make_info &info, polygon *polygon, int slice, int stack);
-};
+Geometry make_disc(double outer_radius,
+                   double inner_radius,
+                   int    slice_count,
+                   int    stack_count);
 
 } // namespace shapes
 } // namespace geometry

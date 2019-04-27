@@ -18,40 +18,32 @@ namespace renderstack
 {
 namespace graphics
 {
-class uniform_buffer;
-class uniform_buffer_range;
+class Uniform_buffer;
+class Uniform_buffer_range;
 } // namespace graphics
 namespace mesh
 {
-class geometry_mesh;
+class Geometry_mesh;
 }
 namespace scene
 {
-class camera;
-class light;
-class viewport;
+class Camera;
+class Light;
+struct Viewport;
 } // namespace scene
 } // namespace renderstack
 
-class ring_uniform_buffer
+class Ring_uniform_buffer
 {
 public:
-    ring_uniform_buffer()
-        : m_current_buffer(0)
+    void initialize(renderstack::graphics::Renderer &renderer,
+                    size_t                           num,
+                    size_t                           stride)
     {
-        for (std::size_t i = 0; i < NUM_UNIFORM_BUFFERS; ++i)
-            m_storage[i] = nullptr;
-    }
-
-    void initialize(
-        renderstack::graphics::renderer &renderer,
-        std::size_t                      num,
-        std::size_t                      stride)
-    {
-        for (std::size_t i = 0; i < NUM_UNIFORM_BUFFERS; ++i)
+        for (size_t i = 0; i < m_storage.size(); ++i)
         {
-            m_storage[i] = std::make_shared<renderstack::graphics::buffer>(
-                renderstack::graphics::buffer_target::uniform_buffer,
+            m_storage[i] = std::make_shared<renderstack::graphics::Buffer>(
+                renderstack::graphics::Buffer::Target::uniform_buffer,
                 num,
                 stride,
                 gl::buffer_usage_hint::stream_draw);
@@ -59,7 +51,7 @@ public:
         }
     }
 
-    std::shared_ptr<renderstack::graphics::buffer> &current_buffer()
+    std::shared_ptr<renderstack::graphics::Buffer> &current_buffer()
     {
         return m_storage[m_current_buffer];
     }
@@ -70,11 +62,8 @@ public:
     }
 
 private:
-    std::array<
-        std::shared_ptr<renderstack::graphics::buffer>,
-        NUM_UNIFORM_BUFFERS>
-        m_storage;
-    std::size_t m_current_buffer;
+    std::array<std::shared_ptr<renderstack::graphics::Buffer>, NUM_UNIFORM_BUFFERS> m_storage;
+    size_t m_current_buffer{0};
 };
 
 enum uniform_buffer_usage
@@ -87,20 +76,23 @@ enum uniform_buffer_usage
     count        = 5
 };
 
-class light_mesh;
-class material;
-class programs;
+class Light_mesh;
+struct Material;
+class Programs;
 
-class base_renderer
+class Base_renderer
 {
 public:
-    base_renderer();
-    /*virtual*/ ~base_renderer();
+    using Light_collection = std::vector<std::shared_ptr<renderstack::scene::Light>>;
+    using Material_collection = std::vector<std::shared_ptr<Material>>;
 
-    void bind_default_framebuffer();
+    virtual ~Base_renderer() = default;
 
-    void        set_max_lights(std::size_t max_lights);
-    std::size_t max_lights()
+    static void bind_default_framebuffer();
+
+    void set_max_lights(size_t max_lights);
+
+    size_t max_lights()
     {
         return m_max_lights;
     }
@@ -109,80 +101,95 @@ public:
     {
         return m_use_stencil;
     }
+
     int scale() const
     {
         return m_scale;
     }
+
     void set_use_stencil(bool value);
+
     void set_scale(int value);
+
     void base_resize(int width, int height);
+
     int  width();
+
     int  height();
+
     int  width_full()
     {
         return m_width_full;
     }
+
     int height_full()
     {
         return m_height_full;
     }
 
-    renderstack::graphics::renderer & renderer();
-    std::shared_ptr<class programs>   programs();
-    std::shared_ptr<class light_mesh> light_mesh()
+    renderstack::graphics::Renderer &renderer();
+
+    std::shared_ptr<Programs> programs();
+
+    std::shared_ptr<Light_mesh> light_mesh()
     {
         return m_light_mesh;
     }
 
     void bind_camera();
-    void bind_model(std::size_t model_index);
-    void bind_light_model(std::size_t light_index);
-    void bind_light(std::size_t light_index);
-    void bind_material(std::size_t material_index);
 
-    bool point_in_light(std::shared_ptr<renderstack::scene::light> l);
+    void bind_model(size_t model_index);
+
+    void bind_light_model(size_t light_index);
+
+    void bind_light(size_t light_index);
+
+    void bind_material(size_t material_index);
+
+    bool point_in_light(std::shared_ptr<renderstack::scene::Light> l);
 
 protected:
-    void base_connect(std::shared_ptr<renderstack::graphics::renderer> renderer_,
-                      std::shared_ptr<class programs>                  programs_,
-                      std::shared_ptr<class light_mesh>                light_mesh);
+    void base_connect(std::shared_ptr<renderstack::graphics::Renderer> renderer,
+                      std::shared_ptr<Programs>                        programs,
+                      std::shared_ptr<Light_mesh>                      light_mesh);
+
     void base_initialize_service();
 
 protected:
-    unsigned char *begin_edit(uniform_buffer_usage buffer, std::size_t count);
-    void           write(unsigned char *const dst, const float *const src, std::size_t byte_count);
-    void           end_edit(uniform_buffer_usage buffer);
+    unsigned char *begin_edit(uniform_buffer_usage buffer, size_t count);
 
-    void update_models(std::vector<std::shared_ptr<model>> const & models,
-                       std::shared_ptr<renderstack::scene::camera> camera);
+    void write(unsigned char *const dst, const float *const src, size_t byte_count);
 
-    void update_lights_models(std::vector<std::shared_ptr<renderstack::scene::light>> const &lights,
-                              std::shared_ptr<renderstack::scene::camera>                    camera);
+    void end_edit(uniform_buffer_usage buffer);
 
-    void update_lights(std::vector<std::shared_ptr<renderstack::scene::light>> const &lights,
-                       std::shared_ptr<renderstack::scene::camera>                    camera);
+    void update_models(const Model_collection &models, const renderstack::scene::Camera &camera);
 
-    void update_materials(std::vector<std::shared_ptr<material>> const &materials);
-    void update_camera(std::shared_ptr<renderstack::scene::camera> camera);
+    void update_lights_models(const Light_collection &lights, const renderstack::scene::Camera &camera);
+
+    void update_lights(const Light_collection &lights, const renderstack::scene::Camera &camera);
+
+    void update_materials(const Material_collection &materials);
+
+    void update_camera(const renderstack::scene::Camera &camera);
 
 private:
-    std::shared_ptr<renderstack::graphics::renderer> m_renderer;
-    std::shared_ptr<class programs>                  m_programs;
-    std::shared_ptr<class light_mesh>                m_light_mesh;
+    std::shared_ptr<renderstack::graphics::Renderer> m_renderer;
+    std::shared_ptr<Programs>                        m_programs;
+    std::shared_ptr<Light_mesh>                      m_light_mesh;
 
-    std::array<ring_uniform_buffer, uniform_buffer_usage::count> m_uniform_buffers;
+    std::array<Ring_uniform_buffer, uniform_buffer_usage::count> m_uniform_buffers;
 
-    int m_width;
-    int m_height;
-    int m_width_full;
-    int m_height_full;
+    int m_width{0};
+    int m_height{0};
+    int m_width_full{0};
+    int m_height_full{0};
 
-    std::size_t m_max_lights;
-    bool        m_use_stencil;
-    int         m_scale;
+    size_t m_max_lights{0};
+    bool   m_use_stencil{true};
+    int    m_scale{1};
 
-    intptr_t m_edit_start;
-    intptr_t m_edit_byte_count;
+    intptr_t m_edit_start{0};
+    intptr_t m_edit_byte_count{0};
 };
 
 #endif

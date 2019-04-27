@@ -17,40 +17,64 @@ namespace renderstack
 namespace ui
 {
 
-class button : public area, public action_source
+class Button : public Area, public Action_source
 {
 public:
-    button(
-        std::shared_ptr<class gui_renderer> renderer,
-        std::string const &                 label,
-        std::shared_ptr<class style>        style);
-    virtual ~button() {}
+    Button(Gui_renderer &renderer, const std::string &label, Style &style)
+        : Area(renderer, style)
+        , m_dirty(true)
+        , m_trigger(false)
+    {
+        if (style.font != nullptr)
+        {
+            m_text_buffer = std::make_unique<Text_buffer>(renderer, *style.font);
+        }
+        if (style.ninepatch_style != nullptr)
+        {
+            m_ninepatch = std::make_unique<Ninepatch>(renderer, *style.ninepatch_style);
+        }
+        name = label;
+        m_label = label;
+    }
 
-    std::string const &label() const;
-    void               set_label(std::string const &value);
-    void               update_size();
-    void               update_place();
-    void               begin_size(glm::vec2 const &free_size_reference);
-    void               begin_place(rectangle const &reference, glm::vec2 const &grow_direction);
-    void               draw_self(ui_context &context);
+    virtual ~Button() = default;
+
+    const std::string &label() const;
+
+    void set_label(const std::string &value);
+
+    void update_size();
+
+    void update_place();
+
+    void begin_size(glm::vec2 free_size_reference);
+
+    void begin_place(Rectangle reference, glm::vec2 grow_direction);
+
+    void draw_self(ui_context &context);
 
 protected:
-    glm::mat4 &        text_frame();
-    glm::mat4 &        background_frame();
-    class ninepatch &  ninepatch();
-    bool               trigger() const;
-    void               set_trigger(bool value);
-    class text_buffer &text_buffer();
+    glm::mat4 &text_frame();
+
+    glm::mat4 &background_frame();
+
+    Ninepatch *ninepatch();
+
+    bool trigger() const;
+
+    void set_trigger(bool value);
+
+    Text_buffer *text_buffer();
 
 private:
-    glm::mat4         m_text_frame;
-    glm::mat4         m_background_frame;
-    class text_buffer m_text_buffer;
-    class ninepatch   m_ninepatch;
-    rectangle         m_bounds;
-    std::string       m_label;
-    bool              m_dirty;
-    bool              m_trigger;
+    glm::mat4                    m_text_frame;
+    glm::mat4                    m_background_frame;
+    std::unique_ptr<Text_buffer> m_text_buffer;
+    std::unique_ptr<Ninepatch>   m_ninepatch;
+    Rectangle                    m_bounds;
+    std::string                  m_label;
+    bool                         m_dirty;
+    bool                         m_trigger;
 };
 
 } // namespace ui

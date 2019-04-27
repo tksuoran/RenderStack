@@ -19,8 +19,9 @@ private:
     service(const service &other);
 
 protected:
-    service(std::string const &name);
-    virtual ~service();
+    service(const std::string &name);
+
+    virtual ~service() = default;
 
 public:
     void initialization_depends_on(std::shared_ptr<service> a)
@@ -43,26 +44,34 @@ public:
 
     virtual void initialize_service() = 0;
 
-    std::string const &name() const
+    const std::string &name() const
     {
         return m_name;
     }
+
     bool initialized() const;
+
     bool is_registered() const
     {
         return m_is_registered;
     }
+
     void register_as_service()
     {
         m_is_registered = true;
     }
+
     void unregister()
     {
         m_is_registered = false;
     }
-    void                                      initialize();
-    bool                                      ready() const;
-    void                                      remove_dependencies(std::set<std::shared_ptr<service>> const &remove_set);
+
+    void initialize();
+
+    bool ready() const;
+
+    void remove_dependencies(std::set<std::shared_ptr<service>> const &remove_set);
+
     std::set<std::shared_ptr<service>> const &dependencies()
     {
         return m_dependencies;

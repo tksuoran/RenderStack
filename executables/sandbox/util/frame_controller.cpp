@@ -9,7 +9,7 @@
 using namespace renderstack::toolkit;
 using namespace glm;
 
-void frame_controller::set_position(vec3 const &position)
+void frame_controller::set_position(vec3 position)
 {
     m_position = position;
     update();
@@ -18,15 +18,17 @@ void frame_controller::set_position(vec3 const &position)
 void frame_controller::set_elevation(float value)
 {
     m_elevation = value;
+    update();
 }
 
 void frame_controller::set_heading(float value)
 {
     m_heading = value;
     create_rotation(m_heading, vec3_unit_y, m_heading_matrix);
+    update();
 }
 
-vec3 const &frame_controller::position() const
+vec3 frame_controller::position() const
 {
     return m_position;
 }
@@ -41,65 +43,30 @@ float frame_controller::heading() const
     return m_heading;
 }
 
-controller &frame_controller::rotate_x()
-{
-    return m_rotate_x;
-}
-
-controller &frame_controller::rotate_y()
-{
-    return m_rotate_y;
-}
-
-controller &frame_controller::rotate_z()
-{
-    return m_rotate_z;
-}
-
-controller &frame_controller::translate_x()
-{
-    return m_translate_x;
-}
-
-controller &frame_controller::translate_y()
-{
-    return m_translate_y;
-}
-
-controller &frame_controller::translate_z()
-{
-    return m_translate_z;
-}
-
-controller &frame_controller::speed_modifier()
-{
-    return m_speed_modifier;
-}
 
 frame_controller::frame_controller()
-    : m_frame(nullptr)
 {
     clear();
-    m_rotate_x.set_damp(0.700f);
-    m_rotate_y.set_damp(0.700f);
-    m_rotate_z.set_damp(0.700f);
-    m_rotate_x.set_max_delta(0.02f);
-    m_rotate_y.set_max_delta(0.02f);
-    m_rotate_z.set_max_delta(0.02f);
-    m_translate_x.set_damp(0.92f);
-    m_translate_y.set_damp(0.92f);
-    m_translate_z.set_damp(0.92f);
-    m_translate_x.set_max_delta(0.004f);
-    m_translate_y.set_max_delta(0.004f);
-    m_translate_z.set_max_delta(0.004f);
-    m_speed_modifier.set_max_value(3.0f);
-    m_speed_modifier.set_damp(0.92f);
-    m_speed_modifier.set_max_delta(0.5f);
+    rotate_x.set_damp(0.700f);
+    rotate_y.set_damp(0.700f);
+    rotate_z.set_damp(0.700f);
+    rotate_x.set_max_delta(0.02f);
+    rotate_y.set_max_delta(0.02f);
+    rotate_z.set_max_delta(0.02f);
+    translate_x.set_damp(0.92f);
+    translate_y.set_damp(0.92f);
+    translate_z.set_damp(0.92f);
+    translate_x.set_max_delta(0.004f);
+    translate_y.set_max_delta(0.004f);
+    translate_z.set_max_delta(0.004f);
+    speed_modifier.set_max_value(3.0f);
+    speed_modifier.set_damp(0.92f);
+    speed_modifier.set_max_delta(0.5f);
 
     update();
 }
 
-void frame_controller::set_frame(std::shared_ptr<renderstack::scene::frame> value)
+void frame_controller::set_frame(renderstack::scene::Frame *value)
 {
     m_frame = value;
 
@@ -110,30 +77,31 @@ void frame_controller::set_frame(std::shared_ptr<renderstack::scene::frame> valu
 
     //vec3 right  = m_frame->world_from_local().matrix * vec3_unit_x;
     //vec3 up     = m_frame->world_from_local().matrix * vec3_unit_y;
-    vec3 back(m_frame->world_from_local().matrix() * vec4(vec3_unit_z, 0.0f));
+    vec3 back(m_frame->world_from_local.matrix() * vec4(vec3_unit_z, 0.0f));
 
     // Decompose frame transformation matrix to position, theta and phi
-    m_position = vec3(m_frame->world_from_local().matrix() * vec4(0.0f, 0.0f, 0.0f, 0.0f));
-    cartesian_to_spherical(vec3(m_frame->world_from_local().matrix() * vec4(vec3_unit_z, 1.0f)),
+    m_position = vec3(m_frame->world_from_local.matrix() * vec4(0.0f, 0.0f, 0.0f, 0.0f));
+    cartesian_to_spherical(vec3(m_frame->world_from_local.matrix() * vec4(vec3_unit_z, 1.0f)),
                            m_heading, m_elevation);
 
     create_rotation(m_heading, vec3_unit_y, m_heading_matrix);
 
     update();
 }
-std::shared_ptr<renderstack::scene::frame> frame_controller::frame()
+
+renderstack::scene::Frame *frame_controller::frame()
 {
     return m_frame;
 }
 
 void frame_controller::clear()
 {
-    m_translate_x.clear();
-    m_translate_y.clear();
-    m_translate_z.clear();
-    m_rotate_x.clear();
-    m_rotate_y.clear();
-    m_rotate_z.clear();
+    translate_x.clear();
+    translate_y.clear();
+    translate_z.clear();
+    rotate_x.clear();
+    rotate_y.clear();
+    rotate_z.clear();
 }
 
 void frame_controller::update()
@@ -151,10 +119,10 @@ void frame_controller::update()
         m_position.y = 0.03f;
     }
 
-    /*  Put translation to column 3  */
+    // Put translation to column 3
     parent_from_local[3] = vec4(m_position, 1.0f);
 
-    /*  Put inverse translation to column 3 */
+    // Put inverse translation to column 3
     /*parentToLocal._03 = parentToLocal._00 * -positionInParent.X + parentToLocal._01 * -positionInParent.Y + parentToLocal._02 * - positionInParent.Z;
    parentToLocal._13 = parentToLocal._10 * -positionInParent.X + parentToLocal._11 * -positionInParent.Y + parentToLocal._12 * - positionInParent.Z;
    parentToLocal._23 = parentToLocal._20 * -positionInParent.X + parentToLocal._21 * -positionInParent.Y + parentToLocal._22 * - positionInParent.Z;
@@ -163,7 +131,7 @@ void frame_controller::update()
     //m_local_from_parent = inverse(m_parent_from_local);
     if (m_frame)
     {
-        m_frame->parent_from_local().set(parent_from_local);
+        m_frame->parent_from_local.set(parent_from_local);
     }
 
     //Frame.LocalToParent.Set(localToParent, parentToLocal);
@@ -186,36 +154,36 @@ vec3 frame_controller::back() const
 
 void frame_controller::update_fixed_step()
 {
-    m_translate_x.update();
-    m_translate_y.update();
-    m_translate_z.update();
-    m_rotate_x.update();
-    m_rotate_y.update();
-    m_rotate_z.update();
-    m_speed_modifier.update();
+    translate_x.update();
+    translate_y.update();
+    translate_z.update();
+    rotate_x.update();
+    rotate_y.update();
+    rotate_z.update();
+    speed_modifier.update();
 
-    float speed = 0.8f + m_speed_modifier.current_value();
+    float speed = 0.8f + speed_modifier.current_value();
 
-    if (m_translate_x.current_value() != 0.0f)
+    if (translate_x.current_value() != 0.0f)
     {
-        m_position += right() * m_translate_x.current_value() * speed;
+        m_position += right() * translate_x.current_value() * speed;
     }
 
-    if (m_translate_y.current_value() != 0.0f)
+    if (translate_y.current_value() != 0.0f)
     {
-        m_position += up() * m_translate_y.current_value() * speed;
+        m_position += up() * translate_y.current_value() * speed;
     }
 
-    if (m_translate_z.current_value() != 0.0f)
+    if (translate_z.current_value() != 0.0f)
     {
-        m_position += back() * m_translate_z.current_value() * speed;
+        m_position += back() * translate_z.current_value() * speed;
     }
 
-    if ((m_rotate_x.current_value() != 0.0f) ||
-        (m_rotate_y.current_value() != 0.0f))
+    if ((rotate_x.current_value() != 0.0f) ||
+        (rotate_y.current_value() != 0.0f))
     {
-        m_heading += m_rotate_y.current_value();
-        m_elevation += m_rotate_x.current_value();
+        m_heading += rotate_y.current_value();
+        m_elevation += rotate_x.current_value();
         mat4 elevation_matrix;
         create_rotation(m_elevation, vec3_unit_x, elevation_matrix);
         create_rotation(m_heading, vec3_unit_y, m_heading_matrix);

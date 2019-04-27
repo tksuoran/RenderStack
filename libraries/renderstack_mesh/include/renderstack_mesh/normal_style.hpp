@@ -6,7 +6,7 @@ namespace renderstack
 namespace mesh
 {
 
-namespace normal_style
+namespace Normal_style
 {
 enum value
 {
@@ -15,7 +15,7 @@ enum value
     point_normals
 };
 const char *desc(enum value a);
-} // namespace normal_style
+} // namespace Normal_style
 
 } // namespace mesh
 } // namespace renderstack

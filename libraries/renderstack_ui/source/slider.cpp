@@ -13,58 +13,74 @@ using namespace renderstack::toolkit;
 using namespace std;
 using namespace glm;
 
-string const &slider::label() const
+const std::string &Slider::label() const
 {
     return m_label;
 }
-float slider::current_display_value() const
+
+float Slider::current_display_value() const
 {
     return m_min_value + m_current_relative_value * (m_max_value - m_min_value);
 }
-float slider::slider_relative_value() const
+
+float Slider::slider_relative_value() const
 {
     if (m_nonlinear)
+    {
         return nonlinear_value();
+    }
 
     return relative_value();
 }
-float slider::nonlinear_value() const
+
+float Slider::nonlinear_value() const
 {
     return (float)std::pow(relative_value(), 1.0f / 6.0f);
 }
-float slider::relative_value() const
+
+float Slider::relative_value() const
 {
     return m_current_relative_value;
 }
-float slider::min() const
+
+float Slider::min() const
 {
     return m_min_value;
 }
-float slider::max() const
+
+float Slider::max() const
 {
     return m_max_value;
 }
 
-void slider::set_value(string const &value)
+void Slider::set_value(const std::string &value)
 {
     m_label = value;
 }
-void slider::set_current_display_value(float value)
+
+void Slider::set_current_display_value(float value)
 {
     m_current_relative_value = (value - m_min_value) / (m_max_value - m_min_value);
 }
-void slider::set_slider_relative_value(float value)
+
+void Slider::set_slider_relative_value(float value)
 {
     if (m_nonlinear)
+    {
         set_nonlinear_value(value);
+    }
     else
+    {
         set_relative_value(value);
+    }
 }
-void slider::set_nonlinear_value(float value)
+
+void Slider::set_nonlinear_value(float value)
 {
     set_relative_value(std::pow(value, 6.0f));
 }
-void slider::set_relative_value(float value)
+void Slider::set_relative_value(float value)
+
 {
     if (value != m_current_relative_value)
     {
@@ -72,138 +88,170 @@ void slider::set_relative_value(float value)
         m_value_dirty            = true;
     }
 }
-void slider::set_min(float value)
+
+void Slider::set_min(float value)
 {
     m_min_value = value;
 }
-void slider::set_max(float value)
+
+void Slider::set_max(float value)
 {
     m_max_value = value;
 }
 
-slider::slider(
-    shared_ptr<class gui_renderer> renderer,
-    shared_ptr<class style>        style,
-    string const &                 label,
-    float                          min,
-    float                          max)
-    : area(renderer, style), m_text_buffer(renderer, style->font()), m_ninepatch(renderer, style->ninepatch_style()), m_label(label), m_min_value(min), m_max_value(max), m_label_dirty(true), m_value_dirty(true), m_nonlinear(true)
+Slider::Slider(Gui_renderer      &renderer,
+               Style             &style,
+               const std::string &label,
+               float             min,
+               float             max)
+    : Area(renderer, style)
+    , m_label(label)
+    , m_min_value(min)
+    , m_max_value(max)
+    , m_label_dirty(true)
+    , m_value_dirty(true)
+    , m_nonlinear(true)
 {
-    set_name(label);
+    if (style.font != nullptr)
+    {
+        m_text_buffer = std::make_unique<Text_buffer>(renderer, *style.font);
+    }
+    if (style.ninepatch_style != nullptr)
+    {
+        m_ninepatch = std::make_unique<Ninepatch>(renderer, *style.ninepatch_style);
+    }
+    name = label;
     set_slider_relative_value(0.5f);
 }
 
-void slider::begin_size(vec2 const &free_size_reference)
+void Slider::begin_size(vec2 free_size_reference)
 {
     update_size();
-    area::begin_size(free_size_reference);
+    Area::begin_size(free_size_reference);
 }
-void slider::update_size()
+
+void Slider::update_size()
 {
     if (m_label_dirty)
     {
-        if (style()->font())
+        if (m_text_buffer)
         {
-            m_text_buffer.measure(m_label + ": 180.99");
-            m_bounds = m_text_buffer.bounding_box();
+            m_text_buffer->measure(m_label + ": 180.99");
+            m_bounds = m_text_buffer->bounding_box();
 
-            set_fill_base_pixels(m_bounds.max() + 2.0f * style()->padding());
+            fill_base_pixels = m_bounds.max() + 2.0f * style.padding;
         }
         else
         {
-            set_fill_base_pixels(vec2(30.0f, 10.0f));
+            fill_base_pixels = vec2(30.0f, 10.0f);
         }
 
-        m_ninepatch.place(renderer(), 0.0f, 0.0f, fill_base_pixels().x, fill_base_pixels().y);
+        if (m_ninepatch)
+        {
+            m_ninepatch->place(renderer, 0.0f, 0.0f, fill_base_pixels.x, fill_base_pixels.y);
+        }
         m_label_dirty = false;
         m_value_dirty = true;
     }
 }
 
-void slider::begin_place(rectangle const &reference, vec2 const &grow_direction)
+void Slider::begin_place(Rectangle reference, vec2 grow_direction)
 {
-    area::begin_place(reference, grow_direction);
+    Area::begin_place(reference, grow_direction);
     update_place();
-    mat4 a, b;
-    create_translation(rect().min() + style()->padding(), a);
-    create_translation(rect().min(), b);
-    mat4 const &o      = renderer()->ortho();
+    mat4 a;
+    mat4 b;
+    create_translation(rect.min() + style.padding, a);
+    create_translation(rect.min(), b);
+    mat4 o      = renderer.ortho();
     m_text_frame       = o * a;
     m_background_frame = o * b;
 }
-void slider::update_place()
+
+void Slider::update_place()
 {
-    if (size().x != m_bounds.max().x + 2.0f * style()->padding().x)
-        m_ninepatch.place(renderer(), 0.0f, 0.0f, size().x, size().y);
+    if (m_ninepatch)
+    {
+        if (size.x != m_bounds.max().x + 2.0f * style.padding.x)
+        {
+            m_ninepatch->place(renderer, 0.0f, 0.0f, size.x, size.y);
+        }
+    }
 }
-void slider::draw_self(ui_context &context)
+
+void Slider::draw_self(ui_context &context)
 {
-    if (m_value_dirty && style()->font())
+    if (m_value_dirty && m_text_buffer)
     {
         stringstream ss;
         ss << m_label << ": " << current_display_value();
-        m_text_buffer.begin_print();
-        m_text_buffer.print(ss.str(), 0, 0);
-        m_text_buffer.end_print();
+        m_text_buffer->begin_print();
+        m_text_buffer->print(ss.str(), 0, 0);
+        m_text_buffer->end_print();
     }
 
-    auto gr = renderer();
+    auto &gr = renderer;
 
     //gr->push();
 
-    gr->set_program(style()->ninepatch_style()->program());
-    gr->set_texture(style()->ninepatch_style()->texture_unit(), style()->ninepatch_style()->texture());
-    gr->set_transform(m_background_frame);
-    gr->set_color_scale(vec4(1.0f, 1.0f, 1.0f, 1.0f));
+    gr.set_program(style.ninepatch_style->program);
+    gr.set_texture(style.ninepatch_style->texture_unit, style.ninepatch_style->texture.get());
+    gr.set_transform(m_background_frame);
+    gr.set_color_scale(vec4(1.0f, 1.0f, 1.0f, 1.0f));
 
-    if (rect().hit(context.mouse))
+    if (rect.hit(context.mouse))
     {
         if (context.mouse_buttons[0])
         {
-            float x              = context.mouse.x - rect().min().x;
-            float relative_value = x / (rect().size().x - 1.0f);
+            float x              = context.mouse.x - rect.min().x;
+            float relative_value = x / (rect.size().x - 1.0f);
             set_relative_value(relative_value);
-            gr->set_color_add(vec4(0.3f, 0.4f, 0.5f, 0.0f));
+            gr.set_color_add(vec4(0.3f, 0.4f, 0.5f, 0.0f));
             set_trigger(true);
         }
         else
         {
             if (trigger())
             {
-                auto s = sink().lock();
+                auto s = sink();
                 if (s)
-                    s->action(action_source::shared_from_this());
+                {
+                    s->action(this);
+                }
 
                 set_trigger(false);
             }
-            gr->set_color_add(vec4(0.2f, 0.3f, 0.4f, 0.0f));
+            gr.set_color_add(vec4(0.2f, 0.3f, 0.4f, 0.0f));
         }
     }
     else
     {
         set_trigger(false);
-        gr->set_color_add(vec4(0.1f, 0.2f, 0.3f, 0.0f));
+        gr.set_color_add(vec4(0.1f, 0.2f, 0.3f, 0.0f));
     }
 
     float t       = relative_value();
-    float pixel_x = rect().min().x + t * (rect().size().x - 1.0f);
+    float pixel_x = rect.min().x + t * (rect.size().x - 1.0f);
 
-    gr->set_t(pixel_x);
+    gr.set_t(pixel_x);
 
-    m_ninepatch.render(gr);
-
-    /*  Then draw text  */
-    if (style()->font())
+    if (m_ninepatch)
     {
-        gr->blend_alpha();
-        gr->set_program(style()->program());
-        gr->set_texture(style()->texture_unit(), style()->font()->texture());
+        m_ninepatch->render(gr);
+    }
+
+    // Then draw text
+    if (m_text_buffer)
+    {
+        gr.blend_alpha();
+        gr.set_program(style.program);
+        gr.set_texture(style.texture_unit, style.font->texture());
         // TODO Font shader currently does not have color add
         // gr->set_color_add  (vec4(0.00f, 0.00f, 0.00f, 0.0f));
-        gr->set_color_scale(vec4(0.72f, 0.72f, 0.72f, 2.0f));
-        gr->set_transform(m_text_frame);
-        m_text_buffer.render();
-        gr->blend_disable();
+        gr.set_color_scale(vec4(0.72f, 0.72f, 0.72f, 2.0f));
+        gr.set_transform(m_text_frame);
+        m_text_buffer->render();
+        gr.blend_disable();
     }
     //gr->pop();
 }

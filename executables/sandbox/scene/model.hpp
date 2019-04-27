@@ -7,67 +7,34 @@
 #include "scene/material.hpp"
 #include <memory>
 
-class material;
+struct Material;
 
-class model
+class Model
 {
 public:
-    model();
-    model(std::string const &name);
-    model(
-        std::string const &                               name,
-        std::shared_ptr<renderstack::mesh::geometry_mesh> mesh,
-        std::shared_ptr<material>                         material,
-        glm::mat4 const &                                 transform);
+    Model() = default;
 
-    std::shared_ptr<renderstack::scene::frame> frame() const
-    {
-        return m_frame;
-    }
-    std::string const &name()
-    {
-        return m_name;
-    }
+    Model(const std::string &name)
+        : name(name)
+    {}
 
-    std::shared_ptr<class renderstack::mesh::geometry_mesh> geometry_mesh()
-    {
-        return m_geometry_mesh;
-    }
-    void set_geometry_mesh(std::shared_ptr<renderstack::mesh::geometry_mesh> value)
-    {
-        m_geometry_mesh = value;
-    }
+    Model(const std::string &                               name,
+          std::shared_ptr<renderstack::mesh::Geometry_mesh> mesh,
+          std::shared_ptr<Material>                         material,
+          glm::mat4 const &                                 transform);
 
-    std::shared_ptr<class material> material() const
-    {
-        return m_material;
-    }
-    void set_material(std::shared_ptr<class material> value)
-    {
-        m_material = value;
-    }
-
-    bool selected() const
-    {
-        return m_selected;
-    }
-    void select()
-    {
-        m_selected = true;
-    }
-    void deselect()
-    {
-        m_selected = false;
-    }
+    ~Model() = default;
 
     glm::vec3 position() const;
 
-private:
-    std::string                                             m_name;
-    std::shared_ptr<renderstack::scene::frame>              m_frame;
-    std::shared_ptr<class renderstack::mesh::geometry_mesh> m_geometry_mesh;
-    std::shared_ptr<class material>                         m_material;
-    bool                                                    m_selected;
+    std::string               name;
+    renderstack::scene::Frame frame;
+    bool                      selected{false};
+    std::shared_ptr<Material> material;
+
+    std::shared_ptr<renderstack::mesh::Geometry_mesh> geometry_mesh;
 };
+
+using Model_collection = std::vector<std::shared_ptr<Model>>;
 
 #endif

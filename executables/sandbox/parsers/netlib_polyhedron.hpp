@@ -10,10 +10,10 @@
 class netlib_polyhedron
 {
 public:
-    netlib_polyhedron(std::string const &path);
+    netlib_polyhedron(const std::string &path);
 
 private:
-    bool        seek(std::string const &label);
+    bool        seek(const std::string &label);
     void        eol();
     std::string parse_line();
     void        skip_white_spaces();
@@ -42,7 +42,7 @@ private:
     std::vector<glm::vec3>        m_locations;
     std::vector<std::vector<int>> m_polygons;
 
-    std::string const &name() const
+    const std::string &name() const
     {
         return m_name;
     }
@@ -50,11 +50,11 @@ private:
     {
         return m_number;
     }
-    std::string const &symbol() const
+    const std::string &symbol() const
     {
         return m_symbol;
     }
-    std::string const &dual() const
+    const std::string &dual() const
     {
         return m_dual;
     }
@@ -68,7 +68,7 @@ private:
     }
 
     std::string             m_text;
-    std::size_t             m_pos;
+    size_t             m_pos;
     std::unordered_set<int> m_used_vertices;
 };
 

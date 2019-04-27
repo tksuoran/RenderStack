@@ -37,90 +37,88 @@ using namespace gl;
 using namespace glm;
 using namespace std;
 
-deferred_renderer::deferred_renderer()
-    : service("deferred_renderer"), m_quad_renderer(nullptr), m_gbuffer_fbo(0), m_linear_fbo(0), m_stencil_rbo(0)
+Deferred_renderer::Deferred_renderer()
+    : service("Deferred_renderer")
+    , m_gbuffer_fbo(0)
+    , m_linear_fbo(0)
+    , m_stencil_rbo(0)
 {
 }
 
-/*virtual*/ deferred_renderer::~deferred_renderer()
+void Deferred_renderer::connect(shared_ptr<Renderer>      renderer,
+                                shared_ptr<Programs>      programs,
+                                shared_ptr<Quad_renderer> quad_renderer,
+                                shared_ptr<Light_mesh>    light_mesh)
 {
+    base_connect(renderer, programs, light_mesh);
+    m_quad_renderer = quad_renderer;
+
+    initialization_depends_on(renderer);
+    initialization_depends_on(programs);
 }
 
-void deferred_renderer::connect(
-    shared_ptr<renderstack::graphics::renderer> renderer_,
-    shared_ptr<class programs>                  programs_,
-    shared_ptr<quad_renderer>                   quad_renderer_,
-    std::shared_ptr<class light_mesh>           light_mesh_)
-{
-    base_connect(renderer_, programs_, light_mesh_);
-    m_quad_renderer = quad_renderer_;
-
-    initialization_depends_on(renderer_);
-    initialization_depends_on(programs_);
-}
-
-void deferred_renderer::initialize_service()
+void Deferred_renderer::initialize_service()
 {
     base_initialize_service();
 
-    m_gbuffer_render_states.depth.set_enabled(true);
-    m_gbuffer_render_states.face_cull.set_enabled(true);
+    m_gbuffer_render_states.depth.enabled     = true;
+    m_gbuffer_render_states.face_cull.enabled = true;
 
     // Nothing to change in, use default render states:
     // m_show_rt_render_states
 
-    m_light_stencil_render_states.depth.set_enabled(true);
-    m_light_stencil_render_states.depth.set_depth_mask(false);
+    m_light_stencil_render_states.depth.enabled    = true;
+    m_light_stencil_render_states.depth.depth_mask = false;
 
-    m_light_stencil_render_states.color_mask.set_red(false);
-    m_light_stencil_render_states.color_mask.set_green(false);
-    m_light_stencil_render_states.color_mask.set_blue(false);
-    m_light_stencil_render_states.color_mask.set_alpha(false);
+    m_light_stencil_render_states.color_mask.red   = false;
+    m_light_stencil_render_states.color_mask.green = false;
+    m_light_stencil_render_states.color_mask.blue  = false;
+    m_light_stencil_render_states.color_mask.alpha = false;
 
-    m_light_stencil_render_states.face_cull.set_enabled(false);
+    m_light_stencil_render_states.face_cull.enabled = false;
 
-    m_light_stencil_render_states.stencil.set_enabled(true);
-    m_light_stencil_render_states.stencil.back().set_z_fail_op(gl::stencil_op_enum::keep);
-    m_light_stencil_render_states.stencil.back().set_z_pass_op(gl::stencil_op_enum::incr_wrap);
-    m_light_stencil_render_states.stencil.back().set_stencil_fail_op(gl::stencil_op_enum::keep);
-    m_light_stencil_render_states.stencil.back().set_function(gl::stencil_function_enum::always);
+    m_light_stencil_render_states.stencil.enabled              = true;
+    m_light_stencil_render_states.stencil.back.z_fail_op       = gl::stencil_op_enum::keep;
+    m_light_stencil_render_states.stencil.back.z_pass_op       = gl::stencil_op_enum::incr_wrap;
+    m_light_stencil_render_states.stencil.back.stencil_fail_op = gl::stencil_op_enum::keep;
+    m_light_stencil_render_states.stencil.back.function        = gl::stencil_function_enum::always;
 
-    m_light_stencil_render_states.stencil.front().set_z_fail_op(gl::stencil_op_enum::keep);
-    m_light_stencil_render_states.stencil.front().set_z_pass_op(gl::stencil_op_enum::decr_wrap);
-    m_light_stencil_render_states.stencil.front().set_stencil_fail_op(gl::stencil_op_enum::keep);
-    m_light_stencil_render_states.stencil.front().set_function(gl::stencil_function_enum::always);
+    m_light_stencil_render_states.stencil.front.z_fail_op       = gl::stencil_op_enum::keep;
+    m_light_stencil_render_states.stencil.front.z_pass_op       = gl::stencil_op_enum::decr_wrap;
+    m_light_stencil_render_states.stencil.front.stencil_fail_op = gl::stencil_op_enum::keep;
+    m_light_stencil_render_states.stencil.front.function        = gl::stencil_function_enum::always;
 
-    m_light_stencil_render_states.stencil.set_separate(true);
+    m_light_stencil_render_states.stencil.separate = true;
 
-    m_light_with_stencil_test_render_states.depth.set_enabled(false);
-    m_light_with_stencil_test_render_states.depth.set_depth_mask(false);
-    m_light_with_stencil_test_render_states.face_cull.set_enabled(true);
-    m_light_with_stencil_test_render_states.face_cull.set_cull_face_mode(gl::cull_face_mode::front);
-    m_light_with_stencil_test_render_states.stencil.set_enabled(true);
-    m_light_with_stencil_test_render_states.stencil.back().set_function(gl::stencil_function_enum::not_equal);
-    m_light_with_stencil_test_render_states.stencil.back().set_reference(0);
-    m_light_with_stencil_test_render_states.stencil.front().set_function(gl::stencil_function_enum::not_equal);
-    m_light_with_stencil_test_render_states.stencil.front().set_reference(0);
-    m_light_with_stencil_test_render_states.blend.set_enabled(true);
-    m_light_with_stencil_test_render_states.blend.rgb().set_equation_mode(gl::blend_equation_mode::func_add);
-    m_light_with_stencil_test_render_states.blend.rgb().set_source_factor(gl::blending_factor_src::one);
-    m_light_with_stencil_test_render_states.blend.rgb().set_destination_factor(gl::blending_factor_dest::one);
-    m_light_with_stencil_test_render_states.stencil.back().set_z_fail_op(gl::stencil_op_enum::replace);
-    m_light_with_stencil_test_render_states.stencil.back().set_z_pass_op(gl::stencil_op_enum::replace);
-    m_light_with_stencil_test_render_states.stencil.front().set_z_fail_op(gl::stencil_op_enum::replace);
-    m_light_with_stencil_test_render_states.stencil.front().set_z_pass_op(gl::stencil_op_enum::replace);
+    m_light_with_stencil_test_render_states.depth.enabled                = false;
+    m_light_with_stencil_test_render_states.depth.depth_mask             = false;
+    m_light_with_stencil_test_render_states.face_cull.enabled            = true;
+    m_light_with_stencil_test_render_states.face_cull.cull_face_mode     = gl::cull_face_mode::front;
+    m_light_with_stencil_test_render_states.stencil.enabled              = true;
+    m_light_with_stencil_test_render_states.stencil.back.function        = gl::stencil_function_enum::not_equal;
+    m_light_with_stencil_test_render_states.stencil.back.reference       = 0;
+    m_light_with_stencil_test_render_states.stencil.front.function       = gl::stencil_function_enum::not_equal;
+    m_light_with_stencil_test_render_states.stencil.front.reference      = 0;
+    m_light_with_stencil_test_render_states.blend.enabled                = true;
+    m_light_with_stencil_test_render_states.blend.rgb.equation_mode      = gl::blend_equation_mode::func_add;
+    m_light_with_stencil_test_render_states.blend.rgb.source_factor      = gl::blending_factor_src::one;
+    m_light_with_stencil_test_render_states.blend.rgb.destination_factor = gl::blending_factor_dest::one;
+    m_light_with_stencil_test_render_states.stencil.back.z_fail_op       = gl::stencil_op_enum::replace;
+    m_light_with_stencil_test_render_states.stencil.back.z_pass_op       = gl::stencil_op_enum::replace;
+    m_light_with_stencil_test_render_states.stencil.front.z_fail_op      = gl::stencil_op_enum::replace;
+    m_light_with_stencil_test_render_states.stencil.front.z_pass_op      = gl::stencil_op_enum::replace;
 
-    m_light_render_states.depth.set_enabled(false);
-    m_light_render_states.depth.set_depth_mask(false);
-    m_light_render_states.face_cull.set_enabled(true);
-    m_light_render_states.face_cull.set_cull_face_mode(gl::cull_face_mode::front);
-    m_light_render_states.blend.set_enabled(true);
-    m_light_render_states.blend.rgb().set_equation_mode(gl::blend_equation_mode::func_add);
-    m_light_render_states.blend.rgb().set_source_factor(gl::blending_factor_src::one);
-    m_light_render_states.blend.rgb().set_destination_factor(gl::blending_factor_dest::one);
+    m_light_render_states.depth.enabled                = false;
+    m_light_render_states.depth.depth_mask             = false;
+    m_light_render_states.face_cull.enabled            = true;
+    m_light_render_states.face_cull.cull_face_mode     = gl::cull_face_mode::front;
+    m_light_render_states.blend.enabled                = true;
+    m_light_render_states.blend.rgb.equation_mode      = gl::blend_equation_mode::func_add;
+    m_light_render_states.blend.rgb.source_factor      = gl::blending_factor_src::one;
+    m_light_render_states.blend.rgb.destination_factor = gl::blending_factor_dest::one;
 }
 
-void deferred_renderer::resize(int width_, int height_)
+void Deferred_renderer::resize(int width_, int height_)
 {
     base_resize(width_, height_);
     {
@@ -134,20 +132,19 @@ void deferred_renderer::resize(int width_, int height_)
             GL_RGBA32F, // 0 normal
             GL_RGBA32F, // 1 tangent
             GL_RGBA8,   // 2 albedo
-            GL_RGBA32F  // 3 material (TODO GL_RGBA8)
+            GL_RGBA32F  // 3 Material (TODO GL_RGBA8)
         };
 
         for (int i = 0; i < 4; ++i)
         {
             m_gbuffer_rt[i].reset();
 
-            m_gbuffer_rt[i] = make_shared<renderstack::graphics::texture>(
-                renderstack::graphics::texture_target::texture_2d,
-                formats[i],
-                false,
-                width(),
-                height(),
-                0);
+            m_gbuffer_rt[i] = make_shared<Texture>(Texture::Target::texture_2d,
+                                                   formats[i],
+                                                   false,
+                                                   width(),
+                                                   height(),
+                                                   0);
             m_gbuffer_rt[i]->allocate_storage(renderer());
             m_gbuffer_rt[i]->set_mag_filter(gl::texture_mag_filter::nearest);
             m_gbuffer_rt[i]->set_min_filter(gl::texture_min_filter::nearest);
@@ -167,13 +164,12 @@ void deferred_renderer::resize(int width_, int height_)
                                                 : GL_DEPTH_ATTACHMENT;
 
         m_depth.reset();
-        m_depth = make_shared<renderstack::graphics::texture>(
-            renderstack::graphics::texture_target::texture_2d,
-            depth_format,
-            false,
-            width(),
-            height(),
-            0);
+        m_depth = make_shared<Texture>(Texture::Target::texture_2d,
+                                       depth_format,
+                                       false,
+                                       width(),
+                                       height(),
+                                       0);
         m_depth->set_mag_filter(gl::texture_mag_filter::nearest);
         m_depth->set_min_filter(gl::texture_min_filter::nearest);
         m_depth->set_wrap(0, gl::texture_wrap_mode::clamp_to_edge);
@@ -207,13 +203,12 @@ void deferred_renderer::resize(int width_, int height_)
         {
             m_linear_rt[i].reset();
 
-            m_linear_rt[i] = make_shared<renderstack::graphics::texture>(
-                renderstack::graphics::texture_target::texture_2d,
-                formats[i],
-                false,
-                width(),
-                height(),
-                0);
+            m_linear_rt[i] = make_shared<Texture>(Texture::Target::texture_2d,
+                                                  formats[i],
+                                                  false,
+                                                  width(),
+                                                  height(),
+                                                  0);
             m_linear_rt[i]->allocate_storage(renderer());
             m_linear_rt[i]->set_mag_filter(gl::texture_mag_filter::nearest);
             m_linear_rt[i]->set_min_filter(gl::texture_min_filter::nearest);
@@ -257,7 +252,7 @@ void deferred_renderer::resize(int width_, int height_)
     gl::bind_framebuffer(GL_DRAW_FRAMEBUFFER, 0);
 }
 
-void deferred_renderer::bind_gbuffer_fbo()
+void Deferred_renderer::bind_gbuffer_fbo()
 {
     gl::bind_framebuffer(GL_DRAW_FRAMEBUFFER, m_gbuffer_fbo);
 
@@ -265,11 +260,11 @@ void deferred_renderer::bind_gbuffer_fbo()
         GL_COLOR_ATTACHMENT0,
         GL_COLOR_ATTACHMENT1,
         GL_COLOR_ATTACHMENT2,
-        GL_COLOR_ATTACHMENT3};
+        GL_COLOR_ATTACHMENT3 };
     gl::draw_buffers(4, draw_buffers);
 }
 
-void deferred_renderer::fbo_clear()
+void Deferred_renderer::fbo_clear()
 {
     GLfloat albedo_clear[]   = {0.5f, 0.5f, 0.5f, 0.0f};
     GLfloat normal_clear[]   = {0.0f, 0.0f, -1.0f, 0.0f};
@@ -278,11 +273,11 @@ void deferred_renderer::fbo_clear()
     GLfloat one              = 1.0f;
 
     auto &r = renderer();
-    r.reset_texture(0, renderstack::graphics::texture_target::texture_2d, nullptr);
-    r.reset_texture(1, renderstack::graphics::texture_target::texture_2d, nullptr);
-    r.reset_texture(2, renderstack::graphics::texture_target::texture_2d, nullptr);
-    r.reset_texture(3, renderstack::graphics::texture_target::texture_2d, nullptr);
-    r.reset_texture(4, renderstack::graphics::texture_target::texture_2d, nullptr);
+    r.reset_texture(0, Texture::Target::texture_2d, nullptr);
+    r.reset_texture(1, Texture::Target::texture_2d, nullptr);
+    r.reset_texture(2, Texture::Target::texture_2d, nullptr);
+    r.reset_texture(3, Texture::Target::texture_2d, nullptr);
+    r.reset_texture(4, Texture::Target::texture_2d, nullptr);
 
     GLenum a = gl::check_framebuffer_status(GL_FRAMEBUFFER);
     if (a != GL_FRAMEBUFFER_COMPLETE)
@@ -304,10 +299,9 @@ void deferred_renderer::fbo_clear()
     // cartesian_to_spherical(T, normal_tangent_clear[2], normal_tangent_clear[3]);
 }
 
-void deferred_renderer::geometry_pass(
-    std::vector<shared_ptr<material>> const &materials,
-    std::vector<shared_ptr<model>> const &   models,
-    shared_ptr<renderstack::scene::camera>   camera)
+void Deferred_renderer::geometry_pass(const Material_collection &materials,
+                                      const Model_collection &models,
+                                      const Camera &camera)
 {
     bind_gbuffer_fbo();
 
@@ -326,9 +320,11 @@ void deferred_renderer::geometry_pass(
 
     auto &r = renderer();
     auto &t = r.track();
-    auto  p = programs()->gbuffer;
     t.reset();
     t.execute(&m_gbuffer_render_states);
+
+    auto p = programs()->gbuffer.get();
+    assert(p != nullptr);
     r.set_program(p);
 
     bind_camera();
@@ -336,14 +332,14 @@ void deferred_renderer::geometry_pass(
     size_t model_index = 0;
     for (auto model : models)
     {
-        auto   geometry_mesh  = model->geometry_mesh();
-        auto   vertex_stream  = geometry_mesh->vertex_stream();
+        auto   geometry_mesh  = model->geometry_mesh;
+        auto   Vertex_stream  = geometry_mesh->vertex_stream();
         auto   mesh           = geometry_mesh->get_mesh();
-        auto   material       = model->material();
-        size_t material_index = material->index();
+        auto   material       = model->material;
+        size_t material_index = material->index;
 
         gl::begin_mode::value         begin_mode    = gl::begin_mode::triangles;
-        index_range const &           index_range   = geometry_mesh->fill_indices();
+        Index_range                   index_range   = geometry_mesh->fill_indices();
         GLsizei                       count         = static_cast<GLsizei>(index_range.index_count);
         gl::draw_elements_type::value index_type    = gl::draw_elements_type::unsigned_int;
         GLvoid *                      index_pointer = reinterpret_cast<GLvoid *>((index_range.first_index + mesh->first_index()) * mesh->index_buffer()->stride());
@@ -354,7 +350,10 @@ void deferred_renderer::geometry_pass(
         bind_model(model_index);
         bind_material(material_index);
 
-        r.draw_elements_base_vertex(model->geometry_mesh()->vertex_stream(),
+        auto vertex_stream = model->geometry_mesh->vertex_stream().get();
+        assert(vertex_stream != nullptr);
+
+        r.draw_elements_base_vertex(*vertex_stream,
                                     begin_mode,
                                     count,
                                     index_type,
@@ -364,7 +363,7 @@ void deferred_renderer::geometry_pass(
     }
 }
 
-void deferred_renderer::bind_linear_fbo()
+void Deferred_renderer::bind_linear_fbo()
 {
     GLenum draw_buffers[] = {GL_COLOR_ATTACHMENT0};
     gl::draw_buffers(1, draw_buffers);
@@ -386,9 +385,7 @@ void deferred_renderer::bind_linear_fbo()
     }
 }
 
-void deferred_renderer::light_pass(
-    vector<shared_ptr<light>> const &lights,
-    shared_ptr<class camera>         camera)
+void Deferred_renderer::light_pass(const Light_collection &lights, const Camera &camera)
 {
     bind_linear_fbo();
 
@@ -407,20 +404,20 @@ void deferred_renderer::light_pass(
     update_lights_models(lights, camera);
     update_lights(lights, camera);
 
-    mat4 const &world_from_view        = camera->frame()->world_from_local().matrix();
-    vec3        view_position_in_world = vec3(world_from_view * vec4(0.0f, 0.0f, 0.0f, 1.0f));
+    mat4 world_from_view        = camera.frame.world_from_local.matrix();
+    vec3 view_position_in_world = vec3(world_from_view * vec4(0.0f, 0.0f, 0.0f, 1.0f));
 
     auto &r = renderer();
     auto &t = r.track();
 
     // Don't bind emission texture for now
-    r.set_texture(0, m_gbuffer_rt[0]); // normal
-    r.set_texture(1, m_gbuffer_rt[1]); // tangent
-    r.set_texture(2, m_gbuffer_rt[2]); // albedo
-    r.set_texture(3, m_gbuffer_rt[3]); // material
-    //r.reset_texture(3, renderstack::graphics::texture_target::texture_2d, nullptr);
-    r.set_texture(4, m_depth);
-    r.set_program(programs()->light_spot);
+    r.set_texture(0, m_gbuffer_rt[0].get()); // normal
+    r.set_texture(1, m_gbuffer_rt[1].get()); // tangent
+    r.set_texture(2, m_gbuffer_rt[2].get()); // albedo
+    r.set_texture(3, m_gbuffer_rt[3].get()); // material
+    //r.reset_texture(3, Texture::Target::texture_2d, nullptr);
+    r.set_texture(4, m_depth.get());
+    r.set_program(programs()->light_spot.get());
 
     bind_camera();
 
@@ -430,6 +427,15 @@ void deferred_renderer::light_pass(
         t.execute(&m_light_render_states);
     }
 
+    auto stencil_program = programs()->stencil.get();
+    auto spot_program = programs()->light_spot.get();
+    //auto point_program = programs()->light_point.get();
+    auto directional_program = programs()->light_directional.get();
+    assert(stencil_program != nullptr);
+    assert(spot_program != nullptr);
+    //assert(point_program != nullptr);
+    assert(directional_program != nullptr);
+
     for (auto l : lights)
     {
         if (light_index == max_lights())
@@ -438,14 +444,15 @@ void deferred_renderer::light_pass(
         }
 
         auto geometry_mesh = light_mesh()->get_light_mesh(l);
-        auto vertex_stream = geometry_mesh->vertex_stream();
+        auto vertex_stream = geometry_mesh->vertex_stream().get();
         auto mesh          = geometry_mesh->get_mesh();
+        assert(vertex_stream != nullptr);
 
         bind_light_model(light_index);
         bind_light(light_index);
 
         gl::begin_mode::value         begin_mode    = gl::begin_mode::triangles;
-        index_range const &           index_range   = geometry_mesh->fill_indices();
+        const Index_range             &index_range   = geometry_mesh->fill_indices();
         GLsizei                       count         = static_cast<GLsizei>(index_range.index_count);
         gl::draw_elements_type::value index_type    = gl::draw_elements_type::unsigned_int;
         GLvoid *                      index_pointer = reinterpret_cast<GLvoid *>((index_range.first_index + mesh->first_index()) * mesh->index_buffer()->stride());
@@ -456,23 +463,22 @@ void deferred_renderer::light_pass(
         assert(index_range.index_count > 0);
 
         bool used_stencil = false;
-        if (use_stencil() && (l->type() == light_type::spot))
+        if (use_stencil() && (l->type == Light::Type::spot))
         {
             bool view_in_light = light_mesh()->point_in_light(view_position_in_world, l);
             if (!view_in_light)
             {
                 t.execute(&m_light_stencil_render_states);
-                r.set_program(programs()->stencil);
+                r.set_program(stencil_program);
 
-                r.draw_elements_base_vertex(geometry_mesh->vertex_stream(),
-                                            begin_mode, count, index_type, index_pointer, base_vertex);
+                r.draw_elements_base_vertex(*vertex_stream, begin_mode, count, index_type, index_pointer, base_vertex);
                 used_stencil = true;
             }
         }
 
-        switch (l->type())
+        switch (l->type)
         {
-            case light_type::spot:
+            case Light::Type::spot:
             {
                 if (use_stencil())
                 {
@@ -485,17 +491,17 @@ void deferred_renderer::light_pass(
                         t.execute(&m_light_render_states);
                     }
                 }
-                r.set_program(programs()->light_spot);
+                r.set_program(spot_program);
                 break;
             }
 
-            case light_type::directional:
+            case Light::Type::directional:
             {
                 if (use_stencil())
                 {
                     t.execute(&m_light_render_states);
                 }
-                r.set_program(programs()->light_directional);
+                r.set_program(directional_program);
                 break;
             }
 
@@ -505,8 +511,7 @@ void deferred_renderer::light_pass(
             }
         }
 
-        r.draw_elements_base_vertex(geometry_mesh->vertex_stream(),
-                                    begin_mode, count, index_type, index_pointer, base_vertex);
+        r.draw_elements_base_vertex(*vertex_stream, begin_mode, count, index_type, index_pointer, base_vertex);
 
         ++light_index;
     }
@@ -514,13 +519,16 @@ void deferred_renderer::light_pass(
     bind_default_framebuffer();
 
     t.execute(&m_camera_render_states);
-    r.set_texture(0, m_linear_rt[0]);
-    r.reset_texture(1, renderstack::graphics::texture_target::texture_2d, nullptr);
-    r.reset_texture(2, renderstack::graphics::texture_target::texture_2d, nullptr);
-    r.reset_texture(3, renderstack::graphics::texture_target::texture_2d, nullptr);
-    r.reset_texture(4, renderstack::graphics::texture_target::texture_2d, nullptr);
-    r.reset_texture(5, renderstack::graphics::texture_target::texture_2d, nullptr);
-    r.set_program(programs()->camera);
+    r.set_texture(0, m_linear_rt[0].get());
+    r.reset_texture(1, Texture::Target::texture_2d, nullptr);
+    r.reset_texture(2, Texture::Target::texture_2d, nullptr);
+    r.reset_texture(3, Texture::Target::texture_2d, nullptr);
+    r.reset_texture(4, Texture::Target::texture_2d, nullptr);
+    r.reset_texture(5, Texture::Target::texture_2d, nullptr);
+
+    auto camera_program = programs()->camera.get();
+    assert(camera_program != nullptr);
+    r.set_program(camera_program);
 
     gl::viewport(0, 0, width_full(), height_full());
     //gl::enable(GL_FRAMEBUFFER_SRGB);
@@ -528,7 +536,7 @@ void deferred_renderer::light_pass(
     //gl::disable(GL_FRAMEBUFFER_SRGB);
 }
 
-void deferred_renderer::show_rt()
+void Deferred_renderer::show_rt()
 {
 #if 0
    bind_default_framebuffer();
@@ -540,7 +548,7 @@ void deferred_renderer::show_rt()
    t.execute(&m_show_rt_render_states);
    for (int i = 0; i < 4; ++i)
    {
-      shared_ptr<renderstack::graphics::program> p = (i == 2)
+      shared_ptr<Program> p = (i == 2)
             ? m_programs->show_rt_spherical
             : m_programs->show_rt;
       r.set_program(p);

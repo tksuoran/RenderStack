@@ -249,7 +249,7 @@ public:
     window();
     virtual ~window();
 
-    bool open(int width, int height, std::string const &title, int major, int minor);
+    bool open(int width, int height, const std::string &title, int major, int minor);
 
     int    width() const;
     int    height() const;

@@ -12,76 +12,91 @@ namespace renderstack
 namespace graphics
 {
 
-namespace texture_target
-{
-
 using namespace std;
 
-gl::texture_target::value gl_texture_target(value rs_target)
+bool Texture::is_valid(Target target)
+{
+    switch (target)
+    {
+        case Target::texture_1d: return true;
+        case Target::texture_2d: return true;
+        case Target::texture_3d: return configuration::can_use.texture_3d;
+        case Target::texture_rectangle: return true; // TODO configuration;
+        case Target::texture_cubemap: return true;   // TODO configuration
+        case Target::texture_1d_array: return configuration::can_use.texture_array;
+        case Target::texture_2d_array: return configuration::can_use.texture_array;
+        case Target::texture_buffer: return configuration::can_use.texture_buffer_object;
+        case Target::texture_cubemap_array: return configuration::can_use.texture_array;
+        case Target::texture_2d_multisample: return true; // TODO configuration
+        case Target::texture_2d_multisample_array: return configuration::can_use.texture_array;
+        default:
+            return false;
+    }
+}
+
+gl::texture_target::value Texture::gl_texture_target(Target rs_target)
 {
     switch (rs_target)
     {
-        case texture_1d: return gl::texture_target::texture_1d;
-        case texture_2d: return gl::texture_target::texture_2d;
-        case texture_3d: return gl::texture_target::texture_3d;
-        case texture_rectangle: return gl::texture_target::texture_rectangle;
-        case texture_cubemap: return gl::texture_target::texture_cubemap;
-        case texture_1d_array: return gl::texture_target::texture_1d_array;
-        case texture_2d_array: return gl::texture_target::texture_2d_array;
-        case texture_buffer: return gl::texture_target::texture_buffer;
-        case texture_cubemap_array: return gl::texture_target::texture_cubemap_array;
-        case texture_2d_multisample: return gl::texture_target::texture_2d_multisample;
-        case texture_2d_multisample_array: return gl::texture_target::texture_2d_multisample_array;
+        case Target::texture_1d: return gl::texture_target::texture_1d;
+        case Target::texture_2d: return gl::texture_target::texture_2d;
+        case Target::texture_3d: return gl::texture_target::texture_3d;
+        case Target::texture_rectangle: return gl::texture_target::texture_rectangle;
+        case Target::texture_cubemap: return gl::texture_target::texture_cubemap;
+        case Target::texture_1d_array: return gl::texture_target::texture_1d_array;
+        case Target::texture_2d_array: return gl::texture_target::texture_2d_array;
+        case Target::texture_buffer: return gl::texture_target::texture_buffer;
+        case Target::texture_cubemap_array: return gl::texture_target::texture_cubemap_array;
+        case Target::texture_2d_multisample: return gl::texture_target::texture_2d_multisample;
+        case Target::texture_2d_multisample_array: return gl::texture_target::texture_2d_multisample_array;
         default:
             throw runtime_error("invalid texture target");
     }
 }
 
-unsigned int dimensions(value target)
+unsigned int Texture::dimensions(Texture::Target target)
 {
     switch (target)
     {
-        case texture_1d: return 1;
-        case texture_2d: return 2;
-        case texture_3d: return 3;
-        case texture_rectangle: return 2;
-        case texture_cubemap: return 2;
-        case texture_1d_array: return 2;
-        case texture_2d_array: return 3;
-        case texture_buffer: return 0; // TODO
-        case texture_cubemap_array: return 3;
-        case texture_2d_multisample: return 2;
-        case texture_2d_multisample_array: return 3;
+        case Target::texture_1d: return 1;
+        case Target::texture_2d: return 2;
+        case Target::texture_3d: return 3;
+        case Target::texture_rectangle: return 2;
+        case Target::texture_cubemap: return 2;
+        case Target::texture_1d_array: return 2;
+        case Target::texture_2d_array: return 3;
+        case Target::texture_buffer: return 0; // TODO
+        case Target::texture_cubemap_array: return 3;
+        case Target::texture_2d_multisample: return 2;
+        case Target::texture_2d_multisample_array: return 3;
         default:
             throw runtime_error("invalid texture target");
     }
 }
 
-const char *const desc(value target)
+const char *const Texture::desc(Texture::Target target)
 {
     switch (target)
     {
-        case texture_1d: return "texture_1d";
-        case texture_2d: return "texture_2d";
-        case texture_3d: return "texture_3d";
-        case texture_rectangle: return "texture_rectangle";
-        case texture_cubemap: return "texture_cubemap";
-        case texture_1d_array: return "texture_1d_array";
-        case texture_2d_array: return "texture_2d_array";
-        case texture_buffer: return "texture_buffer";
-        case texture_cubemap_array: return "texture_cubemap_array";
-        case texture_2d_multisample: return "texture_2d_multisample";
-        case texture_2d_multisample_array: return "texture_2d_multisample_array";
+        case Target::texture_1d: return "texture_1d";
+        case Target::texture_2d: return "texture_2d";
+        case Target::texture_3d: return "texture_3d";
+        case Target::texture_rectangle: return "texture_rectangle";
+        case Target::texture_cubemap: return "texture_cubemap";
+        case Target::texture_1d_array: return "texture_1d_array";
+        case Target::texture_2d_array: return "texture_2d_array";
+        case Target::texture_buffer: return "texture_buffer";
+        case Target::texture_cubemap_array: return "texture_cubemap_array";
+        case Target::texture_2d_multisample: return "texture_2d_multisample";
+        case Target::texture_2d_multisample_array: return "texture_2d_multisample_array";
         default:
             throw runtime_error("invalid texture target");
     }
 }
-
-} // namespace texture_target
 
 using namespace std;
 
-/*static*/ unsigned int texture::levels(unsigned int size)
+/*static*/ unsigned int Texture::levels(unsigned int size)
 {
     unsigned int levels = size > 0 ? 1 : 0;
 
@@ -176,7 +191,7 @@ static format_type_bpp_internalformat valid_format_type_internalformat_combinati
 static const unsigned int combination_count =
     sizeof(valid_format_type_internalformat_combinations) / sizeof(format_type_bpp_internalformat);
 
-/*static*/ void texture::format_type(unsigned int internal_format, unsigned int &format, unsigned int &type)
+/*static*/ void Texture::format_type(unsigned int internal_format, unsigned int &format, unsigned int &type)
 {
     for (unsigned int i = 0; i < combination_count; ++i)
     {
@@ -192,36 +207,65 @@ static const unsigned int combination_count =
     throw runtime_error("invalid texture internal format");
 }
 
-texture::texture(
-    texture_target::value target,
-    unsigned int          internal_format,
-    bool                  mipmaps,
-    unsigned int          width,
-    unsigned int          height,
-    unsigned int          depth)
-    : m_gl_name(0), m_target(target), m_internal_format(internal_format), m_width(width), m_height(height), m_depth(depth), m_buffer(nullptr), m_dirty(true), m_min_filter(gl::texture_min_filter::nearest_mipmap_linear), m_mag_filter(gl::texture_mag_filter::linear), m_min_lod(-1000), m_max_lod(1000), m_base_level(0), m_max_level(1000), m_compare_mode(gl::texture_compare_mode::none), m_compare_func(gl::depth_function::less)
+Texture::Texture(Texture::Target target,
+                 unsigned int    internal_format,
+                 bool            mipmaps,
+                 unsigned int    width,
+                 unsigned int    height,
+                 unsigned int    depth)
 {
-    gl::gen_textures(1, &m_gl_name);
+    configure(target, internal_format, mipmaps, width, height, depth);
+}
 
-    unsigned int dimensions = texture_target::dimensions(m_target);
+void Texture::configure(Texture::Target target,
+                        unsigned int    internal_format,
+                        bool            mipmaps,
+                        unsigned int    width,
+                        unsigned int    height,
+                        unsigned int    depth)
+{
+    m_target = target;
+    m_internal_format = internal_format;
+    m_width = width;
+    m_height = height;
+    m_depth = depth;
+
+    unsigned int dimensions = Texture::dimensions(m_target);
 
     if (dimensions >= 1)
+    {
         if (width == 0)
+        {
             throw runtime_error("zero texture width");
+        }
+    }
 
     if (dimensions >= 2)
+    {
         if (height == 0)
+        {
             throw runtime_error("zero texture height");
+        }
+    }
 
     if (dimensions == 3)
+    {
         if (depth == 0)
+        {
             throw runtime_error("zero texture depth");
+        }
+    }
 
     // TODO should we throw error instead?
     if (dimensions < 3)
+    {
         depth = 0;
+    }
+
     if (dimensions < 2)
+    {
         height = 0;
+    }
 
     if (mipmaps)
     {
@@ -232,40 +276,35 @@ texture::texture(
         m_levels              = std::max(m_levels, z_levels);
     }
     else
+    {
         m_levels = 1;
-
-    m_swizzle[0] = GL_RED;
-    m_swizzle[1] = GL_GREEN;
-    m_swizzle[2] = GL_BLUE;
-    m_swizzle[3] = GL_ALPHA;
+    }
 
     // Clamp to edge would be nicer default?
-    m_wrap[0] = gl::texture_wrap_mode::repeat;
-    m_wrap[1] = gl::texture_wrap_mode::repeat;
-    m_wrap[2] = gl::texture_wrap_mode::repeat;
 }
 
-texture::texture(
-    shared_ptr<class buffer> buffer,
-    unsigned int             internal_format)
-    : m_gl_name(0), m_target(renderstack::graphics::texture_target::value::texture_buffer), m_internal_format(internal_format), m_width(0), m_height(0), m_depth(0), m_buffer(buffer), m_dirty(true), m_min_filter(gl::texture_min_filter::nearest_mipmap_linear), m_mag_filter(gl::texture_mag_filter::linear), m_min_lod(-1000), m_max_lod(1000), m_base_level(0), m_max_level(1000), m_compare_mode(gl::texture_compare_mode::none), m_compare_func(gl::depth_function::less)
+Texture::Texture(shared_ptr<Buffer> buffer,
+                 unsigned int       internal_format)
+    : m_target(renderstack::graphics::Texture::Target::texture_buffer)
+    , m_internal_format(internal_format)
 {
-    gl::gen_textures(1, &m_gl_name);
 }
 
-texture::~texture()
+Texture::~Texture()
 {
     gl::delete_textures(1, &m_gl_name);
 }
 
-void texture::allocate_storage(class renderer &renderer)
+void Texture::allocate_storage(Renderer &renderer)
 {
-    gl::texture_target::value gl_target  = texture_target::gl_texture_target(m_target);
-    unsigned int              dimensions = texture_target::dimensions(m_target);
+    gl::gen_textures(1, &m_gl_name);
+
+    gl::texture_target::value gl_target  = Texture::gl_texture_target(m_target);
+    unsigned int              dimensions = Texture::dimensions(m_target);
 
     unsigned int old_unit;
     unsigned int unit        = renderer.effective_texture_unit();
-    auto         old_texture = renderer.set_texture(unit, shared_from_this(), &old_unit);
+    auto         old_texture = renderer.set_texture(unit, this, &old_unit);
     assert(unit == old_unit);
 
 #if !defined(__APPLE__)
@@ -275,7 +314,9 @@ void texture::allocate_storage(class renderer &renderer)
         {
             case 0:
                 if (!m_buffer)
+                {
                     throw runtime_error("texture buffer missing");
+                }
 
                 gl::tex_buffer(gl::texture_target::texture_buffer, m_internal_format, m_buffer->gl_name());
                 break;
@@ -346,17 +387,17 @@ void texture::allocate_storage(class renderer &renderer)
     renderer.restore_texture(m_target, old_texture, old_unit);
 }
 
-void texture::set_debug_label(string const &value)
+void Texture::set_debug_label(const std::string &value)
 {
     m_debug_label = value;
 }
 
-string const &texture::debug_label() const
+const std::string &Texture::debug_label() const
 {
     return m_debug_label;
 }
 
-void texture::set_swizzle(unsigned int i, unsigned int value)
+void Texture::set_swizzle(unsigned int i, unsigned int value)
 {
     assert(i < 4);
     if (m_swizzle[i] != value)
@@ -365,7 +406,8 @@ void texture::set_swizzle(unsigned int i, unsigned int value)
         m_dirty      = true;
     }
 }
-void texture::set_min_filter(gl::texture_min_filter::value value)
+
+void Texture::set_min_filter(gl::texture_min_filter::value value)
 {
     if (m_min_filter != value)
     {
@@ -373,7 +415,8 @@ void texture::set_min_filter(gl::texture_min_filter::value value)
         m_dirty      = true;
     }
 }
-void texture::set_mag_filter(gl::texture_mag_filter::value value)
+
+void Texture::set_mag_filter(gl::texture_mag_filter::value value)
 {
     if (m_mag_filter != value)
     {
@@ -381,7 +424,8 @@ void texture::set_mag_filter(gl::texture_mag_filter::value value)
         m_dirty      = true;
     }
 }
-void texture::set_wrap(unsigned int i, gl::texture_wrap_mode::value value)
+
+void Texture::set_wrap(unsigned int i, gl::texture_wrap_mode::value value)
 {
     assert(i < 3);
     if (m_wrap[i] != value)
@@ -390,7 +434,8 @@ void texture::set_wrap(unsigned int i, gl::texture_wrap_mode::value value)
         m_dirty   = true;
     }
 }
-void texture::set_compare_mode(gl::texture_compare_mode::value value)
+
+void Texture::set_compare_mode(gl::texture_compare_mode::value value)
 {
     if (m_compare_mode != value)
     {
@@ -398,7 +443,8 @@ void texture::set_compare_mode(gl::texture_compare_mode::value value)
         m_dirty        = true;
     }
 }
-void texture::set_compare_func(gl::depth_function::value value)
+
+void Texture::set_compare_func(gl::depth_function::value value)
 {
     if (m_compare_func != value)
     {
@@ -407,68 +453,73 @@ void texture::set_compare_func(gl::depth_function::value value)
     }
 }
 
-texture_target::value texture::target() const
+Texture::Target Texture::target() const
 {
     return m_target;
 }
-unsigned int texture::width() const
+
+unsigned int Texture::width() const
 {
     return m_width;
 }
-unsigned int texture::height() const
+
+unsigned int Texture::height() const
 {
     return m_height;
 }
-unsigned int texture::depth() const
+
+unsigned int Texture::depth() const
 {
     return m_depth;
 }
-unsigned int texture::swizzle(unsigned int i) const
+
+unsigned int Texture::swizzle(unsigned int i) const
 {
     assert(i < 4);
     return m_swizzle[i];
 }
 
-gl::texture_min_filter::value texture::min_filter() const
+gl::texture_min_filter::value Texture::min_filter() const
 {
     return m_min_filter;
 }
 
-gl::texture_mag_filter::value texture::mag_filter() const
+gl::texture_mag_filter::value Texture::mag_filter() const
 {
     return m_mag_filter;
 }
 
-gl::texture_wrap_mode::value texture::wrap(unsigned int i) const
+gl::texture_wrap_mode::value Texture::wrap(unsigned int i) const
 {
     assert(i < 3);
     return m_wrap[i];
 }
 
-gl::texture_compare_mode::value texture::compare_mode() const
+gl::texture_compare_mode::value Texture::compare_mode() const
 {
     return m_compare_mode;
 }
 
-gl::depth_function::value texture::compare_func() const
+gl::depth_function::value Texture::compare_func() const
 {
     return m_compare_func;
 }
 
-void texture::apply(class renderer &renderer, unsigned int unit)
+void Texture::apply(Renderer &renderer, unsigned int unit)
 {
-    if (!renderer.texture_is_bound(
-            unit,
-            m_target,
-            shared_from_this()))
+    if (!renderer.texture_is_bound(unit, m_target, this))
+    {
         throw runtime_error("texture is not bound and cannot be applied");
+    }
 
     // TODO Cache - make these immutable?
 
     if (!m_dirty)
+    {
         return;
+    }
 
-    unsigned int gl_target = texture_target::gl_texture_target(m_target);
+    unsigned int gl_target = Texture::gl_texture_target(m_target);
 
     if (configuration::gl_version >= 300) // TODO
     {

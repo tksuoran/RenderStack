@@ -17,38 +17,33 @@ namespace renderstack
 {
 namespace renderer
 {
-class renderer;
+class Renderer;
 }
 } // namespace renderstack
 namespace renderstack
 {
 namespace ui
 {
-class gui_renderer;
+class Gui_renderer;
 }
 } // namespace renderstack
 
-class application
-    : public renderstack::toolkit::window,
-      public renderstack::toolkit::service,
-      public std::enable_shared_from_this<application>
+class Application
+    : public renderstack::toolkit::window
+    , public renderstack::toolkit::service
+    , public std::enable_shared_from_this<Application>
 {
-private:
-    renderstack::toolkit::services m_services;
-
-    std::shared_ptr<screen> m_screen;
-    std::shared_ptr<screen> m_last_screen;
-    std::shared_ptr<game>   m_game;
-    std::shared_ptr<menu>   m_menu;
-
 public:
-    application();
-    /*virtual*/ ~application();
-    void connect(std::shared_ptr<game> game_, std::shared_ptr<menu> menu_);
+    Application();
+
+    virtual ~Application();
+
+    void connect(std::shared_ptr<Game> game, std::shared_ptr<Menu> menu);
 
     void initialize_service() override;
 
-    void set_screen(std::shared_ptr<screen> screen);
+    void set_screen(std::shared_ptr<Screen> screen);
+
     void reset_screen();
 
     void execute_tests();
@@ -56,22 +51,38 @@ public:
     void reset();
 
     bool on_load() override;
+
     bool on_exit() override;
+
     void on_resize(int width, int height) override;
+
     void on_focus(bool has_focus) override;
+
     void update() override;
 
     void on_key(int key, int scancode, int action, int mods) override;
+
     void on_mouse_moved(double x, double y) override;
+
     void on_mouse_button(int button, int action, int mods) override;
+
     void on_scroll(double x, double y) override;
+
     void on_3d_mouse(long tx, long ty, long tz, long rx, long ry, long rz, long period) override;
 
     void setup_programs();
 
 private:
     bool create_gl_window();
+
     bool initialize_services();
+
+    renderstack::toolkit::services m_services;
+
+    std::shared_ptr<Screen> m_screen;
+    std::shared_ptr<Screen> m_last_screen;
+    std::shared_ptr<Game>   m_game;
+    std::shared_ptr<Menu>   m_menu;
 };
 
 #endif

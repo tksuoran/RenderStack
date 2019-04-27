@@ -15,7 +15,7 @@ namespace renderstack
 {
 namespace mesh
 {
-class geometry_mesh;
+class Geometry_mesh;
 }
 } // namespace renderstack
 
@@ -23,8 +23,8 @@ namespace renderstack
 {
 namespace graphics
 {
-class uniform_buffer;
-class uniform_buffer_range;
+class Uniform_buffer;
+class Uniform_buffer_range;
 } // namespace graphics
 } // namespace renderstack
 
@@ -32,47 +32,46 @@ namespace renderstack
 {
 namespace scene
 {
-class camera;
-class light;
+class Camera;
+class Light;
 } // namespace scene
 } // namespace renderstack
 
-class debug_renderer;
-class model;
+class Debug_renderer;
+class Model;
 
-class forward_renderer
+class Forward_renderer
     : public renderstack::toolkit::service,
-      public base_renderer
+      public Base_renderer
 {
 public:
-    forward_renderer();
-    /*virtual*/ ~forward_renderer();
+    Forward_renderer();
 
-    void connect(std::shared_ptr<renderstack::graphics::renderer> renderer,
-                 std::shared_ptr<debug_renderer>                  debug_renderer,
-                 std::shared_ptr<class programs>                  programs);
+    virtual ~Forward_renderer() = default;
+
+    void connect(std::shared_ptr<renderstack::graphics::Renderer> renderer,
+                 std::shared_ptr<Debug_renderer>                  debug_renderer,
+                 std::shared_ptr<Programs>                        programs);
 
     void initialize_service() override;
 
-    void render_pass(std::vector<std::shared_ptr<material>> const &                 materials,
-                     std::vector<std::shared_ptr<model>> const &                    models,
-                     std::vector<std::shared_ptr<renderstack::scene::light>> const &lights,
-                     std::shared_ptr<renderstack::scene::camera>                    camera);
+    void render_pass(const Material_collection        &materials,
+                     const Model_collection           &models,
+                     const Light_collection           &lights,
+                     const renderstack::scene::Camera &camera);
 
 private:
-    void update_light_model(std::shared_ptr<renderstack::scene::light> l);
+    void update_light_model(renderstack::scene::Light *l);
 
-private:
-    void print_matrix(glm::mat4 const &m, std::string const &desc);
+    void print_matrix(glm::mat4 const &m, const std::string &desc);
 
-private:
     // services
-    std::shared_ptr<debug_renderer> m_debug_renderer;
+    std::shared_ptr<Debug_renderer> m_debug_renderer;
 
-    renderstack::graphics::render_states m_first_pass_render_states;
-    renderstack::graphics::render_states m_other_pass_render_states;
+    renderstack::graphics::Render_states m_first_pass_render_states;
+    renderstack::graphics::Render_states m_other_pass_render_states;
 
-    std::vector<std::shared_ptr<material>> m_placeholder_materials;
+    std::vector<std::shared_ptr<Material>> m_placeholder_materials;
 };
 
 #endif

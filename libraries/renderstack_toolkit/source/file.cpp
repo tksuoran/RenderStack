@@ -25,7 +25,7 @@ namespace toolkit
 
 using namespace std;
 
-bool exists(string const &fname)
+bool exists(const std::string &fname)
 {
     ifstream    file(fname, ios::binary);
     struct stat st;
@@ -33,7 +33,7 @@ bool exists(string const &fname)
     return res == 0;
 }
 
-string read(string const &fname)
+string read(const std::string &fname)
 {
     ifstream    file(fname, ios::binary);
     struct stat st;

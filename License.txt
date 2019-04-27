@@ -27,12 +27,6 @@ libraries/renderstack_toolkit/smart_ptr_builder.hpp
 The following libraries are dependencies for RenderStack. They are included for convenience, either
 as copied source code, or, where available, github submodule.
 
-libraries/bullet3
-   Origin:     http://bulletphysics.org/wordpress/
-   Contact:    http://bulletphysics.org/mediawiki-1.5.8/index.php/Feedback,_discussion_and_contributions
-   License:    zlib (http://opensource.org/licenses/Zlib)
-   Form:       Github submodule (unmodified) https://github.com/bulletphysics/bullet3
-
 libraries/freetype-2.5.5
    Origin:     http://www.freetype.org/
    Contact:    The Freetype Project <freetype@nongnu.org>
@@ -72,7 +66,7 @@ libraries/lpng1616
 
 libraries/RectangleBinPack
    Origin:     https://github.com/juj/RectangleBinPack
-   Contact:    Jukka Jylänki <jujjyl@gmail.com>
+   Contact:    Jukka Jylï¿½nki <jujjyl@gmail.com>
    License:    Public Domain
    Form:       Copied source code, minor modifications
 

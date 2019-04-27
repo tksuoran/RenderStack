@@ -10,42 +10,45 @@ namespace renderstack
 namespace graphics
 {
 
-class uniform_block;
-class uniform_buffer;
+class Uniform_block;
+class Uniform_buffer;
 
-class uniform_buffer_range
+class Uniform_buffer_range
 {
 public:
-    uniform_buffer_range(
-        std::shared_ptr<class uniform_block> block,
-        std::shared_ptr<class buffer>        uniform_buffer,
-        std::size_t                          count);
-    ~uniform_buffer_range();
+    Uniform_buffer_range(Uniform_block *block, Buffer *uniform_buffer, size_t count);
 
-    unsigned char *begin_edit(class renderer &renderer);
-    void           end_edit(class renderer &renderer);
-    std::size_t    first_byte()
+    ~Uniform_buffer_range() = default;
+
+    unsigned char *begin_edit(Renderer &renderer);
+
+    void end_edit(Renderer &renderer);
+
+    size_t first_byte() const
     {
         return m_first_byte;
     }
-    std::size_t byte_count()
+
+    size_t byte_count() const
     {
         return m_byte_count;
     }
-    void flush(class renderer &renderer);
-    void flush(class renderer &renderer, std::size_t bytes);
 
-    std::weak_ptr<class buffer> uniform_buffer()
+    void flush(Renderer &renderer);
+
+    void flush(Renderer &renderer, size_t bytes);
+
+    Buffer *uniform_buffer()
     {
         return m_uniform_buffer;
     }
 
 private:
-    std::weak_ptr<class uniform_block> m_uniform_block;
-    std::weak_ptr<class buffer>        m_uniform_buffer;
-    std::size_t                        m_first_byte;
-    std::size_t                        m_byte_count;
-    bool                               m_in_edit;
+    Uniform_block *m_uniform_block{nullptr};
+    Buffer        *m_uniform_buffer{nullptr};
+    size_t        m_first_byte{0U};
+    size_t        m_byte_count{0U};
+    bool          m_in_edit{false};
 };
 
 } // namespace graphics

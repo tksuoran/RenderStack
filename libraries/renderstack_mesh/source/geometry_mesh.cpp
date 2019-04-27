@@ -1,10 +1,6 @@
 #include "renderstack_toolkit/math_util.hpp"
-#include "renderstack_toolkit/platform.hpp"
 
-#include "renderstack_geometry/corner.hpp"
 #include "renderstack_geometry/geometry.hpp"
-#include "renderstack_geometry/point.hpp"
-#include "renderstack_geometry/polygon.hpp"
 #include "renderstack_geometry/property_map.hpp"
 
 #include "renderstack_graphics/buffer.hpp"
@@ -41,82 +37,173 @@ using namespace glm;
 using namespace std;
 
 static inline void write(char *data_ptr, gl::vertex_attrib_pointer_type::value type, unsigned int value);
-static inline void write(char *data_ptr, gl::vertex_attrib_pointer_type::value type, vec2 const &value);
-static inline void write(char *data_ptr, gl::vertex_attrib_pointer_type::value type, vec3 const &value);
-static inline void write(char *data_ptr, gl::vertex_attrib_pointer_type::value type, vec4 const &value);
+static inline void write(char *data_ptr, gl::vertex_attrib_pointer_type::value type, const vec2 &value);
+static inline void write(char *data_ptr, gl::vertex_attrib_pointer_type::value type, const vec3 &value);
+static inline void write(char *data_ptr, gl::vertex_attrib_pointer_type::value type, const vec4 &value);
 
-geometry_mesh::geometry_mesh(
-    class renderer &                 renderer,
-    shared_ptr<class geometry>       geometry,
-    geometry_mesh_format_info const &format_info,
-    geometry_mesh_buffer_info const &buffer_info)
-    : m_geometry(geometry), m_vertex_stream(nullptr)
+Geometry_mesh::Geometry_mesh(Renderer          &renderer,
+                             const Geometry    &geometry,
+                             const Format_info &format_info,
+                             const Buffer_info &buffer_info)
 {
-    build_mesh_from_geometry(renderer, format_info, buffer_info);
+    build_mesh_from_geometry(renderer, geometry, format_info, buffer_info);
 }
 
-geometry_mesh::geometry_mesh(
-    class renderer &           renderer,
-    shared_ptr<class geometry> geometry,
-    normal_style::value        normal_style)
-    : m_geometry(geometry), m_vertex_stream(nullptr)
+Geometry_mesh::Geometry_mesh(Renderer &          renderer,
+                             const Geometry &    geometry,
+                             Normal_style::value normal_style)
 {
-    geometry_mesh_format_info format_info;
-    geometry_mesh_buffer_info buffer_info;
+    Format_info format_info;
+    Buffer_info buffer_info;
 
-    format_info.set_normal_style(normal_style);
-    build_mesh_from_geometry(renderer, format_info, buffer_info);
+    format_info.normal_style = normal_style;
+    build_mesh_from_geometry(renderer, geometry, format_info, buffer_info);
 }
 
-shared_ptr<mesh> geometry_mesh::get_mesh()
+shared_ptr<mesh> Geometry_mesh::get_mesh()
 {
     return m_mesh;
 }
 
-void geometry_mesh::prepare_vertex_format(
-    shared_ptr<class geometry>       geometry,
-    geometry_mesh_format_info const &format_info,
-    geometry_mesh_buffer_info &      buffer_info)
+Geometry_mesh::Property_maps::Property_maps(const renderstack::geometry::Geometry &geometry,
+                                            const Format_info &                    format_info)
+{
+    point_locations = geometry.point_attributes().maybe_find<vec3>("point_locations");
+
+    if (format_info.want_id)
+    {
+        polygon_ids_vector3 = polygon_attributes.create<vec3>("polygon_ids_vec3");
+
+        if (configuration::use_integer_polygon_ids)
+        {
+            polygon_ids_uint32 = polygon_attributes.create<unsigned int>("polygon_ids_uint");
+        }
+    }
+
+    corner_normals  = geometry.corner_attributes().maybe_find<vec3>("corner_normals");
+    point_normals   = geometry.point_attributes().maybe_find<vec3>("point_normals");
+    polygon_normals = geometry.polygon_attributes().maybe_find<vec3>("polygon_normals");
+
+    if (format_info.want_normal || format_info.want_normal_smooth)
+    {
+        if (polygon_normals == nullptr && point_locations != nullptr)
+        {
+            polygon_normals = polygon_attributes.create<vec3>("polygon_normals");
+            for (auto polygon : geometry.polygons())
+            {
+                polygon->compute_normal(*polygon_normals, *point_locations);
+            }
+        }
+    }
+
+    if (format_info.want_normal_smooth)
+    {
+        point_normals_smooth = geometry.point_attributes().maybe_find<vec3>("point_normals_smooth");
+        if (point_normals_smooth == nullptr)
+        {
+            for (auto point : geometry.points())
+            {
+                vec3 normal_sum(0.0f, 0.0f, 0.0f);
+                for (auto corner : point->corners())
+                {
+                    normal_sum += polygon_normals->get(corner->polygon);
+                }
+                point_normals_smooth->put(point, normalize(normal_sum));
+            }
+        }
+    }
+
+    if (format_info.want_tangent)
+    {
+        corner_tangents = geometry.corner_attributes().maybe_find<vec3>("corner_tangents");
+        point_tangents  = geometry.point_attributes().maybe_find<vec3>("point_tangents");
+    }
+
+    if (format_info.want_texcoord)
+    {
+        corner_texcoords = geometry.corner_attributes().maybe_find<vec2>("corner_texcoords");
+        point_texcoords  = geometry.point_attributes().maybe_find<vec2>("point_texcoords");
+    }
+
+    if (format_info.want_color)
+    {
+        corner_colors = geometry.corner_attributes().maybe_find<vec4>("corner_colors");
+        point_colors  = geometry.point_attributes().maybe_find<vec4>("point_colors");
+    }
+
+    if (format_info.want_centroid_points)
+    {
+        polygon_centroids = geometry.polygon_attributes().maybe_find<vec3>("polygon_centroids");
+        if (polygon_centroids == nullptr && point_locations != nullptr)
+        {
+            polygon_centroids = polygon_attributes.create<vec3>("polygon_centroids");
+            for (auto polygon : geometry.polygons())
+            {
+                polygon->compute_centroid(*polygon_centroids, *point_locations);
+            }
+        }
+    }
+
+    corner_indices = find_or_create<Corner *, unsigned int>(geometry.corner_attributes(),
+                                                            corner_attributes,
+                                                            "corner_indices");
+}
+
+void Geometry_mesh::prepare_vertex_format(const Geometry &   geometry,
+                                          const Format_info &format_info,
+                                          Buffer_info &      buffer_info)
 {
     // TODO Consider case when using multiple vertex formats might work better?
+    auto vf = buffer_info.vertex_format;
 
-    auto vf = buffer_info.vertex_format();
     // If vertex format is not yet specified, create a base vertex format
     if (!vf)
     {
-        vf = make_shared<renderstack::graphics::vertex_format>();
-        buffer_info.set_vertex_format(vf);
+        vf = make_shared<renderstack::graphics::Vertex_format>();
 
-        if (format_info.want_position())
-            (void)vf->make_attribute(vertex_attribute_usage::position, format_info.position_type(), format_info.position_type(), 0, 3);
+        buffer_info.vertex_format = vf;
 
-        if (format_info.want_normal())
-            (void)vf->make_attribute(vertex_attribute_usage::normal, format_info.normal_type(), format_info.normal_type(), 0, 3);
-
-        if (format_info.want_normal_flat())
-            (void)vf->make_attribute(vertex_attribute_usage::normal, format_info.normal_flat_type(), format_info.normal_flat_type(), 1, 3);
-
-        if (format_info.want_normal_smooth())
-            (void)vf->make_attribute(vertex_attribute_usage::normal, format_info.normal_smooth_type(), format_info.normal_smooth_type(), 2, 3);
-
-        if (format_info.want_tangent())
-            (void)vf->make_attribute(vertex_attribute_usage::tangent, format_info.tangent_type(), format_info.tangent_type(), 0, 3);
-
-        if (format_info.want_color())
-            (void)vf->make_attribute(vertex_attribute_usage::color, format_info.color_type(), format_info.color_type(), 0, 4);
-
-        if (format_info.want_id())
+        if (format_info.want_position)
         {
-            (void)vf->make_attribute(vertex_attribute_usage::id, format_info.id_vec3_type(), format_info.id_vec3_type(), 0, 3);
+            (void)vf->make_attribute(vertex_attribute_usage::position, format_info.position_type, format_info.position_type, 0, 3);
+        }
+
+        if (format_info.want_normal)
+        {
+            (void)vf->make_attribute(vertex_attribute_usage::normal, format_info.normal_type, format_info.normal_type, 0, 3);
+        }
+
+        if (format_info.want_normal_flat)
+        {
+            (void)vf->make_attribute(vertex_attribute_usage::normal, format_info.normal_flat_type, format_info.normal_flat_type, 1, 3);
+        }
+
+        if (format_info.want_normal_smooth)
+        {
+            (void)vf->make_attribute(vertex_attribute_usage::normal, format_info.normal_smooth_type, format_info.normal_smooth_type, 2, 3);
+        }
+
+        if (format_info.want_tangent)
+        {
+            (void)vf->make_attribute(vertex_attribute_usage::tangent, format_info.tangent_type, format_info.tangent_type, 0, 3);
+        }
+
+        if (format_info.want_color)
+        {
+            (void)vf->make_attribute(vertex_attribute_usage::color, format_info.color_type, format_info.color_type, 0, 4);
+        }
+
+        if (format_info.want_id)
+        {
+            (void)vf->make_attribute(vertex_attribute_usage::id, format_info.id_vec3_type, format_info.id_vec3_type, 0, 3);
 
             if (configuration::use_integer_polygon_ids)
             {
-                (void)vf->make_attribute(
-                    vertex_attribute_usage::id,
-                    gl::vertex_attrib_pointer_type::unsigned_int,
-                    gl::vertex_attrib_pointer_type::unsigned_int,
-                    0,
-                    1);
+                (void)vf->make_attribute(vertex_attribute_usage::id,
+                                         gl::vertex_attrib_pointer_type::unsigned_int,
+                                         gl::vertex_attrib_pointer_type::unsigned_int,
+                                         0,
+                                         1);
             }
         }
     }
@@ -124,204 +211,112 @@ void geometry_mesh::prepare_vertex_format(
     // If vertex format has no texture coordinate, check if we need to add one
     bool has_tex_coord = vf->has_attribute(vertex_attribute_usage::tex_coord, 0);
 
-    if (!has_tex_coord && format_info.want_texcoord())
+    if (!has_tex_coord && format_info.want_texcoord)
     {
-        shared_ptr<property_map<corner *, vec2>> corner_texcoords;
-        shared_ptr<property_map<point *, vec2>>  point_texcoords;
-
-        if (geometry->corner_attributes().contains<vec2>("corner_texcoords"))
-            corner_texcoords = geometry->corner_attributes().find<vec2>("corner_texcoords");
-
-        if (geometry->point_attributes().contains<vec2>("point_texcoords"))
-            point_texcoords = geometry->point_attributes().find<vec2>("point_texcoords");
-
-        if (corner_texcoords || point_texcoords)
+        if (geometry.corner_attributes().contains<vec2>("corner_texcoords") || geometry.point_attributes().contains<vec2>("point_texcoords"))
         {
-            shared_ptr<vertex_attribute> attribute_texcoord = vf->make_attribute(
-                vertex_attribute_usage::tex_coord,
-                //gl::vertex_attrib_pointer_type::half_float,
-                gl::vertex_attrib_pointer_type::float_,
-                gl::vertex_attrib_pointer_type::float_,
-                0,
-                2);
+            vf->make_attribute(vertex_attribute_usage::tex_coord,
+                               //gl::vertex_attrib_pointer_type::half_float,
+                               gl::vertex_attrib_pointer_type::float_,
+                               gl::vertex_attrib_pointer_type::float_,
+                               0,
+                               2);
         }
     }
 }
 
-void geometry_mesh::build_mesh_from_geometry(
-    class renderstack::graphics::renderer &renderer,
-    geometry_mesh_format_info const &      format_info,
-    geometry_mesh_buffer_info const &      buffer_info)
+void Geometry_mesh::build_mesh_from_geometry(renderstack::graphics::Renderer &renderer,
+                                             const Geometry &                 geometry,
+                                             const Format_info &              format_info,
+                                             const Buffer_info &              buffer_info)
 {
-    slog_trace(
-        "geometry_mesh::build_mesh_from_geometry(usage = %s, normal_style = %s, vertex_format = %p) geometry = %s",
-        gl::enum_string(buffer_info.usage()),
-        normal_style::desc(format_info.normal_style()),
-        buffer_info.vertex_format().get(),
-        m_geometry->name().c_str());
+    slog_trace("Geometry_mesh::build_mesh_from_geometry(usage = %s, normal_style = %s, vertex_format = %p) geometry = %s",
+               gl::enum_string(buffer_info.usage),
+               Normal_style::desc(format_info.normal_style),
+               buffer_info.vertex_format.get(),
+               geometry.name().c_str());
 
-    m_vertex_format = buffer_info.vertex_format();
-
-    shared_ptr<property_map<polygon *, vec3>>         polygon_ids_vector3;
-    shared_ptr<property_map<polygon *, unsigned int>> polygon_ids_uint32;
-    shared_ptr<property_map<polygon *, vec3>>         polygon_normals;
-    shared_ptr<property_map<polygon *, vec3>>         polygon_centroids;
-    shared_ptr<property_map<corner *, vec3>>          corner_normals;
-    shared_ptr<property_map<corner *, vec3>>          corner_tangents;
-    shared_ptr<property_map<corner *, vec2>>          corner_texcoords;
-    shared_ptr<property_map<corner *, vec4>>          corner_colors;
-    shared_ptr<property_map<corner *, unsigned int>>  corner_indices;
-    shared_ptr<property_map<point *, vec3>>           point_locations;
-    shared_ptr<property_map<point *, vec3>>           point_normals;
-    shared_ptr<property_map<point *, vec3>>           point_normals_smooth;
-    shared_ptr<property_map<point *, vec3>>           point_tangents;
-    shared_ptr<property_map<point *, vec2>>           point_texcoords;
-    shared_ptr<property_map<point *, vec4>>           point_colors;
-
-    if (!m_geometry->polygon_attributes().contains<vec3>("polygon_normals"))
-        m_geometry->compute_polygon_normals();
-
-    if (format_info.want_centroid_points())
-        if (!m_geometry->point_attributes().contains<vec3>("polygon_centroids"))
-            m_geometry->compute_polygon_centroids();
-
-    if (format_info.want_id())
-    {
-        polygon_ids_vector3 = m_geometry->polygon_attributes().find_or_create<vec3>("polygon_ids_vec3");
-
-        if (configuration::use_integer_polygon_ids)
-            polygon_ids_uint32 = m_geometry->polygon_attributes().find_or_create<unsigned int>("polygon_ids_uint");
-    }
-
-    if (format_info.want_normal())
-    {
-        bool normals_found = false;
-        if (m_geometry->corner_attributes().contains<vec3>("corner_normals"))
-        {
-            corner_normals = m_geometry->corner_attributes().find<vec3>("corner_normals");
-            normals_found  = true;
-        }
-        if (m_geometry->point_attributes().contains<vec3>("point_normals"))
-        {
-            point_normals = m_geometry->point_attributes().find<vec3>("point_normals");
-            normals_found = true;
-        }
-        if (normals_found == false)
-        {
-            m_geometry->smooth_normalize("corner_normals", "polygon_normals", 0.0f * pi<float>());
-            corner_normals = m_geometry->corner_attributes().find<vec3>("corner_normals");
-        }
-    }
-
-    if (format_info.want_normal_smooth())
-    {
-        m_geometry->compute_point_normals("point_normals_smooth");
-        point_normals_smooth = m_geometry->point_attributes().find<vec3>("point_normals_smooth");
-    }
-
-    if (format_info.want_tangent())
-    {
-        if (m_geometry->corner_attributes().contains<vec3>("corner_tangents"))
-            corner_tangents = m_geometry->corner_attributes().find<vec3>("corner_tangents");
-        if (m_geometry->point_attributes().contains<vec3>("point_tangents"))
-            point_tangents = m_geometry->point_attributes().find<vec3>("point_tangents");
-    }
-
-    if (format_info.want_texcoord())
-    {
-        if (m_geometry->corner_attributes().contains<vec2>("corner_texcoords"))
-            corner_texcoords = m_geometry->corner_attributes().find<vec2>("corner_texcoords");
-
-        if (m_geometry->point_attributes().contains<vec2>("point_texcoords"))
-            point_texcoords = m_geometry->point_attributes().find<vec2>("point_texcoords");
-    }
-
-    if (format_info.want_color())
-    {
-        if (m_geometry->corner_attributes().contains<vec4>("corner_colors"))
-            corner_colors = m_geometry->corner_attributes().find<vec4>("corner_colors");
-
-        if (m_geometry->point_attributes().contains<vec4>("point_colors"))
-            point_colors = m_geometry->point_attributes().find<vec4>("point_colors");
-    }
-
-    polygon_normals = m_geometry->polygon_attributes().find<vec3>("polygon_normals");
-
-    if (format_info.want_centroid_points())
-        polygon_centroids = m_geometry->polygon_attributes().find<vec3>("polygon_centroids");
-
-    if (format_info.want_position())
-        point_locations = m_geometry->point_attributes().find<vec3>("point_locations");
-
-    corner_indices = m_geometry->corner_attributes().find_or_create<unsigned int>("corner_indices");
+    m_vertex_format = buffer_info.vertex_format;
 
     auto attribute_position      = m_vertex_format->find_attribute_maybe(vertex_attribute_usage::position, 0);
-    auto attribute_normal        = m_vertex_format->find_attribute_maybe(vertex_attribute_usage::normal, 0); /*  content normals     */
-    auto attribute_normal_flat   = m_vertex_format->find_attribute_maybe(vertex_attribute_usage::normal, 1); /*  flat normals        */
-    auto attribute_normal_smooth = m_vertex_format->find_attribute_maybe(vertex_attribute_usage::normal, 2); /*  smooth normals      */
+    auto attribute_normal        = m_vertex_format->find_attribute_maybe(vertex_attribute_usage::normal, 0); // content normals
+    auto attribute_normal_flat   = m_vertex_format->find_attribute_maybe(vertex_attribute_usage::normal, 1); // flat normals
+    auto attribute_normal_smooth = m_vertex_format->find_attribute_maybe(vertex_attribute_usage::normal, 2); // smooth normals
     auto attribute_tangent       = m_vertex_format->find_attribute_maybe(vertex_attribute_usage::tangent, 0);
     auto attribute_color         = m_vertex_format->find_attribute_maybe(vertex_attribute_usage::color, 0);
     auto attribute_texcoord      = m_vertex_format->find_attribute_maybe(vertex_attribute_usage::tex_coord, 0);
     auto attribute_id_vec3       = m_vertex_format->find_attribute_maybe(vertex_attribute_usage::id, 0);
 
-    shared_ptr<vertex_attribute> attribute_id_uint = nullptr;
+    const Vertex_attribute *attribute_id_uint = nullptr;
     if (configuration::use_integer_polygon_ids)
+    {
         attribute_id_uint = m_vertex_format->find_attribute_maybe(vertex_attribute_usage::id, 0);
+    }
 
     size_t vertex_stride   = m_vertex_format->stride();
-    size_t o_position      = (attribute_position) ? attribute_position->offset() : 0;
-    size_t o_normal        = (attribute_normal) ? attribute_normal->offset() : 0;
-    size_t o_normal_flat   = (attribute_normal_flat) ? attribute_normal_flat->offset() : 0;
-    size_t o_normal_smooth = (attribute_normal_smooth) ? attribute_normal_smooth->offset() : 0;
-    size_t o_tangent       = (attribute_tangent) ? attribute_tangent->offset() : 0;
-    size_t o_color         = (attribute_color) ? attribute_color->offset() : 0;
-    size_t o_texcoord      = (attribute_texcoord) ? attribute_texcoord->offset() : 0;
-    size_t o_id_vec3       = (attribute_id_vec3) ? attribute_id_vec3->offset() : 0;
-    size_t o_id_uint       = (attribute_id_uint) ? attribute_id_uint->offset() : 0;
+    size_t o_position      = attribute_position ? attribute_position->offset : 0;
+    size_t o_normal        = attribute_normal ? attribute_normal->offset : 0;
+    size_t o_normal_flat   = attribute_normal_flat ? attribute_normal_flat->offset : 0;
+    size_t o_normal_smooth = attribute_normal_smooth ? attribute_normal_smooth->offset : 0;
+    size_t o_tangent       = attribute_tangent ? attribute_tangent->offset : 0;
+    size_t o_color         = attribute_color ? attribute_color->offset : 0;
+    size_t o_texcoord      = attribute_texcoord ? attribute_texcoord->offset : 0;
+    size_t o_id_vec3       = attribute_id_vec3 ? attribute_id_vec3->offset : 0;
+    size_t o_id_uint       = attribute_id_uint ? attribute_id_uint->offset : 0;
 
-    auto t_position      = (attribute_position) ? attribute_position->data_type() : format_info.position_type();
-    auto t_normal        = (attribute_normal) ? attribute_normal->data_type() : format_info.normal_type();
-    auto t_normal_flat   = (attribute_normal_flat) ? attribute_normal_flat->data_type() : format_info.normal_flat_type();
-    auto t_normal_smooth = (attribute_normal_smooth) ? attribute_normal_smooth->data_type() : format_info.normal_smooth_type();
-    auto t_tangent       = (attribute_tangent) ? attribute_tangent->data_type() : format_info.tangent_type();
-    auto t_color         = (attribute_color) ? attribute_color->data_type() : format_info.color_type();
-    auto t_texcoord      = (attribute_texcoord) ? attribute_texcoord->data_type() : format_info.texcoord_type();
-    auto t_id_vec3       = (attribute_id_vec3) ? attribute_id_vec3->data_type() : format_info.id_vec3_type();
-    auto t_id_uint       = (attribute_id_uint) ? attribute_id_uint->data_type() : format_info.id_uint_type();
+    auto t_position      = attribute_position ? attribute_position->data_type : format_info.position_type;
+    auto t_normal        = attribute_normal ? attribute_normal->data_type : format_info.normal_type;
+    auto t_normal_flat   = attribute_normal_flat ? attribute_normal_flat->data_type : format_info.normal_flat_type;
+    auto t_normal_smooth = attribute_normal_smooth ? attribute_normal_smooth->data_type : format_info.normal_smooth_type;
+    auto t_tangent       = attribute_tangent ? attribute_tangent->data_type : format_info.tangent_type;
+    auto t_color         = attribute_color ? attribute_color->data_type : format_info.color_type;
+    auto t_texcoord      = attribute_texcoord ? attribute_texcoord->data_type : format_info.texcoord_type;
+    auto t_id_vec3       = attribute_id_vec3 ? attribute_id_vec3->data_type : format_info.id_vec3_type;
+    auto t_id_uint       = attribute_id_uint ? attribute_id_uint->data_type : format_info.id_uint_type;
 
-    m_vertex_stream = make_shared<renderstack::graphics::vertex_stream>();
+    m_vertex_stream = make_shared<renderstack::graphics::Vertex_stream>();
     auto va         = m_vertex_stream->vertex_array();
     auto old_va     = renderer.set_vertex_array(va);
 
-    renderstack::geometry::geometry::mesh_info mi;
-    m_geometry->info(mi);
+    renderstack::geometry::Geometry::Mesh_info mi;
+    geometry.info(mi);
 
     m_mesh = make_shared<mesh>();
 
-    size_t total_vertex_count = 0;
-    size_t total_index_count  = 0;
+    size_t total_vertex_count = 0U;
+    size_t total_index_count  = 0U;
     total_vertex_count += mi.vertex_count_corners;
-    if (format_info.want_centroid_points())
+    if (format_info.want_centroid_points)
+    {
         total_vertex_count += mi.vertex_count_centroids;
+    }
 
-    if (format_info.want_fill_triangles())
+    if (format_info.want_fill_triangles)
+    {
         total_index_count += mi.index_count_fill_triangles;
+    }
 
-    if (format_info.want_edge_lines())
+    if (format_info.want_edge_lines)
+    {
         total_index_count += mi.index_count_edge_lines;
+    }
 
-    if (format_info.want_corner_points())
+    if (format_info.want_corner_points)
+    {
         total_index_count += mi.index_count_corner_points;
+    }
 
-    if (format_info.want_centroid_points())
+    if (format_info.want_centroid_points)
+    {
         total_index_count += mi.index_count_centroid_points;
+    }
 
-    if (buffer_info.vertex_buffer())
+    if (buffer_info.vertex_buffer)
     {
         // Shared VBO given, allocate space from that
         // TODO: If there is not enough space in the shared VBO,
         //       allocate individual VBO as a fallback.
-        m_mesh->allocate_vertex_buffer(buffer_info.vertex_buffer(), total_vertex_count);
+        m_mesh->allocate_vertex_buffer(buffer_info.vertex_buffer, total_vertex_count);
     }
     else
     {
@@ -329,7 +324,7 @@ void geometry_mesh::build_mesh_from_geometry(
         m_mesh->allocate_vertex_buffer(renderer, m_vertex_format->stride(), total_vertex_count);
     }
 
-    auto  old_vbo      = renderer.set_buffer(buffer_target::array_buffer, m_mesh->vertex_buffer());
+    auto  old_vbo      = renderer.set_buffer(Buffer::Target::array_buffer, m_mesh->vertex_buffer().get());
     char *vertex_start = reinterpret_cast<char *>(
         m_mesh->vertex_buffer()->map(
             renderer,
@@ -340,13 +335,13 @@ void geometry_mesh::build_mesh_from_geometry(
                 gl::buffer_access_mask::map_invalidate_range_bit)));
     char *vertex_data = vertex_start;
 
-    if (buffer_info.index_buffer())
+    if (buffer_info.index_buffer)
     {
         // Shared IBO given, allocate range from that
         // TODO: If there is not enough space in the
         //       shared IBO, allocate an individual
         //       buffer as a fallback.
-        m_mesh->allocate_index_buffer(buffer_info.index_buffer(), total_index_count);
+        m_mesh->allocate_index_buffer(buffer_info.index_buffer, total_index_count);
     }
     else
     {
@@ -354,30 +349,37 @@ void geometry_mesh::build_mesh_from_geometry(
         m_mesh->allocate_index_buffer(renderer, 4, total_index_count);
     }
 
-    format_info.vertex_attribute_mappings()->add_to_vertex_stream(
-        m_vertex_stream,
-        m_mesh->vertex_buffer(),
-        m_vertex_format);
+    format_info.vertex_attribute_mappings->add_to_vertex_stream(*(m_vertex_stream.get()),
+                                                                m_mesh->vertex_buffer().get(),
+                                                                *(m_vertex_format.get()));
 
     // Setup vertex attribute pointers to VAO. This is not necessary if VAO is not used
     renderer.set_vertex_array(va);
-    renderer.setup_attribute_pointers(m_vertex_stream, 0);
-    va->set_index_buffer(m_mesh->index_buffer());
+    renderer.setup_attribute_pointers(*(m_vertex_stream.get()), 0);
+    va->set_index_buffer(m_mesh->index_buffer().get());
 
     unsigned int base_vertex = configuration::can_use.draw_elements_base_vertex ? 0 : m_mesh->first_vertex();
 
     // prepare index buffers
-    if (format_info.want_fill_triangles())
+    if (format_info.want_fill_triangles)
+    {
         m_mesh->allocate_index_range(gl::begin_mode::triangles, mi.index_count_fill_triangles, m_fill_indices);
+    }
 
-    if (format_info.want_edge_lines())
+    if (format_info.want_edge_lines)
+    {
         m_mesh->allocate_index_range(gl::begin_mode::lines, mi.index_count_edge_lines, m_edge_line_indices);
+    }
 
-    if (format_info.want_corner_points())
+    if (format_info.want_corner_points)
+    {
         m_mesh->allocate_index_range(gl::begin_mode::points, mi.index_count_corner_points, m_corner_point_indices);
+    }
 
-    if (format_info.want_centroid_points())
+    if (format_info.want_centroid_points)
+    {
         m_mesh->allocate_index_range(gl::begin_mode::points, mi.polygon_count, m_polygon_centroid_indices);
+    }
 
     unsigned int *index_start = reinterpret_cast<unsigned int *>(
         m_mesh->index_buffer()->map(
@@ -403,137 +405,185 @@ void geometry_mesh::build_mesh_from_geometry(
     //unsigned int corner_indices_written             = 0;
     unsigned int polygon_centroid_indices_written = 0;
 
+    Property_maps property_maps(geometry, format_info);
+
     m_min = vec3(numeric_limits<float>::max());
     m_max = vec3(numeric_limits<float>::lowest());
-    if (m_geometry->points().size() == 0)
+    if (geometry.points().size() == 0 || property_maps.point_locations == nullptr)
     {
         m_min = m_max = vec3(0.0f);
     }
     else
     {
-        for (auto i = m_geometry->points().cbegin(); i != m_geometry->points().cend(); ++i)
+        for (auto point : geometry.points())
         {
-            auto point    = *i;
-            vec3 position = point_locations->get(point);
-            m_min         = glm::min(m_min, position);
-            m_max         = glm::max(m_max, position);
+            if (property_maps.point_locations->has(point))
+            {
+                vec3 position = property_maps.point_locations->get(point);
+                m_min         = glm::min(m_min, position);
+                m_max         = glm::max(m_max, position);
+            }
         }
     }
 
 #if 1 // polygons
-    corner_indices->clear();
+    property_maps.corner_indices->clear();
     vec3 unit_y(0.0f, 1.0f, 0.0f);
-    for (auto i = m_geometry->polygons().cbegin(); i != m_geometry->polygons().cend(); ++i)
+    for (auto polygon : geometry.polygons())
     {
-        class polygon *polygon = *i;
-
-        if (format_info.want_id())
+        if (format_info.want_id)
         {
-            if (polygon_ids_uint32)
-                polygon_ids_uint32->put(polygon, polygon_index);
+            if (property_maps.polygon_ids_uint32 != nullptr)
+            {
+                property_maps.polygon_ids_uint32->put(polygon, polygon_index);
+            }
 
-            polygon_ids_vector3->put(polygon, vec3_from_uint(polygon_index));
+            property_maps.polygon_ids_vector3->put(polygon, vec3_from_uint(polygon_index));
         }
 
         vec3 polygon_normal(0.0f, 1.0f, 0.0f);
 
-        if (
-            polygon_normals &&
-            polygon_normals->has(polygon))
-            polygon_normal = polygon_normals->get(polygon);
+        if (property_maps.polygon_normals)
+        {
+            property_maps.polygon_normals->maybe_get(polygon, polygon_normal);
+        }
 
         unsigned int first_index    = vertex_index;
         unsigned int previous_index = first_index;
 
 #    if 1 /* corners */
-        for (auto j = polygon->corners().cbegin(); j != polygon->corners().cend(); ++j)
+        for (auto corner : polygon->corners())
         {
-            class corner *corner = *j;
+            auto point = corner->point;
 
             //  Position
-            if (format_info.want_position())
+            if (format_info.want_position)
             {
-                vec3 position = point_locations->get(corner->point());
+                assert(property_maps.point_locations != nullptr);
+                vec3 position = property_maps.point_locations->get(corner->point);
                 write(&vertex_data[o_position], t_position, position);
             }
 
             //  Normal
             vec3 normal(0.0f, 1.0f, 0.0f);
-            if (corner_normals && corner_normals->has(corner))
-                normal = corner_normals->get(corner);
-            else if (point_normals && point_normals->has(corner->point()))
-                normal = point_normals->get(corner->point());
-            else if (point_normals_smooth && point_normals_smooth->has(corner->point()))
-                normal = point_normals_smooth->get(corner->point());
+            if (property_maps.corner_normals && property_maps.corner_normals->has(corner))
+            {
+                normal = property_maps.corner_normals->get(corner);
+            }
+            else if (property_maps.point_normals && property_maps.point_normals->has(point))
+            {
+                normal = property_maps.point_normals->get(point);
+            }
+            else if (property_maps.point_normals_smooth && property_maps.point_normals_smooth->has(point))
+            {
+                normal = property_maps.point_normals_smooth->get(point);
+            }
 
             vec3 point_normal(0.0f, 1.0f, 0.0f);
-            if (point_normals && point_normals->has(corner->point()))
-                point_normal = point_normals->get(corner->point());
-            else if (point_normals_smooth && point_normals_smooth->has(corner->point()))
-                point_normal = point_normals_smooth->get(corner->point());
-
-            if (format_info.want_normal())
+            if (property_maps.point_normals && property_maps.point_normals->has(point))
             {
-                switch (format_info.normal_style())
+                point_normal = property_maps.point_normals->get(point);
+            }
+            else if (property_maps.point_normals_smooth && property_maps.point_normals_smooth->has(point))
+            {
+                point_normal = property_maps.point_normals_smooth->get(point);
+            }
+
+            if (format_info.want_normal)
+            {
+                switch (format_info.normal_style)
                 {
-                    case normal_style::corner_normals:
+                    case Normal_style::corner_normals:
+                    {
                         write(&vertex_data[o_normal], t_normal, normal);
                         break;
-                    case normal_style::point_normals:
+                    }
+
+                    case Normal_style::point_normals:
+                    {
                         write(&vertex_data[o_normal], t_normal, point_normal);
                         break;
-                    case normal_style::polygon_normals:
+                    }
+
+                    case Normal_style::polygon_normals:
+                    {
                         write(&vertex_data[o_normal], t_normal, polygon_normal);
                         break;
+                    }
                 }
             }
 
-            if (format_info.want_normal_flat() && attribute_normal_flat)
+            if (format_info.want_normal_flat && attribute_normal_flat)
+            {
                 write(&vertex_data[o_normal_flat], t_normal_flat, polygon_normal);
+            }
 
-            if (format_info.want_normal_smooth() && attribute_normal_smooth)
-                write(&vertex_data[o_normal_smooth], t_normal_smooth, point_normals_smooth->get(corner->point()));
+            if (format_info.want_normal_smooth && attribute_normal_smooth)
+            {
+                vec3 smooth_point_normal(0.0f, 1.0f, 0.0f);
+                if (property_maps.point_normals_smooth && property_maps.point_normals_smooth->has(point))
+                {
+                    smooth_point_normal = property_maps.point_normals_smooth->get(point);
+                }
+                write(&vertex_data[o_normal_smooth], t_normal_smooth, smooth_point_normal);
+            }
 
             //  Tangent
-            if (format_info.want_tangent() && attribute_tangent)
+            if (format_info.want_tangent && attribute_tangent)
             {
                 vec3 tangent(1.0f, 0.0f, 0.0f);
-                if (corner_tangents && corner_tangents->has(corner))
-                    tangent = corner_tangents->get(corner);
-                else if (point_tangents && point_tangents->has(corner->point()))
-                    tangent = point_tangents->get(corner->point());
+                if (property_maps.corner_tangents && property_maps.corner_tangents->has(corner))
+                {
+                    tangent = property_maps.corner_tangents->get(corner);
+                }
+                else if (property_maps.point_tangents && property_maps.point_tangents->has(point))
+                {
+                    tangent = property_maps.point_tangents->get(point);
+                }
 
                 write(&vertex_data[o_tangent], t_tangent, tangent);
             }
 
             //  Texcoord
-            if (format_info.want_texcoord() && attribute_texcoord)
+            if (format_info.want_texcoord && attribute_texcoord)
             {
                 vec2 texcoord(0.0f, 0.0f);
-                if (corner_texcoords && corner_texcoords->has(corner))
-                    texcoord = corner_texcoords->get(corner);
-                else if (point_texcoords && point_texcoords->has(corner->point()))
-                    texcoord = point_texcoords->get(corner->point());
+                if (property_maps.corner_texcoords && property_maps.corner_texcoords->has(corner))
+                {
+                    texcoord = property_maps.corner_texcoords->get(corner);
+                }
+                else if (property_maps.point_texcoords && property_maps.point_texcoords->has(point))
+                {
+                    texcoord = property_maps.point_texcoords->get(point);
+                }
 
                 write(&vertex_data[o_texcoord], t_texcoord, texcoord);
             }
 
             //  Vertex Color
-            if (format_info.want_color() && attribute_color)
+            if (format_info.want_color && attribute_color)
             {
-                if (corner_colors && corner_colors->has(corner))
-                    write(&vertex_data[o_color], t_color, corner_colors->get(corner));
-                else if (point_colors && point_colors->has(corner->point()))
-                    write(&vertex_data[o_color], t_color, point_colors->get(corner->point()));
+                if (property_maps.corner_colors && property_maps.corner_colors->has(corner))
+                {
+                    write(&vertex_data[o_color], t_color, property_maps.corner_colors->get(corner));
+                }
+                else if (property_maps.point_colors && property_maps.point_colors->has(point))
+                {
+                    write(&vertex_data[o_color], t_color, property_maps.point_colors->get(point));
+                }
                 else
-                    write(&vertex_data[o_color], t_color, format_info.constant_color());
+                {
+                    write(&vertex_data[o_color], t_color, format_info.constant_color);
+                }
             }
 
             //  PolygonId
-            if (format_info.want_id())
+            if (format_info.want_id)
             {
                 if (configuration::use_integer_polygon_ids && attribute_id_uint)
+                {
                     write(&vertex_data[o_id_uint], t_id_uint, polygon_index);
+                }
 
                 if (attribute_id_vec3)
                 {
@@ -545,16 +595,16 @@ void geometry_mesh::build_mesh_from_geometry(
             ++vertices_written;
 
             // Indices
-            if (format_info.want_corner_points())
+            if (format_info.want_corner_points)
             {
                 *corner_point_index_data++ = vertex_index + base_vertex;
                 ++corner_point_indices_written;
             }
 
             // TODO Where is this used? With or without + base_vertex?
-            corner_indices->put(corner, vertex_index /* + base_vertex*/);
+            property_maps.corner_indices->put(corner, vertex_index /* + base_vertex*/);
 
-            if (format_info.want_fill_triangles())
+            if (format_info.want_fill_triangles)
             {
                 if (previous_index != first_index)
                 {
@@ -570,26 +620,28 @@ void geometry_mesh::build_mesh_from_geometry(
             vertex_data = &vertex_data[vertex_stride];
             ++vertex_index;
         }
-#    endif /* corners */
+#    endif // corners
 
         ++polygon_index;
     }
-#endif /* polygons */
+#endif // polygons
 
-    if (format_info.want_edge_lines())
+    if (format_info.want_edge_lines)
     {
-        for (auto i = m_geometry->edges().cbegin(); i != m_geometry->edges().cend(); ++i)
+        for (auto i : geometry.edges())
         {
-            struct edge const &edge = i->first;
-            point *            pa   = edge.a();
-            point *            pb   = edge.b();
-            corner *           ca   = pa->corners().front();
-            corner *           cb   = pb->corners().front();
+            auto &edge = i.first;
 
-            if (corner_indices->has(ca) && corner_indices->has(cb))
+            Point *pa = edge.a();
+            Point *pb = edge.b();
+
+            Corner *ca = pa->corners().front();
+            Corner *cb = pb->corners().front();
+
+            if (property_maps.corner_indices->has(ca) && property_maps.corner_indices->has(cb))
             {
-                unsigned int i0         = corner_indices->get(ca);
-                unsigned int i1         = corner_indices->get(cb);
+                unsigned int i0         = property_maps.corner_indices->get(ca);
+                unsigned int i1         = property_maps.corner_indices->get(cb);
                 *edge_line_index_data++ = i0 + base_vertex;
                 *edge_line_index_data++ = i1 + base_vertex;
                 edge_line_indices_written += 2;
@@ -597,24 +649,31 @@ void geometry_mesh::build_mesh_from_geometry(
         }
     }
 
-    if (format_info.want_centroid_points())
+    if (format_info.want_centroid_points)
     {
-        for (auto i = m_geometry->polygons().cbegin(); i != m_geometry->polygons().cend(); ++i)
+        for (auto polygon : geometry.polygons())
         {
-            polygon *polygon = *i;
-            vec3 &   normal  = unit_y;
+            vec3 &normal = unit_y;
 
-            if (polygon_normals->has(polygon))
-                normal = polygon_normals->get(polygon);
+            if (property_maps.polygon_normals->has(polygon))
+            {
+                normal = property_maps.polygon_normals->get(polygon);
+            }
 
-            if (format_info.want_position())
-                write(&vertex_data[o_position], t_position, polygon_centroids->get(polygon));
+            if (format_info.want_position)
+            {
+                write(&vertex_data[o_position], t_position, property_maps.polygon_centroids->get(polygon));
+            }
 
-            if (format_info.want_normal() && attribute_normal)
+            if (format_info.want_normal && attribute_normal)
+            {
                 write(&vertex_data[o_normal], t_normal, normal);
+            }
 
-            if (format_info.want_normal_flat() && attribute_normal_flat)
+            if (format_info.want_normal_flat && attribute_normal_flat)
+            {
                 write(&vertex_data[o_normal_flat], t_normal_flat, normal);
+            }
 
             *polygon_centroid_index_data++ = vertex_index + base_vertex;
             ++polygon_centroid_indices_written;
@@ -631,21 +690,22 @@ void geometry_mesh::build_mesh_from_geometry(
     (void)renderer.set_vertex_array(old_va);
 
     if (vertices_written != vertex_index)
+    {
         throw runtime_error("written vertex count does not match written indices");
+    }
 
     if (vertices_written != total_vertex_count)
+    {
         throw runtime_error("written vertex count does not match expected vertex count");
-
-    if (!format_info.keep_geometry())
-        m_geometry.reset();
+    }
 
     check_memory_system();
 }
 
 #if 0
-void geometry_mesh::setup_vertex_stream(
+void Geometry_mesh::setup_vertex_stream(
    geometry_mesh_buffer_info const &buffer_info,
-   shared_ptr<renderstack::graphics::vertex_stream_mappings> mappings)
+   shared_ptr<renderstack::graphics::Vertex_stream_mappings> mappings)
 {
    mappings->add_to_vertex_stream(
       m_vertex_stream,
@@ -654,41 +714,45 @@ void geometry_mesh::setup_vertex_stream(
 }
 #endif
 
-static inline void write(
-    char *                                data_ptr,
-    gl::vertex_attrib_pointer_type::value type,
-    unsigned int                          value)
+static inline void write(char *                                data_ptr,
+                         gl::vertex_attrib_pointer_type::value type,
+                         unsigned int                          value)
 {
     switch (type)
     {
         case gl::vertex_attrib_pointer_type::unsigned_byte:
         {
             GLubyte *ptr = reinterpret_cast<GLubyte *>(data_ptr);
-            assert(value <= 0xff);
-            ptr[0] = value & 0xff;
+            assert(value <= 0xffU);
+            ptr[0] = value & 0xffU;
+            break;
         }
-        break;
+
         case gl::vertex_attrib_pointer_type::unsigned_short:
         {
             GLushort *ptr = reinterpret_cast<GLushort *>(data_ptr);
-            assert(value <= 0xffff);
-            ptr[0] = value & 0xffff;
+            assert(value <= 0xffffU);
+            ptr[0] = value & 0xffffU;
+            break;
         }
-        break;
+
         case gl::vertex_attrib_pointer_type::unsigned_int:
         {
             GLuint *ptr = reinterpret_cast<GLuint *>(data_ptr);
             ptr[0]      = value;
+            break;
         }
-        break;
+
         default:
+        {
             throw runtime_error("bad index type");
+        }
     }
 }
 static inline void write(
     char *                                data_ptr,
     gl::vertex_attrib_pointer_type::value type,
-    vec2 const &                          value)
+    const vec2 &                          value)
 {
     switch (type)
     {
@@ -697,8 +761,9 @@ static inline void write(
             float *ptr = reinterpret_cast<float *>(data_ptr);
             ptr[0]     = value.x;
             ptr[1]     = value.y;
+            break;
         }
-        break;
+
         case gl::vertex_attrib_pointer_type::half_float:
         {
             // TODO Would this be safe even if we are not aligned?
@@ -707,16 +772,19 @@ static inline void write(
             uint16 *ptr = reinterpret_cast<uint16 *>(data_ptr);
             ptr[0]      = glm::packHalf1x16(value.x);
             ptr[1]      = glm::packHalf1x16(value.y);
+            break;
         }
-        break;
+
         default:
+        {
             throw runtime_error("unsupported attribute type");
+        }
     }
 }
 static inline void write(
     char *                                data_ptr,
     gl::vertex_attrib_pointer_type::value type,
-    vec3 const &                          value)
+    const vec3 &                          value)
 {
     switch (type)
     {
@@ -726,28 +794,29 @@ static inline void write(
             ptr[0]     = value.x;
             ptr[1]     = value.y;
             ptr[2]     = value.z;
+            break;
         }
-        break;
+
         case gl::vertex_attrib_pointer_type::half_float:
         {
             uint16 *ptr = reinterpret_cast<uint16 *>(data_ptr);
             ptr[0]      = glm::packHalf1x16(value.x);
             ptr[1]      = glm::packHalf1x16(value.y);
             ptr[2]      = glm::packHalf1x16(value.z);
+            break;
         }
-        break;
+
         default:
+        {
             throw runtime_error("unsupported attribute type");
+        }
     }
 }
+
 static void write(
     char *                                data_ptr,
     gl::vertex_attrib_pointer_type::value type,
-    vec4 const &                          value);
-static void write(
-    char *                                data_ptr,
-    gl::vertex_attrib_pointer_type::value type,
-    vec4 const &                          value)
+    const vec4 &                          value)
 {
     switch (type)
     {
@@ -758,8 +827,9 @@ static void write(
             ptr[1]     = value.y;
             ptr[2]     = value.z;
             ptr[3]     = value.w;
+            break;
         }
-        break;
+
         case gl::vertex_attrib_pointer_type::half_float:
         {
             uint16 *ptr = reinterpret_cast<uint16 *>(data_ptr);
@@ -768,10 +838,13 @@ static void write(
             ptr[1] = glm::packHalf1x16(value.y);
             ptr[2] = glm::packHalf1x16(value.z);
             ptr[3] = glm::packHalf1x16(value.w);
+            break;
         }
-        break;
+
         default:
+        {
             throw runtime_error("unsupported attribute type");
+        }
     }
 }
 

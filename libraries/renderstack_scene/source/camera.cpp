@@ -7,24 +7,18 @@ namespace scene
 
 using namespace std;
 
-camera::camera()
-    : m_frame(nullptr)
-{
-    m_frame = make_shared<renderstack::scene::frame>();
-}
 
-void camera::update(class viewport const &viewport)
+void Camera::update(Viewport viewport)
 {
     // Update clip from view transform / view from clip
-    m_projection.update(m_clip_from_view, viewport);
+    projection.update(clip_from_view, viewport);
 
     // TODO
-    m_frame->update_hierarchical_no_cache();
+    frame.update_hierarchical_no_cache();
 
     // Update clip from world / world from clip
-    m_clip_from_world.set(
-        m_clip_from_view.matrix() * m_frame->world_from_local().inverse_matrix(),
-        m_frame->world_from_local().matrix() * m_clip_from_view.inverse_matrix());
+    clip_from_world.set(clip_from_view.matrix() * frame.world_from_local.inverse_matrix(),
+                        frame.world_from_local.matrix() * clip_from_view.inverse_matrix());
 }
 
 } // namespace scene
