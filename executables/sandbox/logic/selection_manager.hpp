@@ -26,12 +26,12 @@ class Scene_manager;
 class Model;
 class Group;
 
-class selection_manager : public renderstack::toolkit::service
+class Selection_manager : public renderstack::toolkit::service
 {
 public:
-    selection_manager();
+    Selection_manager();
 
-    virtual ~selection_manager() = default;
+    virtual ~Selection_manager() = default;
 
     void connect(std::shared_ptr<renderstack::graphics::Renderer> Renderer,
                  std::shared_ptr<Debug_renderer>                  debug_renderer_,
@@ -67,9 +67,9 @@ private:
     std::shared_ptr<Scene_manager>                   m_scene_manager;
 
 private:
-    struct hover
+    struct Hover
     {
-        std::shared_ptr<Model>          Model;
+        std::shared_ptr<Model>          model;
         std::shared_ptr<Group>          group;
         renderstack::geometry::Polygon  *polygon{nullptr};
         renderstack::geometry::Point    *point{nullptr};
@@ -78,7 +78,7 @@ private:
 
         void clear()
         {
-            Model.reset();
+            model.reset();
             group.reset();
             polygon  = nullptr;
             point    = nullptr;
@@ -87,7 +87,7 @@ private:
         }
     };
     std::set<std::shared_ptr<Model>> m_models;
-    hover                            m_hover;
+    Hover                            m_hover;
 };
 
 #endif

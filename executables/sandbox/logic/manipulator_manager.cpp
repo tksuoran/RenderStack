@@ -12,21 +12,21 @@ manipulator_manager::~manipulator_manager()
 }
 
 void manipulator_manager::connect(
-    shared_ptr<renderstack::graphics::Renderer> renderer_,
-    shared_ptr<Material_manager>                material_manager_,
-    shared_ptr<Debug_renderer>                  debug_renderer_,
-    shared_ptr<Scene_manager>                   scene_manager_,
-    shared_ptr<selection_manager>               selection_manager_)
+    shared_ptr<renderstack::graphics::Renderer> renderer,
+    shared_ptr<Material_manager>                material_manager,
+    shared_ptr<Debug_renderer>                  debug_renderer,
+    shared_ptr<Scene_manager>                   scene_manager,
+    shared_ptr<Selection_manager>               selection_manager)
 {
-    m_renderer          = renderer_;
-    m_material_manager  = material_manager_;
-    m_debug_renderer    = debug_renderer_;
-    m_scene_manager     = scene_manager_;
-    m_selection_manager = selection_manager_;
+    m_renderer          = renderer;
+    m_material_manager  = material_manager;
+    m_debug_renderer    = debug_renderer;
+    m_scene_manager     = scene_manager;
+    m_selection_manager = selection_manager;
 
-    initialization_depends_on(renderer_);
-    initialization_depends_on(material_manager_);
-    initialization_depends_on(scene_manager_);
+    initialization_depends_on(renderer);
+    initialization_depends_on(material_manager);
+    initialization_depends_on(scene_manager);
 }
 
 void manipulator_manager::initialize_service()

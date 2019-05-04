@@ -1,0 +1,16 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "sandbox",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/../RenderStack-build/executables/sandbox/sandbox",
+            "preLaunchTask": "make",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/../RenderStack-build/executables/sandbox",
+            "externalConsole": false,
+        }
+    ],
+}

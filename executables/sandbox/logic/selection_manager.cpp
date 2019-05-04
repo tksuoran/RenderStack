@@ -8,16 +8,16 @@
 
 using namespace std;
 
-selection_manager::selection_manager()
-    : service("selection_manager")
+Selection_manager::Selection_manager()
+    : service("Selection_manager")
 {
 }
 
-void selection_manager::initialize_service()
+void Selection_manager::initialize_service()
 {
 }
 
-void selection_manager::connect(shared_ptr<renderstack::graphics::Renderer> renderer_,
+void Selection_manager::connect(shared_ptr<renderstack::graphics::Renderer> renderer_,
                                 shared_ptr<Debug_renderer>                  debug_renderer_,
                                 shared_ptr<Id_renderer>                     id_renderer_,
                                 shared_ptr<manipulator_manager>             manipulator_manager_,
@@ -36,43 +36,43 @@ void initialize_service()
 {
 }
 
-void selection_manager::clear_hover()
+void Selection_manager::clear_hover()
 {
     m_hover.clear();
 }
 
-void selection_manager::clear_selection()
+void Selection_manager::clear_selection()
 {
     for (auto i : m_models)
     {
     }
 }
 
-void selection_manager::remove(std::shared_ptr<Model> m)
+void Selection_manager::remove(std::shared_ptr<Model> m)
 {
 }
 
-void selection_manager::add(std::shared_ptr<Model> m)
+void Selection_manager::add(std::shared_ptr<Model> m)
 {
 }
 
-bool selection_manager::contains(std::shared_ptr<Model> m) const
+bool Selection_manager::contains(std::shared_ptr<Model> m) const
 {
     return false;
 }
 
-void selection_manager::reset_hover()
+void Selection_manager::reset_hover()
 {
 }
 
-void selection_manager::update()
+void Selection_manager::update()
 {
 }
 
-void selection_manager::render_bounding_boxes()
+void Selection_manager::render_bounding_boxes()
 {
 }
 
-void selection_manager::render()
+void Selection_manager::render()
 {
 }

@@ -1,0 +1,60 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "cmake configure",
+            "type": "shell",
+            "command": "mkdir -p ${workspaceFolder}/../RenderStack-build && cd ${workspaceFolder}/../RenderStack-build && cmake -DCMAKE_BUILD_TYPE=Debug ${workspaceFolder} && cp compile_commands.json ${workspaceFolder}",
+            "problemMatcher": {
+                "base": "$gcc",
+                "fileLocation": "absolute"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "presentation": {
+                "clear": true
+            }
+        },
+        {
+            "label": "make clean",
+            "type": "shell",
+            "command": "make clean -C ../RenderStack-build",
+            "problemMatcher": {
+                "base": "$gcc",
+                "fileLocation": "absolute"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "presentation": {
+                "clear": true
+            }
+        },
+        {
+            "label": "make",
+            "type": "shell",
+            "command": "make -C ../RenderStack-build",
+            "problemMatcher": {
+                "base": "$gcc",
+                "fileLocation": "absolute"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "clear": true
+            }
+        }
+    ]
+}
+//"options": {
+//    "env": {
+//        "LIBGL_ALWAYS_SOFTWARE": "1",
+//    }
+//},

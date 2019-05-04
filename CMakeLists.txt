@@ -13,6 +13,7 @@ This process created the file `CMakeCache.txt' and the directory `CMakeFiles'.
 Please delete them.")
 endif()
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(RENDERSTACK_WINDOW_TOOLKIT_INCLUDE_DIRS "")
 
 set(RENDERSTACK_WINDOW_TOOLKIT "GLFW" CACHE STRING "Window Toolkit")

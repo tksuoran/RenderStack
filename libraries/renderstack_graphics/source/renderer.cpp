@@ -26,7 +26,7 @@ Renderer::Renderer()
     assert(init_count == 0);
     ++init_count;
 
-    for (int i = 0; i < m_mapped_buffer.size(); ++i)
+    for (size_t i = 0; i < m_mapped_buffer.size(); ++i)
     {
         m_mapped_buffer[i] = nullptr;
     }
@@ -59,7 +59,7 @@ void Renderer::trash()
     gl::use_program(0);
     m_effective.current_program = nullptr;
 
-    for (int i = 0; i < m_effective.buffer_binding.size(); ++i)
+    for (size_t i = 0; i < m_effective.buffer_binding.size(); ++i)
     {
         Buffer::Target target = static_cast<Buffer::Target>(i);
         gl::bind_buffer(Buffer::gl_buffer_target(target), 0);
@@ -69,7 +69,7 @@ void Renderer::trash()
     gl::bind_vertex_array(0);
     m_effective.vertex_array_binding = nullptr;
 
-    for (int i = 0; i < m_effective.texture_unit.size(); ++i)
+    for (size_t i = 0; i < m_effective.texture_unit.size(); ++i)
     {
         gl::active_texture(GL_TEXTURE0 + i);
         m_effective.texture_unit[i].trash(i);
@@ -77,7 +77,7 @@ void Renderer::trash()
     gl::active_texture(GL_TEXTURE0);
     m_effective.active_texture = 0;
 
-    for (int i = 0; i < m_effective.uniform_buffer_binding_indexed.size(); ++i)
+    for (size_t i = 0; i < m_effective.uniform_buffer_binding_indexed.size(); ++i)
     {
         gl::bind_buffer_range(gl::buffer_target::uniform_buffer, i, 0, 0, 0);
         m_effective.uniform_buffer_binding_indexed[i] = nullptr;

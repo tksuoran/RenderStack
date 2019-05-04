@@ -34,17 +34,17 @@ State::State(const State &other)
     , renderbuffer_binding(other.renderbuffer_binding)
     , current_query(other.current_query)
 {
-    for (int i = 0; i < texture_unit.size(); ++i)
+    for (size_t i = 0; i < texture_unit.size(); ++i)
     {
         texture_unit[i] = other.texture_unit[i];
     }
 
-    for (int i = 0; i < buffer_binding.size(); ++i)
+    for (size_t i = 0; i < buffer_binding.size(); ++i)
     {
         buffer_binding[i] = other.buffer_binding[i];
     }
 
-    for (int i = 0; i < uniform_buffer_binding_indexed.size(); ++i)
+    for (size_t i = 0; i < uniform_buffer_binding_indexed.size(); ++i)
     {
         uniform_buffer_binding_indexed[i] = other.uniform_buffer_binding_indexed[i];
     }
@@ -52,7 +52,7 @@ State::State(const State &other)
 
 void Texture_unit_state::trash(unsigned int unit)
 {
-    for (int i = 0; i < texture_binding.size(); ++i)
+    for (size_t i = 0; i < texture_binding.size(); ++i)
     {
         Texture::Target target = static_cast<Texture::Target>(i);
         gl::bind_texture(Texture::gl_texture_target(target), 0);
