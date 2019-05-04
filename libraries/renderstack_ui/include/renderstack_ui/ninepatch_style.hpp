@@ -34,8 +34,8 @@ public:
     std::unique_ptr<renderstack::graphics::Texture> texture;
     renderstack::graphics::Program                  *program{nullptr};
     unsigned int                                    texture_unit{0U};
-    glm::vec2                                       border_uv;
-    glm::vec2                                       border_pixels;
+    glm::vec2                                       border_uv{0.0f};
+    glm::vec2                                       border_pixels{0.0f};
 };
 
 } // namespace ui

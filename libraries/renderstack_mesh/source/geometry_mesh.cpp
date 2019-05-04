@@ -324,7 +324,9 @@ void Geometry_mesh::build_mesh_from_geometry(renderstack::graphics::Renderer &re
         m_mesh->allocate_vertex_buffer(renderer, m_vertex_format->stride(), total_vertex_count);
     }
 
-    auto  old_vbo      = renderer.set_buffer(Buffer::Target::array_buffer, m_mesh->vertex_buffer().get());
+    //auto  old_vbo      = 
+    static_cast<void>(renderer.set_buffer(Buffer::Target::array_buffer, m_mesh->vertex_buffer().get()));
+
     char *vertex_start = reinterpret_cast<char *>(
         m_mesh->vertex_buffer()->map(
             renderer,

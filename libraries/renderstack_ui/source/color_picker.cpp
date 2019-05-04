@@ -205,12 +205,16 @@ void Color_picker::draw_self(ui_context &context)
         gr.blend_disable();
 
         auto vbo     = m_color_mesh->get_mesh()->vertex_buffer().get();
-        auto old_vbo = r.set_buffer(Buffer::Target::array_buffer, vbo);
+
+        //auto old_vbo = 
+        static_cast<void>(r.set_buffer(Buffer::Target::array_buffer, vbo));
 
         // TODO must access VAO instead!
         assert(false);
-        auto ibo     = m_color_mesh->get_mesh()->index_buffer().get();
-        auto old_ibo = r.set_buffer(Buffer::Target::element_array_buffer, ibo);
+        auto ibo = m_color_mesh->get_mesh()->index_buffer().get();
+
+        //auto old_ibo = 
+        static_cast<void>(r.set_buffer(Buffer::Target::element_array_buffer, ibo));
 
         gr.set_transform(m_hsv_transform);
         gr.set_hsv_matrix(c);

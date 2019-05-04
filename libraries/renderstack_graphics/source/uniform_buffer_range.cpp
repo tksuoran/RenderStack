@@ -13,7 +13,7 @@ namespace graphics
 using namespace std;
 
 Uniform_buffer_range::Uniform_buffer_range(Uniform_block *block, Buffer *uniform_buffer, size_t count)
-    : m_uniform_block(block), m_uniform_buffer(uniform_buffer)
+    : m_uniform_buffer(uniform_buffer)
 {
     assert(block != nullptr);
     assert(m_uniform_buffer != nullptr);

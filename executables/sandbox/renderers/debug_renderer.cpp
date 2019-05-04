@@ -70,8 +70,6 @@ void Debug_renderer::initialize_service()
     auto &r = renderer();
 
 #if defined(RENDERSTACK_USE_FREETYPE)
-    //auto m = p->vertex_attribute_mappings();
-
     m_font = make_shared<Font>(r, "res/fonts/Ubuntu-R.ttf", 10);
 
     auto font = m_font.get();
@@ -84,7 +82,7 @@ void Debug_renderer::initialize_service()
     m_font_render_states.blend.rgb.destination_factor = gl::blending_factor_dest::one_minus_src_alpha;
 #endif
 
-    m_render_states.depth.enabled = true;
+    m_render_states.depth.enabled = false;
     m_render_states.face_cull.enabled = true;
 
     auto &vf = m_vertex_format;
@@ -308,15 +306,11 @@ void Debug_renderer::add_frame_duration_graph(Viewport vp)
     float frame = 0.0f;
 
     /// debug cross
-    // set_color(vec4(1.0f, 1.0f, 1.0f, 1.0f));
-    // add_line(
-    //     vec3(0.0f, 0.0f, 0.0f),
-    //     vec3(vp.width(), vp.height(), 0.0f)
-    // );
-    // add_line(
-    //     vec3(vp.width(), 0.0f, 0.0f),
-    //     vec3(0.0f, vp.height(), 0.0f)
-    // );
+    // set_color(vec4(0.0f, 0.0f, 1.0f, 1.0f));
+    // add_line(vec3(0.0f, 0.0f, 0.0f),
+    //          vec3(vp.width, vp.height, 0.0f));
+    // add_line(vec3(vp.width, 0.0f, 0.0f),
+    //          vec3(0.0f, vp.height, 0.0f));
 
     // 32 ms
     float left       = 0.0f;
@@ -382,12 +376,10 @@ void Debug_renderer::render()
             );*/
         }
 
-        gl::draw_elements(
-            gl::begin_mode::lines,
-            //gl::begin_mode::points,
-            draw.count,
-            gl::draw_elements_type::unsigned_short,
-            reinterpret_cast<GLvoid *>(draw.first_index * 2));
+        gl::draw_elements(gl::begin_mode::lines,
+                          draw.count,
+                          gl::draw_elements_type::unsigned_short,
+                          reinterpret_cast<GLvoid *>(draw.first_index * 2));
         ++model_index;
     }
 

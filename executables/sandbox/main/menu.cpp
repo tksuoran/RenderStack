@@ -93,11 +93,8 @@ void Menu::initialize_service()
     auto &gr = *(m_gui_renderer.get());
     auto &r = *m_renderer;
 
-    m_font        = std::make_shared<Font>(r, "res/fonts/Ubuntu-R.ttf", 48, 4.0f);
+    m_font        = std::make_shared<Font>(r, "res/fonts/Ubuntu-R.ttf", 68, 8.0f);
     m_text_buffer = std::make_shared<Text_buffer>(gr, *(m_font.get()));
-
-    //auto p = m_programs->textured.get();
-    //auto m  = p->vertex_attribute_mappings();
 
     // Background
     m_mesh = std::make_shared<mesh>();
@@ -215,8 +212,8 @@ void Menu::resize(float w, float h)
                     gl::buffer_access_mask::map_invalidate_range_bit)));
 
 #if defined(DEBUG_FONT)
-        float max_x = static_cast<float>(m_font->texture_width());
-        float max_y = static_cast<float>(m_font->texture_height());
+        float max_x = static_cast<float>(m_font->texture()->width());
+        float max_y = static_cast<float>(m_font->texture()->height());
 #else
         float max_x = w;
         float max_y = h;

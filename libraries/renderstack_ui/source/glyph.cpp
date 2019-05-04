@@ -10,6 +10,7 @@
 #    include "renderstack_ui/log.hpp"
 #    include <map>
 #    include <stdexcept>
+#    include <cstdio>
 
 namespace renderstack
 {
@@ -37,6 +38,8 @@ Glyph::Glyph(FT_Library    library,
              bool          rgb,
              int           hint_mode)
 {
+    //outline_thickness = 0.0f;
+    //bolding = 0.0f;
     m_outline_thickness = outline_thickness;
 
     m_glyph_index = FT_Get_Char_Index(font_face, c);
@@ -66,11 +69,11 @@ Glyph::Glyph(FT_Library    library,
     FT_Bitmap bitmap;
     FT_Bitmap_New(&bitmap);
 
-    m_bearingX    = (float)font_face->glyph->metrics.horiBearingX / 64.0f;
-    m_width       = (float)font_face->glyph->metrics.width / 64.0f;
-    m_bearingY    = (float)font_face->glyph->metrics.horiBearingY / 64.0f;
-    m_height      = (float)font_face->glyph->metrics.height / 64.0f;
-    m_horiAdvance = (float)font_face->glyph->metrics.horiAdvance / 64.0f;
+    m_bearingX    = static_cast<float>(font_face->glyph->metrics.horiBearingX / 64.0f);
+    m_width       = static_cast<float>(font_face->glyph->metrics.width / 64.0f);
+    m_bearingY    = static_cast<float>(font_face->glyph->metrics.horiBearingY / 64.0f);
+    m_height      = static_cast<float>(font_face->glyph->metrics.height / 64.0f);
+    m_horiAdvance = static_cast<float>(font_face->glyph->metrics.horiAdvance / 64.0f);
 
     if (render)
     {
@@ -192,22 +195,28 @@ Glyph::Glyph(FT_Library    library,
     //  Turn max pixel coordinates to number of pixels to crop
     m_crop_x_max = m_bm_width - 1 - m_crop_x_max;
     m_crop_y_max = m_bm_height - 1 - m_crop_y_max;
+
+    //dump();
 }
 
 void Glyph::dump() const
 {
-    const char *shades = " -+#";
+    const char *shades = " .:#";
     printf("\nglyph dump: w = %d h = %d\n", m_bm_width, m_bm_height);
     for (int iy = 0; iy < m_bm_height; ++iy)
     {
+        ::fputc('|', ::stdout);
         for (int ix = 0; ix < m_bm_width; ++ix)
         {
             size_t        offset = static_cast<size_t>(ix + (iy * m_bm_pitch));
             unsigned char value  = m_buffer[offset];
-            printf("%c", shades[value / 64]);
+            ::fputc(shades[value / 64], ::stdout);
         }
-        printf("\n");
+        ::fputc('|', ::stdout);
+        ::fputc('\n', ::stdout);
     }
+    printf("______________________________\n");
+    fflush(stdout);
 }
 
 } // namespace ui

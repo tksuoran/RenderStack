@@ -290,7 +290,8 @@ void Gui_renderer::set_index_buffer()
 
     // Make sure our VAO is bound, then make sure our IBO is bound
     auto va = m_vertex_stream.vertex_array();
-    auto old_va = m_renderer->set_vertex_array(va);
+
+    m_renderer->set_vertex_array(va);
     va->set_index_buffer(m_index_buffer.get());
 }
 
@@ -374,15 +375,13 @@ void Gui_renderer::set_t(float value)
     gl::uniform_1f(m_program->uniform_at(m_uniforms.t), value);
 }
 
-void Gui_renderer::draw_elements_base_vertex(
-    GLenum begin_mode, GLsizei count, GLenum index_type, const GLvoid *indices,
-    GLint base_vertex)
+void Gui_renderer::draw_elements_base_vertex(GLenum begin_mode, GLsizei count, GLenum index_type, const GLvoid *indices, GLint base_vertex)
 {
     // TODO Can we do this in caller somewhere?
     auto va = m_vertex_stream.vertex_array();
-    auto old_va = m_renderer->set_vertex_array(va);
-    auto old_buffer = va->set_index_buffer(m_index_buffer.get());
 
+    m_renderer->set_vertex_array(va);
+    va->set_index_buffer(m_index_buffer.get());
     m_renderer->draw_elements_base_vertex(m_vertex_stream, begin_mode, count, index_type, indices, base_vertex);
 }
 

@@ -34,12 +34,15 @@ Ninepatch_style::Ninepatch_style(Renderer          &renderer,
     {
         texture = std::make_unique<Texture>();
         bool ok = load_png(*(texture.get()), renderer, texture_unit, path);
-        texture->set_debug_label(path);
-        texture->set_min_filter(gl::texture_min_filter::nearest);
-        texture->set_mag_filter(gl::texture_mag_filter::nearest);
+        if (ok)
+        {
+            texture->set_debug_label(path);
+            texture->set_min_filter(gl::texture_min_filter::nearest);
+            texture->set_mag_filter(gl::texture_mag_filter::nearest);
 
-        border_pixels.x = border_uv.x * static_cast<float>(texture->width());
-        border_pixels.y = border_uv.y * static_cast<float>(texture->height());
+            border_pixels.x = border_uv.x * static_cast<float>(texture->width());
+            border_pixels.y = border_uv.y * static_cast<float>(texture->height());
+        }
     }
 }
 

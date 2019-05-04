@@ -6,7 +6,9 @@
 #include "renderstack_toolkit/window.hpp"
 #include "renderstack_ui/action.hpp"
 #include "renderstack_ui/choice.hpp"
+#include "renderstack_ui/layer.hpp"
 #include "renderstack_ui/menulist.hpp"
+#include "renderstack_ui/slider.hpp"
 
 #include "main/programs.hpp"
 #include "main/screen.hpp"
@@ -36,7 +38,6 @@ namespace ui
 class Button;
 class Font;
 class Gui_renderer;
-class Layer;
 class Slider;
 class Text_buffer;
 } // namespace ui
@@ -87,18 +88,18 @@ public:
 
     void connect(
         std::shared_ptr<renderstack::graphics::Renderer>       renderer,
-        std::shared_ptr<renderstack::graphics::Shader_monitor> shader_monitor_,
+        std::shared_ptr<renderstack::graphics::Shader_monitor> shader_monitor,
         std::shared_ptr<renderstack::ui::Gui_renderer>         gui_renderer,
-        std::shared_ptr<Programs>                              programs_,
-        std::shared_ptr<textures>                              textures_,
-        std::shared_ptr<Debug_renderer>                        debug_renderer_,
-        std::shared_ptr<Forward_renderer>                      forward_renderer_,
-        std::shared_ptr<Deferred_renderer>                     deferred_renderer_,
-        std::shared_ptr<Light_debug_renderer>                  light_debug_renderer_,
-        std::shared_ptr<Id_renderer>                           id_renderer_,
-        std::shared_ptr<Menu>                                  menu_,
-        std::shared_ptr<Application>                           application_,
-        std::shared_ptr<Scene_manager>                         scene_manager_);
+        std::shared_ptr<Programs>                              programs,
+        std::shared_ptr<textures>                              textures,
+        std::shared_ptr<Debug_renderer>                        debug_renderer,
+        std::shared_ptr<Forward_renderer>                      forward_renderer,
+        std::shared_ptr<Deferred_renderer>                     deferred_renderer,
+        std::shared_ptr<Light_debug_renderer>                  light_debug_renderer,
+        std::shared_ptr<Id_renderer>                           id_renderer,
+        std::shared_ptr<Menu>                                  menu,
+        std::shared_ptr<Application>                           application,
+        std::shared_ptr<Scene_manager>                         scene_manager);
 
     void disconnect();
 
@@ -172,11 +173,12 @@ private:
     // self owned parts
     std::shared_ptr<renderstack::scene::Frame>           m_manipulator_frame;
     std::shared_ptr<std::vector<std::shared_ptr<Model>>> m_manipulator_models;
-    std::shared_ptr<renderstack::ui::Layer>              m_root_layer;
-    std::shared_ptr<renderstack::ui::Button>             m_menu_button;
-    std::shared_ptr<renderstack::ui::Slider>             m_slider;
-    std::shared_ptr<renderstack::ui::Menulist>           m_menulist;
-    std::shared_ptr<renderstack::ui::Choice>             m_choice;
+
+    std::unique_ptr<renderstack::ui::Layer>              m_root_layer;
+    std::unique_ptr<renderstack::ui::Button>             m_menu_button;
+    std::unique_ptr<renderstack::ui::Slider>             m_slider;
+    std::unique_ptr<renderstack::ui::Menulist>           m_menulist;
+    std::unique_ptr<renderstack::ui::Choice>             m_choice;
 
     controls                     m_controls;
     renderstack::scene::Viewport m_viewport;

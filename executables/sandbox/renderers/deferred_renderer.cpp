@@ -118,9 +118,9 @@ void Deferred_renderer::initialize_service()
     m_light_render_states.blend.rgb.destination_factor = gl::blending_factor_dest::one;
 }
 
-void Deferred_renderer::resize(int width_, int height_)
+void Deferred_renderer::resize(int width, int height)
 {
-    base_resize(width_, height_);
+    base_resize(width, height);
     {
         if (m_gbuffer_fbo == 0)
         {
@@ -142,8 +142,8 @@ void Deferred_renderer::resize(int width_, int height_)
             m_gbuffer_rt[i] = make_shared<Texture>(Texture::Target::texture_2d,
                                                    formats[i],
                                                    false,
-                                                   width(),
-                                                   height(),
+                                                   Base_renderer::width(),
+                                                   Base_renderer::height(),
                                                    0);
             m_gbuffer_rt[i]->allocate_storage(renderer());
             m_gbuffer_rt[i]->set_mag_filter(gl::texture_mag_filter::nearest);
@@ -167,8 +167,8 @@ void Deferred_renderer::resize(int width_, int height_)
         m_depth = make_shared<Texture>(Texture::Target::texture_2d,
                                        depth_format,
                                        false,
-                                       width(),
-                                       height(),
+                                       Base_renderer::width(),
+                                       Base_renderer::height(),
                                        0);
         m_depth->set_mag_filter(gl::texture_mag_filter::nearest);
         m_depth->set_min_filter(gl::texture_min_filter::nearest);
@@ -206,8 +206,8 @@ void Deferred_renderer::resize(int width_, int height_)
             m_linear_rt[i] = make_shared<Texture>(Texture::Target::texture_2d,
                                                   formats[i],
                                                   false,
-                                                  width(),
-                                                  height(),
+                                                  Base_renderer::width(),
+                                                  Base_renderer::height(),
                                                   0);
             m_linear_rt[i]->allocate_storage(renderer());
             m_linear_rt[i]->set_mag_filter(gl::texture_mag_filter::nearest);
@@ -233,8 +233,8 @@ void Deferred_renderer::resize(int width_, int height_)
 
             gl::renderbuffer_storage(GL_RENDERBUFFER,
                                      GL_DEPTH32F_STENCIL8,
-                                     width(),
-                                     height());
+                                     Base_renderer::width(),
+                                     Base_renderer::height());
             gl::framebuffer_renderbuffer(GL_FRAMEBUFFER,
                                          GL_DEPTH_STENCIL_ATTACHMENT,
                                          GL_RENDERBUFFER,

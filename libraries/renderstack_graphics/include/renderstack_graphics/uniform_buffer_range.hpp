@@ -44,7 +44,7 @@ public:
     }
 
 private:
-    Uniform_block *m_uniform_block{nullptr};
+    //Uniform_block *m_uniform_block{nullptr};
     Buffer        *m_uniform_buffer{nullptr};
     size_t        m_first_byte{0U};
     size_t        m_byte_count{0U};

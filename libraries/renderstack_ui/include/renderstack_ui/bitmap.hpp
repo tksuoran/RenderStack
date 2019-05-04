@@ -23,7 +23,8 @@ public:
             throw std::runtime_error("bad dimension");
         }
 
-        m_stride               = m_width * m_components;
+        m_stride = m_width * m_components;
+
         size_t byte_count = static_cast<size_t>(m_stride * m_height);
         m_data.resize(byte_count);
         fill(0);
@@ -146,7 +147,15 @@ public:
     {
         if ((src == nullptr) ||
             (width < 0) ||
-            (height < 0))
+            (height < 0) ||
+            (src_x >= src->width()) ||
+            (src_y >= src->height()) ||
+            (src_x + width > src->width()) ||
+            (src_y + height > src->height()) ||
+            (dst_x >= this->width()) ||
+            (dst_y >= this->height()) ||
+            (dst_x + width > this->width()) ||
+            (dst_y + height > this->height()))
         {
             throw std::runtime_error("invalid input");
         }
@@ -438,7 +447,7 @@ private:
     int                        m_width;
     int                        m_height;
     int                        m_components;
-    int                        m_stride;
+    int                        m_stride{0};
     std::vector<unsigned char> m_data;
 };
 

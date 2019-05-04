@@ -70,36 +70,36 @@ void Game::connect(
     shared_ptr<Renderer>             renderer,
     shared_ptr<Shader_monitor>       shader_monitor,
     shared_ptr<Gui_renderer>         gui_renderer,
-    shared_ptr<Programs>             programs_,
-    shared_ptr<textures>             textures_,
-    shared_ptr<Debug_renderer>       debug_renderer_,
-    shared_ptr<Forward_renderer>     forward_renderer_,
-    shared_ptr<Deferred_renderer>    deferred_renderer_,
-    shared_ptr<Light_debug_renderer> light_debug_renderer_,
-    shared_ptr<Id_renderer>          id_renderer_,
-    shared_ptr<Menu>                 menu_,
-    shared_ptr<Application>          application_,
-    shared_ptr<Scene_manager>        scene_manager_)
+    shared_ptr<Programs>             programs,
+    shared_ptr<textures>             textures,
+    shared_ptr<Debug_renderer>       debug_renderer,
+    shared_ptr<Forward_renderer>     forward_renderer,
+    shared_ptr<Deferred_renderer>    deferred_renderer,
+    shared_ptr<Light_debug_renderer> light_debug_renderer,
+    shared_ptr<Id_renderer>          id_renderer,
+    shared_ptr<Menu>                 menu,
+    shared_ptr<Application>          application,
+    shared_ptr<Scene_manager>        scene_manager)
 {
     m_renderer             = renderer;
     m_shader_monitor       = shader_monitor;
     m_gui_renderer         = gui_renderer;
-    m_application          = application_;
-    m_menu                 = menu_;
-    m_programs             = programs_;
-    m_textures             = textures_;
-    m_deferred_renderer    = deferred_renderer_;
-    m_forward_renderer     = forward_renderer_;
-    m_light_debug_renderer = light_debug_renderer_;
-    m_id_renderer          = id_renderer_;
-    m_debug_renderer       = debug_renderer_;
-    m_scene_manager        = scene_manager_;
+    m_application          = application;
+    m_menu                 = menu;
+    m_programs             = programs;
+    m_textures             = textures;
+    m_deferred_renderer    = deferred_renderer;
+    m_forward_renderer     = forward_renderer;
+    m_light_debug_renderer = light_debug_renderer;
+    m_id_renderer          = id_renderer;
+    m_debug_renderer       = debug_renderer;
+    m_scene_manager        = scene_manager;
 
     initialization_depends_on(renderer);
     initialization_depends_on(gui_renderer);
-    initialization_depends_on(programs_);
-    initialization_depends_on(textures_);
-    initialization_depends_on(scene_manager_);
+    initialization_depends_on(programs);
+    initialization_depends_on(textures);
+    initialization_depends_on(scene_manager);
 }
 
 void Game::disconnect()
@@ -160,26 +160,25 @@ void Game::setup_gui()
     auto &bs = gr.button_style();
     auto &cs = gr.choice_style();
     auto &ms = gr.menulist_style();
-    //auto &ps = gr.colorpicker_style();
     auto &ss = gr.slider_style();
 
     float w = static_cast<float>(m_application->width());
     float h = static_cast<float>(m_application->height());
     Rectangle size(w, h);
 
-    m_root_layer = std::make_shared<Layer>(gr, size);
+    m_root_layer = std::make_unique<Layer>(gr, size);
     m_root_layer->name = "m_root_layer";
 
-    m_menulist = std::make_shared<Menulist>(gr, ms, Area::Orientation::vertical);
+    m_menulist = std::make_unique<Menulist>(gr, ms, Area::Orientation::vertical);
     m_menulist->offset_free_size_relative = vec2(1.0f, 1.0f);
     m_menulist->offset_self_size_relative = vec2(-1.0f, -1.0f);
     m_menulist->set_child_layout_style(Area::Flow_mode::extend_horizontal);
 
-    m_menu_button = std::make_shared<Button>(gr, "Back to Menu", bs);
+    m_menu_button = std::make_unique<Button>(gr, "Back to Menu", bs);
     m_menu_button->set_sink(this);
     m_menulist->add(m_menu_button.get());
 
-    m_choice = std::make_shared<Choice>(gr, cs, bs, Area::Orientation::horizontal);
+    m_choice = std::make_unique<Choice>(gr, cs, bs, Area::Orientation::horizontal);
     m_choice->make_item("Foo", true);
     m_choice->make_item("Bar");
     m_menulist->add(m_choice.get());
@@ -187,7 +186,7 @@ void Game::setup_gui()
     //auto p = new Color_picker(ps);
     //d->add(p);
 
-    m_slider = std::make_shared<Slider>(gr, ss, "Slider", 0.0f, 80.0f);
+    m_slider = std::make_unique<Slider>(gr, ss, "Slider", 0.0f, 80.0f);
     m_menulist->add(m_slider.get());
 
     m_root_layer->add(m_menulist.get());
