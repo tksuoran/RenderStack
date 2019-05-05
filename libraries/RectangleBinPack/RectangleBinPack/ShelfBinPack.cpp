@@ -1,5 +1,5 @@
 /** @file ShelfBinPack.cpp
-	@author Jukka Jylänki
+	@author Jukka Jylï¿½nki
 
 	@brief Implements different bin packer algorithms that use the SHELF data structure.
 
@@ -349,8 +349,7 @@ Rect ShelfBinPack::Insert(int width, int height, ShelfChoiceHeuristic method)
 */
 
 	// The rectangle didn't fit.
-	memset(&newNode, 0, sizeof(Rect));
-	return newNode;
+	return Rect();
 }
 
 void ShelfBinPack::MoveShelfToWasteMap(Shelf &shelf)

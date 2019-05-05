@@ -4,7 +4,6 @@
 #include "main/menu.hpp"
 #include "main/programs.hpp"
 #include "main/textures.hpp"
-#include "parsers/xml_polyhedron.hpp"
 #include "renderstack_geometry/operation/catmull_clark.hpp"
 #include "renderstack_geometry/operation/clone.hpp"
 #include "renderstack_graphics/configuration.hpp"

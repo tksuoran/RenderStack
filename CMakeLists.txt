@@ -108,8 +108,8 @@ endif ()
 
 # Slightly hacky
 set(GLM_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/libraries/glm-0.9.7.2")
-set(TINYXML_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/libraries/tinyxml2")
-set(TINYXML_LIBS tinyxml2)
+#set(TINYXML_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/libraries/tinyxml2")
+#set(TINYXML_LIBS tinyxml2)
 
 # libpng requires some hacking due to dependency to zlib
 if (MSVC)

@@ -1,5 +1,5 @@
 /** @file SkylineBinPack.cpp
-	@author Jukka Jylänki
+	@author Jukka Jylï¿½nki
 
 	@brief Implements different bin packer algorithms that use the SKYLINE data structure.
 
@@ -288,7 +288,7 @@ Rect SkylineBinPack::InsertBottomLeft(int width, int height)
 #endif
 	}
 	else
-		memset(&newNode, 0, sizeof(Rect));
+		newNode = Rect();
 
 	return newNode;
 }
@@ -300,7 +300,6 @@ Rect SkylineBinPack::FindPositionForNewNodeBottomLeft(int width, int height, int
 	// Used to break ties if there are nodes at the same level. Then pick the narrowest one.
 	bestWidth = std::numeric_limits<int>::max();
 	Rect newNode;
-	memset(&newNode, 0, sizeof(newNode));
 	for(size_t i = 0; i < skyLine.size(); ++i)
 	{
 		int y;
@@ -357,7 +356,7 @@ Rect SkylineBinPack::InsertMinWaste(int width, int height)
 #endif
 	}
 	else
-		memset(&newNode, 0, sizeof(newNode));
+		newNode = Rect();
 
 	return newNode;
 }
@@ -368,7 +367,6 @@ Rect SkylineBinPack::FindPositionForNewNodeMinWaste(int width, int height, int &
 	bestWastedArea = std::numeric_limits<int>::max();
 	bestIndex = -1;
 	Rect newNode;
-	memset(&newNode, 0, sizeof(newNode));
 	for(size_t i = 0; i < skyLine.size(); ++i)
 	{
 		int y;

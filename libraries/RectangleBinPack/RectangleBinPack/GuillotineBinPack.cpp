@@ -1,5 +1,5 @@
 /** @file GuillotineBinPack.cpp
-	@author Jukka Jylänki
+	@author Jukka Jylï¿½nki
 
 	@brief Implements different bin packer algorithms that use the GUILLOTINE data structure.
 
@@ -429,7 +429,6 @@ int GuillotineBinPack::ScoreWorstLongSideFit(int width, int height, const Rect &
 Rect GuillotineBinPack::FindPositionForNewNode(int width, int height, FreeRectChoiceHeuristic rectChoice, int *nodeIndex)
 {
 	Rect bestNode;
-	memset(&bestNode, 0, sizeof(Rect));
 
 	int bestScore = std::numeric_limits<int>::max();
 

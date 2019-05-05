@@ -27,7 +27,6 @@ namespace renderstack
 namespace ui
 {
 
-using namespace std;
 using namespace glm;
 using namespace renderstack::graphics;
 using namespace renderstack::toolkit;
@@ -46,23 +45,19 @@ void Gui_renderer::connect(std::shared_ptr<Renderer> renderer, std::shared_ptr<S
     initialization_depends_on(shader_monitor);
 }
 
-unique_ptr<Program> Gui_renderer::load_program(const std::string &name, const std::string &path)
+std::unique_ptr<Program> Gui_renderer::load_program(const std::string &name, const std::string &path)
 {
-    bool any_found = true;
- 
-    for (auto i = m_shader_versions.cbegin(); i != m_shader_versions.cend(); ++i)
+    for (auto &i : m_shader_versions)
     {
-        string vs_path = m_shader_path + path + ".vs" + i->first + ".txt";
-        string fs_path = m_shader_path + path + ".fs" + i->first + ".txt";
+        std::string vs_path = m_shader_path + path + ".vs" + i.first + ".txt";
+        std::string fs_path = m_shader_path + path + ".fs" + i.first + ".txt";
 
         if (!exists(vs_path) || !exists(fs_path))
         {
             continue;
         }
 
-        any_found = true;
-
-        auto p = make_unique<Program>(name, i->second, &m_samplers, &m_vertex_attribute_mappings, &m_fragment_outputs);
+        auto p = std::make_unique<Program>(name, i.second, &m_samplers, &m_vertex_attribute_mappings, &m_fragment_outputs);
         p->add(&m_uniform_block);
         p->load_vs(vs_path);
         p->load_fs(fs_path);
@@ -78,25 +73,23 @@ unique_ptr<Program> Gui_renderer::load_program(const std::string &name, const st
         return p;
     }
 
-    stringstream ss;
+    std::stringstream ss;
     ss << "Gui_renderer::load_program(" << name << ") failed";
-    if (!any_found)
-    {
-        ss << "\nNo source files found.\n";
-        ss << "Did you run export-files build target?\n";
-        ss << "Current working directory is: " << get_current_working_directory() << "\n";
-        for (auto i = m_shader_versions.cbegin(); i != m_shader_versions.cend(); ++i)
-        {
-            string vs_path = m_shader_path + path + ".vs" + i->first + ".txt";
-            string fs_path = m_shader_path + path + ".fs" + i->first + ".txt";
 
-            ss << "\t" << vs_path << "\n";
-            ss << "\t" << fs_path << "\n";
-        }
+    ss << "\nNo source files found.\n";
+    ss << "Did you run export-files build target?\n";
+    ss << "Current working directory is: " << get_current_working_directory() << "\n";
+    for (auto &i : m_shader_versions)
+    {
+        std::string vs_path = m_shader_path + path + ".vs" + i.first + ".txt";
+        std::string fs_path = m_shader_path + path + ".fs" + i.first + ".txt";
+
+        ss << "\t" << vs_path << "\n";
+        ss << "\t" << fs_path << "\n";
     }
 
     log_error("%s", ss.str().c_str());
-    throw runtime_error(ss.str());
+    throw std::runtime_error(ss.str());
 }
 
 void Gui_renderer::initialize_service()
@@ -177,16 +170,16 @@ void Gui_renderer::initialize_service()
     if ((configuration::shader_model_version >= 5) &&
         (configuration::glsl_version >= 400))
     {
-        m_shader_versions.push_back(make_pair("5", 400));
+        m_shader_versions.emplace_back("5", 400);
     }
 
     if ((configuration::shader_model_version >= 4) &&
         (configuration::glsl_version >= 150))
     {
-        m_shader_versions.push_back(make_pair("4", 150));
+        m_shader_versions.emplace_back("4", 150);
     }
 
-    m_shader_versions.push_back(make_pair("0", 120));
+    m_shader_versions.emplace_back("0", 120);
 #endif
 
     m_samplers.add("font_texture", gl::active_uniform_type::sampler_2d, &m_nearest_sampler).set_texture_unit_index(0);
@@ -199,7 +192,7 @@ void Gui_renderer::initialize_service()
         m_font_program      = load_program("Font", "gui_font");
         m_hsv_program       = load_program("hsv", "gui_hsv");
     }
-    catch (runtime_error const &e)
+    catch (const std::runtime_error &e)
     {
         log_error("Gui_renderer() shaders are broken: %s", e.what());
         throw;
@@ -210,50 +203,50 @@ void Gui_renderer::initialize_service()
         throw;
     }
 
-    m_font = make_unique<Font>(r, "res/fonts/Ubuntu-R.ttf", 11, 1.0f);
+    m_font = std::make_unique<Font>(r, "res/fonts/Ubuntu-R.ttf", 11, 1.0f);
     //m_font = make_shared<Font>(r, "res/fonts/SourceCodePro-Semibold.ttf", 8, 1.0f);
     //m_font = make_shared<font>(r, "res/fonts/SourceCodePro-Bold.ttf", 9, 1.0f);
 
-    m_button_ninepatch_style   = make_unique<Ninepatch_style>(r, "res/images/button_released.png", m_ninepatch_program.get(), 1);
-    m_menulist_ninepatch_style = make_unique<Ninepatch_style>(r, "res/images/shadow.png",          m_ninepatch_program.get(), 1);
-    m_slider_ninepatch_style   = make_unique<Ninepatch_style>(r, "res/images/button_released.png", m_slider_program.get(), 1);
+    m_button_ninepatch_style   = std::make_unique<Ninepatch_style>(r, "res/images/button_released.png", m_ninepatch_program.get(), 1);
+    m_menulist_ninepatch_style = std::make_unique<Ninepatch_style>(r, "res/images/shadow.png",          m_ninepatch_program.get(), 1);
+    m_slider_ninepatch_style   = std::make_unique<Ninepatch_style>(r, "res/images/button_released.png", m_slider_program.get(), 1);
 
     vec2 zero(0.0f, 0.0f);
     vec2 button_padding(26.0f, 6.0f);
     vec2 menulist_padding(16.0f, 16.0f);
     vec2 inner_padding(6.0f, 6.0f);
 
-    m_default_style      = make_unique<Style>(vec2(6.0f, 6.0f),
-                                         vec2(6.0f, 6.0f));
-    m_null_padding_style = make_unique<Style>(vec2(0.0f, 0.0f),
-                                              vec2(0.0f, 0.0f));
+    m_default_style      = std::make_unique<Style>(vec2(6.0f, 6.0f),
+                                                   vec2(6.0f, 6.0f));
+    m_null_padding_style = std::make_unique<Style>(vec2(0.0f, 0.0f),
+                                                   vec2(0.0f, 0.0f));
 
     // With MSVC this needs _VARIADIC_MAX defined to 6 or more
-    m_button_style      = make_unique<Style>(button_padding,
-                                             inner_padding,
-                                             m_font.get(),
-                                             m_button_ninepatch_style.get(),
-                                             m_font_program.get());
-    m_slider_style      = make_unique<Style>(button_padding,
-                                             inner_padding,
-                                             m_font.get(),
-                                             m_slider_ninepatch_style.get(),
-                                             m_font_program.get());
-    m_choice_style      = make_unique<Style>(zero,
-                                             zero,
-                                             m_font.get(),
-                                             m_button_ninepatch_style.get(),
-                                             m_font_program.get());
-    m_menulist_style    = make_unique<Style>(menulist_padding,
-                                             inner_padding,
-                                             nullptr,
-                                             m_menulist_ninepatch_style.get(),
-                                             nullptr);
-    m_colorpicker_style = make_unique<Style>(menulist_padding,
-                                             inner_padding,
-                                             nullptr,
-                                             m_menulist_ninepatch_style.get(),
-                                             m_hsv_program.get());
+    m_button_style      = std::make_unique<Style>(button_padding,
+                                                  inner_padding,
+                                                  m_font.get(),
+                                                  m_button_ninepatch_style.get(),
+                                                  m_font_program.get());
+    m_slider_style      = std::make_unique<Style>(button_padding,
+                                                  inner_padding,
+                                                  m_font.get(),
+                                                  m_slider_ninepatch_style.get(),
+                                                  m_font_program.get());
+    m_choice_style      = std::make_unique<Style>(zero,
+                                                  zero,
+                                                  m_font.get(),
+                                                  m_button_ninepatch_style.get(),
+                                                  m_font_program.get());
+    m_menulist_style    = std::make_unique<Style>(menulist_padding,
+                                                  inner_padding,
+                                                  nullptr,
+                                                  m_menulist_ninepatch_style.get(),
+                                                  nullptr);
+    m_colorpicker_style = std::make_unique<Style>(menulist_padding,
+                                                  inner_padding,
+                                                  nullptr,
+                                                  m_menulist_ninepatch_style.get(),
+                                                  m_hsv_program.get());
 
     if (configuration::use_vertex_array_object)
     {

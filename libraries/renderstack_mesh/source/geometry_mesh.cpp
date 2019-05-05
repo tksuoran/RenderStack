@@ -71,86 +71,82 @@ std::shared_ptr<mesh> Geometry_mesh::get_mesh()
 Geometry_mesh::Property_maps::Property_maps(const Geometry    &geometry,
                                             const Format_info &format_info)
 {
-    point_locations = geometry.point_attributes().maybe_find<vec3>("point_locations");
+    slog_trace("Property_maps::Property_maps() for geometry = %s\n", geometry.name().c_str());
+
+    //polygon_ids_vector3  = geometry.polygon_attributes().maybe_find<vec3>("polygon_ids_vec3");
+    //polygon_ids_uint32   = geometry.polygon_attributes().maybe_find<unsigned int>("polygon_ids_uint");
+    polygon_normals      = geometry.polygon_attributes().maybe_find<vec3>("polygon_normals");
+    polygon_centroids    = geometry.polygon_attributes().maybe_find<vec3>("polygon_centroids");
+    corner_normals       = geometry.corner_attributes ().maybe_find<vec3>("corner_normals");
+    corner_tangents      = geometry.corner_attributes ().maybe_find<vec3>("corner_tangents");
+    corner_texcoords     = geometry.corner_attributes ().maybe_find<vec2>("corner_texcoords");
+    corner_colors        = geometry.corner_attributes ().maybe_find<vec4>("corner_colors");
+    //corner_indices       = geometry.corner_attributes ().maybe_find<unsigned int>("corner_indices");
+    point_locations      = geometry.point_attributes  ().maybe_find<vec3>("point_locations");
+    point_normals        = geometry.point_attributes  ().maybe_find<vec3>("point_normals");
+    point_normals_smooth = geometry.point_attributes  ().maybe_find<vec3>("point_normals_smooth");
+    point_tangents       = geometry.point_attributes  ().maybe_find<vec3>("point_tangents");
+    point_texcoords      = geometry.point_attributes  ().maybe_find<vec2>("point_texcoords");
+    point_colors         = geometry.point_attributes  ().maybe_find<vec4>("point_colors");
 
     if (format_info.want_id)
     {
         polygon_ids_vector3 = polygon_attributes.create<vec3>("polygon_ids_vec3");
+        log_trace("-created polygon_ids_vec3\n");
 
         if (configuration::use_integer_polygon_ids)
         {
             polygon_ids_uint32 = polygon_attributes.create<unsigned int>("polygon_ids_uint");
+            log_trace("-created polygon_ids_uint\n");
         }
     }
 
-    corner_normals  = geometry.corner_attributes().maybe_find<vec3>("corner_normals");
-    point_normals   = geometry.point_attributes().maybe_find<vec3>("point_normals");
-    polygon_normals = geometry.polygon_attributes().maybe_find<vec3>("polygon_normals");
-
-    if (format_info.want_normal || format_info.want_normal_smooth)
+    if (format_info.want_normal)
     {
         if (polygon_normals == nullptr && point_locations != nullptr)
         {
             polygon_normals = polygon_attributes.create<vec3>("polygon_normals");
+            log_trace("-created polygon_normals, computing polygon normals\n");
             for (auto polygon : geometry.polygons())
             {
                 polygon->compute_normal(*polygon_normals, *point_locations);
             }
         }
-    }
-
-    if (format_info.want_normal_smooth && polygon_normals != nullptr)
-    {
-        point_normals_smooth = geometry.point_attributes().maybe_find<vec3>("point_normals_smooth");
-        if (point_normals_smooth == nullptr)
+        if (corner_normals == nullptr && point_normals == nullptr && point_normals_smooth == nullptr)
         {
-            point_normals_smooth = point_attributes.create<vec3>("point_normals_smooth");
-            for (auto point : geometry.points())
-            {
-                vec3 normal_sum(0.0f, 0.0f, 0.0f);
-                for (auto corner : point->corners())
-                {
-                    normal_sum += polygon_normals->get(corner->polygon);
-                }
-                point_normals_smooth->put(point, normalize(normal_sum));
-            }
+            corner_normals = corner_attributes.create<vec3>("corner_normals");
+            geometry.smooth_normalize(*corner_normals, *polygon_normals, *polygon_normals, 0.0f);
         }
     }
 
-    if (format_info.want_tangent)
+    if (format_info.want_normal_smooth && point_normals_smooth == nullptr)
     {
-        corner_tangents = geometry.corner_attributes().maybe_find<vec3>("corner_tangents");
-        point_tangents  = geometry.point_attributes().maybe_find<vec3>("point_tangents");
-    }
-
-    if (format_info.want_texcoord)
-    {
-        corner_texcoords = geometry.corner_attributes().maybe_find<vec2>("corner_texcoords");
-        point_texcoords  = geometry.point_attributes().maybe_find<vec2>("point_texcoords");
-    }
-
-    if (format_info.want_color)
-    {
-        corner_colors = geometry.corner_attributes().maybe_find<vec4>("corner_colors");
-        point_colors  = geometry.point_attributes().maybe_find<vec4>("point_colors");
-    }
-
-    if (format_info.want_centroid_points)
-    {
-        polygon_centroids = geometry.polygon_attributes().maybe_find<vec3>("polygon_centroids");
-        if (polygon_centroids == nullptr && point_locations != nullptr)
+        log_trace("-computing point_normals_smooth\n");
+        point_normals_smooth = point_attributes.create<vec3>("point_normals_smooth");
+        for (auto point : geometry.points())
         {
-            polygon_centroids = polygon_attributes.create<vec3>("polygon_centroids");
-            for (auto polygon : geometry.polygons())
+            vec3 normal_sum(0.0f, 0.0f, 0.0f);
+            for (auto corner : point->corners())
             {
-                polygon->compute_centroid(*polygon_centroids, *point_locations);
+                normal_sum += polygon_normals->get(corner->polygon);
             }
+            point_normals_smooth->put(point, normalize(normal_sum));
         }
     }
 
-    corner_indices = find_or_create<Corner *, unsigned int>(geometry.corner_attributes(),
-                                                            corner_attributes,
-                                                            "corner_indices");
+    if (format_info.want_centroid_points && polygon_centroids == nullptr && point_locations != nullptr)
+    {
+        polygon_centroids = polygon_attributes.create<vec3>("polygon_centroids");
+        for (auto polygon : geometry.polygons())
+        {
+            polygon->compute_centroid(*polygon_centroids, *point_locations);
+        }
+    }
+
+    corner_indices = corner_attributes.create<unsigned int>("corner_indices");
+    //find_or_create<Corner *, unsigned int>(geometry.corner_attributes(),
+    //                                                        corner_attributes,
+    //                                                        "corner_indices");
 }
 
 void Geometry_mesh::prepare_vertex_format(const Geometry &   geometry,
@@ -234,7 +230,7 @@ void Geometry_mesh::build_mesh_from_geometry(renderstack::graphics::Renderer &re
                                              const Format_info &              format_info,
                                              const Buffer_info &              buffer_info)
 {
-    slog_trace("Geometry_mesh::build_mesh_from_geometry(usage = %s, normal_style = %s, vertex_format = %p) geometry = %s",
+    slog_trace("Geometry_mesh::build_mesh_from_geometry(usage = %s, normal_style = %s, vertex_format = %p) geometry = %s\n",
                gl::enum_string(buffer_info.usage),
                Normal_style::desc(format_info.normal_style),
                buffer_info.vertex_format.get(),

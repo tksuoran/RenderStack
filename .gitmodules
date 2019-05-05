@@ -16,3 +16,12 @@
 [submodule "libraries/bounce"]
 	path = libraries/bounce
 	url = https://github.com/irlanrobson/bounce.git
+[submodule "libraries/json11"]
+	path = libraries/json11
+	url = https://github.com/dropbox/json11.git
+[submodule "libraries/tiny-json"]
+	path = libraries/tiny-json
+	url = https://github.com/rafagafe/tiny-json.git
+[submodule "libraries/SimpleJSON"]
+	path = libraries/SimpleJSON
+	url = https://github.com/nbsdx/SimpleJSON.git

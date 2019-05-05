@@ -5,7 +5,7 @@
 
 include_directories(
     ${KHRONOS_INCLUDE}
-    ${TINYXML_INCLUDE_DIRS}
+    ${CMAKE_SOURCE_DIR}/libraries/SimpleJSON
     ${PNG_INCLUDE_DIRS}
     ${ZLIB_INCLUDE_DIRS}
 )
@@ -98,8 +98,8 @@ add_executable(
 
     parsers/netlib_polyhedron.cpp
     parsers/netlib_polyhedron.hpp
-    parsers/xml_polyhedron.cpp
-    parsers/xml_polyhedron.hpp
+    parsers/json_polyhedron.cpp
+    parsers/json_polyhedron.hpp
 
     util/aabb.cpp
     util/aabb.hpp
@@ -143,7 +143,6 @@ target_link_libraries(
      renderstack_toolkit
      RectangleBinPack
      ${RENDERSTACK_WINDOW_TOOLKIT_LIBRARIES}
-     ${TINYXML_LIBS}
      ${PNG_LIBRARIES}
 )
 

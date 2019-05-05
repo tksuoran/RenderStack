@@ -1,6 +1,6 @@
 #include "scene/scene_manager.hpp"
 #include "main/programs.hpp"
-#include "parsers/xml_polyhedron.hpp"
+#include "parsers/json_polyhedron.hpp"
 #include "renderstack_geometry/operation/catmull_clark.hpp"
 #include "renderstack_geometry/operation/clone.hpp"
 #include "renderstack_geometry/shapes/cone.hpp"
@@ -174,9 +174,9 @@ void Scene_manager::add_simple_scene()
     }
 
     {
-        auto xml = make_xml_polyhedron("res/polyhedra/127.xml");
-        xml.compute_polygon_normals();
-        g_collection.push_back(std::move(xml));
+        auto mesh = make_json_polyhedron("res/polyhedra/127.json");
+        mesh.compute_polygon_normals();
+        g_collection.push_back(std::move(mesh));
     }
 
 #if 0

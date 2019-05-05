@@ -124,7 +124,7 @@ void log_write(log_category *cat, bool indent, int level, const char *format, ..
     }
 
     va_start(args, format);
-    n = vsnprintf(p, sizeof(buf) - 3 - cat->indent, format, args);
+    vsnprintf(p, sizeof(buf) - 3 - cat->indent, format, args);
     va_end(args);
 
 #if 0
@@ -156,7 +156,6 @@ void log_write(log_category *cat, bool indent, int level, const char *format, ..
                 set_text_color(cat->color[0]);
                 p = span = buf;
                 prev     = 0;
-                next     = 0;
                 for (;;)
                 {
                     c = *p;
@@ -235,10 +234,6 @@ void log_write(log_category *cat, bool indent, int level, const char *format, ..
                         cout.flush();
                         set_text_color(cat->color[1]);
                         break;
-                    }
-                    else
-                    {
-                        prev = c;
                     }
                 }
                 break;

@@ -21,6 +21,8 @@ namespace geometry
 //    }
 //}
 
+
+
 template <typename T>
 void Geometry::smooth_normalize(Property_map<Corner *, T>                &corner_attribute,
                                 const Property_map<Polygon *, T>         &polygon_attribute,

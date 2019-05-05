@@ -1,5 +1,5 @@
 /** @file MaxRectsBinPack.cpp
-	@author Jukka Jylänki
+	@author Jukka Jylï¿½nki
 
 	@brief Implements different bin packer algorithms that use the MAXRECTS data structure.
 
@@ -172,7 +172,6 @@ float MaxRectsBinPack::Occupancy() const
 Rect MaxRectsBinPack::FindPositionForNewNodeBottomLeft(int width, int height, int &bestY, int &bestX) const
 {
 	Rect bestNode;
-	memset(&bestNode, 0, sizeof(Rect));
 
 	bestY = std::numeric_limits<int>::max();
 
@@ -213,7 +212,6 @@ Rect MaxRectsBinPack::FindPositionForNewNodeBestShortSideFit(int width, int heig
 	int &bestShortSideFit, int &bestLongSideFit) const
 {
 	Rect bestNode;
-	memset(&bestNode, 0, sizeof(Rect));
 
 	bestShortSideFit = std::numeric_limits<int>::max();
 
@@ -263,7 +261,6 @@ Rect MaxRectsBinPack::FindPositionForNewNodeBestLongSideFit(int width, int heigh
 	int &bestShortSideFit, int &bestLongSideFit) const
 {
 	Rect bestNode;
-	memset(&bestNode, 0, sizeof(Rect));
 
 	bestLongSideFit = std::numeric_limits<int>::max();
 
@@ -313,7 +310,6 @@ Rect MaxRectsBinPack::FindPositionForNewNodeBestAreaFit(int width, int height,
 	int &bestAreaFit, int &bestShortSideFit) const
 {
 	Rect bestNode;
-	memset(&bestNode, 0, sizeof(Rect));
 
 	bestAreaFit = std::numeric_limits<int>::max();
 
@@ -389,7 +385,6 @@ int MaxRectsBinPack::ContactPointScoreNode(int x, int y, int width, int height) 
 Rect MaxRectsBinPack::FindPositionForNewNodeContactPoint(int width, int height, int &bestContactScore) const
 {
 	Rect bestNode;
-	memset(&bestNode, 0, sizeof(Rect));
 
 	bestContactScore = -1;
 
