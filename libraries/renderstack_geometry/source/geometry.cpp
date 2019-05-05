@@ -9,8 +9,10 @@ namespace renderstack
 namespace geometry
 {
 
-using namespace std;
-using namespace glm;
+using glm::vec2;
+using glm::vec3;
+using glm::vec4;
+using glm::mat4;
 
 Geometry::~Geometry()
 {
@@ -37,7 +39,7 @@ size_t Geometry::count_edges() const
 
 size_t Geometry::count_polygon_triangles() const
 {
-    size_t triangle_count = 0;
+    size_t triangle_count = 0U;
     for (auto polygon : polygons())
     {
         triangle_count += polygon->corners().size() - 2;
@@ -48,7 +50,7 @@ size_t Geometry::count_polygon_triangles() const
 
 size_t Geometry::count_corners() const
 {
-    size_t corner_count = 0;
+    size_t corner_count = 0U;
     for (auto polygon : polygons())
     {
         corner_count += polygon->corners().size();
@@ -107,14 +109,14 @@ void Geometry::reserve_polygons(size_t polygon_count)
 
 Point *Geometry::make_point()
 {
-    Point *pnt = new Point();
+    auto pnt = new Point();
     m_points.push_back(pnt);
     return pnt;
 }
 
 Polygon *Geometry::make_polygon()
 {
-    Polygon *pol = new Polygon();
+    auto pol = new Polygon();
     m_polygons.push_back(pol);
     return pol;
 }
@@ -144,20 +146,20 @@ Geometry::Edge_collection &Geometry::edges()
     return m_edges;
 }
 
-Geometry::Edge_collection const &Geometry::edges() const
+const Geometry::Edge_collection &Geometry::edges() const
 {
     return m_edges;
 }
 
 void Geometry::compute_polygon_normals()
 {
-    if (points().size() == 0)
+    if (points().empty())
     {
         return;
     }
 
-    Property_map<Polygon *, vec3> *polygon_normals = polygon_attributes().find_or_create<vec3>("polygon_normals");
-    Property_map<Point *, vec3> *point_locations = point_attributes().maybe_find<vec3>("point_locations");
+    auto polygon_normals = polygon_attributes().find_or_create<vec3>("polygon_normals");
+    auto point_locations = point_attributes().maybe_find<vec3>("point_locations");
 
     if (point_locations == nullptr)
     {
@@ -255,22 +257,22 @@ void Geometry::build_edges()
 {
     m_edges.clear();
 
-    int polygon_index = 0;
+    size_t polygon_index = 0U;
     for (auto polygon : polygons())
     {
-        Point *first_point    = polygon->corners().front()->point;
-        Point *previous_point = nullptr;
+        auto first_point = polygon->corners().front()->point;
+        Point *previous_point{nullptr};
 
-        int corner_index = 0;
+        size_t corner_index = 0U;
         for (auto corner : polygon->corners())
         {
-            if (previous_point)
+            if (previous_point != nullptr)
             {
-                Point *a = previous_point;
-                Point *b = corner->point;
+                auto a = previous_point;
+                auto b = corner->point;
                 if (a == b)
                 {
-                    throw runtime_error("duplicate point");
+                    throw std::runtime_error("duplicate point");
                 }
 
                 Edge edge(a, b);
@@ -330,8 +332,8 @@ void Geometry::compute_point_normals(const std::string &map_name)
 
 Point *Geometry::make_point(float x, float y, float z)
 {
-    Point *pnt             = make_point();
-    auto   point_positions = point_attributes().find_or_create<vec3>("point_locations");
+    auto pnt             = make_point();
+    auto point_positions = point_attributes().find_or_create<vec3>("point_locations");
 
     point_positions->put(pnt, vec3(x, y, z));
 
@@ -340,9 +342,9 @@ Point *Geometry::make_point(float x, float y, float z)
 
 Point *Geometry::make_point(float x, float y, float z, float s, float t)
 {
-    Point *pnt             = make_point();
-    auto   point_positions = point_attributes().find_or_create<vec3>("point_locations");
-    auto   point_texcoords = point_attributes().find_or_create<vec2>("point_texcoords");
+    auto pnt             = make_point();
+    auto point_positions = point_attributes().find_or_create<vec3>("point_locations");
+    auto point_texcoords = point_attributes().find_or_create<vec2>("point_texcoords");
 
     point_positions->put(pnt, vec3(x, y, z));
     point_texcoords->put(pnt, vec2(s, t));
@@ -362,7 +364,7 @@ Point *Geometry::make_point(double x, double y, double z, double s, double t)
 
 Polygon *Geometry::make_polygon(const std::initializer_list<Point *> point_list)
 {
-    Polygon *p = make_polygon();
+    auto p = make_polygon();
     for (auto point : point_list)
     {
         p->make_corner(point);
@@ -372,7 +374,7 @@ Polygon *Geometry::make_polygon(const std::initializer_list<Point *> point_list)
 
 Polygon *Geometry::make_polygon(const std::initializer_list<size_t> point_list)
 {
-    Polygon *p = make_polygon();
+    auto p = make_polygon();
     for (auto i : point_list)
     {
         p->make_corner(m_points[i]);
@@ -395,12 +397,12 @@ void Geometry::transform(mat4 const &m)
 
     for (auto point : points())
     {
-        if (point_locations && point_locations->has(point))
+        if (point_locations != nullptr && point_locations->has(point))
         {
             point_locations->put(point, vec3(m * vec4(point_locations->get(point), 1.0f)));
         }
 
-        if (point_normals && point_normals->has(point))
+        if (point_normals != nullptr && point_normals->has(point))
         {
             point_normals->put(point, vec3(it * vec4(point_normals->get(point), 0.0f)));
         }
@@ -408,21 +410,21 @@ void Geometry::transform(mat4 const &m)
 
     for (auto polygon : polygons())
     {
-        if (polygon_centroids && polygon_centroids->has(polygon))
+        if (polygon_centroids != nullptr && polygon_centroids->has(polygon))
         {
             polygon_centroids->put(polygon, vec3(m * vec4(polygon_centroids->get(polygon), 1.0f)));
         }
 
-        if (polygon_normals && polygon_normals->has(polygon))
+        if (polygon_normals != nullptr && polygon_normals->has(polygon))
         {
             polygon_normals->put(polygon, vec3(it * vec4(polygon_normals->get(polygon), 0.0f)));
         }
 
-        if (corner_normals)
+        if (corner_normals != nullptr)
         {
             for (auto corner : polygon->corners())
             {
-                if (corner_normals && corner_normals->has(corner))
+                if (corner_normals != nullptr && corner_normals->has(corner))
                 {
                     corner_normals->put(corner, vec3(it * vec4(corner_normals->get(corner), 0.0f)));
                 }

@@ -1,7 +1,6 @@
 # CMakeLists.txt for renderstack_ui
 
 if (RENDERSTACK_USE_FREETYPE)
-    #message("FREETYPE_INCLUDE_DIRS = ${FREETYPE_INCLUDE_DIRS}")
     include_directories(${FREETYPE_INCLUDE_DIRS})
 endif ()
 
@@ -59,9 +58,17 @@ add_library(
     source/text_buffer.cpp
 )
 
-source_group(
-    "RenderStack UI Sources"
-    REGULAR_EXPRESSION
-    "include/renderstack_ui/.*\\.inl|include/renderstack_ui/.*\\.hpp|source/.*\\.cpp")
+set_target_properties(renderstack_ui PROPERTIES
+                      CXX_STANDARD 17
+                      CXX_STANDARD_REQUIRED ON
+                      COMPILE_FLAGS "${WARNING_FLAGS}")
+
+if (CLANG_TIDY_EXE)
+    set_target_properties(renderstack_ui PROPERTIES CXX_CLANG_TIDY "${DO_CLANG_TIDY}")
+endif()
+
+source_group("RenderStack UI Sources"
+             REGULAR_EXPRESSION
+             "include/renderstack_ui/.*\\.inl|include/renderstack_ui/.*\\.hpp|source/.*\\.cpp")
 
 install(TARGETS renderstack_ui DESTINATION lib)

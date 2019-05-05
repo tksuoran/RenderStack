@@ -86,12 +86,12 @@ void Debug_renderer::initialize_service()
     m_render_states.face_cull.enabled = true;
 
     auto &vf = m_vertex_format;
-    vf.make_attribute(vertex_attribute_usage::position,
+    vf.make_attribute(Vertex_attribute::Usage::position,
                       gl::vertex_attrib_pointer_type::float_,
                       gl::vertex_attrib_pointer_type::float_,
                       0,
                       3);
-    vf.make_attribute(vertex_attribute_usage::color,
+    vf.make_attribute(Vertex_attribute::Usage::color,
                       gl::vertex_attrib_pointer_type::float_, // TODO unsigned byte would be sufficient
                       gl::vertex_attrib_pointer_type::float_,
                       0,

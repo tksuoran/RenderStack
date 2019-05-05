@@ -18,7 +18,7 @@ void Vertex_format::clear()
 }
 
 Vertex_attribute &Vertex_format::make_attribute(
-    vertex_attribute_usage::value         usage,
+    Vertex_attribute::Usage         usage,
     gl::vertex_attrib_pointer_type::value data_type,
     gl::vertex_attrib_pointer_type::value shader_type,
     size_t                                index,
@@ -84,7 +84,7 @@ bool Vertex_format::match(Vertex_format const &other) const
     return true;
 }
 
-bool Vertex_format::has_attribute(vertex_attribute_usage::value usage, unsigned int index) const
+bool Vertex_format::has_attribute(Vertex_attribute::Usage usage, unsigned int index) const
 {
     for (auto &i : m_attributes)
     {
@@ -97,7 +97,7 @@ bool Vertex_format::has_attribute(vertex_attribute_usage::value usage, unsigned 
     return false;
 }
 
-const Vertex_attribute *Vertex_format::find_attribute_maybe(vertex_attribute_usage::value usage, unsigned int index) const
+const Vertex_attribute *Vertex_format::find_attribute_maybe(Vertex_attribute::Usage usage, unsigned int index) const
 {
     for (auto &i : m_attributes)
     {
@@ -110,7 +110,7 @@ const Vertex_attribute *Vertex_format::find_attribute_maybe(vertex_attribute_usa
     return nullptr;
 }
 
-const Vertex_attribute *Vertex_format::find_attribute(vertex_attribute_usage::value usage, unsigned int index) const
+const Vertex_attribute *Vertex_format::find_attribute(Vertex_attribute::Usage usage, unsigned int index) const
 {
     for (auto &i : m_attributes)
     {

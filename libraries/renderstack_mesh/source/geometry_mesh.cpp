@@ -33,13 +33,16 @@ namespace mesh
 using namespace renderstack::toolkit;
 using namespace renderstack::geometry;
 using namespace renderstack::graphics;
-using namespace glm;
-using namespace std;
+
+using glm::vec2;
+using glm::vec3;
+using glm::vec4;
+using glm::mat4;
 
 static inline void write(char *data_ptr, gl::vertex_attrib_pointer_type::value type, unsigned int value);
-static inline void write(char *data_ptr, gl::vertex_attrib_pointer_type::value type, const vec2 &value);
-static inline void write(char *data_ptr, gl::vertex_attrib_pointer_type::value type, const vec3 &value);
-static inline void write(char *data_ptr, gl::vertex_attrib_pointer_type::value type, const vec4 &value);
+static inline void write(char *data_ptr, gl::vertex_attrib_pointer_type::value type, vec2 value);
+static inline void write(char *data_ptr, gl::vertex_attrib_pointer_type::value type, vec3 value);
+static inline void write(char *data_ptr, gl::vertex_attrib_pointer_type::value type, vec4 value);
 
 Geometry_mesh::Geometry_mesh(Renderer          &renderer,
                              const Geometry    &geometry,
@@ -60,13 +63,13 @@ Geometry_mesh::Geometry_mesh(Renderer &          renderer,
     build_mesh_from_geometry(renderer, geometry, format_info, buffer_info);
 }
 
-shared_ptr<mesh> Geometry_mesh::get_mesh()
+std::shared_ptr<mesh> Geometry_mesh::get_mesh()
 {
     return m_mesh;
 }
 
-Geometry_mesh::Property_maps::Property_maps(const renderstack::geometry::Geometry &geometry,
-                                            const Format_info &                    format_info)
+Geometry_mesh::Property_maps::Property_maps(const Geometry    &geometry,
+                                            const Format_info &format_info)
 {
     point_locations = geometry.point_attributes().maybe_find<vec3>("point_locations");
 
@@ -96,11 +99,12 @@ Geometry_mesh::Property_maps::Property_maps(const renderstack::geometry::Geometr
         }
     }
 
-    if (format_info.want_normal_smooth)
+    if (format_info.want_normal_smooth && polygon_normals != nullptr)
     {
         point_normals_smooth = geometry.point_attributes().maybe_find<vec3>("point_normals_smooth");
         if (point_normals_smooth == nullptr)
         {
+            point_normals_smooth = point_attributes.create<vec3>("point_normals_smooth");
             for (auto point : geometry.points())
             {
                 vec3 normal_sum(0.0f, 0.0f, 0.0f);
@@ -153,53 +157,53 @@ void Geometry_mesh::prepare_vertex_format(const Geometry &   geometry,
                                           const Format_info &format_info,
                                           Buffer_info &      buffer_info)
 {
-    // TODO Consider case when using multiple vertex formats might work better?
+    // TODO(tksuoran@gmail.com): Consider case when using multiple vertex formats might work better?
     auto vf = buffer_info.vertex_format;
 
     // If vertex format is not yet specified, create a base vertex format
     if (!vf)
     {
-        vf = make_shared<renderstack::graphics::Vertex_format>();
+        vf = std::make_shared<renderstack::graphics::Vertex_format>();
 
         buffer_info.vertex_format = vf;
 
         if (format_info.want_position)
         {
-            (void)vf->make_attribute(vertex_attribute_usage::position, format_info.position_type, format_info.position_type, 0, 3);
+            (void)vf->make_attribute(Vertex_attribute::Usage::position, format_info.position_type, format_info.position_type, 0, 3);
         }
 
         if (format_info.want_normal)
         {
-            (void)vf->make_attribute(vertex_attribute_usage::normal, format_info.normal_type, format_info.normal_type, 0, 3);
+            (void)vf->make_attribute(Vertex_attribute::Usage::normal, format_info.normal_type, format_info.normal_type, 0, 3);
         }
 
         if (format_info.want_normal_flat)
         {
-            (void)vf->make_attribute(vertex_attribute_usage::normal, format_info.normal_flat_type, format_info.normal_flat_type, 1, 3);
+            (void)vf->make_attribute(Vertex_attribute::Usage::normal, format_info.normal_flat_type, format_info.normal_flat_type, 1, 3);
         }
 
         if (format_info.want_normal_smooth)
         {
-            (void)vf->make_attribute(vertex_attribute_usage::normal, format_info.normal_smooth_type, format_info.normal_smooth_type, 2, 3);
+            (void)vf->make_attribute(Vertex_attribute::Usage::normal, format_info.normal_smooth_type, format_info.normal_smooth_type, 2, 3);
         }
 
         if (format_info.want_tangent)
         {
-            (void)vf->make_attribute(vertex_attribute_usage::tangent, format_info.tangent_type, format_info.tangent_type, 0, 3);
+            (void)vf->make_attribute(Vertex_attribute::Usage::tangent, format_info.tangent_type, format_info.tangent_type, 0, 3);
         }
 
         if (format_info.want_color)
         {
-            (void)vf->make_attribute(vertex_attribute_usage::color, format_info.color_type, format_info.color_type, 0, 4);
+            (void)vf->make_attribute(Vertex_attribute::Usage::color, format_info.color_type, format_info.color_type, 0, 4);
         }
 
         if (format_info.want_id)
         {
-            (void)vf->make_attribute(vertex_attribute_usage::id, format_info.id_vec3_type, format_info.id_vec3_type, 0, 3);
+            (void)vf->make_attribute(Vertex_attribute::Usage::id, format_info.id_vec3_type, format_info.id_vec3_type, 0, 3);
 
             if (configuration::use_integer_polygon_ids)
             {
-                (void)vf->make_attribute(vertex_attribute_usage::id,
+                (void)vf->make_attribute(Vertex_attribute::Usage::id,
                                          gl::vertex_attrib_pointer_type::unsigned_int,
                                          gl::vertex_attrib_pointer_type::unsigned_int,
                                          0,
@@ -209,13 +213,13 @@ void Geometry_mesh::prepare_vertex_format(const Geometry &   geometry,
     }
 
     // If vertex format has no texture coordinate, check if we need to add one
-    bool has_tex_coord = vf->has_attribute(vertex_attribute_usage::tex_coord, 0);
+    bool has_tex_coord = vf->has_attribute(Vertex_attribute::Usage::tex_coord, 0);
 
     if (!has_tex_coord && format_info.want_texcoord)
     {
         if (geometry.corner_attributes().contains<vec2>("corner_texcoords") || geometry.point_attributes().contains<vec2>("point_texcoords"))
         {
-            vf->make_attribute(vertex_attribute_usage::tex_coord,
+            vf->make_attribute(Vertex_attribute::Usage::tex_coord,
                                //gl::vertex_attrib_pointer_type::half_float,
                                gl::vertex_attrib_pointer_type::float_,
                                gl::vertex_attrib_pointer_type::float_,
@@ -238,19 +242,19 @@ void Geometry_mesh::build_mesh_from_geometry(renderstack::graphics::Renderer &re
 
     m_vertex_format = buffer_info.vertex_format;
 
-    auto attribute_position      = m_vertex_format->find_attribute_maybe(vertex_attribute_usage::position, 0);
-    auto attribute_normal        = m_vertex_format->find_attribute_maybe(vertex_attribute_usage::normal, 0); // content normals
-    auto attribute_normal_flat   = m_vertex_format->find_attribute_maybe(vertex_attribute_usage::normal, 1); // flat normals
-    auto attribute_normal_smooth = m_vertex_format->find_attribute_maybe(vertex_attribute_usage::normal, 2); // smooth normals
-    auto attribute_tangent       = m_vertex_format->find_attribute_maybe(vertex_attribute_usage::tangent, 0);
-    auto attribute_color         = m_vertex_format->find_attribute_maybe(vertex_attribute_usage::color, 0);
-    auto attribute_texcoord      = m_vertex_format->find_attribute_maybe(vertex_attribute_usage::tex_coord, 0);
-    auto attribute_id_vec3       = m_vertex_format->find_attribute_maybe(vertex_attribute_usage::id, 0);
+    auto attribute_position      = m_vertex_format->find_attribute_maybe(Vertex_attribute::Usage::position, 0);
+    auto attribute_normal        = m_vertex_format->find_attribute_maybe(Vertex_attribute::Usage::normal, 0); // content normals
+    auto attribute_normal_flat   = m_vertex_format->find_attribute_maybe(Vertex_attribute::Usage::normal, 1); // flat normals
+    auto attribute_normal_smooth = m_vertex_format->find_attribute_maybe(Vertex_attribute::Usage::normal, 2); // smooth normals
+    auto attribute_tangent       = m_vertex_format->find_attribute_maybe(Vertex_attribute::Usage::tangent, 0);
+    auto attribute_color         = m_vertex_format->find_attribute_maybe(Vertex_attribute::Usage::color, 0);
+    auto attribute_texcoord      = m_vertex_format->find_attribute_maybe(Vertex_attribute::Usage::tex_coord, 0);
+    auto attribute_id_vec3       = m_vertex_format->find_attribute_maybe(Vertex_attribute::Usage::id, 0);
 
     const Vertex_attribute *attribute_id_uint = nullptr;
     if (configuration::use_integer_polygon_ids)
     {
-        attribute_id_uint = m_vertex_format->find_attribute_maybe(vertex_attribute_usage::id, 0);
+        attribute_id_uint = m_vertex_format->find_attribute_maybe(Vertex_attribute::Usage::id, 0);
     }
 
     size_t vertex_stride   = m_vertex_format->stride();
@@ -274,14 +278,14 @@ void Geometry_mesh::build_mesh_from_geometry(renderstack::graphics::Renderer &re
     auto t_id_vec3       = attribute_id_vec3 ? attribute_id_vec3->data_type : format_info.id_vec3_type;
     auto t_id_uint       = attribute_id_uint ? attribute_id_uint->data_type : format_info.id_uint_type;
 
-    m_vertex_stream = make_shared<renderstack::graphics::Vertex_stream>();
+    m_vertex_stream = std::make_shared<renderstack::graphics::Vertex_stream>();
     auto va         = m_vertex_stream->vertex_array();
     auto old_va     = renderer.set_vertex_array(va);
 
     renderstack::geometry::Geometry::Mesh_info mi;
     geometry.info(mi);
 
-    m_mesh = make_shared<mesh>();
+    m_mesh = std::make_shared<mesh>();
 
     size_t total_vertex_count = 0U;
     size_t total_index_count  = 0U;
@@ -409,8 +413,8 @@ void Geometry_mesh::build_mesh_from_geometry(renderstack::graphics::Renderer &re
 
     Property_maps property_maps(geometry, format_info);
 
-    m_min = vec3(numeric_limits<float>::max());
-    m_max = vec3(numeric_limits<float>::lowest());
+    m_min = vec3(std::numeric_limits<float>::max());
+    m_max = vec3(std::numeric_limits<float>::lowest());
     if (geometry.points().size() == 0 || property_maps.point_locations == nullptr)
     {
         m_min = m_max = vec3(0.0f);
@@ -693,12 +697,12 @@ void Geometry_mesh::build_mesh_from_geometry(renderstack::graphics::Renderer &re
 
     if (vertices_written != vertex_index)
     {
-        throw runtime_error("written vertex count does not match written indices");
+        throw std::runtime_error("written vertex count does not match written indices");
     }
 
     if (vertices_written != total_vertex_count)
     {
-        throw runtime_error("written vertex count does not match expected vertex count");
+        throw std::runtime_error("written vertex count does not match expected vertex count");
     }
 
     check_memory_system();
@@ -716,9 +720,7 @@ void Geometry_mesh::setup_vertex_stream(
 }
 #endif
 
-static inline void write(char *                                data_ptr,
-                         gl::vertex_attrib_pointer_type::value type,
-                         unsigned int                          value)
+static inline void write(char *data_ptr, gl::vertex_attrib_pointer_type::value type, unsigned int value)
 {
     switch (type)
     {
@@ -747,14 +749,12 @@ static inline void write(char *                                data_ptr,
 
         default:
         {
-            throw runtime_error("bad index type");
+            throw std::runtime_error("bad index type");
         }
     }
 }
-static inline void write(
-    char *                                data_ptr,
-    gl::vertex_attrib_pointer_type::value type,
-    const vec2 &                          value)
+
+static inline void write(char *data_ptr, gl::vertex_attrib_pointer_type::value type, vec2 value)
 {
     switch (type)
     {
@@ -771,7 +771,7 @@ static inline void write(
             // TODO Would this be safe even if we are not aligned?
             // uint *ptr = reinterpret_cast<uint*>(data_ptr);
             // *ptr = glm::packHalf2x16(value);
-            uint16 *ptr = reinterpret_cast<uint16 *>(data_ptr);
+            glm::uint16 *ptr = reinterpret_cast<glm::uint16*>(data_ptr);
             ptr[0]      = glm::packHalf1x16(value.x);
             ptr[1]      = glm::packHalf1x16(value.y);
             break;
@@ -779,46 +779,41 @@ static inline void write(
 
         default:
         {
-            throw runtime_error("unsupported attribute type");
+            throw std::runtime_error("unsupported attribute type");
         }
     }
 }
-static inline void write(
-    char *                                data_ptr,
-    gl::vertex_attrib_pointer_type::value type,
-    const vec3 &                          value)
+
+static inline void write(char *data_ptr, gl::vertex_attrib_pointer_type::value type, vec3 value)
 {
     switch (type)
     {
         case gl::vertex_attrib_pointer_type::float_:
         {
             float *ptr = reinterpret_cast<float *>(data_ptr);
-            ptr[0]     = value.x;
-            ptr[1]     = value.y;
-            ptr[2]     = value.z;
+            ptr[0] = value.x;
+            ptr[1] = value.y;
+            ptr[2] = value.z;
             break;
         }
 
         case gl::vertex_attrib_pointer_type::half_float:
         {
-            uint16 *ptr = reinterpret_cast<uint16 *>(data_ptr);
-            ptr[0]      = glm::packHalf1x16(value.x);
-            ptr[1]      = glm::packHalf1x16(value.y);
-            ptr[2]      = glm::packHalf1x16(value.z);
+            glm::uint16 *ptr = reinterpret_cast<glm::uint16 *>(data_ptr);
+            ptr[0] = glm::packHalf1x16(value.x);
+            ptr[1] = glm::packHalf1x16(value.y);
+            ptr[2] = glm::packHalf1x16(value.z);
             break;
         }
 
         default:
         {
-            throw runtime_error("unsupported attribute type");
+            throw std::runtime_error("unsupported attribute type");
         }
     }
 }
 
-static void write(
-    char *                                data_ptr,
-    gl::vertex_attrib_pointer_type::value type,
-    const vec4 &                          value)
+static void write(char *data_ptr, gl::vertex_attrib_pointer_type::value type, vec4 value)
 {
     switch (type)
     {
@@ -834,7 +829,7 @@ static void write(
 
         case gl::vertex_attrib_pointer_type::half_float:
         {
-            uint16 *ptr = reinterpret_cast<uint16 *>(data_ptr);
+            glm::uint16 *ptr = reinterpret_cast<glm::uint16 *>(data_ptr);
             // TODO glm::packHalf4x16() - but what if we are not aligned?
             ptr[0] = glm::packHalf1x16(value.x);
             ptr[1] = glm::packHalf1x16(value.y);
@@ -845,7 +840,7 @@ static void write(
 
         default:
         {
-            throw runtime_error("unsupported attribute type");
+            throw std::runtime_error("unsupported attribute type");
         }
     }
 }

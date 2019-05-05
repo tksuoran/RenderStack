@@ -48,7 +48,8 @@ void Gui_renderer::connect(std::shared_ptr<Renderer> renderer, std::shared_ptr<S
 
 unique_ptr<Program> Gui_renderer::load_program(const std::string &name, const std::string &path)
 {
-    bool any_found = false;
+    bool any_found = true;
+ 
     for (auto i = m_shader_versions.cbegin(); i != m_shader_versions.cend(); ++i)
     {
         string vs_path = m_shader_path + path + ".vs" + i->first + ".txt";
@@ -118,20 +119,18 @@ void Gui_renderer::initialize_service()
     m_blend_add.alpha.source_factor      = gl::blending_factor_src::one;
     m_blend_add.alpha.destination_factor = gl::blending_factor_dest::one;
 
-    m_vertex_attribute_mappings.add("a_position", vertex_attribute_usage::position, 0, 0);
-    m_vertex_attribute_mappings.add("a_normal", vertex_attribute_usage::normal, 0, 1);
-    m_vertex_attribute_mappings.add("a_normal_flat", vertex_attribute_usage::normal, 1, 2);
-    m_vertex_attribute_mappings.add("a_normal_smooth", vertex_attribute_usage::normal, 2, 3);
-    m_vertex_attribute_mappings.add("a_color", vertex_attribute_usage::color, 0, 4);
-    m_vertex_attribute_mappings.add("a_texcoord", vertex_attribute_usage::tex_coord, 1, 5);
+    m_vertex_attribute_mappings.add("a_position", Vertex_attribute::Usage::position, 0, 0);
+    m_vertex_attribute_mappings.add("a_normal", Vertex_attribute::Usage::normal, 0, 1);
+    m_vertex_attribute_mappings.add("a_normal_flat", Vertex_attribute::Usage::normal, 1, 2);
+    m_vertex_attribute_mappings.add("a_normal_smooth", Vertex_attribute::Usage::normal, 2, 3);
+    m_vertex_attribute_mappings.add("a_color", Vertex_attribute::Usage::color, 0, 4);
+    m_vertex_attribute_mappings.add("a_texcoord", Vertex_attribute::Usage::tex_coord, 1, 5);
     m_vertex_attribute_mappings.add("a_position_texcoord",
-                                     static_cast<vertex_attribute_usage::value>(
-                                         vertex_attribute_usage::position | vertex_attribute_usage::tex_coord),
+                                     Vertex_attribute::Usage::position | Vertex_attribute::Usage::tex_coord,
                                      0,
                                      0);
 
-    m_vertex_format.make_attribute(static_cast<vertex_attribute_usage::value>(
-                                       vertex_attribute_usage::position | vertex_attribute_usage::tex_coord),
+    m_vertex_format.make_attribute(Vertex_attribute::Usage::position | Vertex_attribute::Usage::tex_coord,
                                    gl::vertex_attrib_pointer_type::float_,
                                    gl::vertex_attrib_pointer_type::float_,
                                    0,

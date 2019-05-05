@@ -20,18 +20,18 @@ public:
     void clear();
 
     Vertex_attribute &make_attribute(
-        vertex_attribute_usage::value         usage,
+        Vertex_attribute::Usage         usage,
         gl::vertex_attrib_pointer_type::value data_type,
         gl::vertex_attrib_pointer_type::value shader_type,
         size_t                                index,
         size_t                                dimension,
         bool                                  normalized = false);
 
-    bool has_attribute(vertex_attribute_usage::value usage, unsigned int index) const;
+    bool has_attribute(Vertex_attribute::Usage usage, unsigned int index) const;
 
-    const Vertex_attribute *find_attribute_maybe(vertex_attribute_usage::value usage, unsigned int index) const;
+    const Vertex_attribute *find_attribute_maybe(Vertex_attribute::Usage usage, unsigned int index) const;
 
-    const Vertex_attribute *find_attribute(vertex_attribute_usage::value usage, unsigned int index) const;
+    const Vertex_attribute *find_attribute(Vertex_attribute::Usage usage, unsigned int index) const;
 
     size_t stride() const
     {

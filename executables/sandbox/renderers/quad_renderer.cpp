@@ -32,14 +32,14 @@ void Quad_renderer::initialize_service()
 
     // Specify vertex stream attribute mapping
     m_vertex_attribute_mappings.add("a_position_texcoord",
-                                    static_cast<vertex_attribute_usage::value>(
-                                        vertex_attribute_usage::position | vertex_attribute_usage::tex_coord),
+                                    static_cast<Vertex_attribute::Usage>(
+                                        Vertex_attribute::Usage::position | Vertex_attribute::Usage::tex_coord),
                                     0,
                                     0);
 
     // Specify vertex format (single attribute with X, Y, U, V)
-    m_vertex_format.make_attribute(static_cast<vertex_attribute_usage::value>(
-                                       vertex_attribute_usage::position | vertex_attribute_usage::tex_coord),
+    m_vertex_format.make_attribute(static_cast<Vertex_attribute::Usage>(
+                                       Vertex_attribute::Usage::position | Vertex_attribute::Usage::tex_coord),
                                    gl::vertex_attrib_pointer_type::float_,
                                    gl::vertex_attrib_pointer_type::float_,
                                    0,

@@ -1,8 +1,46 @@
 # CMakeLists.txt for RenderStack/
 
+cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
+
+include(cmake/safeguards.cmake)
+
 project(RenderStack C CXX)
 
-cmake_minimum_required(VERSION 2.8.0)
+if(CMAKE_CXX_COMPILER_ID MATCHES GNU)
+    set(CMAKE_CXX_FLAGS         "${CMAKE_CXX_FLAGS} -Wall -Wno-unknown-pragmas -Wno-sign-compare -Woverloaded-virtual -Wwrite-strings -Wno-unused")
+    set(CMAKE_CXX_FLAGS_DEBUG   "-O0 -g3")
+    set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs -ftest-coverage")
+endif()
+
+include(cmake/git_revision.cmake)
+
+set(VERSION_MAJOR 1)
+set(VERSION_MINOR 0)
+set(VERSION_PATCH 0)
+
+configure_file(
+    ${PROJECT_SOURCE_DIR}/cmake/config.h.in
+    ${PROJECT_BINARY_DIR}/config.h
+)
+
+
+find_program(CLANG_TIDY_EXE
+             NAMES "clang-tidy"
+             DOC "Path to clang-tidy executable")
+if (NOT CLANG_TIDY_EXE)
+    message(STATUS "clang-tidy not found.")
+else()
+    message(STATUS "clang-tidy found: ${CLANG_TIDY_EXE}")
+    set(DO_CLANG_TIDY "${CLANG_TIDY_EXE}" "-checks=bugprone-,cert-,clang-analyzer-,cppcoreguidelines-,google-,hicpp-,llvm-,misc-,modernize-,performance-,readability-")
+endif()
+
+
+#set(BUILDNAME
+#    "${CMAKE_SYSTEM_NAME}-${CMAKE_HOST_SYSTEM_PROCESSOR}-${CMAKE_Fortran_COMPILER_ID}-${cmake_build_type_tolower}"
+#    CACHE STRING
+#    "Name of build on the dashboard"
+#)
 
 # Warn users
 if ( MAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR AND NOT MSVC_IDE )

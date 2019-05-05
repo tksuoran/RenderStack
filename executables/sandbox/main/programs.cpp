@@ -54,36 +54,36 @@ void Programs::initialize_service()
 
     slog_trace("Programs::initialize_service()\n");
 
-    fragment_outputs.add("out_id", gl::fragment_output_type::float_vec4, 0);
-    fragment_outputs.add("out_color", gl::fragment_output_type::float_vec4, 0);
+    fragment_outputs.add("out_id",      gl::fragment_output_type::float_vec4, 0);
+    fragment_outputs.add("out_color",   gl::fragment_output_type::float_vec4, 0);
 
     //fragment_outputs.add("out_normal_tangent",  gl::fragment_output_type::float_vec4, 0);
-    fragment_outputs.add("out_normal", gl::fragment_output_type::float_vec4, 0);
-    fragment_outputs.add("out_tangent", gl::fragment_output_type::float_vec4, 1);
-    fragment_outputs.add("out_albedo", gl::fragment_output_type::float_vec4, 2);
+    fragment_outputs.add("out_normal",   gl::fragment_output_type::float_vec4, 0);
+    fragment_outputs.add("out_tangent",  gl::fragment_output_type::float_vec4, 1);
+    fragment_outputs.add("out_albedo",   gl::fragment_output_type::float_vec4, 2);
     fragment_outputs.add("out_material", gl::fragment_output_type::float_vec4, 3);
     fragment_outputs.add("out_emission", gl::fragment_output_type::float_vec4, 4);
 
-    fragment_outputs.add("out_linear", gl::fragment_output_type::float_vec4, 0);
+    fragment_outputs.add("out_linear",   gl::fragment_output_type::float_vec4, 0);
 
-    attribute_mappings.add("a_position", vertex_attribute_usage::position, 0, 0);
-    attribute_mappings.add("a_normal", vertex_attribute_usage::normal, 0, 1);
-    attribute_mappings.add("a_normal_flat", vertex_attribute_usage::normal, 1, 2);
-    attribute_mappings.add("a_normal_smooth", vertex_attribute_usage::normal, 2, 3);
-    attribute_mappings.add("a_tangent", vertex_attribute_usage::tangent, 0, 4);
-    attribute_mappings.add("a_color", vertex_attribute_usage::color, 0, 5);
-    attribute_mappings.add("a_texcoord", vertex_attribute_usage::tex_coord, 0, 6);
-    attribute_mappings.add("a_id", vertex_attribute_usage::id, 0, 7);
+    attribute_mappings.add("a_position",      Vertex_attribute::Usage::position,  0, 0);
+    attribute_mappings.add("a_normal",        Vertex_attribute::Usage::normal,    0, 1);
+    attribute_mappings.add("a_normal_flat",   Vertex_attribute::Usage::normal,    1, 2);
+    attribute_mappings.add("a_normal_smooth", Vertex_attribute::Usage::normal,    2, 3);
+    attribute_mappings.add("a_tangent",       Vertex_attribute::Usage::tangent,   0, 4);
+    attribute_mappings.add("a_color",         Vertex_attribute::Usage::color,     0, 5);
+    attribute_mappings.add("a_texcoord",      Vertex_attribute::Usage::tex_coord, 0, 6);
+    attribute_mappings.add("a_id",            Vertex_attribute::Usage::id,        0, 7);
     attribute_mappings.add("a_position_texcoord",
-                           static_cast<vertex_attribute_usage::value>(
-                               vertex_attribute_usage::position | vertex_attribute_usage::tex_coord),
+                           static_cast<Vertex_attribute::Usage>(
+                               Vertex_attribute::Usage::position | Vertex_attribute::Usage::tex_coord),
                            0,
                            0);
 
-    //mappings->add("a_position_texcoord",   vertex_attribute_usage::position,   0, 0);
+    //mappings->add("a_position_texcoord",   Vertex_attribute::Usage::position,   0, 0);
     /*mappings->add(
       "a_position_texcoord",
-      vertex_attribute_usage::position_texcoord,
+      Vertex_attribute::Usage::position_texcoord,
       0, 6);*/
 
     m_poll_shaders = false;

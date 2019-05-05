@@ -9,23 +9,21 @@ namespace graphics
 
 using namespace std;
 
-const char *vertex_attribute_usage::desc(enum value a)
+const char *Vertex_attribute::desc(Usage usage)
 {
-    switch (static_cast<int>(a))
+    switch (usage.value)
     {
-        case none: return "none";
-        case position: return "position";
-        case tangent: return "tangent";
-        case normal: return "normal";
-        case bitangent: return "bitangent";
-        case color: return "color";
-        case weights: return "weights";
-        case matrix_indices: return "matrix_indices";
-        case tex_coord: return "tex_coord";
-        case id: return "id";
-
-        case position | tex_coord: return "position | tex_coord";
-
+        case Usage::none: return "none";
+        case Usage::position: return "position";
+        case Usage::tangent: return "tangent";
+        case Usage::normal: return "normal";
+        case Usage::bitangent: return "bitangent";
+        case Usage::color: return "color";
+        case Usage::weights: return "weights";
+        case Usage::matrix_indices: return "matrix_indices";
+        case Usage::tex_coord: return "tex_coord";
+        case Usage::id: return "id";
+        case Usage::position | Usage::tex_coord: return "position | tex_coord";
         default: return "???";
     }
 }

@@ -598,7 +598,7 @@ void Vertex_stream::setup_attribute_pointers_old(GLint basevertex)
 
         switch (mapping->dst_usage())
         {
-            case vertex_attribute_usage::position:
+            case Vertex_attribute::Usage::position:
             {
                 gl::enable_client_state(gl::array_cap::vertex_array);
                 gl::vertex_pointer(
@@ -608,7 +608,7 @@ void Vertex_stream::setup_attribute_pointers_old(GLint basevertex)
                     reinterpret_cast<char *>(basevertex * binding->stride() + attribute->offset()));
             }
             break;
-            case vertex_attribute_usage::normal:
+            case Vertex_attribute::Usage::normal:
             {
                 gl::enable_client_state(gl::array_cap::normal_array);
                 gl::normal_pointer(
@@ -617,7 +617,7 @@ void Vertex_stream::setup_attribute_pointers_old(GLint basevertex)
                     reinterpret_cast<char *>(basevertex * binding->stride() + attribute->offset()));
             }
             break;
-            case vertex_attribute_usage::color:
+            case Vertex_attribute::Usage::color:
             {
                 if ((attribute->dimension() != 3) && (attribute->dimension() != 4))
                 {
@@ -632,7 +632,7 @@ void Vertex_stream::setup_attribute_pointers_old(GLint basevertex)
                     reinterpret_cast<char *>(basevertex * binding->stride() + attribute->offset()));
             }
             break;
-            case vertex_attribute_usage::tex_coord:
+            case Vertex_attribute::Usage::tex_coord:
             {
                 gl::client_active_texture(gl::texture_unit::texture0 + binding->vertex_stream_mapping()->dst_index());
                 gl::enable_client_state(gl::array_cap::texture_coord_array);
@@ -658,16 +658,16 @@ void Vertex_stream::disable_attributes_old()
 
         switch (mapping->dst_usage())
         {
-            case vertex_attribute_usage::position:
+            case Vertex_attribute::Usage::position:
                 gl::disable_client_state(gl::array_cap::vertex_array);
                 break;
-            case vertex_attribute_usage::normal:
+            case Vertex_attribute::Usage::normal:
                 gl::disable_client_state(gl::array_cap::normal_array);
                 break;
-            case vertex_attribute_usage::color:
+            case Vertex_attribute::Usage::color:
                 gl::disable_client_state(gl::array_cap::color_array);
                 break;
-            case vertex_attribute_usage::tex_coord:
+            case Vertex_attribute::Usage::tex_coord:
                 gl::client_active_texture(gl::texture_unit::texture0 + binding->vertex_stream_mapping()->dst_index());
                 gl::disable_client_state(gl::array_cap::texture_coord_array);
                 break;

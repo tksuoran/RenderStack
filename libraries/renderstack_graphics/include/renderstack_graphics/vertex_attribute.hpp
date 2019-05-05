@@ -12,31 +12,78 @@ namespace graphics
 
 size_t size_of_type(gl::vertex_attrib_pointer_type::value type);
 
-class vertex_attribute_usage
-{
-public:
-    enum value
-    {
-        none           = 0,
-        position       = 1,
-        tangent        = 2,
-        normal         = 4,
-        bitangent      = 8,
-        color          = 16,
-        weights        = 32,
-        matrix_indices = 64,
-        tex_coord      = 128,
-        id             = 256,
-        //position_texcoord =   1 | 128,
-    };
-    static const char *desc(enum value);
-};
-
 class Vertex_attribute
 {
 public:
+    struct Usage
+    {
+        using Value = unsigned int;
+        static constexpr Value none           = 0U;
+        static constexpr Value position       = 1U;
+        static constexpr Value tangent        = 2U;
+        static constexpr Value normal         = 4U;
+        static constexpr Value bitangent      = 8U;
+        static constexpr Value color          = 16U;
+        static constexpr Value weights        = 32U;
+        static constexpr Value matrix_indices = 64U;
+        static constexpr Value tex_coord      = 128U;
+        static constexpr Value id             = 256U;
+
+        Usage(Value value) : value(value) {}
+        Usage(const Usage &other) : value(other.value) {}
+        Usage(Usage &&other) : value(other.value) {}
+
+        bool operator==(const Usage &other) const
+        {
+            return value == other.value;
+        }
+
+        bool operator!=(const Usage &other) const
+        {
+            return value != other.value;
+        }
+
+        Usage &operator=(const Usage &other)
+        {
+            value = other.value;
+            return *this;
+        }
+
+        Usage &operator=(Usage &&other)
+        {
+            value = other.value;
+            return *this;
+        }
+
+        Usage operator|(const Usage &rhs) const
+        {
+            return Usage(value | rhs.value);
+        }
+
+        Usage &operator|=(const Usage &rhs)
+        {
+            value |= rhs.value;
+            return *this;
+        }
+
+        Usage operator&(const Usage &rhs) const
+        {
+            return Usage(value & rhs.value);
+        }
+
+        Usage &operator&=(const Usage &rhs)
+        {
+            value &= rhs.value;
+            return *this;
+        }
+
+        Value value{0U};
+    };
+
+    static const char *desc(Usage value);
+
     Vertex_attribute(
-        vertex_attribute_usage::value         usage,
+        Usage                                 usage,
         gl::vertex_attrib_pointer_type::value data_type,
         gl::vertex_attrib_pointer_type::value shader_type,
         size_t                                index,
@@ -59,7 +106,7 @@ public:
         return dimension * size_of_type(data_type);
     }
 
-    bool operator==(Vertex_attribute const &other) const
+    bool operator==(const Vertex_attribute &other) const
     {
         return (usage == other.usage) &&
             (data_type == other.data_type) &&
@@ -69,7 +116,7 @@ public:
             (normalized == other.normalized);
     }
 
-    bool operator!=(Vertex_attribute const &other) const
+    bool operator!=(const Vertex_attribute &other) const
     {
         return (usage != other.usage) ||
             (data_type != other.data_type) ||
@@ -79,14 +126,14 @@ public:
             (normalized != other.normalized);
     }
 
-    vertex_attribute_usage::value         usage;
+    Usage                                 usage{0U};
     gl::vertex_attrib_pointer_type::value data_type;
     gl::vertex_attrib_pointer_type::value shader_type;
-    size_t                                index;
-    size_t                                dimension;
-    size_t                                offset;
-    bool                                  normalized;
-    unsigned int                          divisor;
+    size_t                                index{0U};
+    size_t                                dimension{0U};
+    size_t                                offset{0U};
+    bool                                  normalized{false};
+    unsigned int                          divisor{0U};
 };
 
 } // namespace graphics

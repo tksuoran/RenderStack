@@ -29,11 +29,11 @@ public:
 
     void clear();
 
-    void add(const std::string &name, vertex_attribute_usage::value usage, unsigned int index);
+    void add(const std::string &name, Vertex_attribute::Usage usage, unsigned int index);
 
-    void add(const std::string &name, vertex_attribute_usage::value usage, unsigned int src_index, unsigned int dst_index);
+    void add(const std::string &name, Vertex_attribute::Usage usage, unsigned int src_index, unsigned int dst_index);
 
-    void add(const std::string &name, vertex_attribute_usage::value src_usage, unsigned int src_index, vertex_attribute_usage::value dst_usage, unsigned int dst_index);
+    void add(const std::string &name, Vertex_attribute::Usage src_usage, unsigned int src_index, Vertex_attribute::Usage dst_usage, unsigned int dst_index);
 
     void add_to_vertex_stream(Vertex_stream &vertex_stream,
                               Buffer        *vertex_buffer,

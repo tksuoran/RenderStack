@@ -13,3 +13,6 @@
 [submodule "libraries/OpenGL-Registry"]
 	path = libraries/OpenGL-Registry
 	url = https://github.com/KhronosGroup/OpenGL-Registry.git
+[submodule "libraries/bounce"]
+	path = libraries/bounce
+	url = https://github.com/irlanrobson/bounce.git

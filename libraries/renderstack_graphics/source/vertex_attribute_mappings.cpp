@@ -23,14 +23,14 @@ void Vertex_attribute_mappings::clear()
 }
 
 void Vertex_attribute_mappings::add(const std::string &           name,
-                                    vertex_attribute_usage::value usage,
+                                    Vertex_attribute::Usage usage,
                                     unsigned int                  index)
 {
     m_mappings.emplace_back(name, usage, index);
 }
 
 void Vertex_attribute_mappings::add(const std::string &           name,
-                                    vertex_attribute_usage::value usage,
+                                    Vertex_attribute::Usage usage,
                                     unsigned int                  src_index,
                                     unsigned int                  dst_index)
 {
@@ -38,9 +38,9 @@ void Vertex_attribute_mappings::add(const std::string &           name,
 }
 
 void Vertex_attribute_mappings::add(const std::string &           name,
-                                    vertex_attribute_usage::value src_usage,
+                                    Vertex_attribute::Usage src_usage,
                                     unsigned int                  src_index,
-                                    vertex_attribute_usage::value dst_usage,
+                                    Vertex_attribute::Usage dst_usage,
                                     unsigned int                  dst_index)
 {
     m_mappings.emplace_back(name, src_usage, src_index, dst_usage, dst_index);
@@ -75,7 +75,7 @@ void Vertex_attribute_mappings::add_to_vertex_stream(Vertex_stream &vertex_strea
             {
                 log_trace("adding vertex attribute: name = %s, usage = %s, data_type = %s, dimension = %u, index = %u\n",
                           mapping.name.c_str(),
-                          vertex_attribute_usage::desc(attribute->usage),
+                          Vertex_attribute::desc(attribute->usage),
                           gl::enum_string(attribute->data_type),
                           static_cast<unsigned int>(attribute->dimension),
                           static_cast<unsigned int>(attribute->index));
